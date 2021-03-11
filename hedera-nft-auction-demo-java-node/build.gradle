@@ -1,0 +1,267 @@
+import groovy.xml.MarkupBuilder
+import org.jooq.codegen.GenerationTool
+
+import javax.xml.bind.JAXB
+
+buildscript {
+	repositories {
+		gradlePluginPortal()
+		mavenLocal()
+		mavenCentral()
+	}
+	dependencies {
+		classpath "org.glassfish.jaxb:jaxb-runtime:2.3.2"
+		classpath "org.postgresql:postgresql:42.2.14"
+		classpath "io.github.jklingsporn:vertx-jooq-generate:5.2.0"
+		classpath "io.vertx:vertx-core:4.0.0"
+	}
+}
+
+plugins {
+	id 'idea'
+	id "nebula.lint" version "16.9.0"
+	id 'com.github.johnrengelman.shadow' version '6.0.0' apply false
+	id "net.ltgt.errorprone" version "1.2.1" apply false
+	id "com.github.ben-manes.versions" version "0.29.0" apply false
+	id "org.flywaydb.flyway" version "6.5.5"
+	id 'nu.studer.jooq' version '5.0.1'
+}
+
+allprojects {
+	apply plugin: "java"
+	apply plugin: "idea"
+	apply plugin: "net.ltgt.errorprone"
+	apply plugin: "com.github.ben-manes.versions"
+	apply plugin :"nebula.lint"
+	gradleLint {
+		rules=['unused-dependency']
+	}
+	sourceCompatibility = 14
+	targetCompatibility = 14
+
+	repositories {
+		jcenter()
+	}
+
+	sourceSets {
+		main {
+			resources {
+				srcDirs "src/main/resources"
+			}
+		}
+	}
+
+	dependencies {
+		implementation 'com.google.guava:guava:29.0-jre'
+
+		// https://github.com/google/error-prone
+		// https://errorprone.info/
+		errorprone "com.google.errorprone:error_prone_core:2.4.0"
+		compileOnly "com.google.errorprone:error_prone_annotations:2.4.0"
+
+		// https://github.com/uber/NullAway
+		errorprone "com.uber.nullaway:nullaway:0.7.9"
+
+		// https://github.com/eclipse-ee4j/common-annotations-api
+		implementation "jakarta.annotation:jakarta.annotation-api:2.0.0-RC1"
+	}
+
+	tasks.withType(JavaCompile).configureEach {
+		options.encoding = "UTF-8"
+
+		options.errorprone {
+			// https://github.com/uber/NullAway
+			warn("NullAway")
+			option("NullAway:AnnotatedPackages", "com.hedera.demo.auction.node.app")
+			option("NullAway:TreatGeneratedAsUnannotated", "true")
+
+			// Enable _all_ error prone checks then selectively disable
+			// Checks that are default-disabled are enabled as warnings
+			allDisabledChecksAsWarnings = true
+			disable("Java7ApiChecker")
+			disable("AndroidJdkLibsChecker")
+			disable("FieldMissingNullable")
+			disable("CatchAndPrintStackTrace")
+			disable("ThrowSpecificExceptions")
+
+			// Ignore generated and protobuf code
+			disableWarningsInGeneratedCode = true
+			excludedPaths = "(.*proto.*)|(.*generated.*)|(.*db.*)"
+		}
+	}
+
+}
+
+apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+group = "com.hedera.demo.auction.node"
+version = "1.0"
+description = "Hedera™ Hashgraph NFT Auction Appnet Demo Node"
+
+dependencies {
+	implementation "io.github.cdimascio:java-dotenv:5.2.1"
+	implementation 'com.hedera.hashgraph:sdk:2.0.4'
+
+	implementation 'io.grpc:grpc-netty-shaded:1.35.0'
+
+	implementation "io.vertx:vertx-web:4.0.0"
+	implementation "io.vertx:vertx-pg-client:4.0.0"
+	implementation "io.vertx:vertx-web-client:4.0.0"
+	implementation "io.github.jklingsporn:vertx-jooq-shared-reactive:6.0.0"
+
+	implementation 'commons-codec:commons-codec:1.9'
+	// http
+	implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
+	implementation group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.14'
+	implementation group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.5.13'
+	// jOOQ
+	implementation 'org.jooq:jooq:3.13.4'
+	implementation 'org.jooq:jooq-meta:3.13.4'
+	runtimeOnly 'org.postgresql:postgresql:42.2.14'
+
+	// jOOQ database driver
+	jooqGenerator 'org.postgresql:postgresql:42.2.14'
+
+	// logging
+	compile 'org.apache.logging.log4j:log4j-core:2.13.2'
+
+	// lombok
+	compileOnly 'org.projectlombok:lombok:1.18.16'
+	annotationProcessor 'org.projectlombok:lombok:1.18.16'
+	testCompileOnly 'org.projectlombok:lombok:1.18.16'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+}
+
+flyway {
+	url = 'jdbc:postgresql://localhost:5432/auctions'
+	user = 'postgres'
+	password = 'password'
+	locations = ['filesystem:src/main/resources/migrations']
+}
+
+task jooqGenerate {
+	doLast() {
+		def writer = new StringWriter()
+
+		new MarkupBuilder(writer)
+				.configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.13.0.xsd') {
+					jdbc {
+						driver('org.postgresql.Driver')
+						url('jdbc:postgresql://localhost:5432/auctions')
+						user('postgres')
+						password('password')
+					}
+					generator {
+						name('io.github.jklingsporn.vertx.jooq.generate.classic.ClassicReactiveVertxGenerator')
+						database {
+							name('org.jooq.meta.postgres.PostgresDatabase')
+							inputSchema('public')
+						}
+						generate([:]) {
+							deprecated(false)
+							records(false)
+							interfaces(false)
+							fluentSetters(false)
+                            pojos(false)
+							daos(false)
+						}
+						target() {
+							packageName('com.hedera.demo.auction.node.app.db')
+							directory("$projectDir/src/main/java")
+						}
+						strategy {
+							name('io.github.jklingsporn.vertx.jooq.generate.VertxGeneratorStrategy')
+						}
+					}
+				}
+
+		GenerationTool.generate(
+				JAXB.unmarshal(new StringReader(writer.toString()), org.jooq.meta.jaxb.Configuration.class)
+		)
+	}
+}
+
+if (project.hasProperty("args")) {
+	ext.cmdargs = project.getProperty("args")
+} else {
+	ext.cmdargs = ""
+}
+
+task runNode(type: JavaExec) {
+	group = "Execution"
+	description = "Runs the application"
+	classpath = sourceSets.main.runtimeClasspath
+	main = "com.hedera.demo.auction.node.app.App"
+	args cmdargs.split()
+}
+
+task createTopic(type: JavaExec) {
+	group = "Execution"
+	description = "Creates a topic id and updates the .env file with the result"
+	classpath = sourceSets.main.runtimeClasspath
+	main = "com.hedera.demo.auction.node.app.CreateTopic"
+	args cmdargs.split()
+}
+
+task createAuction(type: JavaExec) {
+	group = "Execution"
+	description = "Creates an auction from a file which is submitted to a Topic"
+	classpath = sourceSets.main.runtimeClasspath
+	main = "com.hedera.demo.auction.node.app.CreateAuction"
+	args cmdargs.split()
+}
+
+task createAuctionAccount(type: JavaExec) {
+	group = "Execution"
+	description = "Creates an auction account with threshold keys"
+	classpath = sourceSets.main.runtimeClasspath
+	main = "com.hedera.demo.auction.node.app.CreateAuctionAccount"
+	args cmdargs.split()
+}
+
+task createToken(type: JavaExec) {
+	group = "Execution"
+	description = "Creates a token"
+	classpath = sourceSets.main.runtimeClasspath
+	main = "com.hedera.demo.auction.node.app.CreateToken"
+	args cmdargs.split()
+}
+
+task createTokenAssociation(type: JavaExec) {
+	group = "Execution"
+	description = "Creates a token"
+	classpath = sourceSets.main.runtimeClasspath
+	main = "com.hedera.demo.auction.node.app.CreateTokenAssociation"
+	args cmdargs.split()
+}
+
+task easySetup(type: JavaExec) {
+	group = "Execution"
+	description = "Sets up the demo with default parameters"
+	classpath = sourceSets.main.runtimeClasspath
+	main = "com.hedera.demo.auction.node.app.EasySetup"
+	args cmdargs.split()
+}
+
+application {
+	mainClassName = 'com.hedera.demo.auction.node.app.App'
+}
+
+jar {
+	enabled = false
+	manifest {
+		attributes 'Main-Class': 'com.hedera.demo.auction.node.app.App'
+	}
+}
+
+tasks.shadowJar.configure {
+	classifier = null
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.errorprone {
+		disable("DefaultPackage")
+	}
+}
+

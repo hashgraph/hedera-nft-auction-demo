@@ -11,8 +11,6 @@
             :items="bids"
             class="elevation-1"
             hide-default-footer
-            :loading="loadingBids"
-            loading-text="refreshing bid list"
             height="600px"
             fixed-header
           >
@@ -31,18 +29,19 @@
               <a :href="accountURL(item.bidderaccountid)" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ item.bidderaccountid }}</b></a>
             </template>
             <template v-slot:item.status="{ item }">
-              <div v-if="item.status == ''">Current winner</div>
+              <div v-if="item.status == ''">Current leader</div>
               <div v-else>{{ item.status }}</div>
             </template>
             <template v-slot:item.refundtxid="{ item }">
-              <div v-if="item.refundtxid !== null">
-                <a :href="transactionURL(item.refundtxid, item.refundtxhash)" style="text-decoration: none; color: inherit;" target="_blank"><b>Refund Tx</b></a>
+              <div v-if="item.refundtxid !== ''">
+                <v-chip color="green">
+                  <a :href="transactionURL(item.refundtxid, item.refundtxhash)" style="text-decoration: none; color: inherit;" target="_blank"><b>Yes</b></a>
+                </v-chip>
               </div>
               <div v-else-if="item.status !== ''">
-                Not yet
-              </div>
-              <div v-else>
-                Winner
+                <v-chip color="yellow">
+                  Not yet
+                </v-chip>
               </div>
             </template>
           </v-data-table>

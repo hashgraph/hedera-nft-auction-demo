@@ -101,7 +101,10 @@ description = "Hedera™ Hashgraph NFT Auction Appnet Demo Node"
 
 dependencies {
 	implementation "io.github.cdimascio:java-dotenv:5.2.1"
-	implementation 'com.hedera.hashgraph:sdk:2.0.4'
+//	implementation 'com.hedera.hashgraph:sdk:2.0.4'
+// https://mvnrepository.com/artifact/com.hedera.hashgraph/sdk
+	implementation group: 'com.hedera.hashgraph', name: 'sdk', version: '2.0.5-beta.3'
+
 
 	implementation 'io.grpc:grpc-netty-shaded:1.35.0'
 

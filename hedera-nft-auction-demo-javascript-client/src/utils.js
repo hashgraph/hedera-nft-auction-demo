@@ -12,20 +12,27 @@ export function timeFromSeconds(timestamp) {
 export function getMirrorURL(type, mirror, id) {
   const network = process.env.VUE_APP_NETWORK.toUpperCase();
   if (mirror.toUpperCase() === "KABUTO") {
-    if (network === "MAINNET") {
-      return "https://explorer.kabuto.sh/mainnet/id/".concat(id);
-    } else if (network === "TESTNET") {
-      return "https://explorer.kabuto.sh/testnet/id/".concat(id);
+    const localNetwork = (network === "MAINNET") ? "mainnet" : "testnet";
+    if (type === "transactions") {
+      return "https://explorer.kabuto.sh/".concat(localNetwork).concat("/transaction/").concat(id);
     } else {
-      return "";
+      return "https://explorer.kabuto.sh/".concat(localNetwork).concat("/id/").concat(id);
     }
   } else {
     let transformId = id;
     if ((typeof (transformId) !== "undefined") && (type === "transactions") && (transformId !== "")) {
       transformId = transformId.replace(/\./g, "");
       transformId = transformId.replace("-", "");
-      const left = transformId.substr(0, transformId.indexOf("-"));
-      let right = transformId.substr(transformId.indexOf("-") + 1);
+      let left = "";
+      let right = "";
+      if (transformId.indexOf("@") > 0) {
+        left = transformId.substr(0, transformId.indexOf("@"));
+        right = transformId.substr(transformId.indexOf("@") + 1);
+      } else {
+        left = transformId.substr(0, transformId.indexOf("-"));
+        right = transformId.substr(transformId.indexOf("-") + 1);
+      }
+
       while (right.charAt(0) === "0") {
         right = right.substr(1);
       }

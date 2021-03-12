@@ -29,7 +29,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Bids extends TableImpl<Record> {
 
-    private static final long serialVersionUID = -1155028887;
+    private static final long serialVersionUID = 1402640350;
 
     /**
      * The reference instance of <code>public.bids</code>
@@ -68,6 +68,11 @@ public class Bids extends TableImpl<Record> {
      * The column <code>public.bids.status</code>.
      */
     public final TableField<Record, String> STATUS = createField(DSL.name("status"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+
+    /**
+     * The column <code>public.bids.refunded</code>.
+     */
+    public final TableField<Record, Boolean> REFUNDED = createField(DSL.name("refunded"), org.jooq.impl.SQLDataType.BOOLEAN.defaultValue(org.jooq.impl.DSL.field("false", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>public.bids.refundtxid</code>.

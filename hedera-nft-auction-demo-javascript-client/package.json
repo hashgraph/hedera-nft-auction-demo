@@ -8,12 +8,13 @@
   },
   "dependencies": {
     "@hashgraph/sdk": "^2.0.15",
+    "axios": "^0.21.1",
     "bignumber.js": "^9.0.0",
     "core-js": "^3.6.5",
     "vue": "^2.6.11",
+    "vue-confetti": "^2.2.1",
     "vue-router": "^3.2.0",
-    "vuetify": "^2.2.11",
-    "axios": "^0.21.1"
+    "vuetify": "^2.4.6"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",

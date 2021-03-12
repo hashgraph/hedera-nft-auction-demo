@@ -1,9 +1,9 @@
 package com.hedera.demo.auction.node.app.auctionwatchers;
 
+import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
@@ -12,7 +12,6 @@ import kotlin.Pair;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -21,20 +20,20 @@ public class AuctionReadinessWatcher implements Runnable {
 
     private final Auction auction;
     private final WebClient webClient;
-    private final String mirrorToUse;
     private final AuctionsRepository auctionsRepository;
     private final BidsRepository bidsRepository;
-    private final Dotenv env;
     private final int mirrorQueryFrequency;
+    private final String mirrorURL = HederaClient.getMirrorUrl();
+    private final String mirrorProvider = HederaClient.getMirrorProvider();
+    private final String refundKey;
 
-    public AuctionReadinessWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, Dotenv env) {
+    public AuctionReadinessWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
         this.auction = auction;
-        this.env = env;
-        this.mirrorToUse = Optional.ofNullable(env.get("MIRROR_NODE")).orElse("");
-        this.mirrorQueryFrequency = Integer.parseInt(Optional.ofNullable(env.get("MIRROR_QUERY_FREQUENCY")).orElse("5000"));
+        this.mirrorQueryFrequency = mirrorQueryFrequency;
+        this.refundKey = refundKey;
     }
 
     /**
@@ -51,29 +50,35 @@ public class AuctionReadinessWatcher implements Runnable {
         log.info("Watching auction account Id " + auction.getAuctionaccountid() + ", token Id " + auction.getTokenid());
 
         AtomicReference<String> uri = new AtomicReference<>("");
-        if (mirrorToUse.toUpperCase().contains("HEDERA")) {
-            uri.set("/api/v1/transactions");
-        } else if (mirrorToUse.toUpperCase().contains("KABUTO")) {
-            //TODO: Handle kabuto mirror
-        } else if (mirrorToUse.toUpperCase().contains("DRAGONGLASS")) {
-            //TODO: Handle dragonglass mirror
+
+        switch (mirrorProvider) {
+            case "HEDERA":
+                uri.set("/api/v1/transactions");
+                break;
+            case "DRAGONGLASS":
+                //TODO: Handle dragonglass mirror
+                uri.set("");
+                break;
+            default:
+                //TODO: Handle kabuto mirror
+                uri.set("");
+                break;
         }
 
         while (! done.get()) {
             if (!querying.get()) {
                 querying.set(true);
 
-                log.trace("Checking association for account " + auction.getAuctionaccountid() + " and token " + auction.getTokenid());
-                String operatorId = env.get("OPERATOR_ID");
-                if (mirrorToUse.toUpperCase().contains("HEDERA")) {
+                log.debug("Checking association for account " + auction.getAuctionaccountid() + " and token " + auction.getTokenid());
+                if (mirrorProvider.equals("HEDERA")) {
                     webClient
-                            .get(443, mirrorToUse, uri.get())
+                            .get(443, mirrorURL, uri.get())
                             .ssl(true)
                             //TODO: fix this once mirror bug fixed
 //                            .addQueryParam("account.id", auction.getAuctionaccountid())
-                            .addQueryParam("account.id", operatorId)
+                            .addQueryParam("account.id", this.auction.getAuctionaccountid())
                             .addQueryParam("transactiontype", "CRYPTOTRANSFER")
-                            .addQueryParam("order", "desc")
+                            .addQueryParam("order", "asc")
                             .as(BodyCodec.jsonObject())
                             .send()
                             .onSuccess(response -> {
@@ -85,9 +90,10 @@ public class AuctionReadinessWatcher implements Runnable {
                                         log.info("Account " + auction.getAuctionaccountid() + " and token " + auction.getTokenid() + " associated, starting auction");
                                         auctionsRepository.setActive(auction);
                                         // start the thread to monitor bids
-                                        Thread t = new Thread(new BidsWatcher(webClient, auctionsRepository, bidsRepository, auction, env));
+                                        Thread t = new Thread(new BidsWatcher(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency));
                                         t.start();
                                         done.set(true);
+                                        return;
                                     } else {
                                         if (checkAssociation.getSecond() != null) {
                                             uri.set(checkAssociation.getSecond());
@@ -103,9 +109,9 @@ public class AuctionReadinessWatcher implements Runnable {
                                 log.error(e);
                                 querying.set(false);
                             });
-                } else if (mirrorToUse.toUpperCase().contains("KABUTO")) {
+                } else if (mirrorProvider.equals("KABUTO")) {
                     //TODO: Handle kabuto mirror
-                } else if (mirrorToUse.toUpperCase().contains("DRAGONGLASS")) {
+                } else if (mirrorProvider.equals("DRAGONGLASS")) {
                     //TODO: Handle dragonglass mirror
                 }
             }

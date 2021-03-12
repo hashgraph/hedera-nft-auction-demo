@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Auctions extends TableImpl<Record> {
 
-    private static final long serialVersionUID = 1066324644;
+    private static final long serialVersionUID = 435431948;
 
     /**
      * The reference instance of <code>public.auctions</code>
@@ -114,6 +114,11 @@ public class Auctions extends TableImpl<Record> {
      * The column <code>public.auctions.tokenimage</code>.
      */
     public final TableField<Record, String> TOKENIMAGE = createField(DSL.name("tokenimage"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+
+    /**
+     * The column <code>public.auctions.minimumbid</code>.
+     */
+    public final TableField<Record, Long> MINIMUMBID = createField(DSL.name("minimumbid"), org.jooq.impl.SQLDataType.BIGINT.defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.BIGINT)), this, "");
 
     /**
      * Create a <code>public.auctions</code> table reference

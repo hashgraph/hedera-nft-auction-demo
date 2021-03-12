@@ -7,16 +7,7 @@ import com.hedera.demo.auction.node.app.auctionwatchers.AuctionReadinessWatcher;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.FileContentsQuery;
-import com.hedera.hashgraph.sdk.FileId;
-import com.hedera.hashgraph.sdk.TokenId;
-import com.hedera.hashgraph.sdk.TokenInfo;
-import com.hedera.hashgraph.sdk.TokenInfoQuery;
-import com.hedera.hashgraph.sdk.TopicId;
-import com.hedera.hashgraph.sdk.TopicMessage;
-import com.hedera.hashgraph.sdk.TopicMessageQuery;
-import io.github.cdimascio.dotenv.Dotenv;
+import com.hedera.hashgraph.sdk.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.SneakyThrows;
@@ -33,14 +24,16 @@ public class TopicSubscriber implements Runnable{
     private final TopicId topicId;
     private static Instant startTime = Instant.EPOCH;
     private final WebClient webClient;
-    private final Dotenv env;
+    private final String refundKey;
+    private final int mirrorQueryFrequency;
 
-    public TopicSubscriber(AuctionsRepository auctionsRepository, BidsRepository bidsRepository, WebClient webClient, TopicId topicId, Dotenv env) {
+    public TopicSubscriber(AuctionsRepository auctionsRepository, BidsRepository bidsRepository, WebClient webClient, TopicId topicId, String refundKey, int mirrorQueryFrequency) {
         this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
         this.topicId = topicId;
         this.webClient = webClient;
-        this.env = env;
+        this.refundKey = refundKey;
+        this.mirrorQueryFrequency = mirrorQueryFrequency;
     }
 
     @SneakyThrows
@@ -105,7 +98,7 @@ public class TopicSubscriber implements Runnable{
             if (auction.getId() != null) {
                 log.info("Auction for token " + newAuction.getTokenid() + " added");
                 // Start a thread to watch this new auction for readiness
-                Thread t = new Thread(new AuctionReadinessWatcher(webClient, auctionsRepository, bidsRepository, newAuction, env));
+                Thread t = new Thread(new AuctionReadinessWatcher(webClient, auctionsRepository, bidsRepository, newAuction, refundKey, mirrorQueryFrequency));
                 t.start();
             }
         } catch (Exception e) {

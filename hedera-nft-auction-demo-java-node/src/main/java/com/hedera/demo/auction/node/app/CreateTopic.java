@@ -27,10 +27,11 @@ public class CreateTopic {
      * @throws TimeoutException in the event of an exception
      * @throws PrecheckStatusException in the event of an exception
      * @throws ReceiptStatusException in the event of an exception
+     * @throws InterruptedException in the event of an exception
      * @throws IOException in the event of an exception
      */
 
-    public static void create() throws TimeoutException, PrecheckStatusException, IOException, ReceiptStatusException {
+    public static void create() throws TimeoutException, PrecheckStatusException, IOException, ReceiptStatusException, InterruptedException {
         Client client = HederaClient.getClient();
 
         TopicCreateTransaction topicCreateTransaction = new TopicCreateTransaction()
@@ -72,7 +73,7 @@ public class CreateTopic {
         log.info(".env file updated with new topic id " + topicId);
     }
 
-    public static void main(String[] args) throws IOException, PrecheckStatusException, ReceiptStatusException, TimeoutException {
+    public static void main(String[] args) throws IOException, PrecheckStatusException, ReceiptStatusException, TimeoutException, InterruptedException {
         create();
     }
 }

@@ -22,6 +22,7 @@ public class Auction implements Serializable {
     public String winningtxid;
     public String winningtxhash;
     public String tokenimage;
+    public long minimumbid;
 
     public Auction() {
     }
@@ -39,5 +40,6 @@ public class Auction implements Serializable {
         this.winningtxid = row.getString(AUCTIONS.WINNINGTXID.getName());
         this.winningtxhash = row.getString(AUCTIONS.WINNINGTXHASH.getName());
         this.tokenimage = row.getString(AUCTIONS.TOKENIMAGE.getName());
+        this.minimumbid = row.getLong(AUCTIONS.MINIMUMBID.getName());
     }
 }

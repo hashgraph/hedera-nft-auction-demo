@@ -23,11 +23,10 @@
       <P v-if="loading">Auctions loading, please wait</P>
     </div>
     <div v-else-if="auctions.length !== 0">
-      <v-carousel v-model="auctionIndex" hide-delimiters height="100%">
+      <v-carousel v-model="auctionIndex" hide-delimiters height="100%" :show-arrows=showArrows>
         <v-carousel-item
           v-for="auction in auctions"
           :key=auction.id
-          show-arrows="false"
         >
           <v-sheet
               height="100%"
@@ -46,6 +45,7 @@
                 :status="auction.status"
                 :mirror="mirror"
                 :tokenimage="auction.tokenimage"
+                :minimumbid="auction.minimumbid"
               />
             </v-row>
             <v-row
@@ -70,8 +70,8 @@
                 justify="center"
             >
               <LastBid
-                  :auctionid="auction.id"
-                  :accountid="accountId"
+                :auctionid="auction.id"
+                :accountid="accountId"
               />
             </v-row>
           </v-sheet>
@@ -120,6 +120,7 @@ export default {
   },
   data: function() {
     return {
+      confetti: false,
       auctionIndex: -1,
       auctions: null,
       message: "",
@@ -141,6 +142,35 @@ export default {
     };
   },
   methods: {
+    confettiOnOff() {
+      if (typeof (this.accountId) == "undefined") {
+        this.$confetti.stop();
+      } else {
+        if ((this.auctions.length > 0) && (this.auctionIndex !== -1)) {
+          if (this.auctions[this.auctionIndex].winningaccount === this.accountId) {
+            this.startConfetti({
+              particlesPerFrame: 0.1,
+            });
+          } else {
+            this.stopConfetti();
+          }
+        } else {
+          this.stopConfetti();
+        }
+      }
+    },
+    startConfetti() {
+      if ( ! this.confetti) {
+        this.confetti = true;
+        this.$confetti.start();
+      }
+    },
+    stopConfetti() {
+      if (this.confetti) {
+        this.confetti = false;
+        this.$confetti.stop();
+      }
+    },
     timeFromSeconds(timestamp) {
       return timeFromSeconds(timestamp);
     },
@@ -202,9 +232,11 @@ export default {
         this.auctionQuery = true;
         getAuctions().then(refreshedAuctions => {
           this.auctions = [];
+          this.message = "";
           this.auctions = refreshedAuctions;
           this.showArrows = (this.auctions.length > 1);
           this.auctionQuery = false;
+          this.confettiOnOff();
         })
       }
     }, 2000);

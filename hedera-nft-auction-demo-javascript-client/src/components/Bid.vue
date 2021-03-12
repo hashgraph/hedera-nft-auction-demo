@@ -20,14 +20,17 @@
       </v-card-text>
       <v-card-actions>
         <v-btn
+            class="ma-2"
             text
+            color="red"
             @click="bidDialog = false"
         >
           Cancel
         </v-btn>
         <v-spacer></v-spacer>
         <v-btn
-            text
+            class="ma-2"
+            color="green accent-4"
             @click="bid"
         >
           Bid

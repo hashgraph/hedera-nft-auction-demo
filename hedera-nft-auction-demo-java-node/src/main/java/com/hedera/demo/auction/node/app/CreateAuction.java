@@ -26,9 +26,10 @@ public class CreateAuction {
      * @throws TimeoutException in the event of an exception
      * @throws ReceiptStatusException in the event of an exception
      * @throws PrecheckStatusException in the event of an exception
+     * @throws InterruptedException in the event of an exception
      * @throws IOException in the event of an exception
      */
-    public static void create(String auctionFile) throws TimeoutException, PrecheckStatusException, ReceiptStatusException, IOException {
+    public static void create(String auctionFile) throws TimeoutException, PrecheckStatusException, ReceiptStatusException, IOException, InterruptedException {
         if (! Files.exists(Path.of(auctionFile))) {
             log.error("File " + auctionFile + " not found");
         } else {
@@ -40,6 +41,7 @@ public class CreateAuction {
             Client client = HederaClient.getClient();
             TopicMessageSubmitTransaction topicMessageSubmitTransaction = new TopicMessageSubmitTransaction()
                     .setTopicId(TopicId.fromString(topicId))
+                    .setTransactionMemo("CreateAuction")
                     .setMessage(auctionInitData);
             TransactionResponse response = topicMessageSubmitTransaction.execute(client);
 
@@ -52,7 +54,7 @@ public class CreateAuction {
         }
     }
 
-    public static void main(String[] args) throws IOException, PrecheckStatusException, ReceiptStatusException, TimeoutException {
+    public static void main(String[] args) throws IOException, PrecheckStatusException, ReceiptStatusException, TimeoutException, InterruptedException {
         if (args.length != 1) {
             log.error("Invalid number of arguments supplied");
         } else if (topicId.isEmpty()) {

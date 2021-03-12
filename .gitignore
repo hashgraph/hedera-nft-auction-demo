@@ -28,3 +28,14 @@ node_modules
 */build/
 hedera-nft-auction-demo-java-node/TODO.txt
 */dist/
+hedera-nft-auction-demo-java-node/initDemo.json
+
+.DS_Store
+node_modules
+/dist
+
+# Vue Browser Extension Output
+*.pem
+*.pub
+*.zip
+/artifacts

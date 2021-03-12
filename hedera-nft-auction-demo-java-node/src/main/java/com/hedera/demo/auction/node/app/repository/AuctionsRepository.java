@@ -13,7 +13,9 @@ import org.jooq.exception.DataAccessException;
 import javax.annotation.Nullable;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.hedera.demo.auction.node.app.db.Tables.AUCTIONS;
 
@@ -107,6 +109,25 @@ public class AuctionsRepository {
         return auction;
     }
 
+    public void setClosed(int auctionId) throws SQLException {
+
+        @Var DSLContext cx = null;
+        try {
+            cx = connectionManager.dsl();
+
+            cx.update(AUCTIONS)
+                    .set(AUCTIONS.STATUS, Auction.closed())
+                    .where(AUCTIONS.ID.eq(auctionId))
+                    .execute();
+            cx.close();
+        } catch (Exception e) {
+            if (cx != null) {
+                cx.close();
+                throw e;
+            }
+        }
+    }
+
     private void updateStatus(String auctionAccountId, String newStatus) throws SQLException {
         @Var DSLContext cx = null;
         try {
@@ -162,7 +183,8 @@ public class AuctionsRepository {
                     AUCTIONS.LASTCONSENSUSTIMESTAMP,
                     AUCTIONS.WINNERCANBID,
                     AUCTIONS.TOKENIMAGE,
-                    AUCTIONS.WINNINGBID
+                    AUCTIONS.WINNINGBID,
+                    AUCTIONS.MINIMUMBID
             ).values(auction.getTokenid(),
                     auction.getAuctionaccountid(),
                     auction.getEndtimestamp(),
@@ -170,7 +192,8 @@ public class AuctionsRepository {
                     "0.0",
                     auction.getWinnerCanBid(),
                     auction.getTokenimage(),
-                    auction.getWinningbid()
+                    auction.getWinningbid(),
+                    auction.getMinimumbid()
             ).returning(AUCTIONS.ID).execute();
             int id = cx.lastID().intValue();
             auction.setId(id);
@@ -184,5 +207,25 @@ public class AuctionsRepository {
             }
         }
         return auction;
+    }
+
+    public Map<String, Integer> openPendingAuctions() {
+        @Var DSLContext cx = null;
+        @Var Map<String, Integer> rows = new HashMap<>();
+        try {
+            cx = connectionManager.dsl();
+            rows = cx.select(AUCTIONS.ID, AUCTIONS.ENDTIMESTAMP)
+                    .from(AUCTIONS)
+                    .where(AUCTIONS.STATUS.ne("CLOSED"))
+                    .fetchMap(AUCTIONS.ENDTIMESTAMP, AUCTIONS.ID);
+        } catch (SQLException e) {
+            log.error(e);
+        } finally {
+            if (cx != null) {
+                cx.close();
+            }
+        }
+
+        return rows;
     }
 }

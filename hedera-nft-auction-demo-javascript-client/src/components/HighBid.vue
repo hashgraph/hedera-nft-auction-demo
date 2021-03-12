@@ -20,8 +20,15 @@
                 </p>
               </v-col>
               <v-col>
-                <P v-if="winningaccount">by <a :href="accountURL" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ winningaccount }}</b></a></P>
-                <P v-if="winningaccount">on <a :href="winningTxURL" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ timeFromSeconds(winningtimestamp) }}</b></a></P>
+                <div v-if="winningaccount">
+                  <P>by <a :href="accountURL" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ winningaccount }}</b></a></P>
+                  <P>on <a :href="winningTxURL" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ timeFromSeconds(winningtimestamp) }}</b></a></P>
+                </div>
+                <div v-else>
+                  <p class="ma-6 display-1 font-weight-bold text--white">
+                    No valid bid
+                  </P>
+                </div>
               </v-col>
             </v-row>
           </v-sheet>
@@ -90,8 +97,6 @@ export default {
   props: ['status','winningaccount','winningtimestamp','winningbid','accountid','auctionid','auctionaccountid','winningtxid','mirror','winningtxhash'],
   data: function () {
     return {
-      loadingBids: false,
-      interval: null,
       extensionURL: process.env.VUE_APP_BROWSER_EXTENSION_URL,
       network: process.env.VUE_APP_NETWORK,
     }
@@ -108,8 +113,6 @@ export default {
       EventBus.$emit(SHOW_BID_HISTORY, this.auctionid);
     }
   },
-  created() {
-  },
   computed: {
     winningBidText() {
       return Hbar.fromTinybars(this.winningbid);
@@ -121,10 +124,6 @@ export default {
       return getTransactionURL(this.mirror, this.winningtxid, this.winningtxhash);
     }
   },
-  beforeDestroy() {
-    clearInterval(this.interval);
-  }
-
 };
 </script>
 <!-- Add "scoped" attribute to limit CSS to this component only -->

@@ -16,6 +16,7 @@ public class Bid implements Serializable {
     public String bidderaccountid;
     public Long bidamount;
     public String status;
+    public Boolean refunded;
     public String refundtxid;
     public String refundtxhash;
     public String transactionid;
@@ -27,6 +28,7 @@ public class Bid implements Serializable {
         this.auctionid = row.getInteger(BIDS.AUCTIONID.getName());
         this.bidamount = row.getLong(BIDS.BIDAMOUNT.getName());
         this.bidderaccountid = row.getString(BIDS.BIDDERACCOUNTID.getName());
+        this.refunded = row.getBoolean(BIDS.REFUNDED.getName());
         this.refundtxid = row.getString(BIDS.REFUNDTXID.getName());
         this.refundtxhash = row.getString(BIDS.REFUNDTXHASH.getName());
         this.transactionid = row.getString(BIDS.TRANSACTIONID.getName());

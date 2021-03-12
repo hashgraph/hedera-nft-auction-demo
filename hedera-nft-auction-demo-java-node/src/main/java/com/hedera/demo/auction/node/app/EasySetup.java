@@ -61,7 +61,7 @@ public class EasySetup {
         auction.put("tokenid", tokenId.toString());
         auction.put("auctionaccountid", auctionAccount.toString());
         auction.put("reserve", 0);
-        auction.put("minimumbid", 0);
+        auction.put("minimumbid", 10);
         auction.put("endtimestamp", Instant.now().plus(24, ChronoUnit.DAYS).getEpochSecond());
         auction.put("winnercanbid", true);
 

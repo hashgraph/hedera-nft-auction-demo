@@ -14,6 +14,7 @@ CREATE TABLE auctions
     status                 TEXT  DEFAULT 'PENDING',
     winnerCanBid           BOOLEAN DEFAULT false,
     tokenImage             TEXT DEFAULT '',
+    minimumbid             INT8  DEFAULT 0,
     UNIQUE (tokenId, auctionAccountId)
 );
 
@@ -24,6 +25,7 @@ CREATE TABLE "bids"
     bidderAccountId      TEXT  DEFAULT '',
     bidAmount            INT8,
     status               TEXT  DEFAULT '',
+    refunded             BOOLEAN DEFAULT false,
     refundTxId           TEXT  DEFAULT '',
     refundTxHash         TEXT  DEFAULT '',
     transactionId        TEXT  DEFAULT '',

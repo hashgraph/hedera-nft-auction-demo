@@ -19,7 +19,7 @@ public class AuctionsHandler implements Handler<RoutingContext> {
     @Override
     public void handle(RoutingContext routingContext) {
 
-        String sql = "SELECT * FROM auctions";
+        String sql = "SELECT * FROM auctions ORDER BY id";
 
         pgPool.preparedQuery(sql).execute(ar -> {
             if (ar.failed()) {

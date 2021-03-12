@@ -26,6 +26,7 @@ public class CreateTokenAssociation {
         List<TokenId> tokenIds = new ArrayList<>();
         tokenIds.add(TokenId.fromString(tokenId));
         tokenAssociateTransaction.setTokenIds(tokenIds);
+        tokenAssociateTransaction.setTransactionMemo("Associate");
         tokenAssociateTransaction.setAccountId(AccountId.fromString(accountId));
 
         @Var TransactionResponse response = tokenAssociateTransaction.execute(client);
@@ -39,6 +40,7 @@ public class CreateTokenAssociation {
         }
 
         TransferTransaction transferTransaction = new TransferTransaction();
+        transferTransaction.setTransactionMemo("TransferToAuction");
         transferTransaction.addTokenTransfer(TokenId.fromString(tokenId), client.getOperatorAccountId(), -1);
         transferTransaction.addTokenTransfer(TokenId.fromString(tokenId), AccountId.fromString(accountId), 1);
 

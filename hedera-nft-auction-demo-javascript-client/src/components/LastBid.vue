@@ -2,9 +2,8 @@
   <v-card class="mx-auto" outlined width="650px">
     <v-toolbar dark>
       <v-toolbar-title class="white--text">Your last bid</v-toolbar-title>
-
     </v-toolbar>
-    <v-card-text v-if="lastbid !== 0">
+    <v-card-text v-if="bid.bidamount !== null">
       <v-sheet
           elevation="1"
           height="100%"
@@ -19,9 +18,15 @@
             </p>
           </v-col>
           <v-col>
-            <P>on <a :href="txURL" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ timeFromSeconds(timestamp) }}</b></a></P>
-            <P v-if="refundtxid">on <a :href="refundTxURL" style="text-decoration: none; color: inherit;" target="_blank"><b>Refund transaction</b></a></P>
-            <p v-else>Not refunded (yet)</p>
+            <P>on <a :href="txURL" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ timeFromSeconds(bid.timestamp) }}</b></a></P>
+            <div v-if="bid.status === ''">
+              <P>Status: Current Leader</P>
+            </div>
+            <div v-else>
+              <P>Status: {{bid.status }}</P>
+              <P v-if="bid.refundtxid"><a :href="refundTxURL" style="text-decoration: none; color: inherit;" target="_blank"><b>Refund transaction</b></a></P>
+              <p v-else>Not refunded (yet)</p>
+            </div>
           </v-col>
         </v-row>
       </v-sheet>
@@ -52,16 +57,13 @@ export default {
   data: function () {
     return {
       lastbid: 0,
-      timestamp: '',
-      status: '',
-      refundtxid: '',
-      txId: '',
       querying: false,
       interval: null,
       mirror: "Kabuto",
       network: process.env.VUE_APP_NETWORK,
       txURL: "",
       refundTxURL: "",
+      bid: {"bidamount": 0}
     }
   },
   async mounted() {
@@ -71,13 +73,8 @@ export default {
           this.querying = true;
           getLastBid(this.auctionid, this.accountid).then(bid => {
             this.querying = false;
-            if (bid.bidamount !== null) {
-              this.lastbid = bid.bidamount;
-              this.timestamp = bid.timestamp;
-              this.status = bid.status;
-              this.refundtxid = bid.refundtxid;
-              this.txId = bid.winningtxid;
-            }
+            this.bid = bid;
+            this.setUrls();
           });
         }
       }
@@ -85,11 +82,20 @@ export default {
   },
   methods: {
     timeFromSeconds(timestamp) {
-      return timeFromSeconds(timestamp);
+      if ((timestamp) && (timestamp !== null)) {
+        return timeFromSeconds(timestamp);
+      } else {
+        return "";
+      }
     },
     setUrls() {
-      this.txURL = getTransactionURL(this.mirror, this.txId);
-      this.refundTxURL = getTransactionURL(this.mirror, this.refundtxid);
+      if (this.bid) {
+        this.txURL = getTransactionURL(this.mirror, this.bid.transactionid, this.bid.transactionhash);
+        this.refundTxURL = getTransactionURL(this.mirror, this.bid.refundtxid, this.bid.refundtxhash);
+      } else {
+        this.txURL = "";
+        this.refundTxURL = "";
+      }
     }
   },
   created() {
@@ -102,7 +108,15 @@ export default {
   },
   computed: {
     winningBidText() {
-      return Hbar.fromTinybars(this.lastbid);
+      if (this.bid) {
+        if (this.bid.bidamount === null) {
+          return "";
+        } else {
+          return Hbar.fromTinybars(this.bid.bidamount);
+        }
+      } else {
+        return "";
+      }
     },
   },
   beforeDestroy() {

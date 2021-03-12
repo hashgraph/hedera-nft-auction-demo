@@ -1,0 +1,139 @@
+import {EncryptedStream, LocalStream} from 'extension-streams';
+import IdGenerator from '../util/IdGenerator';
+import * as PairingTags from '../messages/PairingTags'
+import NetworkMessage from '../messages/NetworkMessage';
+import * as NetworkMessageTypes from '../messages/NetworkMessageTypes'
+import InternalMessage from '../messages/InternalMessage';
+import * as InternalMessageTypes from '../messages/InternalMessageTypes'
+import {apis} from '../util/BrowserApis';
+import {strippedHost} from '../util/GenericTools'
+import Error from '../models/errors/Error'
+
+// The stream that connects between the content script
+// and the website
+let stream = new WeakMap();
+
+// The filename of the injected communication script.
+let INJECTION_SCRIPT_FILENAME = 'js/inject.js';
+
+let isReady = false;
+
+class Content {
+
+	constructor(){
+		this.setupEncryptedStream();
+		this.injectInteractionScript();
+	}
+
+
+	setupEncryptedStream(){
+		// Setting up a new encrypted stream for
+		// interaction between the extension and the application
+		stream = new EncryptedStream(PairingTags.IV, IdGenerator.text(256));
+		stream.listenWith((msg) => this.contentListener(msg));
+
+		// Binding IV to the application once the
+		// encrypted streams are synced.
+		stream.onSync(async () => {
+			const account = await this.loginFromPermission();
+
+			// Pushing an instance of IV to the web application
+			stream.send(NetworkMessage.payload(NetworkMessageTypes.PUSH_IV, {account}), PairingTags.INJECTED);
+
+			// Dispatching the loaded event to the web application.
+			isReady = true;
+
+			document.dispatchEvent(new CustomEvent("hederaWalletLoaded"));
+		})
+	}
+
+	/***
+	 * Injecting the interaction script into the application.
+	 * This injects an encrypted stream into the application which will
+	 * sync up with the one here.
+	 */
+	injectInteractionScript(){
+		let script = document.createElement('script');
+		script.src = apis.extension.getURL(INJECTION_SCRIPT_FILENAME);
+		(document.head||document.documentElement).appendChild(script);
+		script.onload = () => {
+			script.remove();
+		};
+	}
+
+	contentListener(msg){
+		if(!isReady) return;
+		if(!msg) return;
+		if(!stream.synced && (!msg.hasOwnProperty('type') || msg.type !== 'sync')) {
+			stream.send(nonSyncMessage.error(Error.maliciousEvent()), PairingTags.INJECTED);
+			return;
+		}
+
+		// Always including the domain for every request.
+		msg.domain = strippedHost();
+		if(msg.hasOwnProperty('payload'))
+			msg.payload.domain = strippedHost();
+
+		let nonSyncMessage = NetworkMessage.fromJson(msg);
+		switch(msg.type){
+			case 'sync': this.sync(msg); break;
+			case NetworkMessageTypes.LOGIN:                             this.login(nonSyncMessage); break;
+			case NetworkMessageTypes.LOGOUT:                            this.logout(nonSyncMessage); break;
+			case NetworkMessageTypes.REQUEST_SIGNATURE:                 this.requestSignature(nonSyncMessage); break;
+			case NetworkMessageTypes.REQUEST_ADD_ACCOUNT:               this.requestAddAccount(nonSyncMessage); break;
+			case NetworkMessageTypes.LOGIN_FROM_PERMISSION:             this.loginFromPermission(nonSyncMessage); break;
+			default:                                                    stream.send(nonSyncMessage.error(Error.maliciousEvent()), PairingTags.INJECTED)
+		}
+	}
+
+	respond(message, payload){
+		if(!isReady) return;
+		const response = (!payload || payload.hasOwnProperty('isError'))
+			? message.error(payload)
+			: message.respond(payload);
+		stream.send(response, PairingTags.INJECTED);
+	}
+
+	sync(message){
+		stream.key = message.handshake.length ? message.handshake : null;
+		stream.send({type:'sync'}, PairingTags.INJECTED);
+		stream.synced = true;
+	}
+
+	login(message){
+		if(!isReady) return;
+		InternalMessage.payload(InternalMessageTypes.LOGIN, message.payload)
+			.send().then(res => this.respond(message, res))
+	}
+
+	logout(message){
+		if(!isReady) return;
+		InternalMessage.payload(InternalMessageTypes.LOGOUT, message.payload)
+			.send().then(res => this.respond(message, res))
+	}
+
+	async loginFromPermission(message = null){
+		const promise = InternalMessage.payload(InternalMessageTypes.LOGIN_FROM_PERMISSION, {domain:strippedHost()}).send().catch(err => {
+			//console.error("Error getting account", err);
+			return false;
+		});
+		if(!message) return promise;
+		else promise.then(res => {
+			if(message) this.respond(message, res);
+		});
+	}
+
+	requestSignature(message){
+		if(!isReady) return;
+		InternalMessage.payload(InternalMessageTypes.REQUEST_SIGNATURE, message.payload)
+			.send().then(res => this.respond(message, res))
+	}
+
+	requestAddAccount(message){
+		if(!isReady) return;
+		InternalMessage.payload(InternalMessageTypes.REQUEST_ADD_ACCOUNT, message.payload)
+			.send().then(res => this.respond(message, res))
+	}
+}
+
+new Content();

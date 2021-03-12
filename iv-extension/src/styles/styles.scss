@@ -1,0 +1,187 @@
+@import "./variables";
+
+::-webkit-scrollbar {
+  width: 6px;
+  padding:2px;
+}
+
+::-webkit-scrollbar:horizontal {
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background:rgba($blue,0.06);
+  border-radius: 10px;
+  padding:2px;
+  width:4px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background:rgba($blue,0.24);
+}
+
+div, figure, section, nav, article, input, textarea {
+  padding:0; margin:0; box-sizing: border-box;
+  font-family: 'Roboto', sans-serif;
+}
+
+input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+html, body {
+  padding:0; margin:0; box-sizing: border-box;
+  position: relative;
+  word-break: break-word;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  display:inherit;
+  text-decoration: inherit;
+  color:inherit;
+}
+
+button {
+  border-radius:150px;
+  color:white;
+  font-weight: 300;
+  outline:0;
+  border:0;
+  width:100%;
+  font-size: 22px;
+  background:$blue;
+  height:60px;
+  display:flex;
+  justify-content: center;
+  align-items: center;
+  padding:0 40px;
+  cursor: pointer;
+
+  transition:all 0.2s ease;
+  transition-property: background, color, border;
+
+  &:hover {
+    background: $mediumblue;
+  }
+  &:active {
+    background: $darkblue;
+  }
+
+  &.secondary {
+    font-size: 16px;
+    background:transparent;
+    border:2px solid $lightgrey;
+    color:$lightgrey;
+    height:50px;
+
+    &:hover {
+      border:2px solid transparent;
+      background: $lightgrey;
+      color:white;
+    }
+
+    &:active {
+      border:2px solid transparent;
+      background: $grey;
+      color:white;
+    }
+  }
+}
+
+input {
+  border-radius:150px;
+  background:transparent;
+  border:1px solid rgba(0,0,0,0.08);
+  color:$black;
+  font-size: 14px;
+  outline:0;
+  width:100%;
+  height:50px;
+  display:flex;
+  justify-content: center;
+  align-items: center;
+  padding:0 40px;
+  text-align:center;
+  margin-bottom:5px;
+
+  transition:all 0.2s ease;
+  transition-property: border;
+
+  &:focus {
+    border:1px solid $blue;
+  }
+
+  &.square {
+    border-radius:4px;
+  }
+}
+
+textarea {
+  border-radius:4px;
+  padding:20px;
+  background:transparent;
+  border:1px solid rgba(0,0,0,0.08);
+  color:$black;
+  font-size: 14px;
+  min-height:80px;
+  outline:0;
+  max-width:100%;
+  min-width:100%;
+  resize: vertical;
+  display:flex;
+  justify-content: center;
+  align-items: center;
+  text-align:center;
+  margin-bottom:5px;
+
+  transition:all 0.2s ease;
+  transition-property: border;
+
+  &:focus {
+    border:1px solid $blue;
+  }
+}
+
+.jv-code {
+  padding:0 !important;
+}
+
+.tooltip {
+  z-index: 9999999;
+  padding:5px 10px;
+  background:white;
+  color:$grey;
+  border-radius:4px;
+  font-size: 11px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.1), 0 3px 8px rgba(0,0,0,0.03);
+}
+
+
+
+.pop-between-enter-active, .pop-between-leave-active {
+  transition: all 0.1s ease;
+  transition-property: opacity, transform;
+}
+.pop-between-enter, .pop-between-leave-to {
+  opacity: 0;
+  transform:scale(0.92);
+}
+
+.router-move-enter-active, .router-move-leave-active {
+  transition: all 0.1s ease;
+  transition-property: opacity, transform;
+}
+.router-move-enter, .router-move-leave-to {
+  opacity: 0;
+}

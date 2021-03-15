@@ -66,13 +66,13 @@ public class EasySetup {
         auction.put("winnercanbid", true);
 
         // store auction data in initDemo.json file
-        FileWriter myWriter = new FileWriter("./initDemo.json", UTF_8);
+        FileWriter myWriter = new FileWriter("./sample-files/initDemo.json", UTF_8);
         myWriter.write(auction.encodePrettily());
         myWriter.close();
 
         log.info("*************************");
-        log.info(" ./initDemo.json file written");
+        log.info(" ./sample-files/initDemo.json file written");
 
-        CreateAuction.create("./initDemo.json");
+        CreateAuction.create("./sample-files/initDemo.json");
     }
 }

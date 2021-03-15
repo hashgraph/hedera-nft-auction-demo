@@ -50,6 +50,7 @@
                 class="ma-2"
                 color="green accent-4"
                 @click="showBidDialog()"
+                v-if="status !== 'CLOSED'"
               >
                 Bid
               </v-btn>

@@ -14,6 +14,7 @@
     "vue": "^2.6.11",
     "vue-confetti": "^2.2.1",
     "vue-router": "^3.2.0",
+    "vue2-flip-countdown": "^0.11.1",
     "vuetify": "^2.4.6"
   },
   "devDependencies": {

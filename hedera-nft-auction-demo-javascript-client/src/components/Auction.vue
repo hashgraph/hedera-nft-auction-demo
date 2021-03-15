@@ -33,11 +33,10 @@
             <v-col>Minimum bid increase: {{ minimumbid }}</v-col>
           </v-row>
           <v-row>
-            <v-col>Ends on : {{ timeFromSeconds(endtimestamp) }}</v-col>
+            <v-col>
+              <flip-countdown :deadline="timeFromSeconds(endtimestamp)"></flip-countdown>
+            </v-col>
           </v-row>
-<!--          <v-row>-->
-<!--            <v-col><Countdown deadline="August 22, 2022"></Countdown></v-col>-->
-<!--          </v-row>-->
           <v-row>
             <v-col>Status : {{ status }}</v-col>
           </v-row>
@@ -48,22 +47,28 @@
 </template>
 
 <script>
-import {timeFromSeconds} from "@/utils";
 import { getAccountUrl, getTokenUrl } from "@/utils";
-// import Countdown from 'vuejs-countdown'
+import FlipCountdown from 'vue2-flip-countdown'
+
 export default {
   name: "Auction",
   props: ['tokenid', 'auctionaccountid', 'reserve', 'endtimestamp', 'status', 'mirror', 'tokenimage', 'minimumbid'],
-  // components: {
-  //   Countdown
-  // },
+  components: {
+    FlipCountdown
+  },
   data: function() {
     return {
     };
   },
   methods: {
     timeFromSeconds(timestamp) {
-      return timeFromSeconds(timestamp);
+      const seconds = timestamp.substr(0, timestamp.indexOf("."));
+      const endDate = new Date(seconds * 1000);
+
+      const timeToEnd = endDate.getFullYear() + "-" + (endDate.getMonth()+1) + "-" + endDate.getDate()
+        + " " + endDate.getHours() + ":" + endDate.getMinutes() + ":"  + endDate.getSeconds();
+
+      return timeToEnd;
     },
   },
   computed: {

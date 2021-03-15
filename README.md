@@ -1,21 +1,124 @@
 # Hedera Non Fungible Token Auction Demo
 
-POSTGRES 12
+## Dependencies
+
+* A testnet or mainnet account
+* PostgreSQL version 12
+* Node.js v14.9.0
+* Yarn 1.22.10
+* Java 14
+* Docker and docker-compose (optional)
 
 ## Notes
-Lombok (for eclipse)
-In addition to having Lombok plugin installed, also make sure that the "Enable annotation processing" checkbox is ticked under:
 
-Preferences > Compiler > Annotation Processors
-Note: starting with IntelliJ 2017, the "Enable Annotation Processing" checkbox has moved to:
+The java projects use Lombok, ensure that the plug is in installed and configured properly [Lombok Plugin](https://www.baeldung.com/lombok-ide)
 
-Settings > Build, Execution, Deployment > Compiler > Annotation Processors
+Note that enabling annotation processing differs between versions of IntelliJ `Preferences > Compiler > Annotation Processors` before IntelliJ2017, starting with IntelliJ 2017, the "Enable Annotation Processing" checkbox has moved to: `Settings > Build, Execution, Deployment > Compiler > Annotation Processors`
 
-## Setting up
+## Setup, compilation, execution
+
+Pull the repository from github
+
+```shell
+git clone https://github.com/hashgraph/hedera-nft-auction-demo.git
+```
+
+### With docker
+
+//TODO:
+
+### Standalone
+
+#### Database
+
+Create a database named `auctions`, note the installation below asssumes the user is `postgres` and the password is `password`, if your user, password and database names are different, you will need to edit `build.gradle` to reflect those.
+
+#### Java Appnet Node
+
+```shell
+cd hedera-nft-auction-demo
+cd hedera-nft-auction-demo-java-node
+# Setup the database objects
+./gradlew flywayMigrate
+# Build the database classes
+./gradlew jooqGenerate
+# Build the code
+./gradlew build
+```
+
+setup the environment
+
+```shell
+cp .env.sample .env
+nano .env
+```
+
+set the following properties according to your Hedera account details
+
+* OPERATOR_ID=
+* OPERATOR_KEY=302.....
+* REFUND_KEY=302.......
+
+You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish
+
+#### Java REST API
+
+```shell
+cd hedera-nft-auction-demo
+cd hedera-nft-auction-demo-java-rest
+# Build the database classes
+./gradlew jooqGenerate
+# Build the code
+./gradlew build
+```
+
+setup the environment
+
+```shell
+cp .env.sample .env
+```
+
+The defaults for the `.env` file should be sufficient unless you need to edit them
+
+* API_PORT=8081
+* DATABASE_URL=postgresql://localhost:5432/auctions
+* DATABASE_USERNAME=postgres
+* DATABASE_PASSWORD=password
+* POOL_SIZE=10
+
+#### Javascript UI
+
+```shell
+cd hedera-nft-auction-demo
+cd hedera-nft-auction-demo-javascript-client
+# Build the code
+./yarn install
+```
+
+Edit environment variables
+
+```shell
+cp .env.sample .env
+nano .env
+```
+
+* `VUE_APP_API_URL=http://localhost:8081/v1` this is the URL of the `Java REST API` above, make sure the host and port are correct (and reachable by web browsers)
+* `VUE_APP_NETWORK=testnet` should match the `HEDERA_NETWORK` specified in the `.env` for the `Java Appnet Node`
+* `VUE_APP_TOPIC_ID=` should match the `TOPIC_ID`  specified in the `.env` for the `Java Appnet Node`
+* `PORT=8080` the port you want to run the UI on
+
+#### Setting up an auction
 
 A number of helper functions are available from the project in order to get you started quickly.
 
-### Super simple
+Note, this section assumes you are running the commands from the `hedera-nft-auction-demo-java-node` directory.
+
+```shell
+cd hedera-nft-auction-demo
+cd hedera-nft-auction-demo-java-node
+```
+
+#### Super simple
 
 This command takes a number of parameters runs all the necessary steps to create a demo auction:
 
@@ -26,7 +129,7 @@ This command takes a number of parameters runs all the necessary steps to create
 * create an auction file
 * setup the auction
 
-#### Parameters
+__Parameters__
 
 The following parameter are optional and defaulted if not supplied 
 
@@ -46,17 +149,17 @@ or
 ./gradlew easySetup --args="--name=myToken --symbol=MTT --no-clean"
 ```
 
-### Step by step
+#### Step by step
 
-These steps will enable you to create an `initDemo.json` file which you can finally use to setup a new auction.
+These steps will enable you to create an `initDemo.json` file (located in `./sample-files`) which you can finally use to setup a new auction.
 
-#### Create a topic
+__Create a topic__
 
 ```shell
 ./gradlew createTopic
 ```
 
-#### Create a simple token
+__Create a simple token__
 
 This command will create a token named `test` with a symbol of `tst`, an initial supply of `1` and `0` decimals.
 
@@ -64,9 +167,9 @@ This command will create a token named `test` with a symbol of `tst`, an initial
 ./gradlew createToken --args="test tst 1 0"
 ```
 
-set the resulting `Token Id` to the `tokenId` attribute in your `initDemo.json` file.
+set the resulting `Token Id` to the `tokenId` attribute in your `./sample-files/initDemo.json` file.
 
-#### Create an auction account
+__Create an auction account__
 
 This command will create an auction account with an initial balance of `100` hbar and a threshold key of `1`.
 
@@ -74,9 +177,9 @@ This command will create an auction account with an initial balance of `100` hba
 ./gradlew createAuctionAccount --args="100 1"
 ```
 
-set the resulting `Account Id` to the `auctionaccountid` attribute in your `initDemo.json` file.
+set the resulting `Account Id` to the `auctionaccountid` attribute in your `./sample-files/initDemo.json` file.
 
-#### Associate the token with the auction account and transfer
+__Associate the token with the auction account and transfer__
 
 This will associate the token with the auction account and transfer it from the account that created it to the `auctionaccountid`, supply the `tokenId` and `accountId` created above in the parameters.
 
@@ -84,7 +187,7 @@ This will associate the token with the auction account and transfer it from the 
 ./gradlew createTokenAssociation --args="tokenId accountId"
 ```
 
-#### Finalising the initDemo.json file
+__Finalising the initDemo.json file__
 
 Your initDemo.json file should look like this (with your own values).
 
@@ -102,11 +205,39 @@ You can change some of the attribute values if you wish
 }
 ```
 
-#### Create the auction
+__Create the auction__
 
-This command will submit your `initDemo.json` file to the `Topic Id` created earlier.
+This command will submit your `./sample-files/initDemo.json` file to the `Topic Id` created earlier.
 
 ```shell
-./gradlew createAuction --args="./initDemo.json"
+./gradlew createAuction --args="./sample-files/initDemo.json"
 ```
 
+#### Run the components
+
+_Note: Each of the steps below need to be run from a different command line window_
+
+```shell
+cd hedera-nft-auction-demo
+```
+
+__Appnet node__
+
+```shell
+cd hedera-nft-auction-demo-java-node
+java -jar build/libs/hedera-nft-auction-demo-1.0.jar
+```
+
+__REST API__
+
+```shell
+cd hedera-nft-auction-demo-java-rest
+java -jar build/libs/hedera-nft-auction-demo-1.0.jar
+```
+
+__Web UI__
+
+```shell
+cd hedera-nft-auction-demo-javascript-client
+yarn serve
+```

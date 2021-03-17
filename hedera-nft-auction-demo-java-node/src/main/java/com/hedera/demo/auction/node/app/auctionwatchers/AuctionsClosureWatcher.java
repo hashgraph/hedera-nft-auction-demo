@@ -59,6 +59,7 @@ public class AuctionsClosureWatcher implements Runnable {
                     .get(443, mirrorURL, uri.get())
                     .ssl(true)
                     .as(BodyCodec.jsonObject())
+                    .addQueryParam("limit", "1") // only need one row (the latest)
                     .send()
                     .onSuccess(response -> {
                         JsonObject body = response.body();

@@ -41,7 +41,7 @@ cd hedera-nft-auction-demo-java-node
 # Setup the database objects
 ./gradlew flywayMigrate
 # Build the database classes
-./gradlew jooqGenerate
+# ./gradlew jooqGenerate
 # Build the code
 ./gradlew build
 ```
@@ -67,7 +67,7 @@ You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish
 cd hedera-nft-auction-demo
 cd hedera-nft-auction-demo-java-rest
 # Build the database classes
-./gradlew jooqGenerate
+# ./gradlew jooqGenerate
 # Build the code
 ./gradlew build
 ```
@@ -102,7 +102,7 @@ cp .env.sample .env
 nano .env
 ```
 
-* `VUE_APP_API_URL=http://localhost:8081/v1` this is the URL of the `Java REST API` above, make sure the host and port are correct (and reachable by web browsers)
+* `VUE_APP_API_PORT=8081` this is the port of the `Java REST API` above
 * `VUE_APP_NETWORK=testnet` should match the `HEDERA_NETWORK` specified in the `.env` for the `Java Appnet Node`
 * `VUE_APP_TOPIC_ID=` should match the `TOPIC_ID`  specified in the `.env` for the `Java Appnet Node`
 * `PORT=8080` the port you want to run the UI on

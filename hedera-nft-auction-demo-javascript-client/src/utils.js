@@ -108,3 +108,12 @@ export function secondsToParts(seconds) {
   }
   return result;
 }
+
+export function apiEndPoint() {
+  return window.location.protocol
+      .concat('//')
+      .concat(window.location.hostname)
+      .concat(process.env.VUE_APP_API_PORT)
+      .concat('/v1');
+}
+

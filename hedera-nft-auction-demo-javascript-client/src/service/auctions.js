@@ -1,5 +1,5 @@
 import {EventBus, FOOTER_NOTIFICATION} from "@/eventBus";
-const apiEndPoint = process.env.VUE_APP_API_URL;
+import { apiEndPoint} from "../utils";
 const axios = require("axios");
 
 export async function getAuctions() {

@@ -130,15 +130,19 @@ dependencies {
 
 task jooqGenerate {
 	doLast() {
+		def dbURL = System.getenv("DATABASE_URL") ?: "postgresql://localhost:5432/auctions"
+		def dbUSER = System.getenv("DATABASE_USERNAME") ?: "postgres"
+		def dbPASS = System.getenv("DATABASE_PASSWORD") ?: "password"
+
 		def writer = new StringWriter()
 
 		new MarkupBuilder(writer)
 				.configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.13.0.xsd') {
 					jdbc {
 						driver('org.postgresql.Driver')
-						url('jdbc:postgresql://localhost:5432/auctions')
-						user('postgres')
-						password('password')
+						url("jdbc:${dbURL}")
+						user("${dbUSER}")
+						password("${dbPASS}")
 					}
 					generator {
 						name('io.github.jklingsporn.vertx.jooq.generate.classic.ClassicReactiveVertxGenerator')

@@ -27,6 +27,10 @@ git clone https://github.com/hashgraph/hedera-nft-auction-demo.git
 
 //TODO:
 
+```shell script
+./gradlew easySetup --args="--name=myToken --symbol=./sample-files/gold-base64.txt"
+```
+
 ### Standalone
 
 #### Database
@@ -103,8 +107,8 @@ nano .env
 ```
 
 * `VUE_APP_API_PORT=8081` this is the port of the `Java REST API` above
-* `VUE_APP_NETWORK=testnet` should match the `HEDERA_NETWORK` specified in the `.env` for the `Java Appnet Node`
-* `VUE_APP_TOPIC_ID=` should match the `TOPIC_ID`  specified in the `.env` for the `Java Appnet Node`
+* `VUE_APP_NETWORK=testnet` previewnet, testnet or mainnet
+* `VUE_APP_TOPIC_ID=` topic id the appnet is using
 * `PORT=8080` the port you want to run the UI on
 
 #### Setting up an auction
@@ -149,6 +153,18 @@ or
 ./gradlew easySetup --args="--name=myToken --symbol=MTT --no-clean"
 ```
 
+or (this requires that the REST api and database are up and running)
+
+```shell script
+curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8081/v1/easysetup
+```
+
+or (this requires that the REST api and database are up and running)
+
+```shell script
+curl -H "Content-Type: application/json" -X POST -d '{"symbol":"TT","name":"Test Token","clean":false}' http://localhost:8081/v1/easysetup
+```
+
 #### Step by step
 
 These steps will enable you to create an `initDemo.json` file (located in `./sample-files`) which you can finally use to setup a new auction.
@@ -181,10 +197,18 @@ set the resulting `Account Id` to the `auctionaccountid` attribute in your `./sa
 
 __Associate the token with the auction account and transfer__
 
-This will associate the token with the auction account and transfer it from the account that created it to the `auctionaccountid`, supply the `tokenId` and `accountId` created above in the parameters.
+This will associate the token with the auction account.
 
 ```shell
 ./gradlew createTokenAssociation --args="tokenId accountId"
+```
+
+__Transfer the token to the auction account__
+
+This transfer the token from the account that created it to the `auctionaccountid`, supply the `tokenId` and `accountId` created above in the parameters.
+
+```shell
+./gradlew createTokenTransfer --args="tokenId accountId"
 ```
 
 __Finalising the initDemo.json file__

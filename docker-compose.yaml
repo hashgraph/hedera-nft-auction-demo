@@ -11,18 +11,20 @@ services:
       - POSTGRES_MULTIPLE_DATABASES=auctions
   #  networks:
   #    - hcs_heal
-  #  expose:
-  #    - "5441"
-    ports:
-      - "5432:5432"
-  #  command: -p 5441
+#    expose:
+#      - "5432"
+#    ports:
+#      - "5432:5432"
+#    command: -p 5432
+    volumes:
+      - ./docker-files/postgres-data:/var/lib/postgresql/data
   flyway:
     container_name: nft-auction-demo-flyway
     environment:
       - FLYWAY_USER=postgres
       - FLYWAY_PASSWORD=password
       - FLYWAY_URL=jdbc:postgresql://postgres:5432/auctions
-      - FLYWAY_SCHEMAS=flyway,public
+      - FLYWAY_SCHEMAS=public
       - FLYWAY_GROUP=true
     image: flyway/flyway:latest
     command: -locations=filesystem:/flyway/sql -connectRetries=60 migrate
@@ -37,46 +39,34 @@ services:
       context: hedera-nft-auction-demo-java-node
     restart: unless-stopped
     environment:
-      - OPERATOR_ID=0.0.11093
-      - OPERATOR_KEY=302e020100300506032b657004220420f28afe2490e6622feb57a59a5e78a84db8f32bf54250a29e0fffd013c87a423c
-      - HEDERA_NETWORK=testnet
-      - REFUND_KEY=302e020100300506032b657004220420f28afe2490e6622feb57a59a5e78a84db8f32bf54250a29e0fffd013c87a423c
-      - TOPIC_ID=
-      - MIRROR_PROVIDER=hedera
-      - MIRROR_QUERY_FREQUENCY=5000
-      - DATABASE_URL=postgresql://postgres:5432/auctions
-      - DATABASE_USERNAME=postgres
-      - DATABASE_PASSWORD=password
+      - AUCTION_NODE=true
+      - REST_API=false
     depends_on:
       - postgres
+    volumes:
+      - ./docker-files:/demo
 
   rest:
-    container_name: nft-auction-demo-rest
+    container_name: hedera-nft-auction-demo-java-node
     build:
-      context: hedera-nft-auction-demo-java-rest
+      context: hedera-nft-auction-demo-java-node
     restart: unless-stopped
     environment:
-      - API_PORT=8081
-      - DATABASE_URL=postgresql://postgres:5432/auctions
-      - DATABASE_USERNAME=postgres
-      - DATABASE_PASSWORD=password
-      - POOL_SIZE=10
+      - REST_API=true
+      - AUCTION_NODE=false
+    env_file:
+      - docker-files/.env
     ports:
       - "8081:8081"
     depends_on:
       - postgres
-
+    volumes:
+      - ./docker-files:/demo
   ui:
     container_name: nft-auction-demo-ui
     build:
       context: hedera-nft-auction-demo-javascript-client
     restart: unless-stopped
-    environment:
-      - VUE_APP_API_PORT=8081
-      - VUE_APP_NETWORK=testnet
-      - VUE_APP_TOPIC_ID=0.0.412980
-      - VUE_APP_BROWSER_EXTENSION_URL=https://github.com/nsjames/iv-extension/releases/tag/0.1.0
-      - PORT=8080
     ports:
       - "8080:8080"
     depends_on:

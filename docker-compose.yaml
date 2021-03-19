@@ -18,20 +18,6 @@ services:
 #    command: -p 5432
     volumes:
       - ./docker-files/postgres-data:/var/lib/postgresql/data
-  flyway:
-    container_name: nft-auction-demo-flyway
-    environment:
-      - FLYWAY_USER=postgres
-      - FLYWAY_PASSWORD=password
-      - FLYWAY_URL=jdbc:postgresql://postgres:5432/auctions
-      - FLYWAY_SCHEMAS=public
-      - FLYWAY_GROUP=true
-    image: flyway/flyway:latest
-    command: -locations=filesystem:/flyway/sql -connectRetries=60 migrate
-    volumes:
-      - $PWD/hedera-nft-auction-demo-java-node/src/main/resources/migrations:/flyway/sql
-    depends_on:
-      - postgres
 
   node:
     container_name: nft-auction-demo-node

@@ -15,6 +15,7 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
+import org.flywaydb.core.Flyway;
 
 import java.util.Optional;
 
@@ -24,19 +25,27 @@ public final class App {
     private final static boolean auctionNode = Optional.ofNullable(env.get("AUCTION_NODE")).map(Boolean::parseBoolean).orElse(false);
     private final static int verticleCount = Optional.ofNullable(env.get("API_VERTICLE_COUNT")).map(Integer::parseInt).orElse(2);
 
-//    private final static Vertx vertx = Vertx.vertx();
     private final static String topicId = Optional.ofNullable(env.get("VUE_APP_TOPIC_ID")).orElse("");
     private final static int mirrorQueryFrequency = Integer.parseInt(Optional.ofNullable(env.get("MIRROR_QUERY_FREQUENCY")).orElse("5000"));
     private final static String refundKey = Optional.ofNullable(env.get("REFUND_KEY")).orElse("");
+    private final static String postgresUrl = Optional.ofNullable(env.get("DATABASE_URL")).orElse("postgresql://localhost:5432/auctions");
+    private final static String postgresUser = Optional.ofNullable(env.get("DATABASE_USERNAME")).orElse("postgres");
+    private final static String postgresPassword = Optional.ofNullable(env.get("DATABASE_PASSWORD")).orElse("password");
 
-//    private final static String dgApiKey = Optional.ofNullable(env.get("DG_API_KEY")).orElse("");
+    //    private final static String dgApiKey = Optional.ofNullable(env.get("DG_API_KEY")).orElse("");
 
     private App() {
-
     }
 
     public static void main(String[] args) throws Exception {
-//        var app = new App();
+        Flyway flyway = Flyway
+                .configure()
+                .dataSource("jdbc:".concat(postgresUrl), postgresUser, postgresPassword)
+                .locations("classpath:migrations")
+                .connectRetries(20)
+                .load();
+        flyway.migrate();
+
         if (restAPI) {
             Vertx.vertx().deployVerticle(
                     ApiVerticle.class.getName(),

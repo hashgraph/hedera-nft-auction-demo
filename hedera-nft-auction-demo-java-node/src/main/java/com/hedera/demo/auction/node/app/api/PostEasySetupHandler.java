@@ -23,8 +23,8 @@ public class PostEasySetupHandler implements Handler<RoutingContext> {
         try {
             String[] args = new String[3];
 
-            args[0] = "symbol=".concat(data.symbol);
-            args[1] = "name=".concat(data.name);
+            args[0] = "--symbol=".concat(data.symbol);
+            args[1] = "--name=".concat(data.name);
             args[2] = "";
             if (! data.clean) {
                 args[2] = "--no-clean";

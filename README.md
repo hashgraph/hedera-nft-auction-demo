@@ -65,31 +65,6 @@ set the following properties according to your Hedera account details
 
 You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish
 
-#### Java REST API
-
-```shell
-cd hedera-nft-auction-demo
-cd hedera-nft-auction-demo-java-rest
-# Build the database classes
-# ./gradlew jooqGenerate
-# Build the code
-./gradlew build
-```
-
-setup the environment
-
-```shell
-cp .env.sample .env
-```
-
-The defaults for the `.env` file should be sufficient unless you need to edit them
-
-* API_PORT=8081
-* DATABASE_URL=postgresql://localhost:5432/auctions
-* DATABASE_USERNAME=postgres
-* DATABASE_PASSWORD=password
-* POOL_SIZE=10
-
 #### Javascript UI
 
 ```shell
@@ -162,7 +137,7 @@ curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8081/v
 or (this requires that the REST api and database are up and running)
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -d '{"symbol":"TT","name":"Test Token","clean":false}' http://localhost:8081/v1/easysetup
+curl -H "Content-Type: application/json" -X POST -d '{"symbol":"./sample-files/gold-base64.txt","name":"Test Token","clean":false}' http://localhost:8081/v1/easysetup
 ```
 
 #### Step by step
@@ -245,17 +220,10 @@ _Note: Each of the steps below need to be run from a different command line wind
 cd hedera-nft-auction-demo
 ```
 
-__Appnet node__
+__Appnet node and REST API__
 
 ```shell
 cd hedera-nft-auction-demo-java-node
-java -jar build/libs/hedera-nft-auction-demo-1.0.jar
-```
-
-__REST API__
-
-```shell
-cd hedera-nft-auction-demo-java-rest
 java -jar build/libs/hedera-nft-auction-demo-1.0.jar
 ```
 

@@ -9,11 +9,17 @@
         </Console>
     </Appenders>
     <Loggers>
-        <logger name="com.hedera.demo" level="debug" additivity="false">
+        <logger name="com.hedera.demo" level="DEBUG" additivity="false">
             <AppenderRef ref="Console" />
         </logger>
-        <Logger name="io.netty" level="off"/>
-        <Logger name="io.vertx.core.VertxException" level="off"/>
-
+        <Logger name="io.netty" level="OFF">
+            <AppenderRef ref="Console" />
+        </Logger>
+        <Logger name="io.vertx.core" level="OFF">
+            <AppenderRef ref="Console" />
+        </Logger>
+        <Logger name="io.grpc.internal" level="OFF">
+            <AppenderRef ref="Console" />
+        </Logger>
     </Loggers>
 </Configuration>

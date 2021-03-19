@@ -33,25 +33,7 @@ public class Auction implements VertxPojo, Serializable {
     private long minimumbid = 0L;
 
     public Auction() {}
-
-//    public Auction(Auction value) {
-//        this.id = value.id;
-//        this.lastconsensustimestamp = value.lastconsensustimestamp;
-//        this.winningbid = value.winningbid;
-//        this.winningaccount = value.winningaccount;
-//        this.winningtimestamp = value.winningtimestamp;
-//        this.tokenid = value.tokenid;
-//        this.auctionaccountid = value.auctionaccountid;
-//        this.endtimestamp = value.endtimestamp;
-//        this.reserve = value.reserve;
-//        this.status = value.status;
-//        this.winnercanbid = value.winnercanbid;
-//        this.winningtxid = value.winningtxid;
-//        this.winningtxhash = value.winningtxhash;
-//        this.tokenimage = value.tokenimage;
-//        this.minimumbid = value.minimumbid;
-//    }
-
+    
     public Auction(Record record) {
         this.id = record.get(AUCTIONS.ID);
         this.lastconsensustimestamp = record.get(AUCTIONS.LASTCONSENSUSTIMESTAMP);

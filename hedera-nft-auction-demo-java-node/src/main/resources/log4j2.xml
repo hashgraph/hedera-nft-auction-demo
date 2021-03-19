@@ -4,7 +4,7 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout>
                 <alwaysWriteExceptions>false</alwaysWriteExceptions>
-                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%threadName] %-5level %logger{36} - %message{nolookups}%xThrowable{separator(|)}%n</pattern>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%threadName] %-5level %logger{36} - %message{nolookups}%xThrowable{separator(|)}%n (%L)</pattern>
             </PatternLayout>
         </Console>
     </Appenders>
@@ -12,5 +12,8 @@
         <logger name="com.hedera.demo" level="debug" additivity="false">
             <AppenderRef ref="Console" />
         </logger>
+        <Logger name="io.netty" level="off"/>
+        <Logger name="io.vertx.core.VertxException" level="off"/>
+
     </Loggers>
 </Configuration>

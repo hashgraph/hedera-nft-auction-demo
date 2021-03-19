@@ -33,10 +33,9 @@ FROM adoptopenjdk:14-jre-hotspot
 # make a place to put our built JAR and copy it to there
 WORKDIR /srv
 COPY --from=build /opt/hedera-nft-auction-demo-java-node/build/libs/hedera-nft-auction-demo-1.0.jar /srv/hedera-nft-auction-demo-1.0.jar
-COPY --from=build /opt/hedera-nft-auction-demo-java-node/sample-files /srv/sample-files
-
-# setup auction
-CMD java "-cp" "hedera-nft-auction-demo-1.0.jar" "com.hedera.demo.auction.node.app.EasySetup" "--name=myToken" "--symbol=./sample-files/gold-base64.txt"
+#COPY --from=build /opt/hedera-nft-auction-demo-java-node/sample-files /demo/sample-files
 
 # run
-CMD java "-jar" "hedera-nft-auction-demo-1.0.jar"
+WORKDIR /demo
+
+CMD java "-jar" "/srv/hedera-nft-auction-demo-1.0.jar"

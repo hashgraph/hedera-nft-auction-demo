@@ -7,6 +7,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.pgclient.PgPool;
 import lombok.extern.log4j.Log4j2;
@@ -21,7 +22,7 @@ public class ApiVerticle extends AbstractVerticle {
 
     private final static Dotenv env = Dotenv.configure().ignoreIfMissing().load();
     private final static PgPool pgPool = new PGPool(env).createPgPool();;
-    private final static int httpPort = Optional.ofNullable(env.get("API_PORT")).map(Integer::parseInt).orElse(9005);
+    private final static int httpPort = Optional.ofNullable(env.get("VUE_APP_API_PORT")).map(Integer::parseInt).orElse(9005);
 
     @Override
     public void start(Promise<Void> startPromise) {
@@ -44,7 +45,12 @@ public class ApiVerticle extends AbstractVerticle {
 
         Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.GET, HttpMethod.POST));
         Set<String> allowedHeaders = new LinkedHashSet<>(Arrays.asList("content-type"));
-        router.route().handler(CorsHandler.create("*").allowedMethods(allowedMethods).allowedHeaders(allowedHeaders)).failureHandler(this::failureHandler);
+        router.route()
+                .handler(BodyHandler.create())
+                .handler(CorsHandler.create("*")
+                        .allowedMethods(allowedMethods)
+                        .allowedHeaders(allowedHeaders))
+                .failureHandler(this::failureHandler);
 
         router.get("/v1/auctions/:id").handler(getAuctionHandler);
         router.get("/v1/auctions").handler(getAuctionsHandler);

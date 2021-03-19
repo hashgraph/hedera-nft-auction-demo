@@ -9,7 +9,7 @@ pnpm-debug.log*
 # local environment
 .env.local
 .env.*.local
-.env
+docker-files/.env
 .env.production
 
 .DS_Store

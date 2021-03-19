@@ -9,7 +9,7 @@ pnpm-debug.log*
 # local environment
 .env.local
 .env.*.local
-docker-files/.env
+.env
 .env.production
 
 .DS_Store
@@ -39,3 +39,4 @@ node_modules
 *.pub
 *.zip
 /artifacts
+docker-files/postgres-data

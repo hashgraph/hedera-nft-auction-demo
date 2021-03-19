@@ -114,7 +114,8 @@ export function apiEndPoint() {
       .concat('//')
       .concat(window.location.hostname)
       .concat(":")
-      .concat(process.env.VUE_APP_API_PORT);
+      .concat(process.env.VUE_APP_API_PORT)
+      .concat("/v1");
 
   console.log(endPoint);
   return endPoint;

@@ -62,7 +62,7 @@ public class BidsRepository {
         @Var boolean result = false;
         try {
             cx = connectionManager.dsl();
-            String commonTransactionId = transactionId.replace("@",".");
+            @Var String commonTransactionId = transactionId.replace("@",".");
             commonTransactionId = commonTransactionId.replace(".", "-");
             commonTransactionId = commonTransactionId.replace("0-0-", "0.0.");
             cx.update(Tables.BIDS)

@@ -13,6 +13,7 @@ import lombok.extern.log4j.Log4j2;
 import java.io.FileWriter;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -23,6 +24,7 @@ public class EasySetup {
     final static SqlConnectionManager connectionManager = new SqlConnectionManager(env);
     final static AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
     final static BidsRepository bidsRepository = new BidsRepository(connectionManager);
+    static String topicId = Optional.ofNullable(env.get("VUE_APP_TOPIC_ID")).orElse("");
 
     private EasySetup() {
     }
@@ -49,13 +51,14 @@ public class EasySetup {
             log.info("Deleting existing auctions and bids and creating new topic");
             bidsRepository.deleteAllBids();
             auctionsRepository.deleteAllAuctions();
-            CreateTopic.create();
+            topicId = CreateTopic.create().toString();
         }
 
         TokenId tokenId = CreateToken.create(name, symbol, 1L, 0);
         String[] keys = { client.getOperatorPublicKey().toString() };
         AccountId auctionAccount = CreateAuctionAccount.create(100, 1, keys);
-        CreateTokenAssociation.associateAndTransfer(tokenId.toString(), auctionAccount.toString());
+        CreateTokenAssociation.associate(tokenId.toString(), auctionAccount.toString());
+        CreateTokenTransfer.transfer(tokenId.toString(), auctionAccount.toString());
 
         JsonObject auction = new JsonObject();
         auction.put("tokenid", tokenId.toString());
@@ -73,6 +76,6 @@ public class EasySetup {
         log.info("*************************");
         log.info(" ./sample-files/initDemo.json file written");
 
-        CreateAuction.create("./sample-files/initDemo.json");
+        CreateAuction.create("./sample-files/initDemo.json", topicId);
     }
 }

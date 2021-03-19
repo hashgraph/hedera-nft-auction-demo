@@ -77,7 +77,7 @@ public class AuctionsRepository {
         List<Auction> auctions = new ArrayList<>();
         Result<Record> auctionsData = getAuctions();
         if (auctionsData != null) {
-            for (Record record : getAuctions()) {
+            for (Record record : auctionsData) {
                 Auction auction = new Auction(record);
                 auction.setId(record.get(AUCTIONS.ID));
                 auction.setLastconsensustimestamp(record.get(AUCTIONS.LASTCONSENSUSTIMESTAMP));

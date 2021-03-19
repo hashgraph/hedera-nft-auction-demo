@@ -1,6 +1,13 @@
 package com.hedera.demo.auction.node.app;
 
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.Client;
+import com.hedera.hashgraph.sdk.PrecheckStatusException;
+import com.hedera.hashgraph.sdk.ReceiptStatusException;
+import com.hedera.hashgraph.sdk.Status;
+import com.hedera.hashgraph.sdk.TopicId;
+import com.hedera.hashgraph.sdk.TopicMessageSubmitTransaction;
+import com.hedera.hashgraph.sdk.TransactionReceipt;
+import com.hedera.hashgraph.sdk.TransactionResponse;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.log4j.Log4j2;
 
@@ -15,7 +22,7 @@ import java.util.concurrent.TimeoutException;
 public class CreateAuction {
 
     private final static Dotenv env = Dotenv.configure().ignoreIfMissing().load();
-    private final static String topicId = Optional.ofNullable(env.get("TOPIC_ID")).orElse("");
+    private static String topicId = Optional.ofNullable(env.get("VUE_APP_TOPIC_ID")).orElse("");
 
     private CreateAuction() {
     }
@@ -29,7 +36,10 @@ public class CreateAuction {
      * @throws InterruptedException in the event of an exception
      * @throws IOException in the event of an exception
      */
-    public static void create(String auctionFile) throws TimeoutException, PrecheckStatusException, ReceiptStatusException, IOException, InterruptedException {
+    public static void create(String auctionFile, String overrideTopicId) throws Exception {
+        if (! overrideTopicId.isBlank()) {
+            topicId = overrideTopicId;
+        }
         if (! Files.exists(Path.of(auctionFile))) {
             log.error("File " + auctionFile + " not found");
         } else {
@@ -54,14 +64,14 @@ public class CreateAuction {
         }
     }
 
-    public static void main(String[] args) throws IOException, PrecheckStatusException, ReceiptStatusException, TimeoutException, InterruptedException {
+    public static void main(String[] args) throws Exception {
         if (args.length != 1) {
             log.error("Invalid number of arguments supplied");
         } else if (topicId.isEmpty()) {
-            log.error("No TOPIC_ID in .env file");
+            log.error("No VUE_APP_TOPIC_ID in .env file");
         } else {
             log.info("Creating auction");
-            create(args[0]);
+            create(args[0], "");
         }
     }
 }

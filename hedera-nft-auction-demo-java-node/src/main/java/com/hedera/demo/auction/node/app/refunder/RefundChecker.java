@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.node.app.refunder;
 
+import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -7,12 +8,10 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Log4j2
 public class RefundChecker implements Runnable {
@@ -20,35 +19,32 @@ public class RefundChecker implements Runnable {
     private final WebClient webClient;
     private final BidsRepository bidsRepository;
     private final int mirrorQueryFrequency;
-    private final String mirrorURL = HederaClient.getMirrorUrl();
+    private String mirrorURL = "";
     private final String mirrorProvider = HederaClient.getMirrorProvider();
 
-    public RefundChecker(WebClient webClient, BidsRepository bidsRepository, Dotenv env) {
+    public RefundChecker(WebClient webClient, BidsRepository bidsRepository, Dotenv env) throws Exception {
         this.webClient = webClient;
         this.bidsRepository = bidsRepository;
         this.mirrorQueryFrequency = Integer.parseInt(Optional.ofNullable(env.get("MIRROR_QUERY_FREQUENCY")).orElse("5000"));
+        this.mirrorURL = HederaClient.getMirrorUrl();
     }
 
-    @SneakyThrows
     @Override
     public void run() {
 
         log.info("Checking for bid refunds");
 
-        AtomicReference<String> uri = new AtomicReference<>("");
+        @Var String uri = "";
 
         switch (mirrorProvider) {
             case "HEDERA":
-//                /api/v1/transactions/:id?scheduled=<boolean>
-                uri.set("/api/v1/transactions");
+                uri = "/api/v1/transactions";
                 break;
             case "DRAGONGLASS":
                 //TODO: Handle dragonglass mirror
-                uri.set("");
                 break;
             default:
                 //TODO: Handle kabuto mirror
-                uri.set("");
                 break;
         }
 
@@ -60,25 +56,26 @@ public class RefundChecker implements Runnable {
                 log.debug("Checking for refund on timestamp " + timestamp + " transaction id " + transactionId);
 
                 if (mirrorProvider.equals("HEDERA")) {
-                    String txURI = uri.get().concat("/").concat(transactionId);
+                    String txURI = uri.concat("/").concat(transactionId);
                     var webQuery =
                     webClient
                             .get(443, this.mirrorURL, txURI)
+//TODO:
 //                            .addQueryParam("scheduled", true)
                             .ssl(true);
 
                             webQuery.as(BodyCodec.jsonObject())
-                            .send()
-                            .onSuccess(response -> {
-                                JsonObject body = response.body();
-                                try {
-                                    handleHederaResponse(body, timestamp, transactionId);
-                                } catch (Exception e) {
-                                    log.error(e);
+                            .send(response -> {
+                                if (response.succeeded()) {
+                                    JsonObject body = response.result().body();
+                                    try {
+                                        handleHederaResponse(body, timestamp, transactionId);
+                                    } catch (RuntimeException e) {
+                                        log.error(e);
+                                    }
+                                } else {
+                                    log.error(response.cause().getMessage());
                                 }
-                            })
-                            .onFailure(e -> {
-                                log.error(e);
                             });
                 } else if (mirrorProvider.equals("KABUTO")) {
                     //TODO: Handle kabuto mirror
@@ -86,7 +83,12 @@ public class RefundChecker implements Runnable {
                     //TODO: Handle dragonglass mirror
                 }
             }
-            Thread.sleep(this.mirrorQueryFrequency);
+            try {
+                Thread.sleep(this.mirrorQueryFrequency);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                log.error(e);
+            }
         }
     }
 
@@ -107,7 +109,7 @@ public class RefundChecker implements Runnable {
             } else {
                 log.debug("No " + transactionId + " transaction found");
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.error(e);
         }
     }

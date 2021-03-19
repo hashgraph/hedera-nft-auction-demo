@@ -17,8 +17,7 @@ public class HederaClient {
     private static final Dotenv env = Dotenv.configure().ignoreIfMissing().load();
     private static final AccountId OPERATOR_ID = AccountId.fromString(Objects.requireNonNull(env.get("OPERATOR_ID")));
     private static final PrivateKey OPERATOR_KEY = PrivateKey.fromString(Objects.requireNonNull(env.get("OPERATOR_KEY")));
-    private static final String HEDERA_NETWORK = Optional.ofNullable(env.get("HEDERA_NETWORK").toUpperCase()).orElse("");
-    private static final String CONFIG_FILE = env.get("CONFIG_FILE");
+    private static final String VUE_APP_NETWORK = Optional.ofNullable(env.get("VUE_APP_NETWORK").toUpperCase()).orElse("");
     private static final String MIRROR_PROVIDER = Optional.ofNullable(env.get("MIRROR_PROVIDER")).orElse("kabuto").toUpperCase();
 
     private HederaClient() {
@@ -33,9 +32,9 @@ public class HederaClient {
         return OPERATOR_KEY.getPublicKey();
     }
     public static String getMirrorProvider() {return MIRROR_PROVIDER;}
-    public static String getMirrorUrl() {
-        String url = "";
-        switch (HEDERA_NETWORK) {
+    public static String getMirrorUrl() throws Exception {
+        @Var String url = "";
+        switch (VUE_APP_NETWORK) {
             case "PREVIEWNET":
                 switch (MIRROR_PROVIDER) {
                     case "DRAGONGLASS":
@@ -72,13 +71,16 @@ public class HederaClient {
                         break;
                 }
                 break;
+            default:
+                throw new Exception("VUE_APP_NETWORK environment variable not set");
+
         }
         return url;
     }
-    public static Client getClient() throws InterruptedException {
+    public static Client getClient() throws Exception {
         @Var Client client = Client.forTestnet();
 
-        switch (HEDERA_NETWORK) {
+        switch (VUE_APP_NETWORK) {
             case "PREVIEWNET":
                 client = Client.forPreviewnet();
                 break;
@@ -98,7 +100,7 @@ public class HederaClient {
                 break;
             default:
                 log.error(".env configuration missing.");
-                System.exit(0);
+                throw new Exception("VUE_APP_NETWORK environment variable not set");
         }
 
         client.setOperator(OPERATOR_ID, OPERATOR_KEY);

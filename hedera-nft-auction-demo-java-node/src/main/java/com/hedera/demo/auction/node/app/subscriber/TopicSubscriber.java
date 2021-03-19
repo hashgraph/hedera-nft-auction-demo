@@ -7,10 +7,17 @@ import com.hedera.demo.auction.node.app.auctionwatchers.AuctionReadinessWatcher;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.Client;
+import com.hedera.hashgraph.sdk.FileContentsQuery;
+import com.hedera.hashgraph.sdk.FileId;
+import com.hedera.hashgraph.sdk.TokenId;
+import com.hedera.hashgraph.sdk.TokenInfo;
+import com.hedera.hashgraph.sdk.TokenInfoQuery;
+import com.hedera.hashgraph.sdk.TopicId;
+import com.hedera.hashgraph.sdk.TopicMessage;
+import com.hedera.hashgraph.sdk.TopicMessageQuery;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 
 import java.nio.charset.StandardCharsets;
@@ -36,18 +43,27 @@ public class TopicSubscriber implements Runnable{
         this.mirrorQueryFrequency = mirrorQueryFrequency;
     }
 
-    @SneakyThrows
     @Override
     public void run() {
-        startSubscription();
+        try {
+            startSubscription();
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            log.error(e);
+        }
         while (true) {
-            Thread.sleep(5000);
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                log.error(e);
+            }
         }
     }
 
-    private void startSubscription() throws InterruptedException {
-        @Var Client client = HederaClient.getClient();
+    private void startSubscription() {
         try {
+            Client client = HederaClient.getClient();
             log.info("Subscribing to topic " + topicId.toString());
             new TopicMessageQuery()
                     .setTopicId(topicId)
@@ -59,7 +75,12 @@ public class TopicSubscriber implements Runnable{
         } catch (Exception e) {
             log.error("Mirror subscription error " + e.getMessage());
             log.info("Attempting re-subscription after 5s");
-            Thread.sleep(5000);
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException interruptedException) {
+                interruptedException.printStackTrace();
+                log.error(interruptedException);
+            }
             startSubscription();
         }
     }

@@ -9,7 +9,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
 import kotlin.Pair;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -23,17 +22,18 @@ public class AuctionReadinessWatcher implements Runnable {
     private final AuctionsRepository auctionsRepository;
     private final BidsRepository bidsRepository;
     private final int mirrorQueryFrequency;
-    private final String mirrorURL = HederaClient.getMirrorUrl();
+    private String mirrorURL = "";
     private final String mirrorProvider = HederaClient.getMirrorProvider();
     private final String refundKey;
 
-    public AuctionReadinessWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
+    public AuctionReadinessWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) throws Exception {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
         this.auction = auction;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.refundKey = refundKey;
+        this.mirrorURL = HederaClient.getMirrorUrl();
     }
 
     /**
@@ -41,7 +41,6 @@ public class AuctionReadinessWatcher implements Runnable {
      * start new bidding monitor thread
      * and close this thread
      */
-    @SneakyThrows
     @Override
     public void run() {
         AtomicBoolean querying = new AtomicBoolean(false);
@@ -80,34 +79,34 @@ public class AuctionReadinessWatcher implements Runnable {
                             .addQueryParam("transactiontype", "CRYPTOTRANSFER")
                             .addQueryParam("order", "asc")
                             .as(BodyCodec.jsonObject())
-                            .send()
-                            .onSuccess(response -> {
-                                JsonObject body = response.body();
-                                try {
-                                    Pair<Boolean, String> checkAssociation = HandleHederaResponse(body);
-                                    if (checkAssociation.getFirst()) {
-                                        // token is associated
-                                        log.info("Account " + auction.getAuctionaccountid() + " and token " + auction.getTokenid() + " associated, starting auction");
-                                        auctionsRepository.setActive(auction);
-                                        // start the thread to monitor bids
-                                        Thread t = new Thread(new BidsWatcher(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency));
-                                        t.start();
-                                        done.set(true);
-                                        return;
-                                    } else {
-                                        if (checkAssociation.getSecond() != null) {
-                                            uri.set(checkAssociation.getSecond());
+                            .send(response -> {
+                                if (response.succeeded()) {
+                                    JsonObject body = response.result().body();
+                                    try {
+                                        Pair<Boolean, String> checkAssociation = handleHederaResponse(body);
+                                        if (checkAssociation.getFirst()) {
+                                            // token is associated
+                                            log.info("Account " + auction.getAuctionaccountid() + " and token " + auction.getTokenid() + " associated, starting auction");
+                                            auctionsRepository.setActive(auction);
+                                            // start the thread to monitor bids
+                                            Thread t = new Thread(new BidsWatcher(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency));
+                                            t.start();
+                                            done.set(true);
+                                            return;
+                                        } else {
+                                            if (checkAssociation.getSecond() != null) {
+                                                uri.set(checkAssociation.getSecond());
+                                            }
                                         }
+                                    } catch (Exception e) {
+                                        log.error(e);
+                                    } finally {
+                                        querying.set(false);
                                     }
-                                } catch (Exception e) {
-                                    log.error(e);
-                                } finally {
+                                } else {
+                                    log.error(response.cause().getMessage());
                                     querying.set(false);
                                 }
-                            })
-                            .onFailure(e -> {
-                                log.error(e);
-                                querying.set(false);
                             });
                 } else if (mirrorProvider.equals("KABUTO")) {
                     //TODO: Handle kabuto mirror
@@ -115,11 +114,16 @@ public class AuctionReadinessWatcher implements Runnable {
                     //TODO: Handle dragonglass mirror
                 }
             }
-            Thread.sleep(this.mirrorQueryFrequency);
+            try {
+                Thread.sleep(this.mirrorQueryFrequency);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                log.error(e);
+            }
         }
     }
 
-    private Pair<Boolean, String> HandleHederaResponse(JsonObject response) {
+    private Pair<Boolean, String> handleHederaResponse(JsonObject response) {
         try {
             JsonArray transactions = response.getJsonArray("transactions");
             for (Object transactionObject : transactions) {
@@ -134,7 +138,7 @@ public class AuctionReadinessWatcher implements Runnable {
                             if (transfer.getString("token_id").equals(this.auction.getTokenid())) {
                                 if (transfer.getLong("amount") != 0) {
                                     // token is associated with account
-                                    return new Pair(true, null);
+                                    return new Pair<Boolean, String>(true, null);
                                 }
                             }
                         }
@@ -143,10 +147,10 @@ public class AuctionReadinessWatcher implements Runnable {
             }
 
             JsonObject links = response.getJsonObject("links");
-            return new Pair(false, links.getString("next"));
-        } catch (Exception e) {
+            return new Pair<Boolean, String>(false, links.getString("next"));
+        } catch (RuntimeException e) {
             log.error(e);
-            return new Pair(false, null);
+            return new Pair<Boolean, String>(false, null);
         }
     }
 }

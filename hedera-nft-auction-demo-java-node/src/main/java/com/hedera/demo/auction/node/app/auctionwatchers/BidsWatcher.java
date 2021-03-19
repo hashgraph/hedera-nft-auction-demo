@@ -11,7 +11,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.binary.Hex;
 
@@ -31,19 +30,19 @@ public class BidsWatcher implements Runnable {
     private final AuctionsRepository auctionsRepository;
     private final String refundKey;
     private final int mirrorQueryFrequency;
-    private final String mirrorURL = HederaClient.getMirrorUrl();
+    private String mirrorURL = "";
     private final String mirrorProvider = HederaClient.getMirrorProvider();
 
-    public BidsWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) throws InterruptedException {
+    public BidsWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) throws Exception {
         this.webClient = webClient;
         this.bidsRepository = bidsRepository;
         this.auctionsRepository = auctionsRepository;
         this.auction = auction;
         this.refundKey = refundKey;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
+        this.mirrorURL = HederaClient.getMirrorUrl();
     }
 
-    @SneakyThrows
     @Override
     public void run() {
 
@@ -86,20 +85,20 @@ public class BidsWatcher implements Runnable {
                             }
 
                             webQuery.as(BodyCodec.jsonObject())
-                            .send()
-                            .onSuccess(response -> {
-                                JsonObject body = response.body();
-                                try {
-                                    handleHederaResponse(body);
-                                } catch (Exception e) {
-                                    log.error(e);
-                                } finally {
+                            .send(response -> {
+                                if (response.succeeded()) {
+                                    JsonObject body = response.result().body();
+                                    try {
+                                        handleHederaResponse(body);
+                                    } catch (RuntimeException e) {
+                                        log.error(e);
+                                    } finally {
+                                        querying.set(false);
+                                    }
+                                } else {
+                                    log.error(response.cause().getMessage());
                                     querying.set(false);
                                 }
-                            })
-                            .onFailure(e -> {
-                                log.error(e);
-                                querying.set(false);
                             });
                 } else if (mirrorProvider.equals("KABUTO")) {
                     //TODO: Handle kabuto mirror
@@ -107,7 +106,12 @@ public class BidsWatcher implements Runnable {
                     //TODO: Handle dragonglass mirror
                 }
             }
-            Thread.sleep(this.mirrorQueryFrequency);
+            try {
+                Thread.sleep(this.mirrorQueryFrequency);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                log.error(e);
+            }
         }
     }
 
@@ -233,7 +237,7 @@ public class BidsWatcher implements Runnable {
     }
 
     private long hederaBidAmount(JsonObject transaction) {
-        long bidAmount = 0;
+        @Var long bidAmount = 0;
         // find payment amount
         JsonArray transfers = transaction.getJsonArray("transfers");
         // get the bid value which is the payment amount to the auction account
@@ -256,7 +260,7 @@ public class BidsWatcher implements Runnable {
         t.start();
     }
 
-    private boolean checkMemos(String memo) {
+    private static boolean checkMemos(String memo) {
         if (memo.isEmpty()) {
             return false;
         }

@@ -6,6 +6,7 @@ package com.hedera.demo.auction.node.app.domain;
 
 import io.github.jklingsporn.vertx.jooq.shared.internal.VertxPojo;
 import io.vertx.core.json.JsonObject;
+import io.vertx.sqlclient.Row;
 import org.jooq.Record;
 
 import java.io.Serializable;
@@ -15,41 +16,41 @@ public class Auction implements VertxPojo, Serializable {
 
     private static final long serialVersionUID = -495816041;
 
-    private Integer id;
-    private String lastconsensustimestamp;
-    private Long winningbid;
-    private String winningaccount;
-    private String winningtimestamp;
-    private String tokenid;
-    private String auctionaccountid;
-    private String endtimestamp;
-    private Long reserve;
-    private String status;
-    private boolean winnercanbid;
-    private String winningtxid;
-    private String winningtxhash;
-    private String tokenimage;
-    private long minimumbid;
+    private Integer id = 0;
+    private String lastconsensustimestamp = "";
+    private Long winningbid = 0L;
+    private String winningaccount = "";
+    private String winningtimestamp = "";
+    private String tokenid = "";
+    private String auctionaccountid = "";
+    private String endtimestamp = "";
+    private Long reserve = 0L;
+    private String status = "";
+    private boolean winnercanbid = false;
+    private String winningtxid = "";
+    private String winningtxhash = "";
+    private String tokenimage = "";
+    private long minimumbid = 0L;
 
     public Auction() {}
 
-    public Auction(Auction value) {
-        this.id = value.id;
-        this.lastconsensustimestamp = value.lastconsensustimestamp;
-        this.winningbid = value.winningbid;
-        this.winningaccount = value.winningaccount;
-        this.winningtimestamp = value.winningtimestamp;
-        this.tokenid = value.tokenid;
-        this.auctionaccountid = value.auctionaccountid;
-        this.endtimestamp = value.endtimestamp;
-        this.reserve = value.reserve;
-        this.status = value.status;
-        this.winnercanbid = value.winnercanbid;
-        this.winningtxid = value.winningtxid;
-        this.winningtxhash = value.winningtxhash;
-        this.tokenimage = value.tokenimage;
-        this.minimumbid = value.minimumbid;
-    }
+//    public Auction(Auction value) {
+//        this.id = value.id;
+//        this.lastconsensustimestamp = value.lastconsensustimestamp;
+//        this.winningbid = value.winningbid;
+//        this.winningaccount = value.winningaccount;
+//        this.winningtimestamp = value.winningtimestamp;
+//        this.tokenid = value.tokenid;
+//        this.auctionaccountid = value.auctionaccountid;
+//        this.endtimestamp = value.endtimestamp;
+//        this.reserve = value.reserve;
+//        this.status = value.status;
+//        this.winnercanbid = value.winnercanbid;
+//        this.winningtxid = value.winningtxid;
+//        this.winningtxhash = value.winningtxhash;
+//        this.tokenimage = value.tokenimage;
+//        this.minimumbid = value.minimumbid;
+//    }
 
     public Auction(Record record) {
         this.id = record.get(AUCTIONS.ID);
@@ -69,6 +70,22 @@ public class Auction implements VertxPojo, Serializable {
         this.minimumbid = record.get(AUCTIONS.MINIMUMBID);
     }
 
+    public Auction (Row row) {
+        this.id = row.getInteger(AUCTIONS.ID.getName());
+        this.auctionaccountid = row.getString(AUCTIONS.AUCTIONACCOUNTID.getName());
+        this.endtimestamp = row.getString(AUCTIONS.ENDTIMESTAMP.getName());
+        this.winningbid = row.getLong(AUCTIONS.WINNINGBID.getName());
+        this.winningaccount = row.getString(AUCTIONS.WINNINGACCOUNT.getName());
+        this.winningtimestamp = row.getString(AUCTIONS.WINNINGTIMESTAMP.getName());
+        this.tokenid = row.getString(AUCTIONS.TOKENID.getName());
+        this.reserve = row.getLong(AUCTIONS.RESERVE.getName());
+        this.status = row.getString(AUCTIONS.STATUS.getName());
+        this.winningtxid = row.getString(AUCTIONS.WINNINGTXID.getName());
+        this.winningtxhash = row.getString(AUCTIONS.WINNINGTXHASH.getName());
+        this.tokenimage = row.getString(AUCTIONS.TOKENIMAGE.getName());
+        this.minimumbid = row.getLong(AUCTIONS.MINIMUMBID.getName());
+    }
+
     public Auction(
         Integer id,
         String lastconsensustimestamp,
@@ -84,7 +101,7 @@ public class Auction implements VertxPojo, Serializable {
         String winningtxid,
         String winningtxhash,
         String tokenimage,
-        Long minimumbid
+        long minimumbid
     ) {
         this.id = id;
         this.lastconsensustimestamp = lastconsensustimestamp;
@@ -282,7 +299,7 @@ public class Auction implements VertxPojo, Serializable {
         this.setWinningtimestamp(json.getString("winningtimestamp"));
         this.setTokenid(json.getString("tokenid"));
         this.setAuctionaccountid(json.getString("auctionaccountid"));
-        this.setEndtimestamp(json.getString("endtimestamp"));
+        this.setEndtimestamp(json.getLong("endtimestamp").toString());
         this.setReserve(json.getLong("reserve"));
         this.setStatus(json.getString("status"));
         this.setWinnercanbid(json.getBoolean("winnercanbid"));

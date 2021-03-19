@@ -1,7 +1,13 @@
 package com.hedera.demo.auction.node.app;
 
 import com.google.errorprone.annotations.Var;
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.Client;
+import com.hedera.hashgraph.sdk.PrecheckStatusException;
+import com.hedera.hashgraph.sdk.ReceiptStatusException;
+import com.hedera.hashgraph.sdk.TopicCreateTransaction;
+import com.hedera.hashgraph.sdk.TopicId;
+import com.hedera.hashgraph.sdk.TransactionReceipt;
+import com.hedera.hashgraph.sdk.TransactionResponse;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
@@ -31,7 +37,9 @@ public class CreateTopic {
      * @throws IOException in the event of an exception
      */
 
-    public static void create() throws TimeoutException, PrecheckStatusException, IOException, ReceiptStatusException, InterruptedException {
+    public static TopicId create() throws Exception {
+        String dotEnvFile = ".env";
+
         Client client = HederaClient.getClient();
 
         TopicCreateTransaction topicCreateTransaction = new TopicCreateTransaction()
@@ -45,7 +53,6 @@ public class CreateTopic {
 
         log.info("New topic created: " + topicId);
 
-        String dotEnvFile = ".env";
         Path dotEnvPath = Paths.get(dotEnvFile);
         Path dotEnvTempPath = Paths.get(dotEnvFile.concat(".test"));
         PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(dotEnvTempPath, Charset.defaultCharset()));
@@ -54,26 +61,28 @@ public class CreateTopic {
 
         @Var boolean bFoundTopicId = false;
         for (@Var String line : dotEnvLines) {
-            if (line.trim().startsWith("TOPIC_ID")) {
-                line = "TOPIC_ID=" + topicId;
+            if (line.trim().startsWith("VUE_APP_TOPIC_ID")) {
+                line = "VUE_APP_TOPIC_ID=" + topicId;
                 bFoundTopicId = true;
-            } else if (line.trim().startsWith("#TOPIC_ID")) {
-                line = "TOPIC_ID=" + topicId;
+            } else if (line.trim().startsWith("#VUE_APP_TOPIC_ID")) {
+                line = "VUE_APP_TOPIC_ID=" + topicId;
                 bFoundTopicId = true;
             }
             printWriter.println(line);
         }
         if (! bFoundTopicId) {
-            String line = "TOPIC_ID=" + topicId;
+            String line = "VUE_APP_TOPIC_ID=" + topicId;
             printWriter.println(line);
         }
         printWriter.close();
         Files.copy(dotEnvTempPath, dotEnvPath, StandardCopyOption.REPLACE_EXISTING);
         Files.delete(dotEnvTempPath);
         log.info(".env file updated with new topic id " + topicId);
+
+        return topicId;
     }
 
-    public static void main(String[] args) throws IOException, PrecheckStatusException, ReceiptStatusException, TimeoutException, InterruptedException {
+    public static void main(String[] args) throws Exception {
         create();
     }
 }

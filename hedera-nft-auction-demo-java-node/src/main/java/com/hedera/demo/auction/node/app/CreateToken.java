@@ -1,7 +1,18 @@
 package com.hedera.demo.auction.node.app;
 
 import com.google.errorprone.annotations.Var;
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.Client;
+import com.hedera.hashgraph.sdk.FileAppendTransaction;
+import com.hedera.hashgraph.sdk.FileCreateTransaction;
+import com.hedera.hashgraph.sdk.FileId;
+import com.hedera.hashgraph.sdk.FileUpdateTransaction;
+import com.hedera.hashgraph.sdk.Hbar;
+import com.hedera.hashgraph.sdk.KeyList;
+import com.hedera.hashgraph.sdk.Status;
+import com.hedera.hashgraph.sdk.TokenCreateTransaction;
+import com.hedera.hashgraph.sdk.TokenId;
+import com.hedera.hashgraph.sdk.TransactionReceipt;
+import com.hedera.hashgraph.sdk.TransactionResponse;
 import lombok.extern.log4j.Log4j2;
 
 import java.nio.file.Files;
@@ -9,9 +20,6 @@ import java.nio.file.Path;
 
 @Log4j2
 public class CreateToken {
-
-    private CreateToken() {
-    }
 
     /**
      * Creates a simple token (no kyc, freeze, supply, etc...)
@@ -90,6 +98,9 @@ public class CreateToken {
             log.info("Token created " + receipt.tokenId.toString());
         }
         return receipt.tokenId;
+    }
+
+    private CreateToken() {
     }
 
     public static void main(String[] args) throws Exception {

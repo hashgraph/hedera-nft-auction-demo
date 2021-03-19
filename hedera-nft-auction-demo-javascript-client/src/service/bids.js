@@ -4,7 +4,7 @@ import { apiEndPoint} from "../utils";
 
 export async function getLastBid(auctionId, bidderAccountId) {
     let bid = {};
-    const url = apiEndPoint.concat('/lastbid/').concat(auctionId).concat("/").concat(bidderAccountId);
+    const url = apiEndPoint().concat('/lastbid/').concat(auctionId).concat("/").concat(bidderAccountId);
     await axios
         .get(url)
         .then(function (response) {
@@ -25,7 +25,7 @@ export async function getLastBid(auctionId, bidderAccountId) {
 
 export async function getBids(auctionId) {
     let bids = [];
-    const url = apiEndPoint.concat('/bids/').concat(auctionId);
+    const url = apiEndPoint().concat('/bids/').concat(auctionId);
     await axios
         .get(url)
         .then(function (response) {

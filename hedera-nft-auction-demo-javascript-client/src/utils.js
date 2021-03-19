@@ -110,10 +110,13 @@ export function secondsToParts(seconds) {
 }
 
 export function apiEndPoint() {
-  return window.location.protocol
+  const endPoint = window.location.protocol
       .concat('//')
       .concat(window.location.hostname)
-      .concat(process.env.VUE_APP_API_PORT)
-      .concat('/v1');
+      .concat(":")
+      .concat(process.env.VUE_APP_API_PORT);
+
+  console.log(endPoint);
+  return endPoint;
 }
 

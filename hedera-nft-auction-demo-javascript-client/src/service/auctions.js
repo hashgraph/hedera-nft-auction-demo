@@ -1,10 +1,11 @@
 import {EventBus, FOOTER_NOTIFICATION} from "@/eventBus";
-import { apiEndPoint} from "../utils";
+import {apiEndPoint} from "../utils";
 const axios = require("axios");
 
 export async function getAuctions() {
     let auctions = [];
-    const url = apiEndPoint.concat('/auctions');
+    const url = apiEndPoint().concat('/auctions');
+
     await axios
         .get(url)
         .then(function (response) {
@@ -25,7 +26,7 @@ export async function getAuctions() {
 
 export async function getAuction(id) {
     let auction = {};
-    const url = apiEndPoint.concat('/auctions/').concat(id);
+    const url = apiEndPoint().concat('/auctions/').concat(id);
     await axios
         .get(url)
         .then(function (response) {

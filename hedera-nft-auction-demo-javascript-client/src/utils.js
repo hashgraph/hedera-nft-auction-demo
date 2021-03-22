@@ -117,7 +117,6 @@ export function apiEndPoint() {
       .concat(process.env.VUE_APP_API_PORT)
       .concat("/v1");
 
-  console.log(endPoint);
   return endPoint;
 }
 

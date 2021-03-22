@@ -3,7 +3,7 @@ package com.hedera.demo.auction.node.app.subscriber;
 import com.google.errorprone.annotations.Var;
 import com.google.protobuf.ByteString;
 import com.hedera.demo.auction.node.app.HederaClient;
-import com.hedera.demo.auction.node.app.auctionwatchers.AuctionReadinessWatcher;
+import com.hedera.demo.auction.node.app.readinesswatchers.AuctionReadinessWatcher;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;

@@ -121,6 +121,7 @@ export default {
   data: function() {
     return {
       confetti: false,
+      confettiAllowed: [],
       auctionIndex: -1,
       auctions: null,
       message: "",
@@ -148,10 +149,11 @@ export default {
       } else {
         if ((this.auctions.length > 0) && (this.auctionIndex !== -1)) {
           if (this.auctions[this.auctionIndex].winningaccount === this.accountId) {
-            this.startConfetti({
-              particlesPerFrame: 0.1,
-            });
+            this.startConfetti(this.auctionIndex);
           } else {
+            // this is to prevent confetti being displayed more than 5s
+            // after winning
+            this.confettiAllowed[this.auctionIndex] = true;
             this.stopConfetti();
           }
         } else {
@@ -161,12 +163,26 @@ export default {
     },
     startConfetti() {
       if ( ! this.confetti) {
-        this.confetti = true;
-        this.$confetti.start();
+        if ((typeof (this.confettiAllowed[this.auctionIndex]) === "undefined") || (this.confettiAllowed[this.auctionIndex])) {
+          // this is to prevent confetti being displayed more than 5s
+          // after winning
+          this.confettiAllowed[this.auctionIndex] = false;
+          this.confetti = true;
+          this.$confetti.start({
+            particlesPerFrame: 0.2,
+          });
+
+          setTimeout( () => {
+          // this is to prevent confetti being displayed more than 5s
+            // after winning
+            this.stopConfetti();
+          }, 5000);
+        }
       }
     },
     stopConfetti() {
       if (this.confetti) {
+        this.confettiAllowed[this.auctionIndex] = false;
         this.confetti = false;
         this.$confetti.stop();
       }

@@ -49,7 +49,9 @@ public class RefundChecker implements Runnable {
         }
 
         while (true) {
-            // get list of bids to refund
+            // get list of bids to refund (refund = false, but refund transaction in progress)
+            // look for a successful scheduled transaction
+            // and set bid accordingly (refunded)
             for (Map.Entry<String, String> bidToRefund : bidsRepository.bidsToRefund().entrySet()) {
                 String transactionId = bidToRefund.getValue();
                 String timestamp = bidToRefund.getKey();

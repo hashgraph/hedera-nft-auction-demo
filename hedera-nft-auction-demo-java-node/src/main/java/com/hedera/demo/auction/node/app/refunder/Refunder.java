@@ -20,29 +20,35 @@ public class Refunder implements Runnable {
 
     private final BidsRepository bidsRepository;
     private final long amount;
-    private final PrivateKey refundKey;
+    private final String refundKey;
     private final String accountId;
     private final String consensusTimestamp;
     private final String auctionAccountId;
+    private final String bidTransactionId;
 
-    public Refunder(BidsRepository bidsRepository, String auctionAccountId, long amount, String accountId, String consensusTimestamp, String refundKey) {
+    public Refunder(BidsRepository bidsRepository, String auctionAccountId, long amount, String accountId, String consensusTimestamp, String bidTransactionId, String refundKey) {
         this.bidsRepository = bidsRepository;
         this.amount = amount;
-        this.refundKey = PrivateKey.fromString(refundKey);
+        this.refundKey = refundKey;
         this.accountId = accountId;
         this.consensusTimestamp = consensusTimestamp;
         this.auctionAccountId = auctionAccountId;
+        this.bidTransactionId = bidTransactionId;
     }
 
     @SneakyThrows
     @Override
     public void run() {
         try {
+            if (this.refundKey.isBlank()) {
+                return;
+            }
             // create a client for the auction's account
             Client client = HederaClient.getClient();
-            client.setOperator(AccountId.fromString(this.auctionAccountId), this.refundKey);
+            PrivateKey refundKeyPrivate = PrivateKey.fromString(refundKey);
+            client.setOperator(AccountId.fromString(this.auctionAccountId), refundKeyPrivate);
             log.info("Refunding " + this.amount + " from " + this.auctionAccountId + " to " + this.accountId);
-
+            String memo = "Auction refund for tx " + bidTransactionId;
             // issue refund
 
 //            //TODO: Scheduled transaction here
@@ -54,7 +60,7 @@ public class Refunder implements Runnable {
 //            TransferTransaction transferTransaction = new TransferTransaction();
 //            //TODO: Fix list of node account ids
 //            transferTransaction.setNodeAccountIds(List.of(AccountId.fromString("0.0.3")));
-//            transferTransaction.setTransactionMemo("Auction refund");
+//            transferTransaction.setTransactionMemo(memo);
 //            transferTransaction.setTransactionId(transactionId);
 //            transferTransaction.addHbarTransfer(AccountId.fromString(this.auctionAccountId), Hbar.fromTinybars(-this.amount));
 //            transferTransaction.addHbarTransfer(AccountId.fromString(this.accountId), Hbar.fromTinybars(this.amount));
@@ -80,13 +86,13 @@ public class Refunder implements Runnable {
             TransactionId transactionId = TransactionId.generate(AccountId.fromString(this.auctionAccountId));
 
             TransferTransaction transferTransaction = new TransferTransaction();
-            transferTransaction.setTransactionMemo("Auction refund");
+            transferTransaction.setTransactionMemo(memo);
             transferTransaction.setTransactionId(transactionId);
             transferTransaction.addHbarTransfer(AccountId.fromString(this.auctionAccountId), Hbar.fromTinybars(-this.amount));
             transferTransaction.addHbarTransfer(AccountId.fromString(this.accountId), Hbar.fromTinybars(this.amount));
             transferTransaction.freezeWith(client);
 
-            transferTransaction.sign(this.refundKey);
+            transferTransaction.sign(refundKeyPrivate);
             TransactionResponse response = transferTransaction.execute(client);
             byte[] transactionHash = response.transactionHash;
             // check for receipt

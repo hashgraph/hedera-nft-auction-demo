@@ -1,7 +1,6 @@
-package com.hedera.demo.auction.node.app.auctionwatchers;
+package com.hedera.demo.auction.node.app.bidwatchers;
 
 import com.google.errorprone.annotations.Var;
-import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.domain.Bid;
 import com.hedera.demo.auction.node.app.refunder.Refunder;
@@ -16,54 +15,22 @@ import org.apache.commons.codec.binary.Hex;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Log4j2
-public class BidsWatcher implements Runnable {
+public class HederaBidsWatcher extends AbstractBidsWatcher {
 
-    private Auction auction;
-    private final WebClient webClient;
-    private final BidsRepository bidsRepository;
-    private final AuctionsRepository auctionsRepository;
-    private final String refundKey;
-    private final int mirrorQueryFrequency;
-    private String mirrorURL = "";
-    private final String mirrorProvider = HederaClient.getMirrorProvider();
-
-    public BidsWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) throws Exception {
-        this.webClient = webClient;
-        this.bidsRepository = bidsRepository;
-        this.auctionsRepository = auctionsRepository;
-        this.auction = auction;
-        this.refundKey = refundKey;
-        this.mirrorQueryFrequency = mirrorQueryFrequency;
-        this.mirrorURL = HederaClient.getMirrorUrl();
+    public HederaBidsWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) throws Exception {
+        super(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
     }
 
-    @Override
-    public void run() {
-
-        log.info("Watching auction account Id " + auction.getAuctionaccountid() + ", token Id " + auction.getTokenid());
+    public void watch() {
 
         AtomicBoolean querying = new AtomicBoolean(false);
         AtomicReference<String> uri = new AtomicReference<>("");
-
-        switch (mirrorProvider) {
-            case "HEDERA":
-                uri.set("/api/v1/transactions");
-                break;
-            case "DRAGONGLASS":
-                //TODO: Handle dragonglass mirror
-                uri.set("");
-                break;
-            default:
-                //TODO: Handle kabuto mirror
-                uri.set("");
-                break;
-        }
+        uri.set("/api/v1/transactions");
 
         while (true) {
             if (!querying.get()) {
@@ -71,40 +38,34 @@ public class BidsWatcher implements Runnable {
 
                 log.debug("Checking for bids on account " + auction.getAuctionaccountid() + " and token " + auction.getTokenid());
 
-                if (mirrorProvider.equals("HEDERA")) {
-                    var webQuery =
-                    webClient
-                            .get(443, this.mirrorURL, uri.get())
-                            .ssl(true)
-                            .addQueryParam("account.id", auction.getAuctionaccountid())
-                            .addQueryParam("transactiontype", "CRYPTOTRANSFER")
-                            .addQueryParam("order", "asc");
+                var webQuery = webClient
+                    .get(443, mirrorURL, uri.get())
+                    .ssl(true)
+                    .addQueryParam("account.id", auction.getAuctionaccountid())
+                    .addQueryParam("transactiontype", "CRYPTOTRANSFER")
+                    .addQueryParam("order", "asc")
+                    .addQueryParam("timestamp","gt:0");
 
-                            if (auction.getLastconsensustimestamp() != null) {
-                                webQuery.addQueryParam("timestamp", "gt:".concat(auction.getLastconsensustimestamp()));
-                            }
-
-                            webQuery.as(BodyCodec.jsonObject())
-                            .send(response -> {
-                                if (response.succeeded()) {
-                                    JsonObject body = response.result().body();
-                                    try {
-                                        handleHederaResponse(body);
-                                    } catch (RuntimeException e) {
-                                        log.error(e);
-                                    } finally {
-                                        querying.set(false);
-                                    }
-                                } else {
-                                    log.error(response.cause().getMessage());
-                                    querying.set(false);
-                                }
-                            });
-                } else if (mirrorProvider.equals("KABUTO")) {
-                    //TODO: Handle kabuto mirror
-                } else if (mirrorProvider.equals("DRAGONGLASS")) {
-                    //TODO: Handle dragonglass mirror
+                if (auction.getLastconsensustimestamp() != null) {
+                    webQuery.setQueryParam("timestamp", "gt:".concat(auction.getLastconsensustimestamp()));
                 }
+
+                webQuery.as(BodyCodec.jsonObject())
+                .send(response -> {
+                    if (response.succeeded()) {
+                        JsonObject body = response.result().body();
+                        try {
+                            handleResponse(body);
+                        } catch (RuntimeException e) {
+                            log.error(e);
+                        } finally {
+                            querying.set(false);
+                        }
+                    } else {
+                        log.error(response.cause().getMessage());
+                        querying.set(false);
+                    }
+                });
             }
             try {
                 Thread.sleep(this.mirrorQueryFrequency);
@@ -115,12 +76,12 @@ public class BidsWatcher implements Runnable {
         }
     }
 
-    private void handleHederaResponse(JsonObject response) {
+    private void handleResponse(JsonObject response) {
         try {
             JsonArray transactions = response.getJsonArray("transactions");
             for (Object transactionObject : transactions) {
                 JsonObject transaction = JsonObject.mapFrom(transactionObject);
-                handleHederaTransaction(transaction);
+                handleTransaction(transaction);
                 this.auction.setLastconsensustimestamp(transaction.getString("consensus_timestamp"));
                 auctionsRepository.save(this.auction);
             }
@@ -129,7 +90,7 @@ public class BidsWatcher implements Runnable {
         }
     }
 
-    private void handleHederaTransaction (JsonObject transaction) throws SQLException {
+    private void handleTransaction(JsonObject transaction) throws SQLException {
         @Var String rejectReason = "";
         @Var boolean refund = false;
         @Var long bidAmount = 0;
@@ -153,15 +114,20 @@ public class BidsWatcher implements Runnable {
                     this.auction = auctionsRepository.setClosed(this.auction);
                 }
                 // find payment amount
-                bidAmount = hederaBidAmount(transaction);
+                bidAmount = transactionBidAmount(transaction);
                 refund = true;
                 rejectReason = "Auction is closed";
+            } else if (consensusTimestamp.compareTo(this.auction.getStarttimestamp()) <= 0) {
+                bidAmount = transactionBidAmount(transaction);
+                refund = true;
+                rejectReason = "Auction has not started yet";
             }
 
             if ( ! refund) {
                 // check if paying account is different to the current winner (and that of the auction)
                 if (transactionPayer.equals(this.auction.getAuctionaccountid())) {
                     log.debug("Skipping auction account refund transaction");
+                    return;
                 } else if (transactionPayer.equals(this.auction.getWinningaccount())) {
                     if (! this.auction.getWinnerCanBid()) {
                         // same account as winner, not allowed
@@ -173,7 +139,7 @@ public class BidsWatcher implements Runnable {
 
             if ( ! refund) {
                 // find payment amount
-                bidAmount = hederaBidAmount(transaction);
+                bidAmount = transactionBidAmount(transaction);
             }
 
             long bidDelta = (bidAmount - this.auction.getWinningbid()) / 100000000;
@@ -197,7 +163,7 @@ public class BidsWatcher implements Runnable {
                 // refund previous bid
                 if (this.auction.getWinningaccount() != null) {
                     // do not refund the very first bid !!!
-                    refundBid(this.auction.getWinningbid(), this.auction.getWinningaccount(), this.auction.getWinningtimestamp());
+                    Thread t = new Thread(new Refunder(bidsRepository, auction.getAuctionaccountid(), this.auction.getWinningbid(), this.auction.getWinningaccount(), this.auction.getWinningtimestamp(), this.auction.getWinningtxid(), refundKey));
                     refund = false;
                 }
                 // update prior winning bid
@@ -228,7 +194,8 @@ public class BidsWatcher implements Runnable {
 
             if (refund) {
                 // refund this transaction
-                refundBid(bidAmount, transactionPayer, consensusTimestamp);
+                Thread t = new Thread(new Refunder(bidsRepository, auction.getAuctionaccountid(), bidAmount, transactionPayer, consensusTimestamp, transactionId, refundKey));
+                t.start();
             }
 
         } else {
@@ -236,7 +203,7 @@ public class BidsWatcher implements Runnable {
         }
     }
 
-    private long hederaBidAmount(JsonObject transaction) {
+    private long transactionBidAmount(JsonObject transaction) {
         @Var long bidAmount = 0;
         // find payment amount
         JsonArray transfers = transaction.getJsonArray("transfers");
@@ -250,21 +217,5 @@ public class BidsWatcher implements Runnable {
             }
         }
         return bidAmount;
-    }
-
-    private void refundBid(long amount, String accountId, String consensusTimestamp) {
-        if (this.refundKey.isBlank()) {
-            return;
-        }
-        Thread t = new Thread(new Refunder(bidsRepository, auction.getAuctionaccountid(), amount, accountId, consensusTimestamp, refundKey));
-        t.start();
-    }
-
-    private static boolean checkMemos(String memo) {
-        if (memo.isEmpty()) {
-            return false;
-        }
-        String[] memos = new String[]{"CREATEAUCTION", "FUNDACCOUNT", "TRANSFERTOAUCTION", "ASSOCIATE", "AUCTION REFUND"};
-        return Arrays.stream(memos).anyMatch(memo.toUpperCase()::equals);
     }
 }

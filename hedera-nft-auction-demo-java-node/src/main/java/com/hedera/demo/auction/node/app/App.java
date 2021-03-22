@@ -1,9 +1,9 @@
 package com.hedera.demo.auction.node.app;
 
 import com.hedera.demo.auction.node.app.api.ApiVerticle;
-import com.hedera.demo.auction.node.app.auctionwatchers.AuctionReadinessWatcher;
-import com.hedera.demo.auction.node.app.auctionwatchers.AuctionsClosureWatcher;
-import com.hedera.demo.auction.node.app.auctionwatchers.BidsWatcher;
+import com.hedera.demo.auction.node.app.readinesswatchers.AuctionReadinessWatcher;
+import com.hedera.demo.auction.node.app.closurewatchers.AuctionsClosureWatcher;
+import com.hedera.demo.auction.node.app.bidwatchers.BidsWatcher;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.refunder.RefundChecker;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;

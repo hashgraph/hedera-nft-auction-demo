@@ -31,9 +31,10 @@ public class Auction implements VertxPojo, Serializable {
     private String winningtxhash = "";
     private String tokenimage = "";
     private long minimumbid = 0L;
+    private String starttimestamp = "";
 
     public Auction() {}
-    
+
     public Auction(Record record) {
         this.id = record.get(AUCTIONS.ID);
         this.lastconsensustimestamp = record.get(AUCTIONS.LASTCONSENSUSTIMESTAMP);
@@ -50,6 +51,7 @@ public class Auction implements VertxPojo, Serializable {
         this.winningtxhash = record.get(AUCTIONS.WINNINGTXHASH);
         this.tokenimage = record.get(AUCTIONS.TOKENIMAGE);
         this.minimumbid = record.get(AUCTIONS.MINIMUMBID);
+        this.starttimestamp = record.get(AUCTIONS.STARTTIMESTAMP);
     }
 
     public Auction (Row row) {
@@ -66,6 +68,7 @@ public class Auction implements VertxPojo, Serializable {
         this.winningtxhash = row.getString(AUCTIONS.WINNINGTXHASH.getName());
         this.tokenimage = row.getString(AUCTIONS.TOKENIMAGE.getName());
         this.minimumbid = row.getLong(AUCTIONS.MINIMUMBID.getName());
+        this.starttimestamp = row.getString(AUCTIONS.STARTTIMESTAMP.getName());
     }
 
     public Auction(
@@ -83,7 +86,8 @@ public class Auction implements VertxPojo, Serializable {
         String winningtxid,
         String winningtxhash,
         String tokenimage,
-        long minimumbid
+        long minimumbid,
+        String starttimestamp
     ) {
         this.id = id;
         this.lastconsensustimestamp = lastconsensustimestamp;
@@ -100,6 +104,7 @@ public class Auction implements VertxPojo, Serializable {
         this.winningtxhash = winningtxhash;
         this.tokenimage = tokenimage;
         this.minimumbid = minimumbid;
+        this.starttimestamp = starttimestamp;
     }
 
     public Auction(io.vertx.core.json.JsonObject json) {
@@ -247,6 +252,13 @@ public class Auction implements VertxPojo, Serializable {
         this.minimumbid = minimumbid;
     }
 
+    public String getStarttimestamp() {
+        return this.starttimestamp;
+    }
+
+    public void setStarttimestamp(String starttimestamp) {
+        this.starttimestamp = starttimestamp;
+    }
 
     @Override
     public String toString() {
@@ -267,6 +279,7 @@ public class Auction implements VertxPojo, Serializable {
         sb.append(", ").append(winningtxhash);
         sb.append(", ").append(tokenimage);
         sb.append(", ").append(minimumbid);
+        sb.append(", ").append(starttimestamp);
 
         sb.append(")");
         return sb.toString();
@@ -289,6 +302,7 @@ public class Auction implements VertxPojo, Serializable {
         this.setWinningtxhash(json.getString("winningtxhash"));
         this.setTokenimage(json.getString("tokenimage"));
         this.setMinimumbid(json.getLong("minimumbid"));
+        this.setStarttimestamp(json.getString("starttimestamp"));
         return this;
     }
 
@@ -311,6 +325,7 @@ public class Auction implements VertxPojo, Serializable {
         json.put("winningtxhash", getWinningtxhash());
         json.put("tokenimage", getTokenimage());
         json.put("minimumbid", getMinimumbid());
+        json.put("starttimestamp", getStarttimestamp());
 
         return json;
     }

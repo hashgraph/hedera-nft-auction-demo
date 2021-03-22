@@ -96,8 +96,23 @@ public class AuctionsRepository {
         return auctions;
     }
 
-    public Auction setActive(Auction auction) throws SQLException {
-        updateStatus(auction.getAuctionaccountid(), Auction.active());
+    public Auction setActive(Auction auction, String timestamp) throws SQLException {
+        @Var DSLContext cx = null;
+        try {
+            cx = connectionManager.dsl();
+
+            cx.update(AUCTIONS)
+                    .set(AUCTIONS.STATUS, Auction.active())
+                    .set(AUCTIONS.STARTTIMESTAMP, timestamp)
+                    .where(AUCTIONS.AUCTIONACCOUNTID.eq(auction.getAuctionaccountid()))
+                    .execute();
+            cx.close();
+        } catch (Exception e) {
+            if (cx != null) {
+                cx.close();
+                throw e;
+            }
+        }
         auction.setStatus(Auction.active());
         return auction;
 

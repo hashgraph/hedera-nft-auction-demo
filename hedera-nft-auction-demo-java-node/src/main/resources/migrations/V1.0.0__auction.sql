@@ -15,6 +15,7 @@ CREATE TABLE auctions
     winnerCanBid           BOOLEAN DEFAULT false,
     tokenImage             TEXT DEFAULT '',
     minimumbid             INT8  DEFAULT 0,
+    startTimestamp         TEXT  DEFAULT '',
     UNIQUE (tokenId, auctionAccountId)
 );
 

@@ -46,7 +46,7 @@
 
 		</section>
 		<section class="actions">
-			<figure class="fee"><span>Fee</span> {{transactionFee}} <b>HBAR</b></figure>
+			<figure class="fee"><span>Maximum fee</span> {{transactionFee}} <b>HBAR</b></figure>
 			<Swiper v-on:approved="approve" v-on:denied="deny" />
 		</section>
 	</section>

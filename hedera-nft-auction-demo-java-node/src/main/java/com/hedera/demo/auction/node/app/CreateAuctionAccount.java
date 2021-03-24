@@ -25,13 +25,17 @@ public class CreateAuctionAccount {
      * Creates an auction account with an optional set of keys
      * @param initialBalance the initial balance for the new account
      * @param minThreshold the threshold for the account's threshold key
-     * @param keys an array of public keys
+     * @param keys an array of public keys, if none supplied, the operator's public key is used
      * @throws Exception in the event of an exception
      */
-    public static AccountId create(long initialBalance, int minThreshold, String[] keys) throws Exception {
+    public static AccountId create(long initialBalance, int minThreshold, @Var String[] keys) throws Exception {
         Client client = HederaClient.getClient();
         AccountCreateTransaction accountCreateTransaction = new AccountCreateTransaction();
         KeyList thresholdKey = KeyList.withThreshold(minThreshold);
+        if (keys.length == 0) {
+            log.info("No public key provided, defaulting to operator public key");
+            keys = new String[]{client.getOperatorPublicKey().toString()};
+        }
         for (String key : keys) {
             Key pubKey = PublicKey.fromString(key);
             thresholdKey.add(pubKey);

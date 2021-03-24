@@ -2,6 +2,6 @@ package com.hedera.demo.auction.node.app.api;
 
 @SuppressWarnings("unused")
 public class RequestTokenAccount {
-    public String tokenId = "";
-    public String auctionAccount = "";
+    public String tokenid = "";
+    public String auctionaccountid = "";
 }

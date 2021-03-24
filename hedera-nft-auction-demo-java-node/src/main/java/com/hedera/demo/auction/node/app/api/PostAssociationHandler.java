@@ -22,7 +22,7 @@ public class PostAssociationHandler implements Handler<RoutingContext> {
         var data = body.mapTo(RequestTokenAccount.class);
 
         try {
-            CreateTokenAssociation.associate(data.tokenId, data.auctionAccount);
+            CreateTokenAssociation.associate(data.tokenid, data.auctionaccountid);
 
             JsonObject response = new JsonObject();
             response.put("status", "associated");

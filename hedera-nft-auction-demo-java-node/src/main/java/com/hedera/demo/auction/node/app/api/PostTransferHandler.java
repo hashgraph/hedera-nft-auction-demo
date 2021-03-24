@@ -22,7 +22,7 @@ public class PostTransferHandler implements Handler<RoutingContext> {
         var data = body.mapTo(RequestTokenAccount.class);
 
         try {
-            CreateTokenTransfer.transfer(data.tokenId, data.auctionAccount);
+            CreateTokenTransfer.transfer(data.tokenid, data.auctionaccountid);
 
             JsonObject response = new JsonObject();
             response.put("status", "transferred");

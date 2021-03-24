@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.node.app;
 
+import com.hedera.demo.auction.node.app.api.AdminApiVerticle;
 import com.hedera.demo.auction.node.app.api.ApiVerticle;
 import com.hedera.demo.auction.node.app.bidwatchers.BidsWatcher;
 import com.hedera.demo.auction.node.app.closurewatchers.AuctionsClosureWatcher;
@@ -22,8 +23,10 @@ import java.util.Optional;
 public final class App {
     private final static Dotenv env = Dotenv.configure().ignoreIfMissing().load();
     private final static boolean restAPI = Optional.ofNullable(env.get("REST_API")).map(Boolean::parseBoolean).orElse(false);
+    private final static int restApiVerticleCount = Optional.ofNullable(env.get("API_VERTICLE_COUNT")).map(Integer::parseInt).orElse(2);
+    private final static boolean adminAPI = Optional.ofNullable(env.get("ADMIN_API")).map(Boolean::parseBoolean).orElse(false);
+    private final static int adminApiVerticleCount = Optional.ofNullable(env.get("ADMIN_API_VERTICLE_COUNT")).map(Integer::parseInt).orElse(2);
     private final static boolean auctionNode = Optional.ofNullable(env.get("AUCTION_NODE")).map(Boolean::parseBoolean).orElse(false);
-    private final static int verticleCount = Optional.ofNullable(env.get("API_VERTICLE_COUNT")).map(Integer::parseInt).orElse(2);
 
     private final static String topicId = Optional.ofNullable(env.get("VUE_APP_TOPIC_ID")).orElse("");
     private final static int mirrorQueryFrequency = Integer.parseInt(Optional.ofNullable(env.get("MIRROR_QUERY_FREQUENCY")).orElse("5000"));
@@ -49,7 +52,13 @@ public final class App {
         if (restAPI) {
             Vertx.vertx().deployVerticle(
                     ApiVerticle.class.getName(),
-                    new DeploymentOptions().setInstances(verticleCount));
+                    new DeploymentOptions().setInstances(restApiVerticleCount));
+        }
+
+        if (adminAPI) {
+            Vertx.vertx().deployVerticle(
+                    AdminApiVerticle.class.getName(),
+                    new DeploymentOptions().setInstances(adminApiVerticleCount));
         }
 
         if (auctionNode) {

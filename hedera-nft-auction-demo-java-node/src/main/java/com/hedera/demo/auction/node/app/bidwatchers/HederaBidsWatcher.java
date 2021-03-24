@@ -3,7 +3,6 @@ package com.hedera.demo.auction.node.app.bidwatchers;
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.domain.Bid;
-import com.hedera.demo.auction.node.app.refunder.Refunder;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.vertx.core.json.JsonArray;
@@ -17,34 +16,30 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Base64;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Log4j2
-public class HederaBidsWatcher extends AbstractBidsWatcher {
+public class HederaBidsWatcher extends AbstractBidsWatcher implements BidsWatcherInterface {
 
     public HederaBidsWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) throws Exception {
         super(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
     }
 
+    @Override
     public void watch() {
 
         AtomicBoolean querying = new AtomicBoolean(false);
-        AtomicReference<String> uri = new AtomicReference<>("");
-        uri.set("/api/v1/transactions");
 
-        while (true) {
-            if (!querying.get()) {
+        var webQuery = webClient
+                .get(mirrorURL, "/api/v1/transactions")
+                .addQueryParam("account.id", auction.getAuctionaccountid())
+                .addQueryParam("transactiontype", "CRYPTOTRANSFER")
+                .addQueryParam("order", "asc")
+                .addQueryParam("timestamp","gt:0");
+
+        while (true) { if (!querying.get()) {
                 querying.set(true);
 
                 log.debug("Checking for bids on account " + auction.getAuctionaccountid() + " and token " + auction.getTokenid());
-
-                var webQuery = webClient
-                    .get(443, mirrorURL, uri.get())
-                    .ssl(true)
-                    .addQueryParam("account.id", auction.getAuctionaccountid())
-                    .addQueryParam("transactiontype", "CRYPTOTRANSFER")
-                    .addQueryParam("order", "asc")
-                    .addQueryParam("timestamp","gt:0");
 
                 if (auction.getLastconsensustimestamp() != null) {
                     webQuery.setQueryParam("timestamp", "gt:".concat(auction.getLastconsensustimestamp()));
@@ -163,7 +158,7 @@ public class HederaBidsWatcher extends AbstractBidsWatcher {
                 // refund previous bid
                 if (this.auction.getWinningaccount() != null) {
                     // do not refund the very first bid !!!
-                    Thread t = new Thread(new Refunder(bidsRepository, auction.getAuctionaccountid(), this.auction.getWinningbid(), this.auction.getWinningaccount(), this.auction.getWinningtimestamp(), this.auction.getWinningtxid(), refundKey));
+                    startRefundThread (this.auction.getWinningbid(), this.auction.getWinningaccount(), this.auction.getWinningtimestamp(), this.auction.getWinningtxid());
                     refund = false;
                 }
                 // update prior winning bid
@@ -194,8 +189,7 @@ public class HederaBidsWatcher extends AbstractBidsWatcher {
 
             if (refund) {
                 // refund this transaction
-                Thread t = new Thread(new Refunder(bidsRepository, auction.getAuctionaccountid(), bidAmount, transactionPayer, consensusTimestamp, transactionId, refundKey));
-                t.start();
+                startRefundThread (bidAmount, transactionPayer, consensusTimestamp, transactionId);
             }
 
         } else {

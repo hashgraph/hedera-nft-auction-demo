@@ -10,22 +10,18 @@ import lombok.extern.log4j.Log4j2;
 
 import java.sql.SQLException;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Log4j2
-public class HederaAuctionsClosureWatcher extends AbstractAuctionsClosureWatcher {
+public class HederaAuctionsClosureWatcher extends AbstractAuctionsClosureWatcher implements AuctionClosureWatcherInterface {
 
     public HederaAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency) throws Exception {
         super(webClient, auctionsRepository, mirrorQueryFrequency);
     }
 
+    @Override
     public void watch() {
-        AtomicReference<String> uri = new AtomicReference<>("");
-
-        uri.set("/api/v1/transactions");
         var webQuery = webClient
-                .get(443, mirrorURL, uri.get())
-                .ssl(true)
+                .get(mirrorURL, "/api/v1/transactions")
                 .as(BodyCodec.jsonObject())
                 .addQueryParam("limit", "1"); // only need one row (the latest)
 

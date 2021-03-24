@@ -1,10 +1,10 @@
 package com.hedera.demo.auction.node.app;
 
 import com.hedera.demo.auction.node.app.api.ApiVerticle;
-import com.hedera.demo.auction.node.app.readinesswatchers.AuctionReadinessWatcher;
-import com.hedera.demo.auction.node.app.closurewatchers.AuctionsClosureWatcher;
 import com.hedera.demo.auction.node.app.bidwatchers.BidsWatcher;
+import com.hedera.demo.auction.node.app.closurewatchers.AuctionsClosureWatcher;
 import com.hedera.demo.auction.node.app.domain.Auction;
+import com.hedera.demo.auction.node.app.readinesswatchers.AuctionReadinessWatcher;
 import com.hedera.demo.auction.node.app.refunder.RefundChecker;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
@@ -71,7 +71,7 @@ public final class App {
         }
     }
 
-    private static void startAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository) throws Exception {
+    private static void startAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository) {
         // start a thread to monitor auction closures
         Thread t = new Thread(new AuctionsClosureWatcher(webClient, auctionsRepository, mirrorQueryFrequency));
         t.start();
@@ -83,7 +83,7 @@ public final class App {
         t.start();
 
     }
-    private static void startBidWatchers(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) throws Exception {
+    private static void startBidWatchers(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
         for (Auction auction : auctionsRepository.getAuctionsList()) {
             if (! auction.isPending()) {
                 // auction is open or closed
@@ -100,7 +100,7 @@ public final class App {
         t.start();
     }
 
-    private static void startAuctionReadinessWatchers(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) throws Exception {
+    private static void startAuctionReadinessWatchers(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
         for (Auction auction : auctionsRepository.getAuctionsList()) {
             if (auction.isPending()) {
                 // start the thread to monitor token transfers to the auction account

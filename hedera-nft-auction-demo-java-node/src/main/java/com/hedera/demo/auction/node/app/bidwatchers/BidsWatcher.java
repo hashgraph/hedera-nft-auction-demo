@@ -11,23 +11,21 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class BidsWatcher implements Runnable {
 
-    private Auction auction;
+    private final Auction auction;
     private final WebClient webClient;
     private final BidsRepository bidsRepository;
     private final AuctionsRepository auctionsRepository;
     private final String refundKey;
     private final int mirrorQueryFrequency;
-    private String mirrorURL = "";
     private final String mirrorProvider = HederaClient.getMirrorProvider();
 
-    public BidsWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) throws Exception {
+    public BidsWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.bidsRepository = bidsRepository;
         this.auctionsRepository = auctionsRepository;
         this.auction = auction;
         this.refundKey = refundKey;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
-        this.mirrorURL = HederaClient.getMirrorUrl();
     }
 
     @SneakyThrows
@@ -36,19 +34,18 @@ public class BidsWatcher implements Runnable {
 
         log.info("Watching auction account Id " + auction.getAuctionaccountid() + ", token Id " + auction.getTokenid());
 
+        BidsWatcherInterface bidsWatcher;
         switch (mirrorProvider) {
             case "HEDERA":
-                HederaBidsWatcher hederaBidsWatcher = new HederaBidsWatcher(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
-                hederaBidsWatcher.watch();
+                bidsWatcher = new HederaBidsWatcher(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
                 break;
             case "DRAGONGLASS":
-                DragonglassBidsWatcher dragonglassBidsWatcher = new DragonglassBidsWatcher(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
-                dragonglassBidsWatcher.watch();
+                bidsWatcher = new DragonglassBidsWatcher(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
                 break;
             default:
-                KabutoBidsWatcher kabutoBidsWatcher = new KabutoBidsWatcher(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
-                kabutoBidsWatcher.watch();
+                bidsWatcher = new KabutoBidsWatcher(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
                 break;
         }
+        bidsWatcher.watch();
     }
 }

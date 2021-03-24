@@ -4,44 +4,35 @@ import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import io.vertx.ext.web.client.WebClient;
 import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
 
-import java.util.concurrent.atomic.AtomicReference;
-
-@Log4j2
 public class AuctionsClosureWatcher implements Runnable {
 
     private final WebClient webClient;
     private final AuctionsRepository auctionsRepository;
     private final int mirrorQueryFrequency;
-    private String mirrorURL = "";
     private final String mirrorProvider = HederaClient.getMirrorProvider();
 
-    public AuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency) throws Exception {
+    public AuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
-        this.mirrorURL = HederaClient.getMirrorUrl();
     }
 
     @SneakyThrows
     @Override
     public void run() {
-        AtomicReference<String> uri = new AtomicReference<>("");
-
+        AuctionClosureWatcherInterface auctionClosureWatcher;
         switch (mirrorProvider) {
             case "HEDERA":
-                HederaAuctionsClosureWatcher hederaAuctionsClosureWatcher = new HederaAuctionsClosureWatcher(webClient, auctionsRepository, mirrorQueryFrequency);
-                hederaAuctionsClosureWatcher.watch();
+                auctionClosureWatcher = new HederaAuctionsClosureWatcher(webClient, auctionsRepository, mirrorQueryFrequency);
                 break;
             case "DRAGONGLASS":
-                DragonglassAuctionsClosureWatcher dragonglassAuctionsClosureWatcher = new DragonglassAuctionsClosureWatcher(webClient, auctionsRepository, mirrorQueryFrequency);
-                dragonglassAuctionsClosureWatcher.watch();
+                auctionClosureWatcher = new DragonglassAuctionsClosureWatcher(webClient, auctionsRepository, mirrorQueryFrequency);
                 break;
             default:
-                KabutoAuctionsClosureWatcher kabutoAuctionsClosureWatcher = new KabutoAuctionsClosureWatcher(webClient, auctionsRepository, mirrorQueryFrequency);
-                kabutoAuctionsClosureWatcher.watch();
+                auctionClosureWatcher = new KabutoAuctionsClosureWatcher(webClient, auctionsRepository, mirrorQueryFrequency);
                 break;
         }
+        auctionClosureWatcher.watch();
     }
 }

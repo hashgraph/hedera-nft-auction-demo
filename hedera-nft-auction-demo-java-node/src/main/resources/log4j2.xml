@@ -4,7 +4,7 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout>
                 <alwaysWriteExceptions>false</alwaysWriteExceptions>
-                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%threadName] %-5level %logger{36} - %message{nolookups}%xThrowable{separator(|)}%n (%L)</pattern>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %logger{36} - %message{nolookups}%xThrowable{separator(|)} (%L)%n</pattern>
             </PatternLayout>
         </Console>
     </Appenders>

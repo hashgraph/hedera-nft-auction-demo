@@ -7,9 +7,9 @@ import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
-public class DragonglassAuctionReadinessWatcher extends AuctionReadinessWatcher {
+public class DragonglassAuctionReadinessWatcher extends AuctionReadinessWatcher implements AuctionReadinessWatcherInterface {
 
-    public DragonglassAuctionReadinessWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) throws Exception {
+    public DragonglassAuctionReadinessWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
         super(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
     }
 
@@ -18,6 +18,7 @@ public class DragonglassAuctionReadinessWatcher extends AuctionReadinessWatcher 
      * start new bidding monitor thread
      * and close this thread
      */
+    @Override
     public void watch() {
         //TODO:
         log.debug("Dragonglass watch not implemented");

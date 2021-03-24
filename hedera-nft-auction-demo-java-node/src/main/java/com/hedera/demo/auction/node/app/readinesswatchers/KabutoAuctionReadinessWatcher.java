@@ -7,7 +7,7 @@ import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
-public class KabutoAuctionReadinessWatcher extends AbstractAuctionReadinessWatcher {
+public class KabutoAuctionReadinessWatcher extends AbstractAuctionReadinessWatcher implements AuctionReadinessWatcherInterface {
 
     public KabutoAuctionReadinessWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) throws Exception {
         super(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
@@ -18,6 +18,7 @@ public class KabutoAuctionReadinessWatcher extends AbstractAuctionReadinessWatch
      * start new bidding monitor thread
      * and close this thread
      */
+    @Override
     public void watch() {
         //TODO:
         log.debug("Kabuto watch not implemented");

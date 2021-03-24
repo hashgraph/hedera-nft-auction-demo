@@ -5,9 +5,7 @@ import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.vertx.ext.web.client.WebClient;
-import lombok.extern.log4j.Log4j2;
 
-@Log4j2
 public abstract class AbstractAuctionReadinessWatcher {
 
     protected final Auction auction;
@@ -15,11 +13,10 @@ public abstract class AbstractAuctionReadinessWatcher {
     protected final AuctionsRepository auctionsRepository;
     protected final BidsRepository bidsRepository;
     protected final int mirrorQueryFrequency;
-    protected String mirrorURL = "";
-    protected final String mirrorProvider = HederaClient.getMirrorProvider();
+    protected String mirrorURL;
     protected final String refundKey;
 
-    public AbstractAuctionReadinessWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) throws Exception {
+    protected AbstractAuctionReadinessWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) throws Exception {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;

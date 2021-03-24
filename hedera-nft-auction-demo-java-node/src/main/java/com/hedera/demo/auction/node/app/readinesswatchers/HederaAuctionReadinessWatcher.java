@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Log4j2
-public class HederaAuctionReadinessWatcher extends AuctionReadinessWatcher {
+public class HederaAuctionReadinessWatcher extends AbstractAuctionReadinessWatcher implements AuctionReadinessWatcherInterface {
 
     public HederaAuctionReadinessWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) throws Exception {
         super(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
@@ -26,6 +26,7 @@ public class HederaAuctionReadinessWatcher extends AuctionReadinessWatcher {
      * start new bidding monitor thread
      * and close this thread
      */
+    @Override
     public void watch() {
         AtomicBoolean querying = new AtomicBoolean(false);
         AtomicBoolean done = new AtomicBoolean(false);
@@ -40,14 +41,13 @@ public class HederaAuctionReadinessWatcher extends AuctionReadinessWatcher {
                 querying.set(true);
 
                 var webQuery  = webClient
-                    .get(443, mirrorURL, uri.get())
-                    .ssl(true)
-                    .as(BodyCodec.jsonObject())
-                    //TODO: fix this once mirror bug fixed
+                        .get(mirrorURL, uri.get())
+                        .as(BodyCodec.jsonObject())
+                        //TODO: fix this once mirror bug fixed
 //                            .addQueryParam("account.id", auction.getAuctionaccountid())
-                    .addQueryParam("account.id", this.auction.getAuctionaccountid())
-                    .addQueryParam("transactiontype", "CRYPTOTRANSFER")
-                    .addQueryParam("order", "asc");
+                        .addQueryParam("account.id", this.auction.getAuctionaccountid())
+                        .addQueryParam("transactiontype", "CRYPTOTRANSFER")
+                        .addQueryParam("order", "asc");
 
                 log.debug("Checking association for account " + auction.getAuctionaccountid() + " and token " + auction.getTokenid());
                 webQuery.send(response -> {

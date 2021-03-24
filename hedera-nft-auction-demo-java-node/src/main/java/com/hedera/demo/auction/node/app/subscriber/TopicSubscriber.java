@@ -92,7 +92,9 @@ public class TopicSubscriber implements Runnable{
             Auction newAuction = new Auction().fromJson(auctionJson);
             @Var String endTimeStamp = newAuction.getEndtimestamp();
             if (endTimeStamp.isEmpty()) {
-                endTimeStamp = String.valueOf(Instant.now().plus(2, ChronoUnit.DAYS).getEpochSecond());
+                // no end timestamp, use consensus timestamp + 2 days
+                Instant consensusTime = topicMessage.consensusTimestamp;
+                endTimeStamp = String.valueOf(consensusTime.plus(2, ChronoUnit.DAYS).getEpochSecond());
             }
             newAuction.setEndtimestamp(endTimeStamp.concat(".000000000")); // add nanoseconds
             newAuction.setWinningbid(0L);

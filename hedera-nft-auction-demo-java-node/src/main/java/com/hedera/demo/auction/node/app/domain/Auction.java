@@ -288,21 +288,21 @@ public class Auction implements VertxPojo, Serializable {
     @Override
     public Auction fromJson(io.vertx.core.json.JsonObject json) {
         this.setId(json.getInteger("id"));
-        this.setLastconsensustimestamp(json.getString("lastconsensustimestamp"));
-        this.setWinningbid(json.getLong("winningbid"));
-        this.setWinningaccount(json.getString("winningaccount"));
-        this.setWinningtimestamp(json.getString("winningtimestamp"));
+        this.setLastconsensustimestamp(json.getString("lastconsensustimestamp","0.0"));
+        this.setWinningbid(json.getLong("winningbid", 0L));
+        this.setWinningaccount(json.getString("winningaccount", ""));
+        this.setWinningtimestamp(json.getString("winningtimestamp", ""));
         this.setTokenid(json.getString("tokenid"));
         this.setAuctionaccountid(json.getString("auctionaccountid"));
-        this.setEndtimestamp(json.getString("endtimestamp"));
+        this.setEndtimestamp(json.getString("endtimestamp", ""));
         this.setReserve(json.getLong("reserve"));
-        this.setStatus(json.getString("status"));
-        this.setWinnercanbid(json.getBoolean("winnercanbid"));
+        this.setStatus(json.getString("status", "PENDING"));
+        this.setWinnercanbid(json.getBoolean("winnercanbid", /* def= */false));
         this.setWinningtxid(json.getString("winningtxid"));
         this.setWinningtxhash(json.getString("winningtxhash"));
         this.setTokenimage(json.getString("tokenimage"));
-        this.setMinimumbid(json.getLong("minimumbid"));
-        this.setStarttimestamp(json.getString("starttimestamp"));
+        this.setMinimumbid(json.getLong("minimumbid", 0L));
+        this.setStarttimestamp(json.getString("starttimestamp", "0.0"));
         return this;
     }
 

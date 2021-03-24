@@ -50,7 +50,7 @@ public class ApiVerticle extends AbstractVerticle {
                 .handler(CorsHandler.create("*")
                         .allowedMethods(allowedMethods)
                         .allowedHeaders(allowedHeaders))
-                .failureHandler(this::failureHandler);
+                .failureHandler(ApiVerticle::failureHandler);
 
         router.get("/v1/auctions/:id").handler(getAuctionHandler);
         router.get("/v1/auctions").handler(getAuctionsHandler);
@@ -77,7 +77,7 @@ public class ApiVerticle extends AbstractVerticle {
                 });
     }
 
-    private void failureHandler(RoutingContext routingContext) {
+    private static void failureHandler(RoutingContext routingContext) {
         var response = routingContext.response();
 
         // if we got into the failure handler the status code

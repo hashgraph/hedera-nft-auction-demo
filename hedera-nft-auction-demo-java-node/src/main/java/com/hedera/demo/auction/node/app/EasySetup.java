@@ -11,8 +11,6 @@ import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.FileWriter;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -65,7 +63,7 @@ public class EasySetup {
         auction.put("auctionaccountid", auctionAccount.toString());
         auction.put("reserve", 0);
         auction.put("minimumbid", 10);
-        auction.put("endtimestamp", Instant.now().plus(2, ChronoUnit.DAYS).getEpochSecond());
+//        auction.put("endtimestamp", Instant.now().plus(2, ChronoUnit.DAYS).getEpochSecond());
         auction.put("winnercanbid", true);
 
         // store auction data in initDemo.json file

@@ -8,9 +8,14 @@
 				<Dropdown :selected="importingNetwork" :options="['Mainnet', 'Testnet', 'Previewnet']" v-on:selected="x => importingNetwork = x" />
 				<input type="password" class="square" v-model="mnemonicOrPrivateKey" placeholder="Enter your phrase or private key" />
 				<input v-if="importingNetwork !== 'Testnet'" class="square" v-model="manualAccount" placeholder="Enter your account ID" />
-				<figure class="account-length" v-if="importingAccounts.length">Importing <b>{{importingAccounts.length}}</b> account{{importingAccounts.length === 1 ? '' : 's'}} for {{importingNetwork}}</figure>
-				<figure class="account-length" v-if="!importingAccounts.length">No accounts found for {{importingNetwork}}</figure>
-			</section>
+                <div v-if="importingNetwork === 'Testnet'">
+                    <figure class="account-length" v-if="importingAccounts.length">Importing <b>{{importingAccounts.length}}</b> account{{importingAccounts.length === 1 ? '' : 's'}} for {{importingNetwork}}</figure>
+                    <figure class="account-length" v-if="!importingAccounts.length">No accounts found for {{importingNetwork}}</figure>
+                </div>
+                <div v-else>
+                    <figure class="account-length">Input your account id for {{importingNetwork}}</figure>
+                </div>
+            </section>
 
 			<section class="actions">
 				<input v-if="showPasswordField" placeholder="Enter a strong password" type="password" v-model="password" />
@@ -104,7 +109,7 @@
 					this.$emit('done', true);
 				} else {
 					// TODO: Error handling!
-					//console.error('Could not import accounts? Check BG script.');
+					console.error('Could not import accounts? Check BG script.');
 				}
 
 			},

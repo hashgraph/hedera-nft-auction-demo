@@ -912,10 +912,10 @@
     bignumber.js "^9.0.1"
     tweetnacl "^1.0.3"
 
-"@hashgraph/proto@^1.0.19":
-  version "1.0.19"
-  resolved "https://registry.yarnpkg.com/@hashgraph/proto/-/proto-1.0.19.tgz#3eb08c17a582bb508a04c8bdefbf5a9e0bc5c95f"
-  integrity sha512-cdoZB9QT1ed4sEfO8tGdkGzDurM4BU0aZWoa0IWhFGrj6O9oTz2RDyh9YArqeGkwm5g3u/luWRaKlObe97tM/A==
+"@hashgraph/proto@^1.0.20":
+  version "1.0.22"
+  resolved "https://registry.yarnpkg.com/@hashgraph/proto/-/proto-1.0.22.tgz#8df99c3d2ba0bfa898aa93aa32e8fffabcb733b5"
+  integrity sha512-09Q31V1Bqc9098fu4kwDJoJXqdks75HlfkM9z2HTq46eVlOHEEWGEat5fVmJeJOR+NCh2hBw4UQ4u/XRLlMtmA==
   dependencies:
     "@hashgraph/protobufjs" "^6.10.1-hashgraph.2"
 
@@ -938,14 +938,14 @@
     "@types/node" "^13.7.0"
     long "^4.0.0"
 
-"@hashgraph/sdk@^2.0.15":
-  version "2.0.15"
-  resolved "https://registry.yarnpkg.com/@hashgraph/sdk/-/sdk-2.0.15.tgz#66d93371809f8629086a47b6d5cf5e063aee05b2"
-  integrity sha512-WNjltm2dgjc8D/DYfeyiiuzWB9osMiwcJ/9TKrs0/Yq3U311OkxmxSkTFRQ94cl3a3qcCwOscwzX0K9lLv+uTA==
+"@hashgraph/sdk@^2.0.16":
+  version "2.0.17"
+  resolved "https://registry.yarnpkg.com/@hashgraph/sdk/-/sdk-2.0.17.tgz#a0839e765c7122c642baf425953ebd39e6f7f06b"
+  integrity sha512-5O5YGJgxfR3b0EzJklrnaZ9AXgqro9t+Y9+0jAVcmLs0GwHBG2lP7sqtIrVNgFY0XcIW1LbtRtMylEXkEJ7v8g==
   dependencies:
     "@grpc/grpc-js" "^1.2.2"
     "@hashgraph/cryptography" "^1.0.12"
-    "@hashgraph/proto" "^1.0.19"
+    "@hashgraph/proto" "^1.0.20"
     bignumber.js "^9.0.1"
     long "^4.0.0"
 

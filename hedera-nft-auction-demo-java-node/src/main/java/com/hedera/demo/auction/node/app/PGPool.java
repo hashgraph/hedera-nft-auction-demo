@@ -37,9 +37,9 @@ public class PGPool {
                             .setMaxSize(this.poolSize)
             );
             return pgPool;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             System.out.println(e.getMessage());
-            return null;
+            throw e;
         }
     }
 }

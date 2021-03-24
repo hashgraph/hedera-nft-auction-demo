@@ -1,7 +1,7 @@
 {
   "tokenid": "0.0.1212",
   "auctionaccountid": "0.0.392766",
-  "endtimestamp": "123132",
+  "endtimestamp": "",
   "reserve": 0,
   "minimumbid": 100,
   "winnercanbid": true

@@ -118,29 +118,31 @@ The following parameter are optional and defaulted if not supplied
 * --symbol, this will determine the symbol for the token, if the symbol refers to a file path, a Hedera file entity will be created with the contents and the token's symbol set to the file id 
 * --no-clean, do no create a new topic and do not delete data from the database 
 
+__Command line__
+
 ```shell
 ./gradlew easySetup
 ```
-
-or
 
 ```shell
 ./gradlew easySetup --args="--name=myToken --symbol=MTT --no-clean"
 ```
 
-or (this requires that the REST api and database are up and running)
+__REST API__
+
+This requires that the REST api and database are up and running
 
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8081/v1/easysetup
 ```
 
-or (this requires that the REST api and database are up and running)
+or
 
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '{"symbol":"./sample-files/gold-base64.txt","name":"Test Token","clean":false}' http://localhost:8081/v1/easysetup
 ```
 
-#### Step by step
+#### Step by step via command line
 
 These steps will enable you to create an `initDemo.json` file (located in `./sample-files`) which you can finally use to setup a new auction.
 
@@ -170,22 +172,6 @@ This command will create an auction account with an initial balance of `100` hba
 
 set the resulting `Account Id` to the `auctionaccountid` attribute in your `./sample-files/initDemo.json` file.
 
-__Associate the token with the auction account and transfer__
-
-This will associate the token with the auction account.
-
-```shell
-./gradlew createTokenAssociation --args="tokenId accountId"
-```
-
-__Transfer the token to the auction account__
-
-This transfer the token from the account that created it to the `auctionaccountid`, supply the `tokenId` and `accountId` created above in the parameters.
-
-```shell
-./gradlew createTokenTransfer --args="tokenId accountId"
-```
-
 __Finalising the initDemo.json file__
 
 Your initDemo.json file should look like this (with your own values).
@@ -205,11 +191,102 @@ You can change some of the attribute values if you wish
 ```
 
 __Create the auction__
-
-This command will submit your `./sample-files/initDemo.json` file to the `Topic Id` created earlier.
-
 ```shell
 ./gradlew createAuction --args="./sample-files/initDemo.json"
+```
+
+__Associate the token with the auction account and transfer__
+
+This will associate the token with the auction account.
+
+```shell
+./gradlew createTokenAssociation --args="tokenId accountId"
+```
+
+__Transfer the token to the auction account__
+
+This transfer the token from the account that created it to the `auctionaccountid`, supply the `tokenId` and `accountId` created above in the parameters.
+
+```shell
+./gradlew createTokenTransfer --args="tokenId accountId"
+```
+
+#### Step by step via REST API
+
+This requires that the REST api and database are up and running
+
+__Create a topic__
+
+```shell script
+curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8081/v1/topic
+```
+
+returns a topic id
+
+```json
+{
+    "topicId": "0.0.57044"
+}
+```
+
+__Create a simple token__
+
+This command will create a token named `test` with a symbol of `tst`, an initial supply of `1` and `0` decimals.
+
+```shell script
+curl -H "Content-Type: application/json" -X POST -d '{"name": "test", "symbol":"tst", "initialSupply": 1, "decimals": 0}' http://localhost:8081/v1/token
+```
+
+returns a token id
+
+```json
+{
+    "tokenId": "0.0.58792"
+}
+```
+
+__Create an auction account__
+
+This command will create an auction account with an initial balance of `100` hbar and a threshold key of `1`.
+
+```shell script
+curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8081/v1/auctionaccount
+```
+
+returns an account id
+
+```json
+{
+    "accountId": "0.0.58793"
+}
+```
+
+__Create the auction__
+
+be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the values you obtained earlier.
+
+```shell script
+curl -H "Content-Type: application/json" -X POST -d '{"tokenid": "{{tokenId}}", "auctionaccountid": "{{accountId}}", "reserve": "", "minimumbid": "10", "endtimestamp": "", "winnercanbid": true}' http://localhost:8081/v1/auction
+```
+
+__Associate the token with the auction account and transfer__
+
+This will associate the token with the auction account.
+
+be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the values you obtained earlier.
+
+```shell script
+curl -H "Content-Type: application/json" -X POST -d '{"tokenid" : "{{tokenId}}", "auctionaccountid" : "{{accountId}}"}' http://localhost:8081/v1/associate
+```
+
+__Transfer the token to the auction account__
+
+This transfer the token from the account that created it to the `auctionaccountid`, supply the `tokenId` and `accountId` created above in the parameters.
+
+be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the values you obtained earlier.
+
+```shell script
+curl -H "Content-Type: application/json" -X POST -d '{"tokenid" : "{{tokenId}}", "auctionaccountid" : "{{accountId}}"}' http://localhost:8081/v1/transfer
 ```
 
 #### Run the components

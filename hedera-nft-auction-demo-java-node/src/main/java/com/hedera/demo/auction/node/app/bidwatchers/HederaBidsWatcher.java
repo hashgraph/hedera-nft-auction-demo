@@ -11,6 +11,7 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.binary.Hex;
+import org.jooq.tools.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
@@ -153,7 +154,7 @@ public class HederaBidsWatcher extends AbstractBidsWatcher implements BidsWatche
             }
 
             //TODO: update auction and bid in a single tx
-            if (rejectReason.isEmpty()) {
+            if (StringUtils.isEmpty(rejectReason)) {
                 // we have a winner
                 // refund previous bid
                 if (this.auction.getWinningaccount() != null) {

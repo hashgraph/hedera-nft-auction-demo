@@ -10,6 +10,7 @@ import com.hedera.hashgraph.sdk.TransactionReceipt;
 import com.hedera.hashgraph.sdk.TransactionResponse;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.log4j.Log4j2;
+import org.jooq.tools.StringUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -67,7 +68,7 @@ public class CreateAuction {
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {
             log.error("Invalid number of arguments supplied");
-        } else if (topicId.isEmpty()) {
+        } else if (StringUtils.isEmpty(topicId)) {
             log.error("No VUE_APP_TOPIC_ID in .env file");
         } else {
             log.info("Creating auction");

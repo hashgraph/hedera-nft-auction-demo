@@ -6,6 +6,7 @@ import com.hedera.demo.auction.node.app.refunder.Refunder;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.vertx.ext.web.client.WebClient;
+import org.jooq.tools.StringUtils;
 
 import java.util.Arrays;
 
@@ -30,7 +31,7 @@ public abstract class AbstractBidsWatcher {
     }
 
     boolean checkMemos(String memo) {
-        if (memo.isEmpty()) {
+        if (StringUtils.isEmpty(memo)) {
             return false;
         }
         String[] memos = new String[]{"CREATEAUCTION", "FUNDACCOUNT", "TRANSFERTOAUCTION", "ASSOCIATE", "AUCTION REFUND"};

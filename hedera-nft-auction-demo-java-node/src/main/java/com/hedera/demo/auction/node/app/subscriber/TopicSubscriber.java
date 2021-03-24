@@ -19,6 +19,7 @@ import com.hedera.hashgraph.sdk.TopicMessageQuery;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
+import org.jooq.tools.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -91,7 +92,7 @@ public class TopicSubscriber implements Runnable{
             JsonObject auctionJson = new JsonObject(auctionData);
             Auction newAuction = new Auction().fromJson(auctionJson);
             @Var String endTimeStamp = newAuction.getEndtimestamp();
-            if (endTimeStamp.isEmpty()) {
+            if (StringUtils.isEmpty(endTimeStamp)) {
                 // no end timestamp, use consensus timestamp + 2 days
                 Instant consensusTime = topicMessage.consensusTimestamp;
                 endTimeStamp = String.valueOf(consensusTime.plus(2, ChronoUnit.DAYS).getEpochSecond());

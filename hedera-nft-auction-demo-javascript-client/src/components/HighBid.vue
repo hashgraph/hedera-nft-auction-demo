@@ -1,7 +1,8 @@
 <template>
   <div>
-    <div v-if="status !== 'PENDING'">
-      <v-card class="ma-2" outlined width="650px">
+<!--    <div v-if="status !== 'PENDING'">-->
+      <div v-if="status !== 'TESTING'">
+      <v-card class="ma-1" outlined width="650px">
         <v-toolbar dark>
           <v-toolbar-title v-if="status !== 'PENDING'" class="white--text">Highest Bid</v-toolbar-title>
         </v-toolbar>
@@ -21,8 +22,10 @@
               </v-col>
               <v-col>
                 <div v-if="winningaccount">
-                  <P>by <a :href="accountURL" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ winningaccount }}</b></a></P>
-                  <P>on <a :href="winningTxURL" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ timeFromSeconds(winningtimestamp) }}</b></a></P>
+                  <P v-if="accountURL">by <a :href="accountURL" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ winningaccount }}</b></a></P>
+                  <P v-else>by <b>{{ winningaccount }}</b></P>
+                  <P v-if="winningTxURL">on <a :href="winningTxURL" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ timeFromSeconds(winningtimestamp) }}</b></a></P>
+                  <P v-else>on <b>{{ timeFromSeconds(winningtimestamp) }}</b></P>
                 </div>
                 <div v-else>
                   <p class="ma-6 display-1 font-weight-bold text--white">

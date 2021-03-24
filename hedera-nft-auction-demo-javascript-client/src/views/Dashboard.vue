@@ -194,11 +194,11 @@ export default {
       this.busy = true;
       try {
         this.message = "Preparing Bid Transaction";
-        let client;
+        let client = Client.forTestnet();
         if (process.env.VUE_APP_NETWORK.toUpperCase() === 'MAINNET') {
           client = Client.forMainnet();
-        } else {
-          client = Client.forTestnet();
+        } else if (process.env.VUE_APP_NETWORK.toUpperCase() === 'PREVIEWNET') {
+          client = Client.forPreviewnet();
         }
         if (this.account) {
           client.setOperatorWith(this.account.id, this.account.publicKey, this.provider);
@@ -218,12 +218,14 @@ export default {
 
             // reset client so receipt request doesn't prompt for signature
             this.message = "Fetching Receipt";
+            client = Client.forTestnet();
             if (process.env.VUE_APP_NETWORK.toUpperCase() === 'MAINNET') {
               client = Client.forMainnet();
-            } else {
-              client = Client.forTestnet();
+            } else if (process.env.VUE_APP_NETWORK.toUpperCase() === 'PREVIEWNET') {
+              client = Client.forPreviewnet();
             }
             const receipt = await executed.getReceipt(client);
+            this.message = "";
             if (receipt.status == Status.Success) {
               this.success = true;
               setTimeout(() => (this.success = false), 2000);
@@ -231,7 +233,6 @@ export default {
               this.error = true;
               this.errorMessage = receipt.status.toString();
             }
-            this.message = "";
           }
         } else {
           this.message = "Unable to login with extension - bid aborted";
@@ -283,11 +284,13 @@ export default {
     if (this.wallet === null) {
       document.addEventListener("hederaWalletLoaded", async () => {
         this.wallet = window.wallet;
-        this.provider = this.wallet.getTransactionSigner();
 
         try {
-          this.account = await this.wallet.login(process.env.VUE_APP_NETWORK);
+          let network = process.env.VUE_APP_NETWORK;
+          network = network.charAt(0).toUpperCase() + network.slice(1);
+          this.account = await this.wallet.login(network);
           this.accountId = this.account.id;
+          this.provider = this.wallet.getTransactionSigner();
         } catch (e) {
           this.message = "Unable to login with extension - ".concat(e.message);
           this.accountId = undefined;

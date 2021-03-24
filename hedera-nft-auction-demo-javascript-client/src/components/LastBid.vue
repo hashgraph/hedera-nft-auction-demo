@@ -1,5 +1,5 @@
 <template>
-  <v-card class="mx-auto" outlined width="650px">
+  <v-card class="mx-auto ma-1" outlined width="650px">
     <v-toolbar dark>
       <v-toolbar-title class="white--text">Your last bid</v-toolbar-title>
     </v-toolbar>
@@ -17,16 +17,23 @@
               {{ winningBidText }}
             </p>
           </v-col>
-          <v-col>
-            <P>on <a :href="txURL" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ timeFromSeconds(bid.timestamp) }}</b></a></P>
+          <v-col v-if="lastbid !== 0">
+            <P v-if="txURL">on <a :href="txURL" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ timeFromSeconds(bid.timestamp) }}</b></a></P>
+            <P v-else>on <b>{{ timeFromSeconds(bid.timestamp) }}</b></P>
             <div v-if="bid.status === ''">
               <P>Status: Current Leader</P>
             </div>
             <div v-else>
               <P>Status: {{bid.status }}</P>
-              <P v-if="bid.refundtxid"><a :href="refundTxURL" style="text-decoration: none; color: inherit;" target="_blank"><b>Refund transaction</b></a></P>
+              <P v-if="bid.refundtxid">
+                <a v-if="refundTxURL" :href="refundTxURL" style="text-decoration: none; color: inherit;" target="_blank"><b>Refund transaction</b></a>
+                <a v-else style="text-decoration: none; color: inherit;"><b>Refunded</b></a>
+              </P>
               <p v-else>Not refunded (yet)</p>
             </div>
+          </v-col>
+          <v-col v-else>
+
           </v-col>
         </v-row>
       </v-sheet>

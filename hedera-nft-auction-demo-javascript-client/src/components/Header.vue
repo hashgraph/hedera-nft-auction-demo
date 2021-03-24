@@ -10,7 +10,7 @@
         width="40"
       />
     </div>
-    <div>Hedera NFT Auction Service Demo</div>
+    <div>Hedera NFT Auction Service Demo {{ nodeOwner }}</div>
     <v-spacer></v-spacer>
     <div class="ma-2">
       <v-select
@@ -21,6 +21,7 @@
       />
     </div>
     <v-chip class="ma-2" v-if="topicUrl" color="green"><a :href="topicUrl" style="text-decoration: none; color: inherit;" target="_blank"><b>Auctions Topic Id: {{ topicId }}</b></a></v-chip>
+    <v-chip class="ma-2" v-else color="green"><b>Auctions Topic Id: {{ topicId }}</b></v-chip>
   </v-app-bar>
 </template>
 
@@ -37,6 +38,7 @@ export default {
       topicUrl: "",
       topicId: process.env.VUE_APP_TOPIC_ID,
       mirror: "Kabuto",
+      nodeOwner: process.env.VUE_APP_NODE_OWNER !== '' ? "(".concat(process.env.VUE_APP_NODE_OWNER).concat(")") : ""
     };
   },
   methods: {

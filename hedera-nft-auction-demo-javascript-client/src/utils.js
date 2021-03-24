@@ -11,12 +11,15 @@ export function timeFromSeconds(timestamp) {
 
 export function getMirrorURL(type, mirror, id) {
   const network = process.env.VUE_APP_NETWORK.toUpperCase();
+  if (network === 'PREVIEWNET') {
+    return "";
+  }
   if (mirror.toUpperCase() === "KABUTO") {
     const localNetwork = (network === "MAINNET") ? "mainnet" : "testnet";
     if (type === "transactions") {
-      return "https://explorer.kabuto.sh/".concat(localNetwork).concat("/transaction/").concat(id);
+      return process.env.VUE_APP_EXPLORER_KABUTO.concat(localNetwork).concat("/transaction/").concat(id);
     } else {
-      return "https://explorer.kabuto.sh/".concat(localNetwork).concat("/id/").concat(id);
+      return process.env.VUE_APP_EXPLORER_KABUTO.concat(localNetwork).concat("/id/").concat(id);
     }
   } else {
     let transformId = id;
@@ -39,11 +42,9 @@ export function getMirrorURL(type, mirror, id) {
       transformId = left.concat(right);
     }
     if (network === "MAINNET") {
-      return "https://app.dragonglass.me/hedera/".concat(type).concat("/").concat(transformId);
-    } else if (network === "TESTNET") {
-      return "https://testnet.dragonglass.me/hedera/".concat(type).concat("/").concat(transformId);
+      return process.env.VUE_APP_EXPLORER_DRAGONGLASS_MAINNET.concat(type).concat("/").concat(transformId);
     } else {
-      return "";
+      return process.env.VUE_APP_EXPLORER_DRAGONGLASS_TESTNET.concat(type).concat("/").concat(transformId);
     }
   }
 }

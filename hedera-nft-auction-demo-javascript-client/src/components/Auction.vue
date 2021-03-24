@@ -1,22 +1,24 @@
 <template>
   <div>
-    <v-card class="mx-auto" outlined width="650px">
-      <v-toolbar dark>
-        <v-toolbar-title class="white--text"
-          >Auction for token <a :href="tokenURL" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ tokenid }}</b></a></v-toolbar-title
-        >
+    <v-card :color=cardColor class="mx-auto ma-1" outlined width="650px">
+      <v-toolbar :color=cardColor dark>
+        <v-toolbar-title v-if="tokenURL" class="white--text">Auction for token <a :href="tokenURL" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ tokenid }}</b></a></v-toolbar-title>
+        <v-toolbar-title v-else class="white--text">Auction for token <b>{{ tokenid }}</b></v-toolbar-title>
       </v-toolbar>
-      <v-row align="center">
-        <v-overlay v-if="status === 'CLOSED'"
-            color="red"
-            :absolute=true
-        >
-        </v-overlay>
-        <v-overlay v-if="status === 'PENDING'"
-                   color="grey"
-                   :absolute=true
-        >
-        </v-overlay>
+      <v-row  align="center" v-if="status === 'ACTIVE'">
+        <flip-countdown  class="ma-2" :deadline="timeFromSeconds(endtimestamp)"></flip-countdown>
+      </v-row>
+      <v-row align="center" class="ma-2">
+<!--        <v-overlay v-if="status === 'CLOSED'"-->
+<!--                   color="red"-->
+<!--                   :absolute=true-->
+<!--        >-->
+<!--        </v-overlay>-->
+<!--        <v-overlay v-if="status === 'PENDING'"-->
+<!--                   color="grey"-->
+<!--                   :absolute=true-->
+<!--        >-->
+<!--        </v-overlay>-->
         <v-col align="center">
           <div class="text-xs-center">
             <v-img v-if="tokenimage" :src="tokenimage" class="ma-2" width="90%"></v-img>
@@ -24,7 +26,10 @@
         </v-col>
         <v-col align="left">
           <v-row>
-            <v-col><a :href="accountURL" style="text-decoration: none; color: inherit;" target="_blank"><b>Auction account: {{ auctionaccountid }}</b></a></v-col>
+            <v-col>
+              <a v-if="accountURL" :href="accountURL" style="text-decoration: none; color: inherit;" target="_blank"><b>Auction account: {{ auctionaccountid }}</b></a>
+              <a v-else style="text-decoration: none; color: inherit;">Auction account: <b>{{ auctionaccountid }}</b></a>
+            </v-col>
           </v-row>
           <v-row>
             <v-col>Reserve: {{ reserve }}</v-col>
@@ -32,14 +37,11 @@
           <v-row>
             <v-col>Minimum bid increase: {{ minimumbid }}</v-col>
           </v-row>
-          <v-row>
-            <v-col>
-              <flip-countdown :deadline="timeFromSeconds(endtimestamp)"></flip-countdown>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col>Status : {{ status }}</v-col>
-          </v-row>
+        </v-col>
+      </v-row>
+      <v-row v-if="status !== 'ACTIVE'">
+        <v-col>
+          Status : {{ status }}
         </v-col>
       </v-row>
     </v-card>
@@ -77,6 +79,15 @@ export default {
     },
     tokenURL() {
       return getTokenUrl(this.mirror, this.tokenid);
+    },
+    cardColor() {
+      if (this.status === 'CLOSED') {
+        return 'red';
+      } else if (this.status === 'PENDING') {
+        return 'grey';
+      } else {
+        return 'black';
+      }
     }
 
   }

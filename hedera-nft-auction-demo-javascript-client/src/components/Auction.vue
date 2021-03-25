@@ -9,16 +9,6 @@
         <flip-countdown  class="ma-2" :deadline="timeFromSeconds(endtimestamp)"></flip-countdown>
       </v-row>
       <v-row align="center" class="ma-2">
-<!--        <v-overlay v-if="status === 'CLOSED'"-->
-<!--                   color="red"-->
-<!--                   :absolute=true-->
-<!--        >-->
-<!--        </v-overlay>-->
-<!--        <v-overlay v-if="status === 'PENDING'"-->
-<!--                   color="grey"-->
-<!--                   :absolute=true-->
-<!--        >-->
-<!--        </v-overlay>-->
         <v-col align="center">
           <div class="text-xs-center">
             <v-img v-if="tokenimage" :src="tokenimage" class="ma-2" width="90%"></v-img>

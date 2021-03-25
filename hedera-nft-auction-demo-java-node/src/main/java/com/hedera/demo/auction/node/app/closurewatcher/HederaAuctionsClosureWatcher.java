@@ -1,4 +1,4 @@
-package com.hedera.demo.auction.node.app.closurewatchers;
+package com.hedera.demo.auction.node.app.closurewatcher;
 
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;

@@ -1,4 +1,4 @@
-package com.hedera.demo.auction.node.app.refunder;
+package com.hedera.demo.auction.node.app.refundChecker;
 
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -25,10 +25,10 @@ public class HederaRefundChecker extends AbstractRefundChecker implements Refund
         String uri = "/api/v1/transactions";
 
         while (true) {
-            // get list of bids to refund (refund = false, but refund transaction in progress)
+            // get list of bids where refund is in progress (refunded = false)
             // look for a successful scheduled transaction
             // and set bid accordingly (refunded)
-            for (Map.Entry<String, String> bidToRefund : bidsRepository.bidsToRefund().entrySet()) {
+            for (Map.Entry<String, String> bidToRefund : bidsRepository.bidsRefundToConfirm().entrySet()) {
                 String transactionId = bidToRefund.getValue();
                 String timestamp = bidToRefund.getKey();
                 log.debug("Checking for refund on timestamp " + timestamp + " transaction id " + transactionId);

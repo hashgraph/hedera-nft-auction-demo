@@ -128,7 +128,7 @@ public class BidsRepository {
         return result;
     }
 
-    public Map<String, String> bidsToRefund() {
+    public Map<String, String> bidsRefundToConfirm() {
         @Var DSLContext cx = null;
         @Var Map<String, String> rows = new HashMap<>();
         try {

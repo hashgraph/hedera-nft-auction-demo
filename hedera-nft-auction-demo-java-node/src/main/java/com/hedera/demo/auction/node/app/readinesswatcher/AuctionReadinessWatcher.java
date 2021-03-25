@@ -1,4 +1,4 @@
-package com.hedera.demo.auction.node.app.readinesswatchers;
+package com.hedera.demo.auction.node.app.readinesswatcher;
 
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;

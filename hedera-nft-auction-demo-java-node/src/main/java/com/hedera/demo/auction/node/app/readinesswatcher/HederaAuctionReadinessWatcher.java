@@ -1,6 +1,6 @@
-package com.hedera.demo.auction.node.app.readinesswatchers;
+package com.hedera.demo.auction.node.app.readinesswatcher;
 
-import com.hedera.demo.auction.node.app.bidwatchers.BidsWatcher;
+import com.hedera.demo.auction.node.app.bidwatcher.BidsWatcher;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;

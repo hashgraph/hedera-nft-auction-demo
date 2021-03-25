@@ -1,4 +1,4 @@
-package com.hedera.demo.auction.node.app.bidwatchers;
+package com.hedera.demo.auction.node.app.bidwatcher;
 
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;

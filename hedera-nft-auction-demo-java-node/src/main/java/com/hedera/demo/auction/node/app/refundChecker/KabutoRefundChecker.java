@@ -1,4 +1,4 @@
-package com.hedera.demo.auction.node.app.refunder;
+package com.hedera.demo.auction.node.app.refundChecker;
 
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.github.cdimascio.dotenv.Dotenv;

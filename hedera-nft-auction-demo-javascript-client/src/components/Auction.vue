@@ -34,14 +34,13 @@
           <v-row>
             <v-col>Reserve: {{ reserve }}</v-col>
           </v-row>
-          <v-row>
-            <v-col>Minimum bid increase: {{ minimumbid }}</v-col>
-          </v-row>
-        </v-col>
-      </v-row>
-      <v-row v-if="status !== 'ACTIVE'">
-        <v-col>
-          Status : {{ status }}
+            <v-row>
+                <v-col>Minimum bid increase: {{ minimumbid }}</v-col>
+            </v-row>
+            <v-row>
+                <v-col>{{ auctionStatusText }}</v-col>
+            </v-row>
+
         </v-col>
       </v-row>
     </v-card>
@@ -88,7 +87,17 @@ export default {
       } else {
         return 'black';
       }
-    }
+    },
+      auctionStatusText() {
+          if (this.status === 'CLOSED') {
+              return 'This auction is closed';
+          } else if (this.status === 'PENDING') {
+              return 'This auction is pending';
+          } else {
+              return '';
+          }
+      }
+
 
   }
 

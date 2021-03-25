@@ -35,7 +35,9 @@ git clone https://github.com/hashgraph/hedera-nft-auction-demo.git
 
 #### Database
 
-Create a database named `auctions`, note the installation below assumes the user is `postgres` and the password is `password`.
+All database objects will be created in the `public` database.
+
+Note the installation below assumes the user is `postgres` and the password is `password`.
 
 #### Java Appnet Node
 

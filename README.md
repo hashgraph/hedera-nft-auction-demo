@@ -11,7 +11,7 @@
 
 ## Notes
 
-The java projects use Lombok, ensure that the plug is in installed and configured properly [Lombok Plugin](https://www.baeldung.com/lombok-ide)
+The java projects use Lombok, ensure that the plug is installed in your IDE and configured properly [Lombok Plugin](https://www.baeldung.com/lombok-ide)
 
 Note that enabling annotation processing differs between versions of IntelliJ `Preferences > Compiler > Annotation Processors` before IntelliJ2017, starting with IntelliJ 2017, the "Enable Annotation Processing" checkbox has moved to: `Settings > Build, Execution, Deployment > Compiler > Annotation Processors`
 
@@ -35,17 +35,14 @@ git clone https://github.com/hashgraph/hedera-nft-auction-demo.git
 
 #### Database
 
-Create a database named `auctions`, note the installation below asssumes the user is `postgres` and the password is `password`, if your user, password and database names are different, you will need to edit `build.gradle` to reflect those.
+Create a database named `auctions`, note the installation below assumes the user is `postgres` and the password is `password`.
 
 #### Java Appnet Node
 
 ```shell
 cd hedera-nft-auction-demo
 cd hedera-nft-auction-demo-java-node
-# Setup the database objects
-./gradlew flywayMigrate
-# Build the database classes
-# ./gradlew jooqGenerate
+
 # Build the code
 ./gradlew build
 ```
@@ -124,6 +121,8 @@ __Command line__
 ./gradlew easySetup
 ```
 
+*Note: the application wil need to be restarted to take the new topic into account*
+
 ```shell
 ./gradlew easySetup --args="--name=myToken --symbol=MTT --no-clean"
 ```
@@ -133,18 +132,20 @@ __REST API__
 This requires that the REST api and database are up and running
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8081/v1/easysetup
+curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8082/v1/admin/easysetup
 ```
 
 or
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -d '{"symbol":"./sample-files/gold-base64.txt","name":"Test Token","clean":false}' http://localhost:8081/v1/easysetup
+curl -H "Content-Type: application/json" -X POST -d '{"symbol":"./sample-files/gold-base64.txt","name":"Test Token","clean":false}' http://localhost:8082/v1/admin/easysetup
 ```
 
 #### Step by step via command line
 
 These steps will enable you to create an `initDemo.json` file (located in `./sample-files`) which you can finally use to setup a new auction.
+
+*Note: the application wil need to be restarted to take the new topic into account*
 
 __Create a topic__
 
@@ -217,8 +218,10 @@ This requires that the REST api and database are up and running
 
 __Create a topic__
 
+*Note: the application wil need to be restarted to take the new topic into account*
+
 ```shell script
-curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8081/v1/topic
+curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8082/v1/admin/topic
 ```
 
 returns a topic id
@@ -234,7 +237,7 @@ __Create a simple token__
 This command will create a token named `test` with a symbol of `tst`, an initial supply of `1` and `0` decimals.
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -d '{"name": "test", "symbol":"tst", "initialSupply": 1, "decimals": 0}' http://localhost:8081/v1/token
+curl -H "Content-Type: application/json" -X POST -d '{"name": "test", "symbol":"tst", "initialSupply": 1, "decimals": 0}' http://localhost:8082/v1/admin/token
 ```
 
 returns a token id
@@ -250,7 +253,7 @@ __Create an auction account__
 This command will create an auction account with an initial balance of `100` hbar and a threshold key of `1`.
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8081/v1/auctionaccount
+curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8082/v1/admin/auctionaccount
 ```
 
 returns an account id
@@ -266,7 +269,7 @@ __Create the auction__
 be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the values you obtained earlier.
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -d '{"tokenid": "{{tokenId}}", "auctionaccountid": "{{accountId}}", "reserve": "", "minimumbid": "10", "endtimestamp": "", "winnercanbid": true}' http://localhost:8081/v1/auction
+curl -H "Content-Type: application/json" -X POST -d '{"tokenid": "{{tokenId}}", "auctionaccountid": "{{accountId}}", "reserve": "", "minimumbid": "10", "endtimestamp": "", "winnercanbid": true}' http://localhost:8082/v1/admin/auction
 ```
 
 __Associate the token with the auction account and transfer__
@@ -276,7 +279,7 @@ This will associate the token with the auction account.
 be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the values you obtained earlier.
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -d '{"tokenid" : "{{tokenId}}", "auctionaccountid" : "{{accountId}}"}' http://localhost:8081/v1/associate
+curl -H "Content-Type: application/json" -X POST -d '{"tokenid" : "{{tokenId}}", "auctionaccountid" : "{{accountId}}"}' http://localhost:8082/v1/admin/associate
 ```
 
 __Transfer the token to the auction account__
@@ -286,7 +289,7 @@ This transfer the token from the account that created it to the `auctionaccounti
 be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the values you obtained earlier.
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -d '{"tokenid" : "{{tokenId}}", "auctionaccountid" : "{{accountId}}"}' http://localhost:8081/v1/transfer
+curl -H "Content-Type: application/json" -X POST -d '{"tokenid" : "{{tokenId}}", "auctionaccountid" : "{{accountId}}"}' http://localhost:8082/v1/admin/transfer
 ```
 
 #### Run the components
@@ -310,3 +313,19 @@ __Web UI__
 cd hedera-nft-auction-demo-javascript-client
 yarn serve
 ```
+
+## Developing new features requiring database changes
+
+This is only required in order to create/modify database objects, it happens automatically when the application is launched too.
+
+__Setup the database objects__
+
+```shell script
+./gradlew flywayMigrate
+````
+
+__Build the database classes__
+
+```shell script
+./gradlew jooqGenerate
+````

@@ -144,7 +144,7 @@ dependencies {
 }
 
 flyway {
-	def dbURL = System.getenv("DATABASE_URL") ?: "postgresql://localhost:5432/auctions"
+	def dbURL = System.getenv("DATABASE_URL") ?: "postgresql://localhost:5432/postgres"
 	def dbUSER = System.getenv("DATABASE_USERNAME") ?: "postgres"
 	def dbPASS = System.getenv("DATABASE_PASSWORD") ?: "password"
 
@@ -157,7 +157,7 @@ flyway {
 task jooqGenerate {
 
 	doLast() {
-		def dbURL = System.getenv("DATABASE_URL") ?: "postgresql://localhost:5432/auctions"
+		def dbURL = System.getenv("DATABASE_URL") ?: "postgresql://localhost:5432/postgres"
 		def dbUSER = System.getenv("DATABASE_USERNAME") ?: "postgres"
 		def dbPASS = System.getenv("DATABASE_PASSWORD") ?: "password"
 		def writer = new StringWriter()

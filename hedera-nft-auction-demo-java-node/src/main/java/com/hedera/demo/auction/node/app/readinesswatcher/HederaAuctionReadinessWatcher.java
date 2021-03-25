@@ -100,13 +100,12 @@ public class HederaAuctionReadinessWatcher extends AbstractAuctionReadinessWatch
                 if (transfers != null) {
                     for (Object transferObject : transfers) {
                         JsonObject transfer = JsonObject.mapFrom(transferObject);
-                        if (transfer.getString("account").equals(this.auction.getAuctionaccountid())) {
-                            if (transfer.getString("token_id").equals(this.auction.getTokenid())) {
-                                if (transfer.getLong("amount") != 0) {
-                                    // token is associated with account
-                                    return new Pair<Boolean, String>(true, transaction.getString("consensus_timestamp"));
-                                }
-                            }
+                        String account = transfer.getString("account");
+                        String tokenId = transfer.getString("token_id");
+                        long amount = transfer.getLong("amount");
+                        String consensusTimestamp = transaction.getString("consensus_timestamp");
+                        if (checkAssociation(account, tokenId, amount)) {
+                            return new Pair<Boolean, String>(true, consensusTimestamp);
                         }
                     }
                 }

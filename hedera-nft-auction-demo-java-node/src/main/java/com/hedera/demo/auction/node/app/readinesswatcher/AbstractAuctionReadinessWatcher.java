@@ -25,4 +25,13 @@ public abstract class AbstractAuctionReadinessWatcher {
         this.refundKey = refundKey;
         this.mirrorURL = HederaClient.getMirrorUrl();
     }
+
+    protected boolean checkAssociation(String account, String tokenId, long amount) {
+        if (account.equals(this.auction.getAuctionaccountid())) {
+            if (tokenId.equals(this.auction.getTokenid())) {
+                return (amount != 0);
+            }
+        }
+        return false;
+    }
 }

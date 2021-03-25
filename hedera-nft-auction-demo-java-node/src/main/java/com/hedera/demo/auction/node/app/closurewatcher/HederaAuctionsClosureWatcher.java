@@ -8,9 +8,6 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
 import lombok.extern.log4j.Log4j2;
 
-import java.sql.SQLException;
-import java.util.Map;
-
 @Log4j2
 public class HederaAuctionsClosureWatcher extends AbstractAuctionsClosureWatcher implements AuctionClosureWatcherInterface {
 
@@ -37,23 +34,7 @@ public class HederaAuctionsClosureWatcher extends AbstractAuctionsClosureWatcher
                             consensusTimestamp = transaction.getString("consensus_timestamp");
                             break;
                         }
-
-                        // AUCTIONS.ENDTIMESTAMP, AUCTIONS.ID
-                        for (Map.Entry<String, Integer> auctions : auctionsRepository.openPendingAuctions().entrySet()) {
-                            String endTimestamp = auctions.getKey();
-                            int auctionId = auctions.getValue();
-
-                            if (consensusTimestamp.compareTo(endTimestamp) > 0) {
-                                // payment past auctions end, close it
-                                log.info("Closing auction id " + auctionId);
-                                try {
-                                    auctionsRepository.setClosed(auctionId);
-                                } catch (SQLException e) {
-                                    log.error(e);
-                                }
-                            }
-                        }
-
+                        closeAuctionIfPastEnd(consensusTimestamp);
                     }
                 } else {
                     log.error(response.cause().getMessage());

@@ -254,7 +254,7 @@ public class AuctionsRepository {
         return auction;
     }
 
-    public Map<String, Integer> openPendingAuctions() {
+    public Map<String, Integer> openAndPendingAuctions() {
         @Var DSLContext cx = null;
         @Var Map<String, Integer> rows = new HashMap<>();
         try {

@@ -27,6 +27,9 @@ services:
     environment:
       - AUCTION_NODE=true
       - REST_API=false
+      - ADMIN_API=false
+    env_file:
+      - docker-files/.env
     depends_on:
       - postgres
     volumes:
@@ -39,11 +42,14 @@ services:
     restart: unless-stopped
     environment:
       - REST_API=true
+      - ADMIN_API=true
       - AUCTION_NODE=false
     env_file:
       - docker-files/.env
     ports:
       - "8081:8081"
+# uncomment to expose the admin api outside the docker component (not recommended)
+#      - "8082:8082"
     depends_on:
       - postgres
     volumes:
@@ -53,6 +59,8 @@ services:
     build:
       context: hedera-nft-auction-demo-javascript-client
     restart: unless-stopped
+    env_file:
+      - docker-files/.env
     ports:
       - "8080:8080"
     depends_on:

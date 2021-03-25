@@ -54,7 +54,7 @@ cp .env.sample .env
 nano .env
 ```
 
-set the following properties according to your Hedera account details
+set the following properties according to your Hedera account and refund key details
 
 * OPERATOR_ID=
 * OPERATOR_KEY=302.....
@@ -82,6 +82,7 @@ nano .env
 * `VUE_APP_NETWORK=testnet` previewnet, testnet or mainnet
 * `VUE_APP_TOPIC_ID=` topic id the appnet is using
 * `PORT=8080` the port you want to run the UI on
+* `VUE_APP_NODE_OWNER` optionally set the name of the company operating the node to display in the UI
 
 #### Setting up an auction
 

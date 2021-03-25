@@ -18,7 +18,7 @@ public class HederaClient {
     private static final AccountId OPERATOR_ID = AccountId.fromString(Objects.requireNonNull(env.get("OPERATOR_ID")));
     private static final PrivateKey OPERATOR_KEY = PrivateKey.fromString(Objects.requireNonNull(env.get("OPERATOR_KEY")));
     private static final String VUE_APP_NETWORK = Optional.ofNullable(env.get("VUE_APP_NETWORK").toUpperCase()).orElse("");
-    private static final String MIRROR_PROVIDER = Optional.ofNullable(env.get("MIRROR_PROVIDER").toUpperCase()).orElse("kabuto").toUpperCase();
+    private static final String MIRROR_PROVIDER = Optional.ofNullable(env.get("MIRROR_PROVIDER").toUpperCase()).orElse("KABUTO");
 
     private HederaClient() {
     }

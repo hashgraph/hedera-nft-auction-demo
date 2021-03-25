@@ -17,7 +17,7 @@
               {{ winningBidText }}
             </p>
           </v-col>
-          <v-col v-if="lastbid !== 0">
+          <v-col v-if="this.bid.bidamount !== 0">
             <P v-if="txURL">on <a :href="txURL" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ timeFromSeconds(bid.timestamp) }}</b></a></P>
             <P v-else>on <b>{{ timeFromSeconds(bid.timestamp) }}</b></P>
             <div v-if="bid.status === ''">
@@ -33,7 +33,6 @@
             </div>
           </v-col>
           <v-col v-else>
-
           </v-col>
         </v-row>
       </v-sheet>
@@ -63,7 +62,6 @@ export default {
   props: ['accountid','auctionid'],
   data: function () {
     return {
-      lastbid: 0,
       querying: false,
       interval: null,
       mirror: "Kabuto",

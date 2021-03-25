@@ -46,6 +46,26 @@ public class AuctionsRepository {
         return rows;
     }
 
+    @Nullable
+    private Record getAuctionData (int auctionId) {
+        @Var DSLContext cx = null;
+        @Var Record auctionRecord = null;
+        try {
+            cx = connectionManager.dsl();
+            auctionRecord = cx.selectFrom(AUCTIONS)
+                    .where(AUCTIONS.ID.eq(auctionId))
+                    .fetchAny();
+        } catch (SQLException e) {
+            log.error(e);
+        } finally {
+            if (cx != null) {
+                cx.close();
+            }
+        }
+
+        return auctionRecord;
+    }
+
     public void deleteAllAuctions() {
         @Var DSLContext cx = null;
         try {
@@ -94,6 +114,16 @@ public class AuctionsRepository {
             }
         }
         return auctions;
+    }
+
+    public Auction getAuction(int auctionId) throws Exception {
+        Record auctionData = getAuctionData(auctionId);
+
+        if (auctionData != null) {
+            return new Auction(auctionData);
+        } else {
+            throw new Exception("No auction id " + auctionId);
+        }
     }
 
     public Auction setActive(Auction auction, String timestamp) throws SQLException {

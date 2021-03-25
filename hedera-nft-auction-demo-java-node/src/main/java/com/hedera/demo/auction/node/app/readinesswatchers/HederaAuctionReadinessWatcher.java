@@ -60,7 +60,7 @@ public class HederaAuctionReadinessWatcher extends AbstractAuctionReadinessWatch
                                 log.info("Account " + auction.getAuctionaccountid() + " and token " + auction.getTokenid() + " associated, starting auction");
                                 auctionsRepository.setActive(auction, checkAssociation.getSecond());
                                 // start the thread to monitor bids
-                                Thread t = new Thread(new BidsWatcher(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency));
+                                Thread t = new Thread(new BidsWatcher(webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency));
                                 t.start();
                                 done.set(true);
                                 return;

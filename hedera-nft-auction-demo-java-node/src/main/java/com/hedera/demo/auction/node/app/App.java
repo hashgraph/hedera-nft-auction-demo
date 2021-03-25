@@ -97,7 +97,7 @@ public final class App {
             if (! auction.isPending()) {
                 // auction is open or closed
                 // start the thread to monitor bids
-                Thread t = new Thread(new BidsWatcher(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency));
+                Thread t = new Thread(new BidsWatcher(webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency));
                 t.start();
             }
         }

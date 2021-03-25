@@ -11,7 +11,7 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class BidsWatcher implements Runnable {
 
-    private final Auction auction;
+    private final int auctionId;
     private final WebClient webClient;
     private final BidsRepository bidsRepository;
     private final AuctionsRepository auctionsRepository;
@@ -19,11 +19,11 @@ public class BidsWatcher implements Runnable {
     private final int mirrorQueryFrequency;
     private final String mirrorProvider = HederaClient.getMirrorProvider();
 
-    public BidsWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
+    public BidsWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.bidsRepository = bidsRepository;
         this.auctionsRepository = auctionsRepository;
-        this.auction = auction;
+        this.auctionId = auctionId;
         this.refundKey = refundKey;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
     }
@@ -31,6 +31,8 @@ public class BidsWatcher implements Runnable {
     @SneakyThrows
     @Override
     public void run() {
+
+        Auction auction = auctionsRepository.getAuction(auctionId);
 
         log.info("Watching auction account Id " + auction.getAuctionaccountid() + ", token Id " + auction.getTokenid());
 

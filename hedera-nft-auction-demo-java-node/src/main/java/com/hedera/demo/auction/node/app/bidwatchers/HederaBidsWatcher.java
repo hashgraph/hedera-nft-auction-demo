@@ -94,6 +94,12 @@ public class HederaBidsWatcher extends AbstractBidsWatcher implements BidsWatche
         byte[] txHashBytes = Base64.getDecoder().decode(transaction.getString("transaction_hash"));
         String transactionHash = Hex.encodeHexString(txHashBytes);
         String transactionPayer = transactionId.substring(0, transactionId.indexOf("-"));
+
+        if (transactionPayer.equals(this.auction.getAuctionaccountid())) {
+            log.debug("Skipping auction account refund transaction");
+            return;
+        }
+
         if (transaction.getString("result").equals("SUCCESS")) {
             String consensusTimestamp = transaction.getString("consensus_timestamp");
             byte[] transactionMemoBytes = Base64.getDecoder().decode(transaction.getString("memo_base64"));
@@ -120,11 +126,8 @@ public class HederaBidsWatcher extends AbstractBidsWatcher implements BidsWatche
             }
 
             if ( ! refund) {
-                // check if paying account is different to the current winner (and that of the auction)
-                if (transactionPayer.equals(this.auction.getAuctionaccountid())) {
-                    log.debug("Skipping auction account refund transaction");
-                    return;
-                } else if (transactionPayer.equals(this.auction.getWinningaccount())) {
+                // check if paying account is different to the current winner
+                if (transactionPayer.equals(this.auction.getWinningaccount())) {
                     if (! this.auction.getWinnerCanBid()) {
                         // same account as winner, not allowed
                         rejectReason = "Winner can't bid again";
@@ -136,20 +139,20 @@ public class HederaBidsWatcher extends AbstractBidsWatcher implements BidsWatche
             if ( ! refund) {
                 // find payment amount
                 bidAmount = transactionBidAmount(transaction);
-            }
 
-            long bidDelta = (bidAmount - this.auction.getWinningbid()) / 100000000;
-            if ((bidDelta > 0) && (bidDelta < this.auction.getMinimumbid())) {
-                rejectReason = "Bid increase too small";
-                refund = true;
-            }
-            if (bidAmount != 0) { // if bid !=0, no refund is expected at this stage
-                // we have a bid, check it against bidding rules
-                if (bidAmount < this.auction.getReserve()) {
-                    rejectReason = "Bid below reserve";
-                } else if (bidAmount <= this.auction.getWinningbid()) {
-                    rejectReason = "Under bid";
+                long bidDelta = (bidAmount - this.auction.getWinningbid()) / 100000000;
+                if ((bidDelta > 0) && (bidDelta < this.auction.getMinimumbid())) {
+                    rejectReason = "Bid increase too small";
                     refund = true;
+                }
+                if (bidAmount != 0) { // if bid !=0, no refund is expected at this stage
+                    // we have a bid, check it against bidding rules
+                    if (bidAmount < this.auction.getReserve()) {
+                        rejectReason = "Bid below reserve";
+                    } else if (bidAmount <= this.auction.getWinningbid()) {
+                        rejectReason = "Under bid";
+                        refund = true;
+                    }
                 }
             }
 
@@ -157,7 +160,7 @@ public class HederaBidsWatcher extends AbstractBidsWatcher implements BidsWatche
             if (StringUtils.isEmpty(rejectReason)) {
                 // we have a winner
                 // refund previous bid
-                if (this.auction.getWinningaccount() != null) {
+                if ( ! StringUtils.isEmpty(this.auction.getWinningaccount())) {
                     // do not refund the very first bid !!!
                     startRefundThread (this.auction.getWinningbid(), this.auction.getWinningaccount(), this.auction.getWinningtimestamp(), this.auction.getWinningtxid());
                     refund = false;

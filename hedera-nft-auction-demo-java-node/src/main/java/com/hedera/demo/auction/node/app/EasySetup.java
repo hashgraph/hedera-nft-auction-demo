@@ -55,7 +55,6 @@ public class EasySetup {
         TokenId tokenId = CreateToken.create(name, symbol, 1L, 0);
         String[] keys = { client.getOperatorPublicKey().toString() };
         AccountId auctionAccount = CreateAuctionAccount.create(100, 1, keys);
-        CreateTokenAssociation.associate(tokenId.toString(), auctionAccount.toString());
         CreateTokenTransfer.transfer(tokenId.toString(), auctionAccount.toString());
 
         JsonObject auction = new JsonObject();
@@ -63,7 +62,6 @@ public class EasySetup {
         auction.put("auctionaccountid", auctionAccount.toString());
         auction.put("reserve", 0);
         auction.put("minimumbid", 10);
-//        auction.put("endtimestamp", Instant.now().plus(2, ChronoUnit.DAYS).getEpochSecond());
         auction.put("winnercanbid", true);
 
         // store auction data in initDemo.json file

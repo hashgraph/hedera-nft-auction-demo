@@ -10,7 +10,6 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
 import lombok.extern.log4j.Log4j2;
 
-import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Log4j2
@@ -47,7 +46,7 @@ public class HederaBidsWatcher extends AbstractBidsWatcher implements BidsWatche
                         JsonObject body = response.result().body();
                         try {
                             handleResponse(body);
-                        } catch (RuntimeException | SQLException e) {
+                        } catch (RuntimeException e) {
                             log.error(e);
                         } finally {
                             querying.set(false);
@@ -67,7 +66,7 @@ public class HederaBidsWatcher extends AbstractBidsWatcher implements BidsWatche
         }
     }
 
-    private void handleResponse(JsonObject response) throws SQLException {
+    private void handleResponse(JsonObject response) {
         try {
             JsonArray transactions = response.getJsonArray("transactions");
             for (Object transactionObject : transactions) {

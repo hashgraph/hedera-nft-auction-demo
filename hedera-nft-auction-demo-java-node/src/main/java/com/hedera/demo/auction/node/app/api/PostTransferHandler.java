@@ -19,7 +19,7 @@ public class PostTransferHandler implements Handler<RoutingContext> {
             return;
         }
 
-        var data = body.mapTo(RequestTokenAccount.class);
+        var data = body.mapTo(RequestTokenTransfer.class);
 
         try {
             CreateTokenTransfer.transfer(data.tokenid, data.auctionaccountid);

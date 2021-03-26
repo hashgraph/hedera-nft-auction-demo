@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.node.mirrorentities;
 
+import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -34,7 +35,7 @@ public class MirrorTransaction {
                 byte[] transactionMemoBytes = Base64.getDecoder().decode(transaction.getString("memo_base64"));
                 memo = new String(transactionMemoBytes, StandardCharsets.UTF_8);
 
-                long amount = 0;
+                @Var long amount = 0;
                 // find payment amount
                 JsonArray transfers = transaction.getJsonArray("transfers");
                 // get the bid value which is the payment amount to the auction account

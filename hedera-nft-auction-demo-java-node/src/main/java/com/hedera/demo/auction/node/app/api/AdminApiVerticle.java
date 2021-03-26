@@ -30,7 +30,6 @@ public class AdminApiVerticle extends AbstractVerticle {
         PostTopicHandler postTopicHandler = new PostTopicHandler();
         PostCreateToken postCreateToken = new PostCreateToken();
         PostAuctionAccountHandler postAuctionAccountHandler = new PostAuctionAccountHandler();
-        PostAssociationHandler postAssociationHandler = new PostAssociationHandler();
         PostTransferHandler postTransferHandler = new PostTransferHandler();
         PostAuctionHandler postAuctionHandler = new PostAuctionHandler();
         PostEasySetupHandler postEasySetupHandler = new PostEasySetupHandler();
@@ -47,7 +46,6 @@ public class AdminApiVerticle extends AbstractVerticle {
         router.post("/v1/admin/topic").handler(postTopicHandler);
         router.post("/v1/admin/token").handler(postCreateToken);
         router.post("/v1/admin/auctionaccount").handler(postAuctionAccountHandler);
-        router.post("/v1/admin/associate").handler(postAssociationHandler);
         router.post("/v1/admin/transfer").handler(postTransferHandler);
         router.post("/v1/admin/auction").handler(postAuctionHandler);
         router.post("/v1/admin/easysetup").handler(postEasySetupHandler);

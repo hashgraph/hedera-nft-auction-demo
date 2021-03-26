@@ -96,7 +96,6 @@ public class HederaAuctionReadinessWatcher extends AbstractAuctionReadinessWatch
                 JsonObject transaction = JsonObject.mapFrom(transactionObject);
 
                 JsonArray transfers = transaction.getJsonArray("token_transfers");
-                // get the bid value which is the payment amount to the auction account
                 if (transfers != null) {
                     for (Object transferObject : transfers) {
                         JsonObject transfer = JsonObject.mapFrom(transferObject);

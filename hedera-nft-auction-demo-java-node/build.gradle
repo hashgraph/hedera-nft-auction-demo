@@ -246,14 +246,6 @@ task createToken(type: JavaExec) {
 	args cmdargs.split()
 }
 
-task createTokenAssociation(type: JavaExec) {
-	group = "Execution"
-	description = "Creates a token"
-	classpath = sourceSets.main.runtimeClasspath
-	main = "com.hedera.demo.auction.node.app.CreateTokenAssociation"
-	args cmdargs.split()
-}
-
 task createTokenTransfer(type: JavaExec) {
 	group = "Execution"
 	description = "Creates a token"

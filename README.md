@@ -15,6 +15,25 @@ The java projects use Lombok, ensure that the plug is installed in your IDE and 
 
 Note that enabling annotation processing differs between versions of IntelliJ `Preferences > Compiler > Annotation Processors` before IntelliJ2017, starting with IntelliJ 2017, the "Enable Annotation Processing" checkbox has moved to: `Settings > Build, Execution, Deployment > Compiler > Annotation Processors`
 
+## Description
+
+This project consists of two main modules, a Java back end and a Vue.js front end.
+
+The Vue.JS front end displays auctions and enables users to place bids (requires a browser plug in to sign transactions) and monitor the auction's progress.
+
+The back end fulfils 3 separate roles
+
+* UI REST API server for the UI above
+* Admin REST API server for admin features (such as creating a new auction)
+* Auction and Bid processing, registering new auctions, checking bid validity, issuing refunds
+
+The latter can be run in readonly mode, meaning the processing will validate bids but will not be able to participate in refunds or token transfers on auction completion.
+
+Note: The three roles can be run within a single instance of the Java application or run in individual Java instances, for example, one instance could process bids, while one or more others could serve the UI REST API for scalability purposes. This is determined by environment variable parameters.
+The Docker deployment runs two instances, one for bid processing, the other for the UI and Admin REST APIs for example.
+
+The admin API runs on a separate port to the UI REST API to ensure it can be firewalled separately and protected from malicious execution.
+
 ## Setup, compilation, execution
 
 Pull the repository from github
@@ -104,9 +123,9 @@ This command takes a number of parameters runs all the necessary steps to create
 * create a HCS Topic
 * create a simple token
 * create an auction account
-* associate the token to the auction account and transfer it to the same account
 * create an auction file
 * setup the auction
+* transfers the token to the auction
 
 __Parameters__
 
@@ -199,14 +218,6 @@ __Create the auction__
 ./gradlew createAuction --args="./sample-files/initDemo.json"
 ```
 
-__Associate the token with the auction account and transfer__
-
-This will associate the token with the auction account.
-
-```shell
-./gradlew createTokenAssociation --args="tokenId accountId"
-```
-
 __Transfer the token to the auction account__
 
 This transfer the token from the account that created it to the `auctionaccountid`, supply the `tokenId` and `accountId` created above in the parameters.
@@ -273,16 +284,6 @@ be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the va
 
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '{"tokenid": "{{tokenId}}", "auctionaccountid": "{{accountId}}", "reserve": "", "minimumbid": "10", "endtimestamp": "", "winnercanbid": true}' http://localhost:8082/v1/admin/auction
-```
-
-__Associate the token with the auction account and transfer__
-
-This will associate the token with the auction account.
-
-be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the values you obtained earlier.
-
-```shell script
-curl -H "Content-Type: application/json" -X POST -d '{"tokenid" : "{{tokenId}}", "auctionaccountid" : "{{accountId}}"}' http://localhost:8082/v1/admin/associate
 ```
 
 __Transfer the token to the auction account__

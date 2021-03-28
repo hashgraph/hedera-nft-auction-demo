@@ -43,13 +43,11 @@ public class HederaAuctionReadinessWatcher extends AbstractAuctionReadinessWatch
                 var webQuery  = webClient
                         .get(mirrorURL, uri.get())
                         .as(BodyCodec.jsonObject())
-                        //TODO: fix this once mirror bug fixed
-//                            .addQueryParam("account.id", auction.getAuctionaccountid())
                         .addQueryParam("account.id", this.auction.getAuctionaccountid())
                         .addQueryParam("transactiontype", "CRYPTOTRANSFER")
                         .addQueryParam("order", "asc");
 
-                log.debug("Checking association for account " + auction.getAuctionaccountid() + " and token " + auction.getTokenid());
+                log.debug("Checking ownership of token " + auction.getTokenid() + " for account " + auction.getAuctionaccountid());
                 webQuery.send(response -> {
                     if (response.succeeded()) {
                         JsonObject body = response.result().body();
@@ -57,7 +55,7 @@ public class HederaAuctionReadinessWatcher extends AbstractAuctionReadinessWatch
                             Pair<Boolean, String> checkAssociation = handleResponse(body);
                             if (checkAssociation.getFirst()) {
                                 // token is associated
-                                log.info("Account " + auction.getAuctionaccountid() + " and token " + auction.getTokenid() + " associated, starting auction");
+                                log.info("Account " + auction.getAuctionaccountid() + " owns token " + auction.getTokenid() + ", starting auction");
                                 auctionsRepository.setActive(auction, checkAssociation.getSecond());
                                 // start the thread to monitor bids
                                 Thread t = new Thread(new BidsWatcher(webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency));

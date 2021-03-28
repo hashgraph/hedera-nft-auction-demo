@@ -53,8 +53,8 @@ public class EasySetup {
         }
 
         TokenId tokenId = CreateToken.create(name, symbol, 1L, 0);
-        String[] keys = { client.getOperatorPublicKey().toString() };
-        AccountId auctionAccount = CreateAuctionAccount.create(100, 1, keys);
+        String key = client.getOperatorPublicKey().toString();
+        AccountId auctionAccount = CreateAuctionAccount.create(100, key);
         CreateTokenTransfer.transfer(tokenId.toString(), auctionAccount.toString());
 
         JsonObject auction = new JsonObject();

@@ -5,15 +5,15 @@ import com.hedera.hashgraph.sdk.AccountCreateTransaction;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.Hbar;
-import com.hedera.hashgraph.sdk.Key;
 import com.hedera.hashgraph.sdk.KeyList;
 import com.hedera.hashgraph.sdk.PublicKey;
 import com.hedera.hashgraph.sdk.Status;
 import com.hedera.hashgraph.sdk.TransactionReceipt;
 import com.hedera.hashgraph.sdk.TransactionResponse;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
-
-import java.util.Arrays;
+import org.jooq.tools.StringUtils;
 
 @Log4j2
 public class CreateAuctionAccount {
@@ -24,23 +24,42 @@ public class CreateAuctionAccount {
     /**
      * Creates an auction account with an optional set of keys
      * @param initialBalance the initial balance for the new account
-     * @param minThreshold the threshold for the account's threshold key
      * @param keys an array of public keys, if none supplied, the operator's public key is used
      * @throws Exception in the event of an exception
      */
-    public static AccountId create(long initialBalance, int minThreshold, @Var String[] keys) throws Exception {
+    public static AccountId create(long initialBalance, String keys) throws Exception {
+
         Client client = HederaClient.getClient();
         AccountCreateTransaction accountCreateTransaction = new AccountCreateTransaction();
-        KeyList thresholdKey = KeyList.withThreshold(minThreshold);
-        if (keys.length == 0) {
+        KeyList keyList = new KeyList();
+        if (StringUtils.isEmpty(keys)) {
             log.info("No public key provided, defaulting to operator public key");
-            keys = new String[]{client.getOperatorPublicKey().toString()};
+            keyList.add(client.getOperatorPublicKey());
+        } else {
+            JsonObject jsonKeys = new JsonObject(keys);
+            JsonArray keysJson = jsonKeys.getJsonArray("keylist");
+            if (keysJson == null) {
+                log.info("No public key provided, defaulting to operator public key");
+                keyList.add(client.getOperatorPublicKey());
+            } else {
+                for (Object keyJsonItem : keysJson) {
+                    JsonObject keyJson = JsonObject.mapFrom(keyJsonItem);
+                    @Var KeyList thresholdKey = new KeyList();
+                    if (keyJson.containsKey("threshold")) {
+                        thresholdKey = KeyList.withThreshold(keyJson.getInteger("threshold"));
+                    }
+                    JsonArray keysInList = keyJson.getJsonArray("keys");
+                    for (Object keyInList : keysInList) {
+                        JsonObject oneKey = JsonObject.mapFrom(keyInList);
+                        thresholdKey.add(PublicKey.fromString(oneKey.getString("key")));
+                    }
+                    keyList.add(thresholdKey);
+                }
+            }
         }
-        for (String key : keys) {
-            Key pubKey = PublicKey.fromString(key);
-            thresholdKey.add(pubKey);
-        }
-        accountCreateTransaction.setKey(thresholdKey);
+        log.info(keyList.toString());
+
+        accountCreateTransaction.setKey(keyList);
         accountCreateTransaction.setInitialBalance(Hbar.from(initialBalance));
         TransactionResponse response = accountCreateTransaction.execute(client);
 
@@ -55,21 +74,17 @@ public class CreateAuctionAccount {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 2) {
-            log.error("Invalid number of arguments supplied - initial balance, minThreshold");
+        if (args.length < 1) {
+            log.error("Invalid number of arguments supplied - initial balance, keys");
             return;
         } else {
-            @Var String[] keys = {};
-            if (args.length == 3) {
-                keys = Arrays.copyOfRange(args, 2, args.length);
-            } else {
-                Client client = HederaClient.getClient();
-                log.info("No public key provided, defaulting to operator public key");
-                keys = new String[] { client.getOperatorPublicKey().toString() };
+            @Var String keys = "";
+            if (args.length == 2) {
+                keys = args[1];
             }
             log.info("Creating account");
 
-            create(Long.parseLong(args[0]), Integer.parseInt(args[1]), keys);
+            create(Long.parseLong(args[0]), keys);
         }
     }
 }

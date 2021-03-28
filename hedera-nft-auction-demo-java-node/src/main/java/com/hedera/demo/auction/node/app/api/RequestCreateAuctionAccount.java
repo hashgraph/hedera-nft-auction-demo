@@ -1,8 +1,9 @@
 package com.hedera.demo.auction.node.app.api;
 
+import io.vertx.core.json.JsonArray;
+
 @SuppressWarnings("unused")
 public class RequestCreateAuctionAccount {
-    public String[] keys = new String[0];
+    public JsonArray keylist = new JsonArray();
     public long initialBalance = 0;
-    public int threshold = 1;
 }

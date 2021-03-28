@@ -187,11 +187,13 @@ set the resulting `Token Id` to the `tokenId` attribute in your `./sample-files/
 
 __Create an auction account__
 
-This command will create an auction account with an initial balance of `100` hbar and a threshold key of `1`.
+This command will create an auction account with an initial balance of `100` hbar using the operator key for the account.
 
 ```shell
-./gradlew createAuctionAccount --args="100 1"
+./gradlew createAuctionAccount --args="100"
 ```
+
+_Note: For more complex key structures, use the REST admin api.
 
 set the resulting `Account Id` to the `auctionaccountid` attribute in your `./sample-files/initDemo.json` file.
 
@@ -235,7 +237,10 @@ __Create a topic__
 *Note: the application wil need to be restarted to take the new topic into account*
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8082/v1/admin/topic
+curl -H "Content-Type: application/json" -X POST -d '
+  {
+  }
+' http://localhost:8082/v1/admin/topic
 ```
 
 returns a topic id
@@ -251,7 +256,14 @@ __Create a simple token__
 This command will create a token named `test` with a symbol of `tst`, an initial supply of `1` and `0` decimals.
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -d '{"name": "test", "symbol":"tst", "initialSupply": 1, "decimals": 0}' http://localhost:8082/v1/admin/token
+curl -H "Content-Type: application/json" -X POST -d '
+{
+  "name": "test", 
+  "symbol":"tst", 
+  "initialSupply": 1, 
+  "decimals": 0
+}
+' http://localhost:8082/v1/admin/token
 ```
 
 returns a token id
@@ -264,10 +276,14 @@ returns a token id
 
 __Create an auction account__
 
-This command will create an auction account with an initial balance of `100` hbar and a threshold key of `1`.
+This command will create an auction account with an initial balance of `100` hbar and use the operator key for the account.
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8082/v1/admin/auctionaccount
+curl -H "Content-Type: application/json" -X POST -d '
+  {
+    "initialBalance": 100
+  }
+' http://localhost:8082/v1/admin/auctionaccount
 ```
 
 returns an account id
@@ -278,12 +294,56 @@ returns an account id
 }
 ```
 
+__Create an auction account with a key list__
+
+This command will create an auction account with an initial balance of `100` hbar and a key list for scheduled transactions.
+
+```shell script
+curl -H "Content-Type: application/json" -X POST -d '
+{
+ "keylist": [
+     {
+         "keys": [
+             {"key": "302a300506032b657003210090ec5045925d37b358ee0c60f858dc79c3b4370cbf7e0c5dad882f1171265cb3"},
+            {"key": "302a300506032b657003210076045799d169c6b6fc2bf45f779171a1cb10fd239b4f758bc556cb0de6799105"},
+            {"key": "302a300506032b65700321001481572a21874fb9da18b49f0265aca8d94f435a879c0d6631b8ce54d96dc58c"}
+         ],
+         "threshold": 2
+     },
+     {
+         "keys": [
+             {"key": "302a300506032b6570032100977755b19ba16e152326ea921973aeca57907757e9ad528c34c971b63eab9e31"},
+            {"key": "302a300506032b65700321002d140a12f637b7a29a97034a552a7d228f93f1c941480fcb2411af1763b18c67"}
+         ]
+     }
+ ],
+ "initialBalance": 100
+}' http://localhost:8082/v1/admin/auctionaccount
+```
+
+returns an account id
+
+```json
+{
+    "accountId": "0.0.58793"
+}
+```
+
+
 __Create the auction__
 
 be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the values you obtained earlier.
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -d '{"tokenid": "{{tokenId}}", "auctionaccountid": "{{accountId}}", "reserve": "", "minimumbid": "10", "endtimestamp": "", "winnercanbid": true}' http://localhost:8082/v1/admin/auction
+curl -H "Content-Type: application/json" -X POST -d '
+{
+  "tokenid": "{{tokenId}}", 
+  "auctionaccountid": "{{accountId}}", 
+  "reserve": "", 
+  "minimumbid": "10", 
+  "endtimestamp": "", 
+  "winnercanbid": true
+}' http://localhost:8082/v1/admin/auction
 ```
 
 __Transfer the token to the auction account__
@@ -293,7 +353,11 @@ This transfer the token from the account that created it to the `auctionaccounti
 be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the values you obtained earlier.
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -d '{"tokenid" : "{{tokenId}}", "auctionaccountid" : "{{accountId}}"}' http://localhost:8082/v1/admin/transfer
+curl -H "Content-Type: application/json" -X POST -d '
+{
+  "tokenid" : "{{tokenId}}", 
+  "auctionaccountid" : "{{accountId}}"
+}' http://localhost:8082/v1/admin/transfer
 ```
 
 #### Run the components

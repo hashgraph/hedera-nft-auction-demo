@@ -20,10 +20,11 @@ public class PostAuctionAccountHandler implements Handler<RoutingContext> {
             return;
         }
 
-        var data = body.mapTo(RequestCreateAuctionAccount.class);
-
         try {
-            AccountId auctionAccount = CreateAuctionAccount.create(data.initialBalance, data.threshold, data.keys);
+            JsonObject keys = new JsonObject();
+
+            keys.put("keylist", body.getJsonArray("keylist"));
+            AccountId auctionAccount = CreateAuctionAccount.create(body.getLong("initialBalance"), keys.toString());
 
             JsonObject response = new JsonObject();
             response.put("accountId", auctionAccount.toString());

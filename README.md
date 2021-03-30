@@ -231,7 +231,9 @@ This transfer the token from the account that created it to the `auctionaccounti
 
 #### Step by step via REST API
 
-This requires that the REST api and database are up and running
+This requires that the REST api and database are up and running. 
+
+The examples below show curl commands, however the `hedera-nft-auction-demo-java-node` project includes a `postman_collection.json` file which you can import into Postman instead.
 
 __Create a topic__
 

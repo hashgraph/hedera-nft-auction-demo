@@ -148,6 +148,62 @@ public class AuctionsRepository {
 
     }
 
+    public void setTransferring(String tokenId) throws SQLException {
+        @Var DSLContext cx = null;
+        try {
+            cx = connectionManager.dsl();
+
+            cx.update(AUCTIONS)
+                    .set(AUCTIONS.STATUS, Auction.transfer())
+                    .where(AUCTIONS.TOKENID.eq(tokenId))
+                    .execute();
+            cx.close();
+        } catch (Exception e) {
+            if (cx != null) {
+                cx.close();
+                throw e;
+            }
+        }
+    }
+
+    public void setTransferTransaction(int auctionId, String transactionId, String transactionHash) throws SQLException {
+        @Var DSLContext cx = null;
+        try {
+            cx = connectionManager.dsl();
+
+            cx.update(AUCTIONS)
+                    .set(AUCTIONS.TRANSFERTXID, transactionId)
+                    .set(AUCTIONS.TRANSFERTXHASH, transactionHash)
+                    .where(AUCTIONS.ID.eq(auctionId))
+                    .execute();
+            cx.close();
+        } catch (Exception e) {
+            if (cx != null) {
+                cx.close();
+                throw e;
+            }
+        }
+    }
+
+    public void setEnded(int auctionId, String transferTransactionHash) throws SQLException {
+        @Var DSLContext cx = null;
+        try {
+            cx = connectionManager.dsl();
+
+            cx.update(AUCTIONS)
+                    .set(AUCTIONS.STATUS, Auction.ended())
+                    .set(AUCTIONS.TRANSFERTXHASH, transferTransactionHash)
+                    .where(AUCTIONS.ID.eq(auctionId))
+                    .execute();
+            cx.close();
+        } catch (Exception e) {
+            if (cx != null) {
+                cx.close();
+                throw e;
+            }
+        }
+    }
+
     public Auction setClosed(Auction auction) throws SQLException {
         updateStatus(auction.getAuctionaccountid(), Auction.closed());
         auction.setStatus(Auction.closed());
@@ -261,7 +317,8 @@ public class AuctionsRepository {
             cx = connectionManager.dsl();
             rows = cx.select(AUCTIONS.ID, AUCTIONS.ENDTIMESTAMP)
                     .from(AUCTIONS)
-                    .where(AUCTIONS.STATUS.ne("CLOSED"))
+                    .where(AUCTIONS.STATUS.eq(Auction.active()))
+                    .or(AUCTIONS.STATUS.eq(Auction.pending()))
                     .fetchMap(AUCTIONS.ENDTIMESTAMP, AUCTIONS.ID);
         } catch (SQLException e) {
             log.error(e);

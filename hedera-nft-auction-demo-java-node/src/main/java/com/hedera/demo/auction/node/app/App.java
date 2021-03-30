@@ -5,11 +5,13 @@ import com.hedera.demo.auction.node.app.api.ApiVerticle;
 import com.hedera.demo.auction.node.app.bidwatcher.BidsWatcher;
 import com.hedera.demo.auction.node.app.closurewatcher.AuctionsClosureWatcher;
 import com.hedera.demo.auction.node.app.domain.Auction;
+import com.hedera.demo.auction.node.app.winnertokentransfer.WinnerTokenTransfer;
 import com.hedera.demo.auction.node.app.readinesswatcher.AuctionReadinessWatcher;
 import com.hedera.demo.auction.node.app.refundChecker.RefundChecker;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.app.subscriber.TopicSubscriber;
+import com.hedera.demo.auction.node.app.winnertokentransferwatcher.WinnerTokenTransferWatcher;
 import com.hedera.hashgraph.sdk.TopicId;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.DeploymentOptions;
@@ -34,6 +36,7 @@ public final class App {
     private final static String postgresUrl = Optional.ofNullable(env.get("DATABASE_URL")).orElse("postgresql://localhost:5432/postgres");
     private final static String postgresUser = Optional.ofNullable(env.get("DATABASE_USERNAME")).orElse("postgres");
     private final static String postgresPassword = Optional.ofNullable(env.get("DATABASE_PASSWORD")).orElse("password");
+    private final static boolean transferOnWin = Optional.ofNullable(env.get("TRANSFER_ON_WIN")).map(Boolean::parseBoolean).orElse(true);
 
     //    private final static String dgApiKey = Optional.ofNullable(env.get("DG_API_KEY")).orElse("");
 
@@ -74,15 +77,19 @@ public final class App {
             // subscribe to topic to get new auction notifications
             startSubscription(webClient, auctionsRepository, bidsRepository);
             startAuctionReadinessWatchers(webClient, auctionsRepository, bidsRepository);
-            startAuctionsClosureWatcher(webClient, auctionsRepository);
+            startAuctionsClosureWatcher(webClient, auctionsRepository, transferOnWin);
             startBidWatchers(webClient, auctionsRepository, bidsRepository);
             startRefundChecker(webClient, bidsRepository);
+            if (transferOnWin) {
+                startWinnerTokenTransfers(webClient, auctionsRepository);
+                startWinnerTokenTransferWatcher(webClient, auctionsRepository);
+            }
         }
     }
 
-    private static void startAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository) {
+    private static void startAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository, boolean transferOnWin) {
         // start a thread to monitor auction closures
-        Thread t = new Thread(new AuctionsClosureWatcher(webClient, auctionsRepository, mirrorQueryFrequency));
+        Thread t = new Thread(new AuctionsClosureWatcher(webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin));
         t.start();
     }
     private static void startSubscription(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
@@ -95,7 +102,7 @@ public final class App {
     private static void startBidWatchers(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
         for (Auction auction : auctionsRepository.getAuctionsList()) {
             if (! auction.isPending()) {
-                // auction is open or closed
+                // auction is not pending
                 // start the thread to monitor bids
                 Thread t = new Thread(new BidsWatcher(webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency));
                 t.start();
@@ -117,5 +124,17 @@ public final class App {
                 t.start();
             }
         }
+    }
+
+    private static void startWinnerTokenTransfers(WebClient webClient, AuctionsRepository auctionsRepository) throws Exception {
+        // start the thread to monitor winning account association with token
+        Thread t = new Thread(new WinnerTokenTransfer(webClient, auctionsRepository, refundKey, mirrorQueryFrequency));
+        t.start();
+    }
+
+    private static void startWinnerTokenTransferWatcher(WebClient webClient, AuctionsRepository auctionsRepository) {
+        // start the thread to monitor winning account association with token
+        Thread t = new Thread(new WinnerTokenTransferWatcher(webClient, auctionsRepository, mirrorQueryFrequency));
+        t.start();
     }
 }

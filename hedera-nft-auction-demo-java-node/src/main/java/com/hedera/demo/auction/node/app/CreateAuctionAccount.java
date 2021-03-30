@@ -38,7 +38,7 @@ public class CreateAuctionAccount {
         } else {
             JsonObject jsonKeys = new JsonObject(keys);
             JsonArray keysJson = jsonKeys.getJsonArray("keylist");
-            if (keysJson == null) {
+            if ((keysJson == null) || (keysJson.size() == 0)) {
                 log.info("No public key provided, defaulting to operator public key");
                 keyList.add(client.getOperatorPublicKey());
             } else {

@@ -32,6 +32,8 @@ public class Auction implements VertxPojo, Serializable {
     private String tokenimage = "";
     private long minimumbid = 0L;
     private String starttimestamp = "";
+    private String transfertxid = "";
+    private String transfertxhash = "";
 
     public Auction() {}
 
@@ -52,6 +54,8 @@ public class Auction implements VertxPojo, Serializable {
         this.tokenimage = record.get(AUCTIONS.TOKENIMAGE);
         this.minimumbid = record.get(AUCTIONS.MINIMUMBID);
         this.starttimestamp = record.get(AUCTIONS.STARTTIMESTAMP);
+        this.transfertxid = record.get(AUCTIONS.TRANSFERTXID);
+        this.transfertxhash = record.get(AUCTIONS.TRANSFERTXHASH);
     }
 
     public Auction (Row row) {
@@ -69,6 +73,8 @@ public class Auction implements VertxPojo, Serializable {
         this.tokenimage = row.getString(AUCTIONS.TOKENIMAGE.getName());
         this.minimumbid = row.getLong(AUCTIONS.MINIMUMBID.getName());
         this.starttimestamp = row.getString(AUCTIONS.STARTTIMESTAMP.getName());
+        this.transfertxid = row.getString(AUCTIONS.TRANSFERTXID.getName());
+        this.transfertxhash = row.getString(AUCTIONS.TRANSFERTXHASH.getName());
     }
 
     public Auction(
@@ -87,7 +93,9 @@ public class Auction implements VertxPojo, Serializable {
         String winningtxhash,
         String tokenimage,
         long minimumbid,
-        String starttimestamp
+        String starttimestamp,
+        String transfertxid,
+        String transfertxhash
     ) {
         this.id = id;
         this.lastconsensustimestamp = lastconsensustimestamp;
@@ -105,6 +113,8 @@ public class Auction implements VertxPojo, Serializable {
         this.tokenimage = tokenimage;
         this.minimumbid = minimumbid;
         this.starttimestamp = starttimestamp;
+        this.transfertxid = transfertxid;
+        this.transfertxhash = transfertxhash;
     }
 
     public Auction(io.vertx.core.json.JsonObject json) {
@@ -121,12 +131,20 @@ public class Auction implements VertxPojo, Serializable {
     public static String active() {
         return "ACTIVE";
     }
+    public static String transfer() { return "TRANSFER"; }
+    public static String ended() { return "ENDED"; }
 
     public boolean isPending() {
         return this.status.equals(Auction.pending());
     }
     public boolean isActive() {
         return this.status.equals(Auction.active());
+    }
+    public boolean isTransferring() {
+        return this.status.equals(Auction.transfer());
+    }
+    public boolean isEnded() {
+        return this.status.equals(Auction.ended());
     }
     public boolean isClosed() {
         return this.status.equals(Auction.closed());
@@ -260,6 +278,22 @@ public class Auction implements VertxPojo, Serializable {
         this.starttimestamp = starttimestamp;
     }
 
+    public String getTransfertxid() {
+        return this.transfertxid;
+    }
+
+    public void setTransfertxid(String transfertxid) {
+        this.transfertxid = transfertxid;
+    }
+
+    public String getTransfertxhash() {
+        return this.transfertxhash;
+    }
+
+    public void setTransfertxhash(String transfertxhash) {
+        this.transfertxhash = transfertxhash;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Auctions (");
@@ -280,6 +314,8 @@ public class Auction implements VertxPojo, Serializable {
         sb.append(", ").append(tokenimage);
         sb.append(", ").append(minimumbid);
         sb.append(", ").append(starttimestamp);
+        sb.append(", ").append(transfertxid);
+        sb.append(", ").append(transfertxhash);
 
         sb.append(")");
         return sb.toString();
@@ -303,6 +339,8 @@ public class Auction implements VertxPojo, Serializable {
         this.setTokenimage(json.getString("tokenimage"));
         this.setMinimumbid(json.getLong("minimumbid", 0L));
         this.setStarttimestamp(json.getString("starttimestamp", "0.0"));
+        this.setTransfertxid(json.getString("transfertxid", ""));
+        this.setTransfertxhash(json.getString("transfertxhash", ""));
         return this;
     }
 
@@ -326,6 +364,8 @@ public class Auction implements VertxPojo, Serializable {
         json.put("tokenimage", getTokenimage());
         json.put("minimumbid", getMinimumbid());
         json.put("starttimestamp", getStarttimestamp());
+        json.put("transfertxid", getTransfertxid());
+        json.put("transfertxhash", getTransfertxhash());
 
         return json;
     }

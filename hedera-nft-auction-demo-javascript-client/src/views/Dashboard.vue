@@ -46,6 +46,8 @@
                 :mirror="mirror"
                 :tokenimage="auction.tokenimage"
                 :minimumbid="auction.minimumbid"
+                :transfertxid="auction.transfertxid"
+                :transfertxhash="auction.transfertxhash"
               />
             </v-row>
             <v-row

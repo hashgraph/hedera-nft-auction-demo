@@ -40,9 +40,11 @@ public class Refunder implements Runnable {
     @Override
     public void run() {
         try {
-            if (this.refundKey.isBlank()) {
+            if ( ! this.refundKey.isBlank()) {
                 return;
             }
+            //TODO: Check a scheduled transaction has not already completed (success) for this bid
+
             // create a client for the auction's account
             Client client = HederaClient.getClient();
             PrivateKey refundKeyPrivate = PrivateKey.fromString(refundKey);

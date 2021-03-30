@@ -7,6 +7,8 @@ CREATE TABLE auctions
     winningTimestamp       TEXT  DEFAULT '',
     winningTxId            TEXT  DEFAULT '',
     winningTxHash          TEXT  DEFAULT '',
+    transferTxId           TEXT  DEFAULT '',
+    transferTxHash         TEXT  DEFAULT '',
     tokenId                TEXT  DEFAULT '',
     auctionAccountId       TEXT  DEFAULT '',
     endTimeStamp           TEXT  DEFAULT '',

@@ -15,12 +15,14 @@ public abstract class AbstractAuctionsClosureWatcher {
     protected final AuctionsRepository auctionsRepository;
     protected final int mirrorQueryFrequency;
     protected String mirrorURL;
+    protected boolean transferOnWin;
 
-    protected AbstractAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency) throws Exception {
+    protected AbstractAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin) throws Exception {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.mirrorURL = HederaClient.getMirrorUrl();
+        this.transferOnWin = transferOnWin;
     }
 
     protected void closeAuctionIfPastEnd(String consensusTimestamp) {
@@ -32,7 +34,13 @@ public abstract class AbstractAuctionsClosureWatcher {
                 // payment past auctions end, close it
                 log.info("Closing auction id " + auctionId);
                 try {
-                    auctionsRepository.setClosed(auctionId);
+                    if (transferOnWin) {
+                        // if the auction transfers the token on winning, set the auction to closed (no more bids)
+                        auctionsRepository.setClosed(auctionId);
+                    } else {
+                        // if the auction does not transfer the token on winning, set the auction to ended
+                        auctionsRepository.setEnded(auctionId, "");
+                    }
                 } catch (SQLException e) {
                     log.error(e);
                 }

@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Auctions extends TableImpl<Record> {
 
-    private static final long serialVersionUID = 1723284970;
+    private static final long serialVersionUID = -454980735;
 
     /**
      * The reference instance of <code>public.auctions</code>
@@ -79,6 +79,16 @@ public class Auctions extends TableImpl<Record> {
      * The column <code>public.auctions.winningtxhash</code>.
      */
     public final TableField<Record, String> WINNINGTXHASH = createField(DSL.name("winningtxhash"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+
+    /**
+     * The column <code>public.auctions.transfertxid</code>.
+     */
+    public final TableField<Record, String> TRANSFERTXID = createField(DSL.name("transfertxid"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+
+    /**
+     * The column <code>public.auctions.transfertxhash</code>.
+     */
+    public final TableField<Record, String> TRANSFERTXHASH = createField(DSL.name("transfertxhash"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.tokenid</code>.

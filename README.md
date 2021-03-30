@@ -80,6 +80,7 @@ set the following properties according to your Hedera account and refund key det
 * OPERATOR_ID=
 * OPERATOR_KEY=302.....
 * REFUND_KEY=302.......
+* TRANSFER_ON_WIN=true
 
 You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish
 

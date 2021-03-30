@@ -30,6 +30,10 @@
             <v-row>
                 <v-col>{{ auctionStatusText }}</v-col>
             </v-row>
+            <v-row v-if="status === 'ENDED'">
+              <P v-if="transferTransactionURL">on <a :href="transferTransactionURL" style="text-decoration: none; color: inherit;" target="_blank"><b>Token Transfer Transaction</b></a></P>
+              <P v-else><b>Token Transfer {{ transfertxid }}</b></P>
+            </v-row>
 
         </v-col>
       </v-row>
@@ -40,10 +44,11 @@
 <script>
 import { getAccountUrl, getTokenUrl } from "@/utils";
 import FlipCountdown from 'vue2-flip-countdown'
+import {getTransactionURL} from "../utils";
 
 export default {
   name: "Auction",
-  props: ['tokenid', 'auctionaccountid', 'reserve', 'endtimestamp', 'status', 'mirror', 'tokenimage', 'minimumbid'],
+  props: ['tokenid', 'auctionaccountid', 'reserve', 'endtimestamp', 'status', 'mirror', 'tokenimage', 'minimumbid', 'transfertxid','transfertxhash'],
   components: {
     FlipCountdown
   },
@@ -69,8 +74,15 @@ export default {
     tokenURL() {
       return getTokenUrl(this.mirror, this.tokenid);
     },
+    transferTransactionURL() {
+      return getTransactionURL(this.mirror, this.transfertxid, this.transfertxhash);
+    },
     cardColor() {
       if (this.status === 'CLOSED') {
+        return 'red';
+      } else if (this.status === 'TRANSFER') {
+        return 'red';
+      } else if (this.status === 'ENDED') {
         return 'red';
       } else if (this.status === 'PENDING') {
         return 'grey';
@@ -80,9 +92,13 @@ export default {
     },
       auctionStatusText() {
           if (this.status === 'CLOSED') {
-              return 'This auction is closed';
+              return 'This auction is closed, awaiting token transfer to winner';
           } else if (this.status === 'PENDING') {
-              return 'This auction is pending';
+            return 'This auction is pending';
+          } else if (this.status === 'TRANSFER') {
+            return 'Token transfer to winner in progress';
+          } else if (this.status === 'ENDED') {
+            return 'This auction is finished';
           } else {
               return '';
           }

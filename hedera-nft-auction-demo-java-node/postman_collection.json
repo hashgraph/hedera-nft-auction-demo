@@ -38,12 +38,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/easysetup",
+					"raw": "{{base_url}}/v1/admin/easysetup",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"v1",
+						"admin",
 						"easysetup"
 					]
 				}
@@ -51,17 +52,29 @@
 			"response": []
 		},
 		{
-			"name": "1. Create Topic (Auction Admin)",
+			"name": "1. Create Topic (Auction Admin - only once)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/topic",
+					"raw": "{{base_url}}/v1/admin/topic",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"v1",
+						"admin",
 						"topic"
 					]
 				}
@@ -76,7 +89,7 @@
 					"script": {
 						"exec": [
 							"pm.test(\"keep\", function() {",
-							"    pm.environment.set(\"tokenId\", pm.response.json().tokenId);",
+							"    pm.globals.set(\"tokenId\", pm.response.json().tokenId);",
 							"});"
 						],
 						"type": "text/javascript"
@@ -88,7 +101,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\": \"Token\",\n    \"symbol\":\"TT\",\n    \"initialSupply\": 1,\n    \"decimals\": 0\n}",
+					"raw": "{\n    \"name\": \"Demo\",\n    \"symbol\":\"TT\",\n    \"initialSupply\": 1,\n    \"decimals\": 0\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -96,12 +109,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/token",
+					"raw": "{{base_url}}/v1/admin/token",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"v1",
+						"admin",
 						"token"
 					]
 				}
@@ -128,7 +142,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"keys\": [],\n    \"initialBalance\": 100,\n    \"threshold\": 1\n}",
+					"raw": "{\n    \"keylist\": [],\n    \"initialBalance\": 100\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -136,12 +150,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/auctionaccount",
+					"raw": "{{base_url}}/v1/admin/auctionaccount",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"v1",
+						"admin",
 						"auctionaccount"
 					]
 				}
@@ -155,7 +170,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"auctionFile\": \"\"\n}",
+					"raw": "{\n    \"tokenid\": \"{{tokenId}}\",\n    \"auctionaccountid\": \"{{accountId}}\",\n    \"reserve\": \"\",\n    \"minimumbid\": \"10\",\n    \"endtimestamp\": \"\",\n    \"winnercanbid\": true\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -163,12 +178,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/auction",
+					"raw": "{{base_url}}/v1/admin/auction",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"v1",
+						"admin",
 						"auction"
 					]
 				}
@@ -182,7 +198,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"tokenId\": \"\",\n    \"auctionAccount\": \"\"\n}",
+					"raw": "{\n    \"tokenid\" : \"{{tokenId}}\",\n    \"auctionaccountid\" : \"{{accountId}}\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -190,12 +206,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/v1/transfer",
+					"raw": "{{base_url}}/v1/admin/transfer",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"v1",
+						"admin",
 						"transfer"
 					]
 				}

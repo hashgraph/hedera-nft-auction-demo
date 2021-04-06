@@ -6,9 +6,9 @@ import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
-public class KabutoWinnerWinnerTokenTransferWatcher extends AbstractWinnerTokenTransferWatcher implements WinnerTokenTransferWatcherInterface {
+public class KabutoWinnerTokenTransferWatcher extends AbstractWinnerTokenTransferWatcher implements WinnerTokenTransferWatcherInterface {
 
-    public KabutoWinnerWinnerTokenTransferWatcher(WebClient webClient, AuctionsRepository auctionsRepository, Auction auction) throws Exception {
+    public KabutoWinnerTokenTransferWatcher(WebClient webClient, AuctionsRepository auctionsRepository, Auction auction) throws Exception {
         super(webClient, auctionsRepository, auction);
     }
 

@@ -1,10 +1,7 @@
 package com.hedera.demo.auction.node.app.bidwatcher;
 
-import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.demo.auction.node.mirrorentities.MirrorTransaction;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
@@ -15,14 +12,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Log4j2
 public class HederaBidsWatcher extends AbstractBidsWatcher implements BidsWatcherInterface {
 
-    public HederaBidsWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) throws Exception {
-        super(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
+    public HederaBidsWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, String refundKey, int mirrorQueryFrequency) throws Exception {
+        super(webClient, auctionsRepository, bidsRepository, auctionId, refundKey, mirrorQueryFrequency);
     }
 
     @Override
-    public void watch() {
+    public void watch() throws Exception {
 
         AtomicBoolean querying = new AtomicBoolean(false);
+
+        log.info("Watching auction account Id " + auction.getAuctionaccountid() + ", token Id " + auction.getTokenid());
 
         var webQuery = webClient
                 .get(mirrorURL, "/api/v1/transactions")
@@ -31,7 +30,8 @@ public class HederaBidsWatcher extends AbstractBidsWatcher implements BidsWatche
                 .addQueryParam("order", "asc")
                 .addQueryParam("timestamp","gt:0");
 
-        while (true) { if (!querying.get()) {
+        while (true) {
+            if (!querying.get()) {
                 querying.set(true);
 
                 log.debug("Checking for bids on account " + auction.getAuctionaccountid() + " and token " + auction.getTokenid());
@@ -63,38 +63,8 @@ public class HederaBidsWatcher extends AbstractBidsWatcher implements BidsWatche
                 e.printStackTrace();
                 log.error(e);
             }
+            // reload auction from database
+            this.auction = auctionsRepository.getAuction(auctionId);
         }
     }
-
-    private void handleResponse(JsonObject response) {
-        try {
-            JsonArray transactions = response.getJsonArray("transactions");
-            for (Object transactionObject : transactions) {
-                JsonObject transaction = JsonObject.mapFrom(transactionObject);
-                MirrorTransaction mirrorTransaction = new MirrorTransaction(transaction, auction.getAuctionaccountid());
-                handleTransaction(mirrorTransaction);
-                this.auction.setLastconsensustimestamp(mirrorTransaction.consensusTimestamp);
-                auctionsRepository.save(this.auction);
-            }
-        } catch (Exception e) {
-            log.error(e);
-        }
-    }
-
-//
-//    private long transactionBidAmount(JsonObject transaction) {
-//        @Var long bidAmount = 0;
-//        // find payment amount
-//        JsonArray transfers = transaction.getJsonArray("transfers");
-//        // get the bid value which is the payment amount to the auction account
-//        for (Object transferObject : transfers) {
-//            JsonObject transfer = JsonObject.mapFrom(transferObject);
-//            if (transfer.getString("account").equals(this.auction.getAuctionaccountid())) {
-//                bidAmount = transfer.getLong("amount");
-//                log.debug("Bid amount is " + bidAmount);
-//                break;
-//            }
-//        }
-//        return bidAmount;
-//    }
 }

@@ -62,11 +62,8 @@ public class BidsRepository {
         @Var boolean result = false;
         try {
             cx = connectionManager.dsl();
-            @Var String commonTransactionId = transactionId.replace("@",".");
-            commonTransactionId = commonTransactionId.replace(".", "-");
-            commonTransactionId = commonTransactionId.replace("0-0-", "0.0.");
             cx.update(Tables.BIDS)
-                    .set(BIDS.REFUNDTXID, commonTransactionId)
+                    .set(BIDS.REFUNDTXID, transactionId)
                     .set(BIDS.REFUNDTXHASH, transactionHash)
                     .where(BIDS.TIMESTAMP.eq(consensusTimestamp))
                     .execute();
@@ -81,13 +78,14 @@ public class BidsRepository {
         return result;
     }
 
-    public boolean setRefunded(String consensusTimestamp) {
+    public boolean setRefunded(String consensusTimestamp, String transactionHash) {
         @Var DSLContext cx = null;
         @Var boolean result = false;
         try {
             cx = connectionManager.dsl();
             cx.update(Tables.BIDS)
                     .set(BIDS.REFUNDED, true)
+                    .set(BIDS.TRANSACTIONHASH, transactionHash)
                     .where(BIDS.TIMESTAMP.eq(consensusTimestamp))
                     .execute();
             result = true;

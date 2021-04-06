@@ -1,8 +1,6 @@
 package com.hedera.demo.auction.node.app.closurewatcher;
 
-import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
@@ -25,16 +23,12 @@ public class HederaAuctionsClosureWatcher extends AbstractAuctionsClosureWatcher
         while (true) {
             webQuery.send(response -> {
                 if (response.succeeded()) {
+
                     JsonObject body = response.result().body();
-                    JsonArray transactions = body.getJsonArray("transactions");
-                    if (transactions != null) {
-                        @Var String consensusTimestamp = "";
-                        for (Object transactionObject : transactions) {
-                            JsonObject transaction = JsonObject.mapFrom(transactionObject);
-                            consensusTimestamp = transaction.getString("consensus_timestamp");
-                            break;
-                        }
-                        closeAuctionIfPastEnd(consensusTimestamp);
+                    try {
+                        handleResponse(body);
+                    } catch (RuntimeException e) {
+                        log.error(e);
                     }
                 } else {
                     log.error(response.cause().getMessage());

@@ -7,7 +7,10 @@ import com.hedera.demo.auction.node.app.domain.Bid;
 import com.hedera.demo.auction.node.app.refunder.Refunder;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.demo.auction.node.mirrorentities.MirrorTransaction;
+import com.hedera.demo.auction.node.mirrormapping.MirrorHbarTransfer;
+import com.hedera.demo.auction.node.mirrormapping.MirrorTransaction;
+import com.hedera.demo.auction.node.mirrormapping.MirrorTransactions;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
@@ -25,34 +28,55 @@ public abstract class AbstractBidsWatcher {
     protected final String refundKey;
     protected final int mirrorQueryFrequency;
     protected String mirrorURL;
+    protected final int auctionId;
 
-    protected AbstractBidsWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) throws Exception {
+    protected AbstractBidsWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, String refundKey, int mirrorQueryFrequency) throws Exception {
         this.webClient = webClient;
         this.bidsRepository = bidsRepository;
         this.auctionsRepository = auctionsRepository;
-        this.auction = auction;
+        this.auctionId = auctionId;
         this.refundKey = refundKey;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.mirrorURL = HederaClient.getMirrorUrl();
+        this.auction = auctionsRepository.getAuction(auctionId);
     }
+
+    void handleResponse(JsonObject response) {
+        try {
+            if (response != null) {
+                MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
+
+                for (MirrorTransaction transaction : mirrorTransactions.transactions) {
+                    handleTransaction(transaction);
+                    this.auction.setLastconsensustimestamp(transaction.getConsensusTimestamp());
+                    auctionsRepository.save(this.auction);
+                }
+            }
+        } catch (Exception e) {
+            log.error(e);
+        }
+    }
+
 
     void handleTransaction(MirrorTransaction transaction) throws SQLException {
         @Var String rejectReason = "";
         @Var boolean refund = false;
+        String auctionAccountId = auction.getAuctionaccountid();
+        @Var long bidAmount = 0;
 
-        if (transaction.payer.equals(this.auction.getAuctionaccountid())) {
+        if (transaction.payer().equals(this.auction.getAuctionaccountid())) {
             log.debug("Skipping auction account refund transaction");
             return;
         }
 
-        if (transaction.status.equals("SUCCESS")) {
+        if (transaction.isSuccessful()) {
             //Handle memo on transfer and create to allow for transactions that aren't bids
-            if (checkMemos(transaction.memo)) {
+            if (checkMemos(transaction.getMemo())) {
                 return;
             }
 
             // check the timestamp to verify if auction should end
-            if (transaction.consensusTimestamp.compareTo(this.auction.getEndtimestamp()) > 0) {
+            if (transaction.getConsensusTimestamp().compareTo(this.auction.getEndtimestamp()) > 0) {
                 // payment past auctions end, close it, but continue processing
                 if (!this.auction.isClosed()) {
                     this.auction = auctionsRepository.setClosed(this.auction);
@@ -60,14 +84,14 @@ public abstract class AbstractBidsWatcher {
                 // find payment amount
                 refund = true;
                 rejectReason = "Auction is closed";
-            } else if (transaction.consensusTimestamp.compareTo(this.auction.getStarttimestamp()) <= 0) {
+            } else if (transaction.getConsensusTimestamp().compareTo(this.auction.getStarttimestamp()) <= 0) {
                 refund = true;
                 rejectReason = "Auction has not started yet";
             }
 
             if ( ! refund) {
                 // check if paying account is different to the current winner
-                if (transaction.payer.equals(this.auction.getWinningaccount())) {
+                if (transaction.payer().equals(this.auction.getWinningaccount())) {
                     if (! this.auction.getWinnerCanBid()) {
                         // same account as winner, not allowed
                         rejectReason = "Winner can't bid again";
@@ -78,7 +102,13 @@ public abstract class AbstractBidsWatcher {
 
             if ( ! refund) {
                 // find payment amount
-                long bidAmount = transaction.bidAmount;
+                for (MirrorHbarTransfer transfer : transaction.hbarTransfers) {
+                    if (transfer.getAccount().equals(auctionAccountId)) {
+                        bidAmount = transfer.getAmount();
+                        log.debug("Bid amount is " + bidAmount);
+                        break;
+                    }
+                }
 
                 long bidDelta = (bidAmount - this.auction.getWinningbid()) / 100000000;
                 if ((bidDelta > 0) && (bidDelta < this.auction.getMinimumbid())) {
@@ -112,35 +142,34 @@ public abstract class AbstractBidsWatcher {
                 bidsRepository.setStatus(priorBid);
 
                 // update the auction
-                this.auction.setWinningtimestamp(transaction.consensusTimestamp);
-                this.auction.setWinningaccount(transaction.payer);
-                this.auction.setWinningbid(transaction.bidAmount);
-                this.auction.setWinningtxid(transaction.id);
-                this.auction.setWinningtxhash(transaction.hash);
+                this.auction.setWinningtimestamp(transaction.getConsensusTimestamp());
+                this.auction.setWinningaccount(transaction.payer());
+                this.auction.setWinningbid(bidAmount);
+                this.auction.setWinningtxid(transaction.getTransactionId());
+                this.auction.setWinningtxhash(transaction.getTransactionHash());
             }
 
             // store the bid
             Bid currentBid = new Bid();
             currentBid.setStatus(rejectReason);
-            currentBid.setBidamount(transaction.bidAmount);
+            currentBid.setBidamount(bidAmount);
             currentBid.setAuctionid(this.auction.getId());
-            currentBid.setBidderaccountid(transaction.payer);
-            currentBid.setTimestamp(transaction.consensusTimestamp);
+            currentBid.setBidderaccountid(transaction.payer());
+            currentBid.setTimestamp(transaction.getConsensusTimestamp());
             currentBid.setStatus(rejectReason);
-            currentBid.setTransactionid(transaction.id);
-            currentBid.setTransactionhash(transaction.hash);
+            currentBid.setTransactionid(transaction.getTransactionId());
+            currentBid.setTransactionhash(transaction.getTransactionHash());
             bidsRepository.add(currentBid);
 
             if (refund) {
                 // refund this transaction
-                startRefundThread (transaction.bidAmount, transaction.payer, transaction.consensusTimestamp, transaction.id);
+                startRefundThread (bidAmount, transaction.payer(), transaction.getConsensusTimestamp(), transaction.getTransactionId());
             }
 
         } else {
-            log.debug("Transaction Id " + transaction.id + " status not SUCCESS.");
+            log.debug("Transaction Id " + transaction.getTransactionId() + " status not SUCCESS.");
         }
     }
-
 
     boolean checkMemos(String memo) {
         if (StringUtils.isEmpty(memo)) {

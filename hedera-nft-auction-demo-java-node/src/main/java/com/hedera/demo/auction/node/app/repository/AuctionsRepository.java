@@ -104,11 +104,19 @@ public class AuctionsRepository {
                 auction.setWinningbid(record.get(AUCTIONS.WINNINGBID));
                 auction.setWinningaccount(record.get(AUCTIONS.WINNINGACCOUNT));
                 auction.setWinningtimestamp(record.get(AUCTIONS.WINNINGTIMESTAMP));
+                auction.setWinningtxid(record.get(AUCTIONS.WINNINGTXID));
+                auction.setWinningtxhash(record.get(AUCTIONS.WINNINGTXHASH));
+                auction.setTransfertxid(record.get(AUCTIONS.TRANSFERTXID));
+                auction.setTransfertxhash(record.get(AUCTIONS.TRANSFERTXHASH));
                 auction.setTokenid(record.get(AUCTIONS.TOKENID));
                 auction.setAuctionaccountid(record.get(AUCTIONS.AUCTIONACCOUNTID));
                 auction.setEndtimestamp(record.get(AUCTIONS.ENDTIMESTAMP));
                 auction.setReserve(record.get(AUCTIONS.RESERVE));
                 auction.setStatus(record.get(AUCTIONS.STATUS));
+                auction.setWinnercanbid(record.get(AUCTIONS.WINNERCANBID));
+                auction.setTokenimage(record.get(AUCTIONS.TOKENIMAGE));
+                auction.setMinimumbid(record.get(AUCTIONS.MINIMUMBID));
+                auction.setStarttimestamp(record.get(AUCTIONS.STARTTIMESTAMP));
 
                 auctions.add(auction);
             }

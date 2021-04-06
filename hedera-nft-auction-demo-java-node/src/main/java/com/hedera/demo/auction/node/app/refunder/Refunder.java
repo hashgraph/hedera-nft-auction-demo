@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.node.app.refunder;
 
+import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.hashgraph.sdk.AccountId;
@@ -25,7 +26,7 @@ public class Refunder implements Runnable {
     private final String consensusTimestamp;
     private final String auctionAccountId;
     private final String bidTransactionId;
-
+    private final PrivateKey refundKeyPrivate;
     public Refunder(BidsRepository bidsRepository, String auctionAccountId, long amount, String accountId, String consensusTimestamp, String bidTransactionId, String refundKey) {
         this.bidsRepository = bidsRepository;
         this.amount = amount;
@@ -34,20 +35,23 @@ public class Refunder implements Runnable {
         this.consensusTimestamp = consensusTimestamp;
         this.auctionAccountId = auctionAccountId;
         this.bidTransactionId = bidTransactionId;
+        if (this.refundKey.isBlank()) {
+            // dummy key for the client
+            this.refundKeyPrivate = PrivateKey.generate();
+        } else {
+            this.refundKeyPrivate = PrivateKey.fromString(refundKey);
+        }
     }
 
     @SneakyThrows
     @Override
     public void run() {
         try {
-            if ( ! this.refundKey.isBlank()) {
-                return;
-            }
             //TODO: Check a scheduled transaction has not already completed (success) for this bid
 
             // create a client for the auction's account
             Client client = HederaClient.getClient();
-            PrivateKey refundKeyPrivate = PrivateKey.fromString(refundKey);
+
             client.setOperator(AccountId.fromString(this.auctionAccountId), refundKeyPrivate);
             log.info("Refunding " + this.amount + " from " + this.auctionAccountId + " to " + this.accountId);
             String memo = "Auction refund for tx " + bidTransactionId;
@@ -95,17 +99,21 @@ public class Refunder implements Runnable {
             transferTransaction.freezeWith(client);
 
             transferTransaction.sign(refundKeyPrivate);
-            TransactionResponse response = transferTransaction.execute(client);
-            byte[] transactionHash = response.transactionHash;
-            // check for receipt
-            TransactionReceipt receipt = response.getReceipt(client);
-            if (receipt.status == Status.SUCCESS) {
-                // update database
-                bidsRepository.setRefundInProgress(this.consensusTimestamp, transactionId.toString(), Hex.encodeHexString(transactionHash));
-//                bidsRepository.setRefunded(this.consensusTimestamp);
-            } else {
-                log.error("Refunding " + this.amount + " to " + this.accountId + " failed with " + receipt.status);
+
+            @Var String transactionHash = "";
+            if ( ! this.refundKey.isBlank()) {
+                // only execute if we have a refund key
+                TransactionResponse response = transferTransaction.execute(client);
+                transactionHash = Hex.encodeHexString(response.transactionHash);
+                // check for receipt
+                TransactionReceipt receipt = response.getReceipt(client);
+                if (receipt.status != Status.SUCCESS) {
+                    log.error("Refunding " + this.amount + " to " + this.accountId + " failed with " + receipt.status);
+                    return;
+                }
             }
+            // update database
+            bidsRepository.setRefundInProgress(this.consensusTimestamp, transactionId.toString(), transactionHash);
         } catch (InterruptedException e) {
             log.error(e);
         }

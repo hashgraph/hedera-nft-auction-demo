@@ -7,8 +7,8 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class KabutoAuctionsClosureWatcher extends AbstractAuctionsClosureWatcher implements AuctionClosureWatcherInterface {
 
-    public KabutoAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin) throws Exception {
-        super(webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin);
+    public KabutoAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey) throws Exception {
+        super(webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
     }
 
     @Override

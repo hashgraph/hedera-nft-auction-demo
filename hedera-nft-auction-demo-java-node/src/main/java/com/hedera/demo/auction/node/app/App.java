@@ -89,7 +89,7 @@ public final class App {
 
     private static void startAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository, boolean transferOnWin) {
         // start a thread to monitor auction closures
-        Thread t = new Thread(new AuctionsClosureWatcher(webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin));
+        Thread t = new Thread(new AuctionsClosureWatcher(webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey));
         t.start();
     }
     private static void startSubscription(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {

@@ -9,8 +9,8 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class HederaAuctionsClosureWatcher extends AbstractAuctionsClosureWatcher implements AuctionClosureWatcherInterface {
 
-    public HederaAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin) throws Exception {
-        super(webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin);
+    public HederaAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey) throws Exception {
+        super(webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class HederaAuctionsClosureWatcher extends AbstractAuctionsClosureWatcher
                     JsonObject body = response.result().body();
                     try {
                         handleResponse(body);
-                    } catch (RuntimeException e) {
+                    } catch (Exception e) {
                         log.error(e);
                     }
                 } else {

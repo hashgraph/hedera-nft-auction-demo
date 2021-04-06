@@ -48,6 +48,7 @@ public class Refunder implements Runnable {
     public void run() {
         try {
             //TODO: Check a scheduled transaction has not already completed (success) for this bid
+            // can only work with scheduled transactions
 
             // create a client for the auction's account
             Client client = HederaClient.getClient();

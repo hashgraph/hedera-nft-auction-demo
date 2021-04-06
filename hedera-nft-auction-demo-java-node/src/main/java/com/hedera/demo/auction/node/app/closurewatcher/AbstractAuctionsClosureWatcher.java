@@ -2,6 +2,8 @@ package com.hedera.demo.auction.node.app.closurewatcher;
 
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
+import com.hedera.demo.auction.node.mirrormapping.MirrorTransactions;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 
@@ -23,6 +25,18 @@ public abstract class AbstractAuctionsClosureWatcher {
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.mirrorURL = HederaClient.getMirrorUrl();
         this.transferOnWin = transferOnWin;
+    }
+
+    void handleResponse(JsonObject response) {
+        if (response != null) {
+            MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
+
+            if (mirrorTransactions.transactions != null) {
+                if (mirrorTransactions.transactions.size() > 0) {
+                    closeAuctionIfPastEnd(mirrorTransactions.transactions.get(0).getConsensusTimestamp());
+                }
+            }
+        }
     }
 
     protected void closeAuctionIfPastEnd(String consensusTimestamp) {

@@ -29,4 +29,11 @@ public class Utils {
 
         return content;
     }
+
+    public static String hederaMirrorTransactionId(String transactionId) {
+        @Var String mirrorTransactionId = transactionId.replace("@",".");
+        mirrorTransactionId = mirrorTransactionId.replace(".", "-");
+        mirrorTransactionId = mirrorTransactionId.replace("0-0-", "0.0.");
+        return mirrorTransactionId;
+    }
 }

@@ -1,8 +1,8 @@
 package com.hedera.demo.auction.node.app.refundChecker;
 
+import com.hedera.demo.auction.node.app.Utils;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.github.cdimascio.dotenv.Dotenv;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
@@ -33,7 +33,7 @@ public class HederaRefundChecker extends AbstractRefundChecker implements Refund
                 String timestamp = bidToRefund.getKey();
                 log.debug("Checking for refund on timestamp " + timestamp + " transaction id " + transactionId);
 
-                String txURI = uri.concat("/").concat(transactionId);
+                String txURI = uri.concat("/").concat(Utils.hederaMirrorTransactionId(transactionId));
                 var webQuery =
                 webClient
                     .get(this.mirrorURL, txURI)
@@ -61,28 +61,6 @@ public class HederaRefundChecker extends AbstractRefundChecker implements Refund
                 e.printStackTrace();
                 log.error(e);
             }
-        }
-    }
-
-    private void handleResponse(JsonObject response, String timestamp, String transactionId) {
-        try {
-            JsonArray transactions = response.getJsonArray("transactions");
-            if (transactions != null) {
-                for (Object transactionObject : transactions) {
-                    JsonObject transaction = JsonObject.mapFrom(transactionObject);
-                    if (transaction.getString("result").equals("SUCCESS")) {
-                        // set refunded to true
-                        log.debug("Found successful refund transaction on " + timestamp + " transaction id " + transactionId);
-                        bidsRepository.setRefunded(timestamp);
-                    } else {
-                        log.debug("Refund transaction on " + timestamp + " transaction id " + transactionId + " failed: " + transaction.getString("result"));
-                    }
-                }
-            } else {
-                log.debug("No " + transactionId + " transaction found");
-            }
-        } catch (RuntimeException e) {
-            log.error(e);
         }
     }
 }

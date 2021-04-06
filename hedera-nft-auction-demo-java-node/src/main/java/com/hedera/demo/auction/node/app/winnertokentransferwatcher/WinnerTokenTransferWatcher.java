@@ -33,13 +33,13 @@ public class WinnerTokenTransferWatcher implements Runnable {
                             // find if transaction is complete and successful
                             switch (mirrorProvider) {
                                 case "HEDERA":
-                                    winnerTokenTransferWatcher = new HederaWinnerWinnerTokenTransferWatcher(webClient, auctionsRepository, auction);
+                                    winnerTokenTransferWatcher = new HederaWinnerTokenTransferWatcher(webClient, auctionsRepository, auction);
                                     break;
                                 case "DRAGONGLASS":
-                                    winnerTokenTransferWatcher = new DragonglassWinnerWinnerTokenTransferWatcher(webClient, auctionsRepository, auction);
+                                    winnerTokenTransferWatcher = new DragonglassWinnerTokenTransferWatcher(webClient, auctionsRepository, auction);
                                     break;
                                 default:
-                                    winnerTokenTransferWatcher = new KabutoWinnerWinnerTokenTransferWatcher(webClient, auctionsRepository, auction);
+                                    winnerTokenTransferWatcher = new KabutoWinnerTokenTransferWatcher(webClient, auctionsRepository, auction);
                                     break;
                             }
                             winnerTokenTransferWatcher.check();

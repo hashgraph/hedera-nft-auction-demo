@@ -49,6 +49,39 @@ allprojects {
 				srcDirs "src/main/resources"
 			}
 		}
+		integrationTest {
+			java {
+				compileClasspath += main.output + test.output
+				runtimeClasspath += main.output + test.output
+				srcDir file('src/integration-test/java')
+			}
+			resources.srcDir file('src/integration-test/resources')
+		}
+		systemTest {
+			java {
+				compileClasspath += main.output + test.output
+				runtimeClasspath += main.output + test.output
+				srcDir file('src/system-test/java')
+			}
+			resources.srcDir file('src/system-test/resources')
+		}
+	}
+
+	idea {
+		module {
+			sourceDirs -= file("src/integration-test/java")
+			testSourceDirs += file("src/integration-test/java")
+			sourceDirs -= file("src/system-test/java")
+			testSourceDirs += file("src/system-test/java")
+		}
+	}
+
+	configurations {
+		integrationTestCompile.extendsFrom testImplementation
+		integrationTestRuntime.extendsFrom testRuntimeOnly
+
+		systemTestCompile.extendsFrom testImplementation
+		systemTestRuntime.extendsFrom testRuntimeOnly
 	}
 
 	dependencies {
@@ -64,9 +97,6 @@ allprojects {
 
 		// https://github.com/eclipse-ee4j/common-annotations-api
 		implementation "jakarta.annotation:jakarta.annotation-api:2.0.0-RC1"
-
-		// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
-//		implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.2'
 	}
 
 	tasks.withType(JavaCompile).configureEach {
@@ -141,6 +171,42 @@ dependencies {
 
 	// flyway
 	compile "org.flywaydb:flyway-core:7.7.0"
+
+	// Testing
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+
+}
+
+tasks.withType(Test) {
+	useJUnitPlatform()
+
+	// this task will fail on the first failed test
+	failFast = true
+
+	// emit logs per passed or failed test
+	testLogging {
+		exceptionFormat = 'full'
+		events "passed", "skipped", "failed", "standardOut", "standardError"
+	}
+
+	// propagate system environment to test runner
+	systemProperty "OPERATOR_ID", findProperty("OPERATOR_ID")
+	systemProperty "OPERATOR_KEY", findProperty("OPERATOR_KEY")
+	systemProperty "CONFIG_FILE", findProperty("CONFIG_FILE")
+	systemProperty "HEDERA_NETWORK", findProperty("HEDERA_NETWORK")
+}
+
+task integrationTest(type: Test) {
+	testClassesDirs = sourceSets.integrationTest.output.classesDirs
+	classpath = sourceSets.integrationTest.runtimeClasspath
+	outputs.upToDateWhen { false }
+}
+
+task systemTest(type: Test) {
+	testClassesDirs = sourceSets.systemTest.output.classesDirs
+	classpath = sourceSets.systemTest.runtimeClasspath
+	outputs.upToDateWhen { false }
 }
 
 flyway {

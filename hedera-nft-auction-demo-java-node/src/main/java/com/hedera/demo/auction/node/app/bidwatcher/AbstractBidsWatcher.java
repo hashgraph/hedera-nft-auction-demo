@@ -29,15 +29,17 @@ public abstract class AbstractBidsWatcher {
     protected final int mirrorQueryFrequency;
     protected String mirrorURL;
     protected final int auctionId;
+    protected final HederaClient hederaClient;
 
-    protected AbstractBidsWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, String refundKey, int mirrorQueryFrequency) throws Exception {
+    protected AbstractBidsWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, String refundKey, int mirrorQueryFrequency) throws Exception {
         this.webClient = webClient;
         this.bidsRepository = bidsRepository;
         this.auctionsRepository = auctionsRepository;
         this.auctionId = auctionId;
         this.refundKey = refundKey;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
-        this.mirrorURL = HederaClient.getMirrorUrl();
+        this.hederaClient = hederaClient;
+        this.mirrorURL = hederaClient.mirrorUrl();
         this.auction = auctionsRepository.getAuction(auctionId);
     }
 
@@ -180,7 +182,7 @@ public abstract class AbstractBidsWatcher {
     }
 
     void startRefundThread(long refundAmound, String refundToAccount, String timestamp, String transactionId) {
-        Thread t = new Thread(new Refunder(bidsRepository, auction.getAuctionaccountid(), refundAmound, refundToAccount, timestamp, transactionId, refundKey));
+        Thread t = new Thread(new Refunder(hederaClient, bidsRepository, auction.getAuctionaccountid(), refundAmound, refundToAccount, timestamp, transactionId, refundKey));
         t.start();
     }
 }

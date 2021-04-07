@@ -6,7 +6,6 @@ import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.TokenId;
-import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
 
@@ -16,19 +15,19 @@ import java.util.Optional;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Log4j2
-public class EasySetup {
+public class EasySetup extends AbstractCreate {
 
-    private final static Dotenv env = Dotenv.configure().ignoreIfMissing().load();
+    public EasySetup() throws Exception {
+        hederaClient = new HederaClient(env);
+    }
+
     final static SqlConnectionManager connectionManager = new SqlConnectionManager(env);
     final static AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
     final static BidsRepository bidsRepository = new BidsRepository(connectionManager);
     static String topicId = Optional.ofNullable(env.get("VUE_APP_TOPIC_ID")).orElse("");
 
-    private EasySetup() {
-    }
-
-    public static void main(String[] args) throws Exception {
-        Client client = HederaClient.getClient();
+    public void setup(String[] args) throws Exception {
+        Client client = hederaClient.client();
 
         @Var String symbol = "TT";
         @Var boolean clean = true;
@@ -49,13 +48,17 @@ public class EasySetup {
             log.info("Deleting existing auctions and bids and creating new topic");
             bidsRepository.deleteAllBids();
             auctionsRepository.deleteAllAuctions();
-            topicId = CreateTopic.create().toString();
+            CreateTopic createTopic = new CreateTopic();
+            topicId = createTopic.create().toString();
         }
 
-        TokenId tokenId = CreateToken.create(name, symbol, 1L, 0);
+        CreateToken createToken = new CreateToken();
+        TokenId tokenId = createToken.create(name, symbol, 1L, 0);
         String key = client.getOperatorPublicKey().toString();
-        AccountId auctionAccount = CreateAuctionAccount.create(100, key);
-        CreateTokenTransfer.transfer(tokenId.toString(), auctionAccount.toString());
+        CreateAuctionAccount createAuctionAccount = new CreateAuctionAccount();
+        AccountId auctionAccount = createAuctionAccount.create(100, key);
+        CreateTokenTransfer createTokenTransfer = new CreateTokenTransfer();
+        createTokenTransfer.transfer(tokenId.toString(), auctionAccount.toString());
 
         JsonObject auction = new JsonObject();
         auction.put("tokenid", tokenId.toString());
@@ -72,6 +75,11 @@ public class EasySetup {
         log.info("*************************");
         log.info(" ./sample-files/initDemo.json file written");
 
-        CreateAuction.create("./sample-files/initDemo.json", topicId);
+        CreateAuction createAuction = new CreateAuction();
+        createAuction.create("./sample-files/initDemo.json", topicId);
+    }
+    public void main(String[] args) throws Exception {
+        EasySetup easySetup = new EasySetup();
+        easySetup.setup(args);
     }
 }

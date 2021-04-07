@@ -25,15 +25,17 @@ public abstract class AbstractAuctionReadinessWatcher {
     protected final int mirrorQueryFrequency;
     protected String mirrorURL;
     protected final String refundKey;
+    protected final HederaClient hederaClient;
 
-    protected AbstractAuctionReadinessWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) throws Exception {
+    protected AbstractAuctionReadinessWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
         this.auction = auction;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.refundKey = refundKey;
-        this.mirrorURL = HederaClient.getMirrorUrl();
+        this.hederaClient = hederaClient;
+        this.mirrorURL = hederaClient.mirrorUrl();
     }
 
     protected Pair<Boolean, String> handleResponse(JsonObject response) {
@@ -53,7 +55,7 @@ public abstract class AbstractAuctionReadinessWatcher {
                                 log.info("Account " + auction.getAuctionaccountid() + " owns token " + auction.getTokenid() + ", starting auction");
                                 auctionsRepository.setActive(auction, transaction.consensusTimestamp);
                                 // start the thread to monitor bids
-                                Thread t = new Thread(new BidsWatcher(webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency));
+                                Thread t = new Thread(new BidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency));
                                 t.start();
                                 return new Pair<Boolean, String>(true, "");
                             }

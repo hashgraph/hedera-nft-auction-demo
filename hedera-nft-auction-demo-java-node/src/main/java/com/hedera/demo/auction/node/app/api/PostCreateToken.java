@@ -3,13 +3,16 @@ package com.hedera.demo.auction.node.app.api;
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.CreateToken;
 import com.hedera.hashgraph.sdk.TokenId;
+import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
 public class PostCreateToken implements Handler<RoutingContext> {
-    public PostCreateToken() {
+    private final Dotenv env;
+    public PostCreateToken(Dotenv env) {
+        this.env = env;
     }
 
     @Override
@@ -22,7 +25,9 @@ public class PostCreateToken implements Handler<RoutingContext> {
         }
 
         try {
-            TokenId tokenId = CreateToken.create(data.name, data.symbol, data.initialSupply, data.decimals);
+            CreateToken createToken = new CreateToken();
+            createToken.setEnv(env);
+            TokenId tokenId = createToken.create(data.name, data.symbol, data.initialSupply, data.decimals);
             JsonObject response = new JsonObject();
             response.put("tokenId", tokenId.toString());
 

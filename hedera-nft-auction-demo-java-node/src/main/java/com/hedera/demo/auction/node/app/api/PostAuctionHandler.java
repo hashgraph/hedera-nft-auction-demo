@@ -4,6 +4,7 @@ import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.CreateAuction;
 import com.hedera.hashgraph.sdk.PrecheckStatusException;
 import com.hedera.hashgraph.sdk.ReceiptStatusException;
+import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -17,7 +18,9 @@ import java.util.concurrent.TimeoutException;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class PostAuctionHandler implements Handler<RoutingContext> {
-    public PostAuctionHandler() {
+    private final Dotenv env;
+    public PostAuctionHandler(Dotenv env) {
+        this.env = env;
     }
 
     @Override
@@ -51,7 +54,9 @@ public class PostAuctionHandler implements Handler<RoutingContext> {
                 myWriter.close();
             }
 
-            CreateAuction.create(fileName, "");
+            CreateAuction createAuction = new CreateAuction();
+            createAuction.setEnv(env);
+            createAuction.create(fileName, "");
 
             JsonObject response = new JsonObject();
             response.put("status", "created");

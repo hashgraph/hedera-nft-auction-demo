@@ -9,9 +9,10 @@ import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.Tuple;
 
 public class GetLastBidderBidHandler implements Handler<RoutingContext> {
+
     private final PgPool pgPool;
 
-    public GetLastBidderBidHandler(PgPool pgPool) {
+    GetLastBidderBidHandler(PgPool pgPool) {
         this.pgPool = pgPool;
     }
 

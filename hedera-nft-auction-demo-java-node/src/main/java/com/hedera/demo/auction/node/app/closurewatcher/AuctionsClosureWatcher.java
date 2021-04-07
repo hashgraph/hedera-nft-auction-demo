@@ -10,16 +10,19 @@ public class AuctionsClosureWatcher implements Runnable {
     private final WebClient webClient;
     private final AuctionsRepository auctionsRepository;
     private final int mirrorQueryFrequency;
-    private final String mirrorProvider = HederaClient.getMirrorProvider();
+    private final String mirrorProvider;
     private final boolean transferOnWin;
     private final String refundKey;
+    private final HederaClient hederaClient;
 
-    public AuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey) {
+    public AuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.transferOnWin = transferOnWin;
         this.refundKey = refundKey;
+        this.hederaClient = hederaClient;
+        this.mirrorProvider = hederaClient.mirrorProvider();
     }
 
     @SneakyThrows
@@ -28,13 +31,13 @@ public class AuctionsClosureWatcher implements Runnable {
         AuctionClosureWatcherInterface auctionClosureWatcher;
         switch (mirrorProvider) {
             case "HEDERA":
-                auctionClosureWatcher = new HederaAuctionsClosureWatcher(webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
+                auctionClosureWatcher = new HederaAuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
                 break;
             case "DRAGONGLASS":
-                auctionClosureWatcher = new DragonglassAuctionsClosureWatcher(webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
+                auctionClosureWatcher = new DragonglassAuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
                 break;
             default:
-                auctionClosureWatcher = new KabutoAuctionsClosureWatcher(webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
+                auctionClosureWatcher = new KabutoAuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
                 break;
         }
         auctionClosureWatcher.watch();

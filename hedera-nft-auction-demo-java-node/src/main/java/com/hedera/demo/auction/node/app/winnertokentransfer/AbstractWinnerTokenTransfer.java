@@ -11,12 +11,14 @@ public abstract class AbstractWinnerTokenTransfer {
     protected final String tokenId;
     protected final String winningAccountId;
     protected final String mirrorURL;
+    protected final HederaClient hederaClient;
 
-    protected AbstractWinnerTokenTransfer(WebClient webClient, AuctionsRepository auctionsRepository, String tokenId, String winningAccountId) throws Exception {
+    protected AbstractWinnerTokenTransfer(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, String tokenId, String winningAccountId) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.tokenId = tokenId;
         this.winningAccountId = winningAccountId;
-        this.mirrorURL = HederaClient.getMirrorUrl();
+        this.hederaClient = hederaClient;
+        this.mirrorURL = hederaClient.mirrorUrl();
     }
 }

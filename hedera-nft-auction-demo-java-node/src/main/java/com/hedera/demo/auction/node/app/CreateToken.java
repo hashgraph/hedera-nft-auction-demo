@@ -19,7 +19,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @Log4j2
-public class CreateToken {
+public class CreateToken extends AbstractCreate {
+
+    public CreateToken() throws Exception {
+        hederaClient = new HederaClient(env);
+    }
 
     /**
      * Creates a simple token (no kyc, freeze, supply, etc...)
@@ -29,9 +33,9 @@ public class CreateToken {
      * @param decimals the number of decimals for the token (defaults to 0)
      * @throws Exception in the event of an exception
      */
-    public static TokenId create(String name, String symbol, long initialSupply, int decimals) throws Exception {
+    public TokenId create(String name, String symbol, long initialSupply, int decimals) throws Exception {
 
-        Client client = HederaClient.getClient();
+        Client client = hederaClient.client();
         client.setMaxTransactionFee(Hbar.from(100));
 
         @Var String tokenSymbol = symbol;
@@ -86,7 +90,7 @@ public class CreateToken {
         tokenCreateTransaction.setTokenSymbol(tokenSymbol);
         tokenCreateTransaction.setInitialSupply(initialSupply);
         tokenCreateTransaction.setDecimals(decimals);
-        tokenCreateTransaction.setTreasuryAccountId(HederaClient.getOperatorId());
+        tokenCreateTransaction.setTreasuryAccountId(hederaClient.operatorId());
 
         TransactionResponse response = tokenCreateTransaction.execute(client);
 
@@ -98,9 +102,6 @@ public class CreateToken {
             log.info("Token created " + receipt.tokenId.toString());
         }
         return receipt.tokenId;
-    }
-
-    private CreateToken() {
     }
 
     public static void main(String[] args) throws Exception {
@@ -116,7 +117,8 @@ public class CreateToken {
             if (args.length >= 4) {
                 decimals = Integer.parseInt(args[2]);
             }
-            create(args[0], args[1], initialSupply, decimals);
+            CreateToken createToken = new CreateToken();
+            createToken.create(args[0], args[1], initialSupply, decimals);
         }
     }
 }

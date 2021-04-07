@@ -1,6 +1,5 @@
 package com.hedera.demo.auction.node.app.api;
 
-import com.hedera.demo.auction.node.app.PGPool;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -9,23 +8,49 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.pgclient.PgConnectOptions;
 import io.vertx.pgclient.PgPool;
+import io.vertx.sqlclient.PoolOptions;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
 @Log4j2
 public class ApiVerticle extends AbstractVerticle {
 
-    private final static Dotenv env = Dotenv.configure().ignoreIfMissing().load();
-    private final static PgPool pgPool = new PGPool(env).createPgPool();;
-    private final static int httpPort = Optional.ofNullable(env.get("VUE_APP_API_PORT")).map(Integer::parseInt).orElse(9005);
-
     @Override
     public void start(Promise<Void> startPromise) {
+
+        Dotenv env = Dotenv
+                .configure()
+                .filename(config().getString("envFile"))
+                .directory(config().getString("envPath"))
+                .ignoreIfMissing()
+                .load();
+
+        String url = Objects.requireNonNull(env.get("DATABASE_URL"), "missing environment variable DATABASE_URL");
+
+        String username = Objects.requireNonNull(
+                env.get("DATABASE_USERNAME"), "missing environment variable DATABASE_USERNAME");
+
+        String password = Objects.requireNonNull(
+                env.get("DATABASE_PASSWORD"), "missing environment variable DATABASE_PASSWORD");
+
+        int poolSize = Integer.parseInt(Optional.ofNullable(env.get("POOL_SIZE")).orElse("10"));
+
+        PgConnectOptions pgConnectOptions = PgConnectOptions
+                        .fromUri(url)
+                        .setUser(username)
+                        .setPassword(password);
+        PoolOptions poolOptions = new PoolOptions().setMaxSize(poolSize);
+
+        PgPool pgPool = PgPool.pool(vertx, pgConnectOptions, poolOptions);
+//        this.pgPool = new PGPool(env).createPgPool();
+        int httpPort = Optional.ofNullable(env.get("VUE_APP_API_PORT")).map(Integer::parseInt).orElse(9005);
 
         var server = vertx.createHttpServer();
         var router = Router.router(vertx);

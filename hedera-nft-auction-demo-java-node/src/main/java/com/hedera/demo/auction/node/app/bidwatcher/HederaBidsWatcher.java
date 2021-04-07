@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.node.app.bidwatcher;
 
+import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.vertx.core.json.JsonObject;
@@ -12,8 +13,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Log4j2
 public class HederaBidsWatcher extends AbstractBidsWatcher implements BidsWatcherInterface {
 
-    public HederaBidsWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, String refundKey, int mirrorQueryFrequency) throws Exception {
-        super(webClient, auctionsRepository, bidsRepository, auctionId, refundKey, mirrorQueryFrequency);
+    public HederaBidsWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, String refundKey, int mirrorQueryFrequency) throws Exception {
+        super(hederaClient, webClient, auctionsRepository, bidsRepository, auctionId, refundKey, mirrorQueryFrequency);
     }
 
     @Override

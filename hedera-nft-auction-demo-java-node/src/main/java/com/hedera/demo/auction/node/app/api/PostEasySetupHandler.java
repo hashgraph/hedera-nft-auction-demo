@@ -30,7 +30,8 @@ public class PostEasySetupHandler implements Handler<RoutingContext> {
                 args[2] = "--no-clean";
             }
 
-            EasySetup.main(args);
+            EasySetup easySetup = new EasySetup();
+            easySetup.setup(args);
 
             JsonObject response = new JsonObject();
             response.put("status", "auction setup");

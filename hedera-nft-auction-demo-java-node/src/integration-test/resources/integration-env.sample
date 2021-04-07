@@ -1,4 +1,8 @@
+# only for validator nodes (processing refunds)
+OPERATOR_ID=0.0.xxxxxx
+OPERATOR_KEY=302.....
 VUE_APP_NETWORK=testnet
+
 # Run the REST API true/false
 REST_API=true
 VUE_APP_API_PORT=8081
@@ -13,10 +17,11 @@ ADMIN_API_VERTICLE_COUNT=1
 AUCTION_NODE=true
 
 # only if participating in refund transactions
+REFUND_KEY=302.......
 TRANSFER_ON_WIN=true
 
 # auction topic details
-VUE_APP_TOPIC_ID=0.0.484165
+VUE_APP_TOPIC_ID=
 
 # mirror node detail
 # the mirror provider may be hedera, kabuto or dragonglass
@@ -27,10 +32,9 @@ MIRROR_QUERY_FREQUENCY=5000
 DG_API_KEY=
 
 # Database information for transaction and event logging
-DATABASE_URL=postgresql://localhost:5433/postgres
+DATABASE_URL=postgresql://localhost:5432/postgres
 DATABASE_USERNAME=postgres
 DATABASE_PASSWORD=password
-# Database information for transaction and event logging
 POOL_SIZE=10
 
 # REST Mirror urls

@@ -11,9 +11,10 @@ import com.hedera.hashgraph.sdk.TransferTransaction;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
-public class CreateTokenTransfer {
+public class CreateTokenTransfer extends AbstractCreate {
 
-    private CreateTokenTransfer() {
+    public CreateTokenTransfer() throws Exception {
+        hederaClient = new HederaClient(env);
     }
 
     /**
@@ -22,8 +23,8 @@ public class CreateTokenTransfer {
      * @param accountId the symbol for the token
      * @throws Exception in the event of an exception
      */
-    public static void transfer(String tokenId, String accountId) throws Exception {
-        Client client = HederaClient.getClient();
+    public void transfer(String tokenId, String accountId) throws Exception {
+        Client client = hederaClient.client();
         client.setMaxTransactionFee(Hbar.from(100));
 
         TransferTransaction transferTransaction = new TransferTransaction();
@@ -47,7 +48,8 @@ public class CreateTokenTransfer {
             log.error("Invalid number of arguments supplied - tokenId and accountId are required");
         } else {
             log.info("Transferring token to account");
-            transfer(args[0], args[1]);
+            CreateTokenTransfer createTokenTransfer = new CreateTokenTransfer();
+            createTokenTransfer.transfer(args[0], args[1]);
         }
     }
 }

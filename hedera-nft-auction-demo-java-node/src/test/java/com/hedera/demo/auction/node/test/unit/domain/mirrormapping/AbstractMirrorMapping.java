@@ -1,4 +1,4 @@
-package com.hedera.demo.auction.node.test.unit.mirrormapping;
+package com.hedera.demo.auction.node.test.unit.domain.mirrormapping;
 
 import io.vertx.core.json.JsonObject;
 

@@ -8,13 +8,14 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.Tuple;
 
-public class GetAuctionHandler implements Handler<RoutingContext> {
+public class GetAuctionHandler implements Handler<RoutingContext>  {
+
     private final PgPool pgPool;
 
-    public GetAuctionHandler(PgPool pgPool) {
+    GetAuctionHandler(PgPool pgPool) {
         this.pgPool = pgPool;
     }
-
+    
     @Override
     public void handle(RoutingContext routingContext) {
         long id = Long.parseLong(routingContext.pathParam("id"));

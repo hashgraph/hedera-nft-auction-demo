@@ -16,9 +16,10 @@ import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
 @Log4j2
-public class CreateAuctionAccount {
+public class CreateAuctionAccount extends AbstractCreate {
 
-    private CreateAuctionAccount() {
+    public CreateAuctionAccount() throws Exception {
+        hederaClient = new HederaClient(env);
     }
 
     /**
@@ -27,9 +28,9 @@ public class CreateAuctionAccount {
      * @param keys an array of public keys, if none supplied, the operator's public key is used
      * @throws Exception in the event of an exception
      */
-    public static AccountId create(long initialBalance, String keys) throws Exception {
+    public AccountId create(long initialBalance, String keys) throws Exception {
 
-        Client client = HederaClient.getClient();
+        Client client = hederaClient.client();
         AccountCreateTransaction accountCreateTransaction = new AccountCreateTransaction();
         KeyList keyList = new KeyList();
         if (StringUtils.isEmpty(keys)) {
@@ -83,8 +84,8 @@ public class CreateAuctionAccount {
                 keys = args[1];
             }
             log.info("Creating account");
-
-            create(Long.parseLong(args[0]), keys);
+            CreateAuctionAccount createAuctionAccount = new CreateAuctionAccount();
+            createAuctionAccount.create(Long.parseLong(args[0]), keys);
         }
     }
 }

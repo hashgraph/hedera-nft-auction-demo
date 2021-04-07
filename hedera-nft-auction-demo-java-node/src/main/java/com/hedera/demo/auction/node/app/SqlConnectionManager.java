@@ -32,10 +32,10 @@ public class SqlConnectionManager {
     }
 
     // Blank SqlConnectionManager for testing
-    public SqlConnectionManager() {
-        url = "";
-        username = "";
-        password = "";
+    public SqlConnectionManager(String url, String username, String password) {
+        this.url = url.replace("jdbc:", "");
+        this.username = username;
+        this.password = password;
     }
 
     public DSLContext dsl() throws SQLException {

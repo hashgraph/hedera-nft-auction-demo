@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.node.app.refundChecker;
 
+import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.Utils;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -13,8 +14,8 @@ import java.util.Map;
 @Log4j2
 public class HederaRefundChecker extends AbstractRefundChecker implements RefundCheckerInterface {
 
-    public HederaRefundChecker(WebClient webClient, BidsRepository bidsRepository, Dotenv env) throws Exception {
-        super(webClient, bidsRepository, env);
+    public HederaRefundChecker(HederaClient hederaClient, WebClient webClient, BidsRepository bidsRepository, Dotenv env) {
+        super(hederaClient, webClient, bidsRepository, env);
     }
 
     @Override

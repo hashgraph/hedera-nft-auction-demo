@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.node.app.readinesswatcher;
 
+import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
@@ -16,8 +17,8 @@ import java.util.concurrent.atomic.AtomicReference;
 @Log4j2
 public class HederaAuctionReadinessWatcher extends AbstractAuctionReadinessWatcher implements AuctionReadinessWatcherInterface {
 
-    public HederaAuctionReadinessWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) throws Exception {
-        super(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
+    public HederaAuctionReadinessWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
+        super(hederaClient, webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
     }
 
     /**

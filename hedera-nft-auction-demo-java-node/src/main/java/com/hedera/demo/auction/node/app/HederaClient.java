@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.node.app;
 
+import com.google.errorprone.annotations.Var;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.PrivateKey;
@@ -14,38 +15,64 @@ import java.util.Optional;
 
 @Log4j2
 public class HederaClient {
-    private static final Dotenv env = Dotenv.configure().ignoreIfMissing().load();
-    private static final AccountId OPERATOR_ID = AccountId.fromString(Objects.requireNonNull(env.get("OPERATOR_ID")));
-    private static final PrivateKey OPERATOR_KEY = PrivateKey.fromString(Objects.requireNonNull(env.get("OPERATOR_KEY")));
-    private static final String VUE_APP_NETWORK = Optional.ofNullable(env.get("VUE_APP_NETWORK").toUpperCase()).orElse("");
-    private static final String MIRROR_PROVIDER = Optional.ofNullable(env.get("MIRROR_PROVIDER").toUpperCase()).orElse("KABUTO");
+    private final AccountId operatorId;
+    private final PrivateKey operatorKey;
+    private final String mirrorProvider;
+    private final String mirrorUrl;
+    private final Client client;
 
-    private HederaClient() {
+    public HederaClient(AccountId operatorId, PrivateKey operatorKey, String network, String mirrorProvider, String mirrorUrl, String mirrorAddress) throws Exception {
+        this.operatorId = operatorId;
+        this.operatorKey = operatorKey;
+        this.mirrorProvider = mirrorProvider;
+        this.client = clientForNetwork(network);
+        this.mirrorUrl = mirrorUrl;
+
+        if ( ! StringUtils.isEmpty(mirrorAddress)) {
+            client.setMirrorNetwork(List.of(mirrorAddress));
+        }
+
     }
-    public static PrivateKey getOperatorKey() {
-        return OPERATOR_KEY;
-    }
-    public static AccountId getOperatorId() {
-        return OPERATOR_ID;
-    }
-    public static PublicKey getOperatorPublicKey() {
-        return OPERATOR_KEY.getPublicKey();
-    }
-    public static String getMirrorProvider() {return MIRROR_PROVIDER;}
-    public static String getMirrorUrl() throws Exception {
-        String envVariable = "REST_".concat(MIRROR_PROVIDER).concat("_")
-                .concat(VUE_APP_NETWORK);
+    public HederaClient(Dotenv env) throws Exception {
+        this.operatorId = AccountId.fromString(Objects.requireNonNull(env.get("OPERATOR_ID")));
+        this.operatorKey = PrivateKey.fromString(Objects.requireNonNull(env.get("OPERATOR_KEY")));
+        this.mirrorProvider = Optional.ofNullable(env.get("MIRROR_PROVIDER").toUpperCase()).orElse("KABUTO");
+
+        String vueAppNetwork = Optional.ofNullable(env.get("VUE_APP_NETWORK").toUpperCase()).orElse("");
+
+        this.client = clientForNetwork(vueAppNetwork);
+
+        @Var String envVariable = "GRPC_".concat(this.mirrorProvider).concat("_")
+                .concat(vueAppNetwork);
         String url = env.get(envVariable);
         if (StringUtils.isBlank(url)) {
             throw new Exception("VUE_APP_NETWORK and/or MIRROR_PROVIDER environment variables not set");
         }
-        return url;
+
+        client.setMirrorNetwork(List.of(url));
+
+        envVariable = "REST_".concat(this.mirrorProvider).concat("_")
+                .concat(vueAppNetwork);
+        this.mirrorUrl = env.get(envVariable);
+        if (StringUtils.isBlank(this.mirrorUrl)) {
+            throw new Exception("VUE_APP_NETWORK and/or MIRROR_PROVIDER environment variables not set");
+        }
     }
 
-    public static Client getClient() throws Exception {
-        Client client;
+    public PrivateKey operatorPrivateKey() {
+        return this.operatorKey;
+    }
+    public PublicKey operatorPublicKey() { return this.operatorKey.getPublicKey(); }
+    public AccountId operatorId() {
+        return this.operatorId;
+    }
+    public String mirrorProvider() {return this.mirrorProvider;}
+    public String mirrorUrl() {return this.mirrorUrl;}
+    public Client client() {return this.client;}
 
-        switch (VUE_APP_NETWORK) {
+    private Client clientForNetwork(String network) throws Exception {
+        Client client;
+        switch (network) {
             case "PREVIEWNET":
                 client = Client.forPreviewnet();
                 break;
@@ -56,20 +83,11 @@ public class HederaClient {
                 client = Client.forMainnet();
                 break;
             default:
-                log.error(".env configuration missing.");
-                throw new Exception("VUE_APP_NETWORK environment variable not set");
+                log.error("Unknown network " + network);
+                throw new Exception("Unknown network " + network);
         }
 
-        String envVariable = "GRPC_".concat(MIRROR_PROVIDER).concat("_")
-                .concat(VUE_APP_NETWORK);
-        String url = env.get(envVariable);
-        if (StringUtils.isBlank(url)) {
-            throw new Exception("VUE_APP_NETWORK and/or MIRROR_PROVIDER environment variables not set");
-        }
-
-        client.setMirrorNetwork(List.of(url));
-
-        client.setOperator(OPERATOR_ID, OPERATOR_KEY);
+        client.setOperator(this.operatorId, this.operatorKey);
 
         return client;
     }

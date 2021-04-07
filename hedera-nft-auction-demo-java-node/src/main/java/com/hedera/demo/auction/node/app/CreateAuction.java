@@ -1,6 +1,6 @@
 package com.hedera.demo.auction.node.app;
 
-import com.hedera.hashgraph.sdk.Client;
+import com.google.errorprone.annotations.Var;
 import com.hedera.hashgraph.sdk.PrecheckStatusException;
 import com.hedera.hashgraph.sdk.ReceiptStatusException;
 import com.hedera.hashgraph.sdk.Status;
@@ -8,7 +8,6 @@ import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.sdk.TopicMessageSubmitTransaction;
 import com.hedera.hashgraph.sdk.TransactionReceipt;
 import com.hedera.hashgraph.sdk.TransactionResponse;
-import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
@@ -16,16 +15,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 @Log4j2
-public class CreateAuction {
+public class CreateAuction extends AbstractCreate {
 
-    private final static Dotenv env = Dotenv.configure().ignoreIfMissing().load();
-    private static String topicId = Optional.ofNullable(env.get("VUE_APP_TOPIC_ID")).orElse("");
-
-    private CreateAuction() {
+    public CreateAuction() throws Exception {
     }
 
     /**
@@ -37,7 +32,10 @@ public class CreateAuction {
      * @throws InterruptedException in the event of an exception
      * @throws IOException in the event of an exception
      */
-    public static void create(String auctionFile, String overrideTopicId) throws Exception {
+    public void create(String auctionFile, String overrideTopicId) throws Exception {
+
+        @Var String topicId = "";
+
         if (! overrideTopicId.isBlank()) {
             topicId = overrideTopicId;
         }
@@ -49,14 +47,14 @@ public class CreateAuction {
             String auctionInitData = Files.readString(Path.of(auctionFile), StandardCharsets.US_ASCII);
 
             log.info("Submitting " + auctionFile + " file contents to HCS on topic " + topicId);
-            Client client = HederaClient.getClient();
+
             TopicMessageSubmitTransaction topicMessageSubmitTransaction = new TopicMessageSubmitTransaction()
                     .setTopicId(TopicId.fromString(topicId))
                     .setTransactionMemo("CreateAuction")
                     .setMessage(auctionInitData);
-            TransactionResponse response = topicMessageSubmitTransaction.execute(client);
+            TransactionResponse response = topicMessageSubmitTransaction.execute(hederaClient.client());
 
-            TransactionReceipt receipt = response.getReceipt(client);
+            TransactionReceipt receipt = response.getReceipt(hederaClient.client());
             if (receipt.status != Status.SUCCESS) {
                 log.error("Topic submit failed " + receipt.status);
             } else {
@@ -65,7 +63,7 @@ public class CreateAuction {
         }
     }
 
-    public static void main(String[] args) throws Exception {
+    public void main(String[] args) throws Exception {
         if (args.length != 1) {
             log.error("Invalid number of arguments supplied");
         } else if (StringUtils.isEmpty(topicId)) {

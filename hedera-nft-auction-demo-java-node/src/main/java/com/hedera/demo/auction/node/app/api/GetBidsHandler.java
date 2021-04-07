@@ -10,10 +10,10 @@ import io.vertx.sqlclient.Tuple;
 import java.util.ArrayList;
 
 public class GetBidsHandler implements Handler<RoutingContext> {
+
     private final PgPool pgPool;
 
-
-    public GetBidsHandler(PgPool pgPool) {
+    GetBidsHandler(PgPool pgPool) {
         this.pgPool = pgPool;
     }
 

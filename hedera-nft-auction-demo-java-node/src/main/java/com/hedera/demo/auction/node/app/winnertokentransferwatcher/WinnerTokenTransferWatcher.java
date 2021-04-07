@@ -13,12 +13,15 @@ public class WinnerTokenTransferWatcher implements Runnable {
     private final WebClient webClient;
     private final AuctionsRepository auctionsRepository;
     private final int mirrorQueryFrequency;
-    private final String mirrorProvider = HederaClient.getMirrorProvider();
+    private final String mirrorProvider;
+    private final HederaClient hederaClient;
 
-    public WinnerTokenTransferWatcher(WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency) {
+    public WinnerTokenTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
+        this.hederaClient = hederaClient;
+        this.mirrorProvider = hederaClient.mirrorProvider();
     }
 
     @Override
@@ -33,13 +36,13 @@ public class WinnerTokenTransferWatcher implements Runnable {
                             // find if transaction is complete and successful
                             switch (mirrorProvider) {
                                 case "HEDERA":
-                                    winnerTokenTransferWatcher = new HederaWinnerTokenTransferWatcher(webClient, auctionsRepository, auction);
+                                    winnerTokenTransferWatcher = new HederaWinnerTokenTransferWatcher(hederaClient, webClient, auctionsRepository, auction);
                                     break;
                                 case "DRAGONGLASS":
-                                    winnerTokenTransferWatcher = new DragonglassWinnerTokenTransferWatcher(webClient, auctionsRepository, auction);
+                                    winnerTokenTransferWatcher = new DragonglassWinnerTokenTransferWatcher(hederaClient, webClient, auctionsRepository, auction);
                                     break;
                                 default:
-                                    winnerTokenTransferWatcher = new KabutoWinnerTokenTransferWatcher(webClient, auctionsRepository, auction);
+                                    winnerTokenTransferWatcher = new KabutoWinnerTokenTransferWatcher(hederaClient, webClient, auctionsRepository, auction);
                                     break;
                             }
                             winnerTokenTransferWatcher.check();
@@ -49,7 +52,7 @@ public class WinnerTokenTransferWatcher implements Runnable {
                 Thread.sleep(mirrorQueryFrequency);
             } catch (InterruptedException e) {
                 log.error(e);
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 log.error(e);
             }
         }

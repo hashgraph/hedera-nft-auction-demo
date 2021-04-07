@@ -4,6 +4,7 @@ import com.hedera.demo.auction.node.app.CreateTopic;
 import com.hedera.hashgraph.sdk.PrecheckStatusException;
 import com.hedera.hashgraph.sdk.ReceiptStatusException;
 import com.hedera.hashgraph.sdk.TopicId;
+import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -16,14 +17,18 @@ import java.util.concurrent.TimeoutException;
 @Log4j2
 public class PostTopicHandler implements Handler<RoutingContext> {
 
-    public PostTopicHandler() {
+    private final Dotenv env;
+    public PostTopicHandler(Dotenv env) {
+        this.env = env;
     }
 
     @Override
     public void handle(RoutingContext routingContext) {
 
         try {
-            TopicId topicId = CreateTopic.create();
+            CreateTopic createTopic = new CreateTopic();
+            createTopic.setEnv(env);
+            TopicId topicId = createTopic.create();
             JsonObject response = new JsonObject();
             response.put("topicId", topicId.toString());
 

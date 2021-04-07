@@ -5,7 +5,6 @@ import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.hashgraph.sdk.AccountId;
-import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.PrecheckStatusException;
 import com.hedera.hashgraph.sdk.PrivateKey;
 import com.hedera.hashgraph.sdk.ReceiptStatusException;
@@ -30,16 +29,18 @@ public class WinnerTokenTransfer implements Runnable {
     protected final WebClient webClient;
     protected final AuctionsRepository auctionsRepository;
     protected final int mirrorQueryFrequency;
-    protected final String mirrorProvider = HederaClient.getMirrorProvider();
+    protected final String mirrorProvider;
     protected final String refundKey;
-    protected final Client client;
+    protected final HederaClient hederaClient;
 
-    public WinnerTokenTransfer(WebClient webClient, AuctionsRepository auctionsRepository, String refundKey, int mirrorQueryFrequency) throws Exception {
+
+    public WinnerTokenTransfer(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.refundKey = refundKey;
-        client = HederaClient.getClient();
+        this.hederaClient = hederaClient;
+        this.mirrorProvider = hederaClient.mirrorProvider();
     }
 
     /**
@@ -57,13 +58,13 @@ public class WinnerTokenTransfer implements Runnable {
                     // auction is closed, check association between token and winner
                     switch (mirrorProvider) {
                         case "HEDERA":
-                            winnerTokenTransfer = new HederaWinnerTokenTransfer(webClient, auctionsRepository, auction.getTokenid(), auction.getWinningaccount());
+                            winnerTokenTransfer = new HederaWinnerTokenTransfer(hederaClient, webClient, auctionsRepository, auction.getTokenid(), auction.getWinningaccount());
                             break;
                         case "DRAGONGLASS":
-                            winnerTokenTransfer = new DragonglassWinnerTokenTransfer(webClient, auctionsRepository, auction.getTokenid(), auction.getWinningaccount());
+                            winnerTokenTransfer = new DragonglassWinnerTokenTransfer(hederaClient, webClient, auctionsRepository, auction.getTokenid(), auction.getWinningaccount());
                             break;
                         default:
-                            winnerTokenTransfer = new KabutoWinnerTokenTransfer(webClient, auctionsRepository, auction.getTokenid(), auction.getWinningaccount());
+                            winnerTokenTransfer = new KabutoWinnerTokenTransfer(hederaClient, webClient, auctionsRepository, auction.getTokenid(), auction.getWinningaccount());
                             break;
                     }
 
@@ -100,7 +101,7 @@ public class WinnerTokenTransfer implements Runnable {
         } else {
             clientKey = PrivateKey.fromString(refundKey);
         }
-        client.setOperator(auctionAccountId, clientKey);
+        hederaClient.client().setOperator(auctionAccountId, clientKey);
         //TODO: Check a scheduled transaction has not already completed (success) for this
 
         // create a client for the auction's account
@@ -121,15 +122,15 @@ public class WinnerTokenTransfer implements Runnable {
         transferTransaction.setTransactionId(transactionId);
         transferTransaction.addTokenTransfer(tokenId, auctionAccountId, -1L);
         transferTransaction.addTokenTransfer(tokenId, winningAccountId, 1L);
-        transferTransaction.freezeWith(client);
+        transferTransaction.freezeWith(hederaClient.client());
 
         try {
             if ( ! this.refundKey.isBlank()) {
                 transferTransaction.sign(clientKey);
-                TransactionResponse response = transferTransaction.execute(client);
+                TransactionResponse response = transferTransaction.execute(hederaClient.client());
                 transactionHash = Hex.encodeHexString(response.transactionHash);
                 // check for receipt
-                TransactionReceipt receipt = response.getReceipt(client);
+                TransactionReceipt receipt = response.getReceipt(hederaClient.client());
                 if (receipt.status != Status.SUCCESS) {
                     log.error("Transferring token " + tokenId + " to " + winningAccountId + " failed with " + receipt.status);
                     return;

@@ -25,7 +25,7 @@ plugins {
 	id "com.github.ben-manes.versions" version "0.29.0" apply false
 	id "org.flywaydb.flyway" version "6.5.5"
 	id 'nu.studer.jooq' version '5.0.1'
-	id "com.chrisgahlert.gradle-dcompose-plugin" version "0.17.2"
+//	id "com.chrisgahlert.gradle-dcompose-plugin" version "0.17.2"
 }
 
 allprojects {
@@ -172,9 +172,16 @@ dependencies {
 	compile "org.flywaydb:flyway-core:7.7.0"
 
 	// Testing
-	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
-	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+	def junitJupiterVersion = '5.4.2'
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion'
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion'
+
 	testImplementation 'io.vertx:vertx-junit5:3.9.2'
+
+	testRuntimeOnly "org.testcontainers:testcontainers:1.15.2"
+	testImplementation "org.testcontainers:junit-jupiter:1.15.2"
+	testImplementation "org.testcontainers:postgresql:1.15.2"
+
 }
 
 tasks.withType(Test) {
@@ -196,28 +203,22 @@ tasks.withType(Test) {
 	systemProperty "HEDERA_NETWORK", findProperty("HEDERA_NETWORK")
 }
 
-dcompose {
-	testDb {
-		image = 'postgres:12.6-alpine'
-		portBindings = ['5433']
-		deploy = false
-	}
-}
+//dcompose {
+//	testDatabase {
+//		baseDir = file('testContainers/')
+//		dockerFilename = 'DockerfilePostgres'
+//		portBindings = ['5433']
+//	}
+//}
 
 task integrationTest(type: Test) {
 	testClassesDirs = sourceSets.integrationTest.output.classesDirs
 	classpath = sourceSets.integrationTest.runtimeClasspath
 	outputs.upToDateWhen { false }
 
-//	dependsOn dcompose.testDb
-//	doFirst {
-//		// The host port is only available after launching the container, therefore it needs to be added in the doFirst
-//		systemProperty 'postgres.url', "postgresql://${dcompose.dockerHost}:${dcompose.testDb.findHostPort(5433)}/postgres"
-//	}
-//	doLast {
-//		// If we don't remove the property in the doLast, Gradle's UP-TO-DATE checks will be broken
-//		systemProperties.remove 'postgres.url'
-//	}
+//	dependsOn startTestDatabaseContainer
+//
+//	finalizedBy removeTestDatabaseImage
 }
 
 task systemTest(type: Test) {

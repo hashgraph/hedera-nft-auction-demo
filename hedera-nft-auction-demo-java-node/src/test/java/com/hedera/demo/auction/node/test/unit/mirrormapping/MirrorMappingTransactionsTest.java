@@ -2,7 +2,6 @@ package com.hedera.demo.auction.node.test.unit.mirrormapping;
 
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
 import io.vertx.core.json.JsonObject;
-import org.apache.commons.codec.DecoderException;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -16,18 +15,18 @@ public class MirrorMappingTransactionsTest extends AbstractMirrorMapping {
         JsonObject transactions = loadJsonFile("hedera-mirror/hedera-mirror-transactions.json");
         MirrorTransactions mirrorTransactions = transactions.mapTo(MirrorTransactions.class);
         assertEquals(transactions.getJsonArray("transactions").size(), mirrorTransactions.transactions.size());
-        assertEquals(transactions.getJsonObject("links").getString("next"), mirrorTransactions.links.getNext());
+        assertEquals(transactions.getJsonObject("links").getString("next"), mirrorTransactions.links.next);
     }
 
     @Test
-    public void testMirrorMappingTransactionsKabuto() throws DecoderException {
+    public void testMirrorMappingTransactionsKabuto() {
 
         // TODO: Match Kabuto's format
         assertEquals(1, 1);
     }
 
     @Test
-    public void testMirrorMappingTransactionsDragonglass() throws DecoderException {
+    public void testMirrorMappingTransactionsDragonglass() {
 
         // TODO: Match Dragonglass's format
         assertEquals(1, 1);

@@ -44,7 +44,7 @@ public abstract class AbstractAuctionsClosureWatcher {
 
             if (mirrorTransactions.transactions != null) {
                 if (mirrorTransactions.transactions.size() > 0) {
-                    closeAuctionIfPastEnd(mirrorTransactions.transactions.get(0).getConsensusTimestamp());
+                    closeAuctionIfPastEnd(mirrorTransactions.transactions.get(0).consensusTimestamp);
                 }
             }
         }

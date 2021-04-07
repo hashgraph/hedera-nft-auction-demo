@@ -40,7 +40,7 @@ public abstract class AbstractWinnerTokenTransferWatcher {
                         String hash = Hex.encodeHexString(txHashBytes);
                         auctionsRepository.setEnded(auction.getId(), hash);
                     } else {
-                        log.debug("Token transfer transaction id " + auction.getTransfertxid() + " failed: " + transaction.getResult());
+                        log.debug("Token transfer transaction id " + auction.getTransfertxid() + " failed: " + transaction.result);
                     }
                 }
             } else {

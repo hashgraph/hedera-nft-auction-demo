@@ -34,19 +34,19 @@ public class MirrorMappingTransactionTest extends AbstractMirrorMapping {
 
         MirrorTransaction mirrorTransaction = transaction.mapTo(MirrorTransaction.class);
 
-        assertEquals(consensusTimestamp, mirrorTransaction.getConsensusTimestamp());
+        assertEquals(consensusTimestamp, mirrorTransaction.consensusTimestamp);
         assertEquals(memo, mirrorTransaction.getMemo());
-        assertEquals(result, mirrorTransaction.getResult());
-        assertEquals(scheduled, mirrorTransaction.getScheduled());
+        assertEquals(result, mirrorTransaction.result);
+        assertEquals(scheduled, mirrorTransaction.scheduled);
         assertEquals(transactionHash, mirrorTransaction.getTransactionHash());
-        assertEquals(transactionId, mirrorTransaction.getTransactionId());
+        assertEquals(transactionId, mirrorTransaction.transactionId);
 
         JsonArray hbarTransfers = transaction.getJsonArray("transfers");
         assertEquals(hbarTransfers.size(), mirrorTransaction.hbarTransfers.size());
 
         for (int i=0; i < hbarTransfers.size(); i++) {
-            assertEquals(hbarTransfers.getJsonObject(i).getString("account"), mirrorTransaction.hbarTransfers.get(i).getAccount());
-            assertEquals((long)hbarTransfers.getJsonObject(i).getLong("amount"), mirrorTransaction.hbarTransfers.get(i).getAmount());
+            assertEquals(hbarTransfers.getJsonObject(i).getString("account"), mirrorTransaction.hbarTransfers.get(i).account);
+            assertEquals((long)hbarTransfers.getJsonObject(i).getLong("amount"), mirrorTransaction.hbarTransfers.get(i).amount);
         }
 
         JsonArray tokenTransfers = transaction.getJsonArray("token_transfers");
@@ -71,11 +71,11 @@ public class MirrorMappingTransactionTest extends AbstractMirrorMapping {
 
         transaction.put("scheduled", false);
         @Var MirrorTransaction mirrorTransaction = transaction.mapTo(MirrorTransaction.class);
-        assertEquals(false, mirrorTransaction.getScheduled());
+        assertEquals(false, mirrorTransaction.scheduled);
 
         transaction.put("scheduled", true);
         mirrorTransaction = transaction.mapTo(MirrorTransaction.class);
-        assertEquals(true, mirrorTransaction.getScheduled());
+        assertEquals(true, mirrorTransaction.scheduled);
     }
 
     @Test
@@ -85,12 +85,12 @@ public class MirrorMappingTransactionTest extends AbstractMirrorMapping {
 
         transaction.put("result", "ERROR");
         @Var MirrorTransaction mirrorTransaction = transaction.mapTo(MirrorTransaction.class);
-        assertEquals("ERROR", mirrorTransaction.getResult());
+        assertEquals("ERROR", mirrorTransaction.result);
         assertEquals(false, mirrorTransaction.isSuccessful());
 
         transaction.put("result", "SUCCESS");
         mirrorTransaction = transaction.mapTo(MirrorTransaction.class);
-        assertEquals("SUCCESS", mirrorTransaction.getResult());
+        assertEquals("SUCCESS", mirrorTransaction.result);
         assertEquals(true, mirrorTransaction.isSuccessful());
 
     }

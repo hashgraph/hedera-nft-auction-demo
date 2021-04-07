@@ -44,7 +44,7 @@ public class AbstractRefundChecker {
 
                         bidsRepository.setRefunded(timestamp, transactionHash);
                     } else {
-                        log.debug("Refund transaction on " + timestamp + " transaction id " + transactionId + " failed: " + transaction.getResult());
+                        log.debug("Refund transaction on " + timestamp + " transaction id " + transactionId + " failed: " + transaction.result);
                     }
 
                 }

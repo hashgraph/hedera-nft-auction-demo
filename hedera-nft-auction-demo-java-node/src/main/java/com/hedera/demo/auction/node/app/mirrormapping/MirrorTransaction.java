@@ -12,22 +12,11 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class MirrorTransaction {
 
-    private String consensusTimestamp = "";
     private String memo = "";
-    private String result = "";
-    private boolean successful = false;
-    private boolean scheduled = false;
     private String transactionHash = "";
-    private String transactionId = "";
 
     @JsonProperty("consensus_timestamp")
-    public void setConsensusTimestamp(String consensusTimestamp) {
-        this.consensusTimestamp = consensusTimestamp;
-    }
-    @JsonProperty("consensus_timestamp")
-    public String getConsensusTimestamp() {
-        return this.consensusTimestamp;
-    }
+    public String consensusTimestamp = "";
 
     @JsonProperty("memo_base64")
     public void setMemo(String memoBase64) {
@@ -40,23 +29,10 @@ public class MirrorTransaction {
     }
 
     @JsonProperty("result")
-    public void setResult(String result) {
-        this.result = result;
-        this.successful = this.result.equals("SUCCESS");
-    }
-    @JsonProperty("result")
-    public String getResult() {
-        return this.result;
-    }
+    public String result = "";
 
     @JsonProperty("scheduled")
-    public void setScheduled(boolean scheduled) {
-        this.scheduled = scheduled;
-    }
-    @JsonProperty("scheduled")
-    public boolean getScheduled() {
-        return this.scheduled;
-    }
+    public boolean scheduled = false;
 
     @JsonProperty("transaction_hash")
     public void setTransactionHash(String transactionHash) {
@@ -69,13 +45,7 @@ public class MirrorTransaction {
     }
 
     @JsonProperty("transaction_id")
-    public void setTransactionId(String transactionId) {
-        this.transactionId = transactionId;
-    }
-    @JsonProperty("transaction_id")
-    public String getTransactionId() {
-        return this.transactionId;
-    }
+    public String transactionId = "";
 
     @JsonProperty("transfers")
     public List<MirrorHbarTransfer> hbarTransfers = new ArrayList<>();
@@ -90,6 +60,6 @@ public class MirrorTransaction {
     }
 
     public boolean isSuccessful() {
-        return this.successful;
+        return this.result.equals("SUCCESS");
     }
 }

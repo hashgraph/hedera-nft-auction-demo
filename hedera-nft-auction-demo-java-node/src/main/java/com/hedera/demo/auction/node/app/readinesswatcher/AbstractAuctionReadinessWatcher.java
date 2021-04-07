@@ -51,7 +51,7 @@ public abstract class AbstractAuctionReadinessWatcher {
                             if (checkAssociation(account, tokenId, amount)) {
                                 // token is associated
                                 log.info("Account " + auction.getAuctionaccountid() + " owns token " + auction.getTokenid() + ", starting auction");
-                                auctionsRepository.setActive(auction, transaction.getConsensusTimestamp());
+                                auctionsRepository.setActive(auction, transaction.consensusTimestamp);
                                 // start the thread to monitor bids
                                 Thread t = new Thread(new BidsWatcher(webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency));
                                 t.start();
@@ -60,7 +60,7 @@ public abstract class AbstractAuctionReadinessWatcher {
                         }
                     }
                 } else {
-                    return new Pair<Boolean, String>(false, mirrorTransactions.links.getNext());
+                    return new Pair<Boolean, String>(false, mirrorTransactions.links.next);
                 }
             }
             return new Pair<Boolean, String>(false, "");

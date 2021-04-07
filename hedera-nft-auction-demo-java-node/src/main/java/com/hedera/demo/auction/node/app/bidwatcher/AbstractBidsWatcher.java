@@ -48,7 +48,7 @@ public abstract class AbstractBidsWatcher {
 
                 for (MirrorTransaction transaction : mirrorTransactions.transactions) {
                     handleTransaction(transaction);
-                    this.auction.setLastconsensustimestamp(transaction.getConsensusTimestamp());
+                    this.auction.setLastconsensustimestamp(transaction.consensusTimestamp);
                     auctionsRepository.save(this.auction);
                 }
             }
@@ -76,7 +76,7 @@ public abstract class AbstractBidsWatcher {
             }
 
             // check the timestamp to verify if auction should end
-            if (transaction.getConsensusTimestamp().compareTo(this.auction.getEndtimestamp()) > 0) {
+            if (transaction.consensusTimestamp.compareTo(this.auction.getEndtimestamp()) > 0) {
                 // payment past auctions end, close it, but continue processing
                 if (!this.auction.isClosed()) {
                     this.auction = auctionsRepository.setClosed(this.auction);
@@ -84,7 +84,7 @@ public abstract class AbstractBidsWatcher {
                 // find payment amount
                 refund = true;
                 rejectReason = "Auction is closed";
-            } else if (transaction.getConsensusTimestamp().compareTo(this.auction.getStarttimestamp()) <= 0) {
+            } else if (transaction.consensusTimestamp.compareTo(this.auction.getStarttimestamp()) <= 0) {
                 refund = true;
                 rejectReason = "Auction has not started yet";
             }
@@ -103,8 +103,8 @@ public abstract class AbstractBidsWatcher {
             if ( ! refund) {
                 // find payment amount
                 for (MirrorHbarTransfer transfer : transaction.hbarTransfers) {
-                    if (transfer.getAccount().equals(auctionAccountId)) {
-                        bidAmount = transfer.getAmount();
+                    if (transfer.account.equals(auctionAccountId)) {
+                        bidAmount = transfer.amount;
                         log.debug("Bid amount is " + bidAmount);
                         break;
                     }
@@ -142,10 +142,10 @@ public abstract class AbstractBidsWatcher {
                 bidsRepository.setStatus(priorBid);
 
                 // update the auction
-                this.auction.setWinningtimestamp(transaction.getConsensusTimestamp());
+                this.auction.setWinningtimestamp(transaction.consensusTimestamp);
                 this.auction.setWinningaccount(transaction.payer());
                 this.auction.setWinningbid(bidAmount);
-                this.auction.setWinningtxid(transaction.getTransactionId());
+                this.auction.setWinningtxid(transaction.transactionId);
                 this.auction.setWinningtxhash(transaction.getTransactionHash());
             }
 
@@ -155,19 +155,19 @@ public abstract class AbstractBidsWatcher {
             currentBid.setBidamount(bidAmount);
             currentBid.setAuctionid(this.auction.getId());
             currentBid.setBidderaccountid(transaction.payer());
-            currentBid.setTimestamp(transaction.getConsensusTimestamp());
+            currentBid.setTimestamp(transaction.consensusTimestamp);
             currentBid.setStatus(rejectReason);
-            currentBid.setTransactionid(transaction.getTransactionId());
+            currentBid.setTransactionid(transaction.transactionId);
             currentBid.setTransactionhash(transaction.getTransactionHash());
             bidsRepository.add(currentBid);
 
             if (refund) {
                 // refund this transaction
-                startRefundThread (bidAmount, transaction.payer(), transaction.getConsensusTimestamp(), transaction.getTransactionId());
+                startRefundThread (bidAmount, transaction.payer(), transaction.consensusTimestamp, transaction.transactionId);
             }
 
         } else {
-            log.debug("Transaction Id " + transaction.getTransactionId() + " status not SUCCESS.");
+            log.debug("Transaction Id " + transaction.transactionId + " status not SUCCESS.");
         }
     }
 

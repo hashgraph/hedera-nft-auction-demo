@@ -1,10 +1,11 @@
-package com.hedera.demo.auction.node.mirrormapping;
+package com.hedera.demo.auction.node.app.mirrormapping;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.codec.binary.Hex;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
@@ -77,10 +78,10 @@ public class MirrorTransaction {
     }
 
     @JsonProperty("transfers")
-    public List<MirrorHbarTransfer> hbarTransfers;
+    public List<MirrorHbarTransfer> hbarTransfers = new ArrayList<>();
 
     @JsonProperty("token_transfers")
-    public List<MirrorTokenTransfer> tokenTransfers;
+    public List<MirrorTokenTransfer> tokenTransfers = new ArrayList<>();
 
     public String payer() {
         //TODO: Kabuto and Dragonglass

@@ -3,7 +3,7 @@ package com.hedera.demo.auction.node.app.closurewatcher;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.node.mirrormapping.MirrorTransactions;
+import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.AccountUpdateTransaction;
 import com.hedera.hashgraph.sdk.Client;

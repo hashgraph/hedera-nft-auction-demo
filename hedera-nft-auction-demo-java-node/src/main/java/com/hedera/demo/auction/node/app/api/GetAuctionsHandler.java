@@ -11,7 +11,6 @@ import java.util.ArrayList;
 public class GetAuctionsHandler implements Handler<RoutingContext> {
     private final PgPool pgPool;
 
-
     public GetAuctionsHandler(PgPool pgPool) {
         this.pgPool = pgPool;
     }

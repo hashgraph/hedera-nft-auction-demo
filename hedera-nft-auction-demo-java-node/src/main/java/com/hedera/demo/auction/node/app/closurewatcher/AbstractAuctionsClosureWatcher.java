@@ -28,12 +28,14 @@ public abstract class AbstractAuctionsClosureWatcher {
     protected String mirrorURL;
     protected boolean transferOnWin;
     private final String refundKey;
+    private final HederaClient hederaClient;
 
-    protected AbstractAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey) throws Exception {
+    protected AbstractAuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
-        this.mirrorURL = HederaClient.getMirrorUrl();
+        this.hederaClient = hederaClient;
+        this.mirrorURL = hederaClient.mirrorUrl();
         this.transferOnWin = transferOnWin;
         this.refundKey = refundKey;
     }
@@ -78,7 +80,7 @@ public abstract class AbstractAuctionsClosureWatcher {
     }
 
     protected void setSignatureRequiredOnAuctionAccount(int auctionId) throws Exception {
-        Client client = HederaClient.getClient();
+        Client client = hederaClient.client();
 
         Auction auction = auctionsRepository.getAuction(auctionId);
         PrivateKey refundKeyPrivate = PrivateKey.fromString(this.refundKey);

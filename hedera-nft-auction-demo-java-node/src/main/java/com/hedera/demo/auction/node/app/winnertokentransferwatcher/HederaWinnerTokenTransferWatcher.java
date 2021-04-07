@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.node.app.winnertokentransferwatcher;
 
+import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.Utils;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
@@ -11,8 +12,8 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class HederaWinnerTokenTransferWatcher extends AbstractWinnerTokenTransferWatcher implements WinnerTokenTransferWatcherInterface {
 
-    public HederaWinnerTokenTransferWatcher(WebClient webClient, AuctionsRepository auctionsRepository, Auction auction) throws Exception {
-        super(webClient, auctionsRepository, auction);
+    public HederaWinnerTokenTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, Auction auction) {
+        super(hederaClient, webClient, auctionsRepository, auction);
     }
 
     @Override

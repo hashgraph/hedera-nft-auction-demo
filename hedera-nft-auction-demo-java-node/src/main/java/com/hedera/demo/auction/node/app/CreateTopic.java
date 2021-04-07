@@ -22,10 +22,12 @@ import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
 @Log4j2
-public class CreateTopic {
+public class CreateTopic extends AbstractCreate {
 
-    private CreateTopic() {
+    public CreateTopic() throws Exception {
+        hederaClient = new HederaClient(env);
     }
+
 
     /**
      * Creates a Topic Id with a submit key and adds it to the .env file
@@ -37,13 +39,13 @@ public class CreateTopic {
      * @throws IOException in the event of an exception
      */
 
-    public static TopicId create() throws Exception {
+    public TopicId create() throws Exception {
         String dotEnvFile = ".env";
 
-        Client client = HederaClient.getClient();
+        Client client = hederaClient.client();
 
         TopicCreateTransaction topicCreateTransaction = new TopicCreateTransaction()
-                .setSubmitKey(HederaClient.getOperatorKey());
+                .setSubmitKey(hederaClient.operatorPublicKey());
         TransactionResponse transactionResponse = topicCreateTransaction
                 .execute(client);
 
@@ -83,7 +85,8 @@ public class CreateTopic {
     }
 
     public static void main(String[] args) throws Exception {
-        create();
+        CreateTopic createTopic = new CreateTopic();
+        createTopic.create();
     }
 }
 

@@ -18,20 +18,26 @@ import java.util.Set;
 @Log4j2
 public class AdminApiVerticle extends AbstractVerticle {
 
-    private final static Dotenv env = Dotenv.configure().ignoreIfMissing().load();
-    private final static int httpPort = Optional.ofNullable(env.get("ADMIN_API_PORT")).map(Integer::parseInt).orElse(9005);
-
     @Override
     public void start(Promise<Void> startPromise) {
+
+        Dotenv env = Dotenv
+                .configure()
+                .filename(config().getString("envFile"))
+                .directory(config().getString("envPath"))
+                .ignoreIfMissing()
+                .load();
+
+        int httpPort = Optional.ofNullable(env.get("ADMIN_API_PORT")).map(Integer::parseInt).orElse(9005);
 
         var server = vertx.createHttpServer();
         var router = Router.router(vertx);
 
-        PostTopicHandler postTopicHandler = new PostTopicHandler();
-        PostCreateToken postCreateToken = new PostCreateToken();
-        PostAuctionAccountHandler postAuctionAccountHandler = new PostAuctionAccountHandler();
-        PostTransferHandler postTransferHandler = new PostTransferHandler();
-        PostAuctionHandler postAuctionHandler = new PostAuctionHandler();
+        PostTopicHandler postTopicHandler = new PostTopicHandler(env);
+        PostCreateToken postCreateToken = new PostCreateToken(env);
+        PostAuctionAccountHandler postAuctionAccountHandler = new PostAuctionAccountHandler(env);
+        PostTransferHandler postTransferHandler = new PostTransferHandler(env);
+        PostAuctionHandler postAuctionHandler = new PostAuctionHandler(env);
         PostEasySetupHandler postEasySetupHandler = new PostEasySetupHandler();
 
         Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.POST));

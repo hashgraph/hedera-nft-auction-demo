@@ -20,15 +20,18 @@ public class AbstractRefundChecker {
     protected final BidsRepository bidsRepository;
     protected final int mirrorQueryFrequency;
     protected final String mirrorURL;
-    protected final String mirrorProvider = HederaClient.getMirrorProvider();
+    protected final String mirrorProvider;
     protected final Dotenv env;
+    protected final HederaClient hederaClient;
 
-    public AbstractRefundChecker(WebClient webClient, BidsRepository bidsRepository, Dotenv env) throws Exception {
+    public AbstractRefundChecker(HederaClient hederaClient, WebClient webClient, BidsRepository bidsRepository, Dotenv env) {
         this.webClient = webClient;
         this.bidsRepository = bidsRepository;
         this.mirrorQueryFrequency = Integer.parseInt(Optional.ofNullable(env.get("MIRROR_QUERY_FREQUENCY")).orElse("5000"));
-        this.mirrorURL = HederaClient.getMirrorUrl();
+        this.mirrorURL = hederaClient.mirrorUrl();
         this.env = env;
+        this.hederaClient = hederaClient;
+        this.mirrorProvider = hederaClient.mirrorProvider();
     }
 
     protected void handleResponse(JsonObject response, String timestamp, String transactionId) {

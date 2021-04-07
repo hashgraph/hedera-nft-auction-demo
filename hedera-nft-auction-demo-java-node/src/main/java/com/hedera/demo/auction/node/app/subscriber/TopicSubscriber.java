@@ -42,14 +42,16 @@ public class TopicSubscriber implements Runnable{
     private final WebClient webClient;
     private final String refundKey;
     private final int mirrorQueryFrequency;
+    private final HederaClient hederaClient;
 
-    public TopicSubscriber(AuctionsRepository auctionsRepository, BidsRepository bidsRepository, WebClient webClient, TopicId topicId, String refundKey, int mirrorQueryFrequency) {
+    public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, WebClient webClient, TopicId topicId, String refundKey, int mirrorQueryFrequency) {
         this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
         this.topicId = topicId;
         this.webClient = webClient;
         this.refundKey = refundKey;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
+        this.hederaClient = hederaClient;
     }
 
     @Override
@@ -72,7 +74,7 @@ public class TopicSubscriber implements Runnable{
 
     private void startSubscription() {
         try {
-            Client client = HederaClient.getClient();
+            Client client = hederaClient.client();
             log.info("Subscribing to topic " + topicId.toString());
             new TopicMessageQuery()
                     .setTopicId(topicId)
@@ -81,7 +83,7 @@ public class TopicSubscriber implements Runnable{
                         startTime = topicMessage.consensusTimestamp;
                         handle(client, topicMessage);
                     });
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             log.error("Mirror subscription error " + e.getMessage());
             log.info("Attempting re-subscription after 5s");
             try {
@@ -153,7 +155,7 @@ public class TopicSubscriber implements Runnable{
                 }
 
                 // Start a thread to watch this new auction for readiness
-                Thread t = new Thread(new AuctionReadinessWatcher(webClient, auctionsRepository, bidsRepository, newAuction, refundKey, mirrorQueryFrequency));
+                Thread t = new Thread(new AuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, newAuction, refundKey, mirrorQueryFrequency));
                 t.start();
             }
         } catch (Exception e) {

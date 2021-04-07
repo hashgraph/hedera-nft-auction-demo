@@ -14,15 +14,18 @@ public class BidsWatcher implements Runnable {
     private final AuctionsRepository auctionsRepository;
     private final String refundKey;
     private final int mirrorQueryFrequency;
-    private final String mirrorProvider = HederaClient.getMirrorProvider();
+    private final String mirrorProvider;
+    private final HederaClient hederaClient;
 
-    public BidsWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, String refundKey, int mirrorQueryFrequency) {
+    public BidsWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.bidsRepository = bidsRepository;
         this.auctionsRepository = auctionsRepository;
         this.auctionId = auctionId;
         this.refundKey = refundKey;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
+        this.hederaClient = hederaClient;
+        this.mirrorProvider = hederaClient.mirrorProvider();
     }
 
     @SneakyThrows
@@ -32,13 +35,13 @@ public class BidsWatcher implements Runnable {
         BidsWatcherInterface bidsWatcher;
         switch (mirrorProvider) {
             case "HEDERA":
-                bidsWatcher = new HederaBidsWatcher(webClient, auctionsRepository, bidsRepository, auctionId, refundKey, mirrorQueryFrequency);
+                bidsWatcher = new HederaBidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auctionId, refundKey, mirrorQueryFrequency);
                 break;
             case "DRAGONGLASS":
-                bidsWatcher = new DragonglassBidsWatcher(webClient, auctionsRepository, bidsRepository, auctionId, refundKey, mirrorQueryFrequency);
+                bidsWatcher = new DragonglassBidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auctionId, refundKey, mirrorQueryFrequency);
                 break;
             default:
-                bidsWatcher = new KabutoBidsWatcher(webClient, auctionsRepository, bidsRepository, auctionId, refundKey, mirrorQueryFrequency);
+                bidsWatcher = new KabutoBidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auctionId, refundKey, mirrorQueryFrequency);
                 break;
         }
         bidsWatcher.watch();

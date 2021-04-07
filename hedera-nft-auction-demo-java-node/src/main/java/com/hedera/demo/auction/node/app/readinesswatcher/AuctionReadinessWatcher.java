@@ -14,16 +14,19 @@ public class AuctionReadinessWatcher implements Runnable {
     protected final AuctionsRepository auctionsRepository;
     protected final BidsRepository bidsRepository;
     protected final int mirrorQueryFrequency;
-    protected final String mirrorProvider = HederaClient.getMirrorProvider();
+    protected final String mirrorProvider;
     protected final String refundKey;
+    protected final HederaClient hederaClient;
 
-    public AuctionReadinessWatcher(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
+    public AuctionReadinessWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
         this.auction = auction;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.refundKey = refundKey;
+        this.hederaClient = hederaClient;
+        this.mirrorProvider = hederaClient.mirrorProvider();
     }
 
     /**
@@ -37,13 +40,13 @@ public class AuctionReadinessWatcher implements Runnable {
         AuctionReadinessWatcherInterface auctionReadinessWatcher;
         switch (mirrorProvider) {
             case "HEDERA":
-                auctionReadinessWatcher = new HederaAuctionReadinessWatcher(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
+                auctionReadinessWatcher = new HederaAuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
                 break;
             case "DRAGONGLASS":
-                auctionReadinessWatcher = new DragonglassAuctionReadinessWatcher(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
+                auctionReadinessWatcher = new DragonglassAuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
                 break;
             default:
-                auctionReadinessWatcher = new KabutoAuctionReadinessWatcher(webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
+                auctionReadinessWatcher = new KabutoAuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
                 break;
         }
         auctionReadinessWatcher.watch();

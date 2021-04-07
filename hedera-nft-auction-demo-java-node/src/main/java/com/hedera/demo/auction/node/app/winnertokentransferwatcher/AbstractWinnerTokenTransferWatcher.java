@@ -21,11 +21,11 @@ public abstract class AbstractWinnerTokenTransferWatcher {
     protected final Auction auction;
     protected String mirrorURL;
 
-    protected AbstractWinnerTokenTransferWatcher(WebClient webClient, AuctionsRepository auctionsRepository, Auction auction) throws Exception {
+    protected AbstractWinnerTokenTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, Auction auction) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.auction = auction;
-        this.mirrorURL = HederaClient.getMirrorUrl();
+        this.mirrorURL = hederaClient.mirrorUrl();
     }
 
     protected void handleResponse(JsonObject response, Auction auction) {

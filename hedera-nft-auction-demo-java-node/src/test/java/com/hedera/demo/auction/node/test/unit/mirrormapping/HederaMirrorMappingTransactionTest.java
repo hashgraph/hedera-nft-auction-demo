@@ -4,7 +4,6 @@ import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransaction;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +13,7 @@ import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class MirrorMappingTransactionTest extends AbstractMirrorMapping {
+public class HederaMirrorMappingTransactionTest extends AbstractMirrorMapping {
 
     @Test
     public void testMirrorMappingTransactionHedera() throws IOException {
@@ -93,19 +92,5 @@ public class MirrorMappingTransactionTest extends AbstractMirrorMapping {
         assertEquals("SUCCESS", mirrorTransaction.result);
         assertEquals(true, mirrorTransaction.isSuccessful());
 
-    }
-
-    @Test
-    public void testMirrorMappingTransactionKabuto() throws DecoderException {
-
-        // TODO: Match Kabuto's format
-        assertEquals(1, 1);
-    }
-
-    @Test
-    public void testMirrorMappingTransactionDragonglass() throws DecoderException {
-
-        // TODO: Match Dragonglass's format
-        assertEquals(1, 1);
     }
 }

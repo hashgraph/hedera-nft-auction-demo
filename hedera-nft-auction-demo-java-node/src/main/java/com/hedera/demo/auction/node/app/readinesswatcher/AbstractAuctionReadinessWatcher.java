@@ -5,9 +5,9 @@ import com.hedera.demo.auction.node.app.bidwatcher.BidsWatcher;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.demo.auction.node.mirrormapping.MirrorTokenTransfer;
-import com.hedera.demo.auction.node.mirrormapping.MirrorTransaction;
-import com.hedera.demo.auction.node.mirrormapping.MirrorTransactions;
+import com.hedera.demo.auction.node.app.mirrormapping.MirrorTokenTransfer;
+import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransaction;
+import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import kotlin.Pair;
@@ -51,7 +51,7 @@ public abstract class AbstractAuctionReadinessWatcher {
                             if (checkAssociation(account, tokenId, amount)) {
                                 // token is associated
                                 log.info("Account " + auction.getAuctionaccountid() + " owns token " + auction.getTokenid() + ", starting auction");
-                                auctionsRepository.setActive(auction, transaction.getConsensusTimestamp());
+                                auctionsRepository.setActive(auction, transaction.consensusTimestamp);
                                 // start the thread to monitor bids
                                 Thread t = new Thread(new BidsWatcher(webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency));
                                 t.start();
@@ -60,7 +60,7 @@ public abstract class AbstractAuctionReadinessWatcher {
                         }
                     }
                 } else {
-                    return new Pair<Boolean, String>(false, mirrorTransactions.links.getNext());
+                    return new Pair<Boolean, String>(false, mirrorTransactions.links.next);
                 }
             }
             return new Pair<Boolean, String>(false, "");

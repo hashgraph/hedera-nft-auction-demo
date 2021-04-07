@@ -3,8 +3,8 @@ package com.hedera.demo.auction.node.app.winnertokentransferwatcher;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.node.mirrormapping.MirrorTransaction;
-import com.hedera.demo.auction.node.mirrormapping.MirrorTransactions;
+import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransaction;
+import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
@@ -40,7 +40,7 @@ public abstract class AbstractWinnerTokenTransferWatcher {
                         String hash = Hex.encodeHexString(txHashBytes);
                         auctionsRepository.setEnded(auction.getId(), hash);
                     } else {
-                        log.debug("Token transfer transaction id " + auction.getTransfertxid() + " failed: " + transaction.getResult());
+                        log.debug("Token transfer transaction id " + auction.getTransfertxid() + " failed: " + transaction.result);
                     }
                 }
             } else {

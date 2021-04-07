@@ -2,8 +2,8 @@ package com.hedera.demo.auction.node.app.refundChecker;
 
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.demo.auction.node.mirrormapping.MirrorTransaction;
-import com.hedera.demo.auction.node.mirrormapping.MirrorTransactions;
+import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransaction;
+import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
@@ -44,7 +44,7 @@ public class AbstractRefundChecker {
 
                         bidsRepository.setRefunded(timestamp, transactionHash);
                     } else {
-                        log.debug("Refund transaction on " + timestamp + " transaction id " + transactionId + " failed: " + transaction.getResult());
+                        log.debug("Refund transaction on " + timestamp + " transaction id " + transactionId + " failed: " + transaction.result);
                     }
 
                 }

@@ -3,7 +3,6 @@ package com.hedera.demo.auction.node.app.repository;
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.SqlConnectionManager;
 import com.hedera.demo.auction.node.app.domain.Auction;
-import io.vertx.core.json.JsonArray;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -81,18 +80,18 @@ public class AuctionsRepository {
         }
     }
 
-    public JsonArray getAuctionsJson() {
-        JsonArray auctions = new JsonArray();
-        Result<Record> auctionsData = getAuctions();
-        if (auctionsData != null) {
-            for (Record record : auctionsData) {
-                Auction auction = new Auction(record);
-                auctions.add(auction.toJson());
-            }
-        }
-        return auctions;
-    }
-
+//    public JsonArray getAuctionsJson() {
+//        JsonArray auctions = new JsonArray();
+//        Result<Record> auctionsData = getAuctions();
+//        if (auctionsData != null) {
+//            for (Record record : auctionsData) {
+//                Auction auction = new Auction(record);
+//                auctions.add(auction.toJson());
+//            }
+//        }
+//        return auctions;
+//    }
+//
     public List<Auction> getAuctionsList() {
         List<Auction> auctions = new ArrayList<>();
         Result<Record> auctionsData = getAuctions();

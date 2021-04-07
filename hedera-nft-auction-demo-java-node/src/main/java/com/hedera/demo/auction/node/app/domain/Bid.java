@@ -27,19 +27,7 @@ public class Bid implements VertxPojo, Serializable {
     private String transactionhash = "";
 
     public Bid() {}
-
-//    public Bid(Bid value) {
-//        this.timestamp = value.timestamp;
-//        this.auctionid = value.auctionid;
-//        this.bidderaccountid = value.bidderaccountid;
-//        this.bidamount = value.bidamount;
-//        this.status = value.status;
-//        this.refundtxid = value.refundtxid;
-//        this.refundtxhash = value.refundtxhash;
-//        this.transactionid = value.transactionid;
-//        this.transactionhash = value.transactionhash;
-//    }
-
+    
     public Bid(Row row) {
         this.auctionid = row.getInteger(BIDS.AUCTIONID.getName());
         this.bidamount = row.getLong(BIDS.BIDAMOUNT.getName());

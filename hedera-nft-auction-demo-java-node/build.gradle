@@ -25,6 +25,7 @@ plugins {
 	id "com.github.ben-manes.versions" version "0.29.0" apply false
 	id "org.flywaydb.flyway" version "6.5.5"
 	id 'nu.studer.jooq' version '5.0.1'
+	id "com.chrisgahlert.gradle-dcompose-plugin" version "0.17.2"
 }
 
 allprojects {
@@ -144,9 +145,7 @@ dependencies {
 	implementation "io.vertx:vertx-web:3.9.2"
 	implementation "io.vertx:vertx-pg-client:3.9.2"
 	implementation "io.vertx:vertx-web-client:3.9.2"
-//	implementation "io.github.jklingsporn:vertx-jooq-shared-reactive:6.0.0"
 	implementation "io.github.jklingsporn:vertx-jooq-classic-reactive:5.2.0"
-
 	implementation 'commons-codec:commons-codec:1.9'
 	// http
 	implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
@@ -175,7 +174,7 @@ dependencies {
 	// Testing
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.1'
 	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
-
+	testImplementation 'io.vertx:vertx-junit5:3.9.2'
 }
 
 tasks.withType(Test) {
@@ -197,10 +196,28 @@ tasks.withType(Test) {
 	systemProperty "HEDERA_NETWORK", findProperty("HEDERA_NETWORK")
 }
 
+dcompose {
+	testDb {
+		image = 'postgres:12.6-alpine'
+		portBindings = ['5433']
+		deploy = false
+	}
+}
+
 task integrationTest(type: Test) {
 	testClassesDirs = sourceSets.integrationTest.output.classesDirs
 	classpath = sourceSets.integrationTest.runtimeClasspath
 	outputs.upToDateWhen { false }
+
+//	dependsOn dcompose.testDb
+//	doFirst {
+//		// The host port is only available after launching the container, therefore it needs to be added in the doFirst
+//		systemProperty 'postgres.url', "postgresql://${dcompose.dockerHost}:${dcompose.testDb.findHostPort(5433)}/postgres"
+//	}
+//	doLast {
+//		// If we don't remove the property in the doLast, Gradle's UP-TO-DATE checks will be broken
+//		systemProperties.remove 'postgres.url'
+//	}
 }
 
 task systemTest(type: Test) {

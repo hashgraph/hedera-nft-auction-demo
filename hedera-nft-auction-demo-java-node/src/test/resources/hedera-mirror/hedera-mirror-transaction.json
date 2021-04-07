@@ -1,0 +1,44 @@
+{
+  "charged_tx_fee": 84650,
+  "consensus_timestamp": "1617786661.662353000",
+  "max_fee": "100000000",
+  "memo_base64": "RGV2T3BzIFN5bnRoZXRpYyBUZXN0aW5n",
+  "name": "CRYPTOTRANSFER",
+  "node": "0.0.7",
+  "result": "SUCCESS",
+  "scheduled": false,
+  "transaction_hash": "KeUK9l64b1HShMmvFeQ+CCO2hBvzF5tUL8X2Bvxvsh+rcdNxxkQHEb3/nS6zsRwX",
+  "transaction_id": "0.0.90-1617786650-796134000",
+  "transfers": [
+    {
+      "account": "0.0.2",
+      "amount": 1
+    },
+    {
+      "account": "0.0.7",
+      "amount": 4247
+    },
+    {
+      "account": "0.0.90",
+      "amount": -84651
+    },
+    {
+      "account": "0.0.98",
+      "amount": 80403
+    }
+  ],
+  "token_transfers": [
+    {
+      "account": "0.0.2",
+      "amount": 1,
+      "token_id": "0.0.1767"
+    },
+    {
+      "account": "0.0.7",
+      "amount": -1,
+      "token_id": "0.0.1768"
+    }
+  ],
+  "valid_duration_seconds": "120",
+  "valid_start_timestamp": "1617786650.796134000"
+}

@@ -1,4 +1,4 @@
-package com.hedera.demo.auction.node.test.unit.mirrormapping;
+package com.hedera.demo.auction.node.test.unit.domain.mirrormapping;
 
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransaction;

@@ -10,11 +10,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
 public class AbstractMirrorTest {
-    private WebClientOptions webClientOptions = new WebClientOptions()
+    private final WebClientOptions webClientOptions = new WebClientOptions()
             .setUserAgent("HederaAuction/1.0")
             .setKeepAlive(false);
     protected WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
-    protected final static Dotenv env = Dotenv.configure().filename("integration-env").ignoreIfMissing().load();
+    protected final static Dotenv env = Dotenv.configure().filename(".env.integration").ignoreIfMissing().load();
 
 //    private final static boolean restAPI = Optional.ofNullable(env.get("REST_API")).map(Boolean::parseBoolean).orElse(false);
 //    private final static int restApiVerticleCount = Optional.ofNullable(env.get("API_VERTICLE_COUNT")).map(Integer::parseInt).orElse(2);

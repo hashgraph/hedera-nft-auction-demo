@@ -51,7 +51,7 @@ jobs:
           working_directory: hedera-nft-auction-demo-java-node 
           command: gradle dependencies
 
-      - save_gradle_cache:
+      - save_gradle_cache
 
       # run tests!
       - run: 

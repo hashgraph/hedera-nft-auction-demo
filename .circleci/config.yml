@@ -3,7 +3,8 @@
 # Check https://circleci.com/docs/2.0/language-java/ for more details
 #
 version: 2.1
-machine: true
+machine:
+  image: ubuntu-1604:202007-01
 commands:
   restore_gradle_cache:
     description: "Restore gradle cache"

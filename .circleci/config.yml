@@ -42,6 +42,7 @@ jobs:
       # Customize the JVM maximum heap limit
       JVM_OPTS: -Xmx3200m
       TERM: dumb
+      TESTCONTAINERS_RYUK_DISABLED: true
 
     steps:
       - checkout

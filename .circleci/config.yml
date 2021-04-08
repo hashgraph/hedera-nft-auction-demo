@@ -3,6 +3,26 @@
 # Check https://circleci.com/docs/2.0/language-java/ for more details
 #
 version: 2
+commands:
+  restore_gradle_cache:
+    description: "Restore gradle cache"
+    steps:
+      - run:
+          name: Calculate checksum of all build.gradle
+          command: find . -type f -name "build.gradle" | sort -u | xargs sha512sum > build.gradle.checksum
+      - restore_cache:
+          keys:
+            - gradle-v1-{{ arch }}-{{ .Branch }}-{{ checksum "build.gradle.checksum" }}
+            - gradle-v1-{{ arch }}-{{ .Branch }}
+            - gradle-v1-{{ arch }}-
+
+  save_gradle_cache:
+    steps:
+      - save_cache:
+          key: gradle-v1-{{ arch }}-{{ .Branch }}-{{ checksum "build.gradle.checksum" }}
+          paths:
+            - ~/hedera-nft-auction-demo-java-node/.gradle
+
 jobs:
   build:
     docker:
@@ -25,22 +45,13 @@ jobs:
       - checkout
 
       # Download and cache dependencies
-      - restore_cache:
-          paths:
-            - ~/hedera-nft-auction-demo-java-node/.gradle
-          keys:
-            - v1-dependencies-{{ checksum "build.gradle" }}
-            # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
+      - restore_gradle_cache
 
       - run: 
           working_directory: hedera-nft-auction-demo-java-node 
           command: gradle dependencies
 
-      - save_cache:
-          paths:
-            - ~/hedera-nft-auction-demo-java-node/.gradle
-          key: v1-dependencies-{{ checksum "build.gradle" }}
+      - save_gradle_cache:
 
       # run tests!
       - run: 

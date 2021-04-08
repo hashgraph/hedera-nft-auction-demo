@@ -26,7 +26,8 @@ jobs:
 
       # Download and cache dependencies
       - restore_cache:
-          working_directory: hedera-nft-auction-demo-java-node 
+          paths:
+            - ~/hedera-nft-auction-demo-java-node/.gradle
           keys:
             - v1-dependencies-{{ checksum "build.gradle" }}
             # fallback to using the latest cache if no exact match is found

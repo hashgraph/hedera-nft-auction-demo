@@ -50,5 +50,4 @@ public abstract class AbstractWinnerTokenTransferWatcher {
             log.error(e);
         }
     }
-
 }

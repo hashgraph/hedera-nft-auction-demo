@@ -25,7 +25,6 @@ plugins {
 	id "com.github.ben-manes.versions" version "0.29.0" apply false
 	id "org.flywaydb.flyway" version "6.5.5"
 	id 'nu.studer.jooq' version '5.0.1'
-//	id "com.chrisgahlert.gradle-dcompose-plugin" version "0.17.2"
 }
 
 allprojects {
@@ -203,22 +202,10 @@ tasks.withType(Test) {
 	systemProperty "HEDERA_NETWORK", findProperty("HEDERA_NETWORK")
 }
 
-//dcompose {
-//	testDatabase {
-//		baseDir = file('testContainers/')
-//		dockerFilename = 'DockerfilePostgres'
-//		portBindings = ['5433']
-//	}
-//}
-
 task integrationTest(type: Test) {
 	testClassesDirs = sourceSets.integrationTest.output.classesDirs
 	classpath = sourceSets.integrationTest.runtimeClasspath
 	outputs.upToDateWhen { false }
-
-//	dependsOn startTestDatabaseContainer
-//
-//	finalizedBy removeTestDatabaseImage
 }
 
 task systemTest(type: Test) {

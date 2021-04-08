@@ -77,45 +77,45 @@ public class Auction implements VertxPojo, Serializable {
         this.transfertxhash = row.getString(AUCTIONS.TRANSFERTXHASH.getName());
     }
 
-    public Auction(
-        Integer id,
-        String lastconsensustimestamp,
-        Long winningbid,
-        String winningaccount,
-        String winningtimestamp,
-        String tokenid,
-        String auctionaccountid,
-        String endtimestamp,
-        Long reserve,
-        String status,
-        boolean winnercanbid,
-        String winningtxid,
-        String winningtxhash,
-        String tokenimage,
-        long minimumbid,
-        String starttimestamp,
-        String transfertxid,
-        String transfertxhash
-    ) {
-        this.id = id;
-        this.lastconsensustimestamp = lastconsensustimestamp;
-        this.winningbid = winningbid;
-        this.winningaccount = winningaccount;
-        this.winningtimestamp = winningtimestamp;
-        this.tokenid = tokenid;
-        this.auctionaccountid = auctionaccountid;
-        this.endtimestamp = endtimestamp;
-        this.reserve = reserve;
-        this.status = status;
-        this.winnercanbid = winnercanbid;
-        this.winningtxid = winningtxid;
-        this.winningtxhash = winningtxhash;
-        this.tokenimage = tokenimage;
-        this.minimumbid = minimumbid;
-        this.starttimestamp = starttimestamp;
-        this.transfertxid = transfertxid;
-        this.transfertxhash = transfertxhash;
-    }
+//    public Auction(
+//        Integer id,
+//        String lastconsensustimestamp,
+//        Long winningbid,
+//        String winningaccount,
+//        String winningtimestamp,
+//        String tokenid,
+//        String auctionaccountid,
+//        String endtimestamp,
+//        Long reserve,
+//        String status,
+//        boolean winnercanbid,
+//        String winningtxid,
+//        String winningtxhash,
+//        String tokenimage,
+//        long minimumbid,
+//        String starttimestamp,
+//        String transfertxid,
+//        String transfertxhash
+//    ) {
+//        this.id = id;
+//        this.lastconsensustimestamp = lastconsensustimestamp;
+//        this.winningbid = winningbid;
+//        this.winningaccount = winningaccount;
+//        this.winningtimestamp = winningtimestamp;
+//        this.tokenid = tokenid;
+//        this.auctionaccountid = auctionaccountid;
+//        this.endtimestamp = endtimestamp;
+//        this.reserve = reserve;
+//        this.status = status;
+//        this.winnercanbid = winnercanbid;
+//        this.winningtxid = winningtxid;
+//        this.winningtxhash = winningtxhash;
+//        this.tokenimage = tokenimage;
+//        this.minimumbid = minimumbid;
+//        this.starttimestamp = starttimestamp;
+//        this.transfertxid = transfertxid;
+//        this.transfertxhash = transfertxhash;
+//    }
 
     public Auction(io.vertx.core.json.JsonObject json) {
         this();

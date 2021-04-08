@@ -32,7 +32,7 @@ public class AuctionsRepository {
         @Var Result<Record> rows = null;
         try {
             cx = connectionManager.dsl();
-            rows = cx.fetch("SELECT * FROM auctions");
+            rows = cx.fetch("SELECT * FROM auctions ORDER BY id");
         } catch (Exception e) {
             if (cx != null) {
                 cx.close();
@@ -336,5 +336,60 @@ public class AuctionsRepository {
         }
 
         return rows;
+    }
+
+    // for testing
+    public Auction createComplete(Auction auction) {
+        @Var DSLContext cx = null;
+        try {
+            cx = connectionManager.dsl();
+            cx.insertInto(AUCTIONS,
+                    AUCTIONS.TOKENID,
+                    AUCTIONS.AUCTIONACCOUNTID,
+                    AUCTIONS.ENDTIMESTAMP,
+                    AUCTIONS.RESERVE,
+                    AUCTIONS.LASTCONSENSUSTIMESTAMP,
+                    AUCTIONS.WINNERCANBID,
+                    AUCTIONS.TOKENIMAGE,
+                    AUCTIONS.WINNINGBID,
+                    AUCTIONS.MINIMUMBID,
+                    AUCTIONS.WINNINGACCOUNT,
+                    AUCTIONS.WINNINGTIMESTAMP,
+                    AUCTIONS.STATUS,
+                    AUCTIONS.WINNINGTXID,
+                    AUCTIONS.WINNINGTXHASH,
+                    AUCTIONS.STARTTIMESTAMP,
+                    AUCTIONS.TRANSFERTXID,
+                    AUCTIONS.TRANSFERTXHASH
+            ).values(auction.getTokenid(),
+                    auction.getAuctionaccountid(),
+                    auction.getEndtimestamp(),
+                    auction.getReserve(),
+                    auction.getLastconsensustimestamp(),
+                    auction.getWinnerCanBid(),
+                    auction.getTokenimage(),
+                    auction.getWinningbid(),
+                    auction.getMinimumbid(),
+                    auction.getWinningaccount(),
+                    auction.getWinningtimestamp(),
+                    auction.getStatus(),
+                    auction.getWinningtxid(),
+                    auction.getWinningtxhash(),
+                    auction.getStarttimestamp(),
+                    auction.getTransfertxid(),
+                    auction.getTransfertxhash()
+            ).returning(AUCTIONS.ID).execute();
+            int id = cx.lastID().intValue();
+            auction.setId(id);
+        } catch (DataAccessException e) {
+            log.info("Auction already in database");
+        } catch (SQLException e) {
+            log.error(e);
+        } finally {
+            if (cx != null) {
+                cx.close();
+            }
+        }
+        return auction;
     }
 }

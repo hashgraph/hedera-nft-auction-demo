@@ -1,3 +1,5 @@
+[![Java CI with Gradle](https://github.com/hashgraph/hedera-nft-auction-demo/actions/workflows/unit-integration-test.yml/badge.svg)](https://github.com/hashgraph/hedera-nft-auction-demo/actions/workflows/unit-integration-test.yml)
+
 # Hedera Non Fungible Token Auction Demo
 
 ## Dependencies

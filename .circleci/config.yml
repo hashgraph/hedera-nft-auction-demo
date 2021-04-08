@@ -28,7 +28,7 @@ jobs:
     docker:
       # specify the version you desire here
       - image: circleci/openjdk:14-jdk-buster-node-browsers-legacy
-      
+
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
       # documented at https://circleci.com/docs/2.0/circleci-images/
@@ -47,13 +47,17 @@ jobs:
       # Download and cache dependencies
       - restore_gradle_cache
 
-      - run: 
-          working_directory: hedera-nft-auction-demo-java-node 
+      - run:
+          working_directory: hedera-nft-auction-demo-java-node
           command: gradle dependencies
 
       - save_gradle_cache
 
       # run tests!
-      - run: 
-          working_directory: hedera-nft-auction-demo-java-node 
+      - run:
+          working_directory: hedera-nft-auction-demo-java-node
           command: gradle test
+
+      - store_artifacts:
+          path: hedera-nft-auction-demo-java-node/build/test-results
+          destination: /node-reports

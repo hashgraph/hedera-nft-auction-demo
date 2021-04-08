@@ -56,7 +56,7 @@ jobs:
       # run tests!
       - run:
           working_directory: hedera-nft-auction-demo-java-node
-          command: gradle test
+          command: gradle test integrationTest
 
       - store_artifacts:
           path: hedera-nft-auction-demo-java-node/build/test-results

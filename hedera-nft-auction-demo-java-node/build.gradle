@@ -25,6 +25,7 @@ plugins {
 	id "com.github.ben-manes.versions" version "0.29.0" apply false
 	id "org.flywaydb.flyway" version "6.5.5"
 	id 'nu.studer.jooq' version '5.0.1'
+	id "jacoco"
 }
 
 allprojects {
@@ -97,6 +98,15 @@ allprojects {
 
 		// https://github.com/eclipse-ee4j/common-annotations-api
 		implementation "jakarta.annotation:jakarta.annotation-api:2.0.0-RC1"
+	}
+
+	jacoco {
+		reportsDir = file("$buildDir/jacoco")
+		toolVersion = "0.8.5"
+	}
+
+	tasks.withType(Test) {
+		apply plugin: "jacoco"
 	}
 
 	tasks.withType(JavaCompile).configureEach {
@@ -200,6 +210,29 @@ tasks.withType(Test) {
 	systemProperty "OPERATOR_KEY", findProperty("OPERATOR_KEY")
 	systemProperty "CONFIG_FILE", findProperty("CONFIG_FILE")
 	systemProperty "HEDERA_NETWORK", findProperty("HEDERA_NETWORK")
+}
+
+jacocoTestReport {
+	// make sure to use any/all test coverage data for the report
+	executionData fileTree(dir: buildDir, include: "jacoco/*.exec")
+
+	// remove generated proto files from report
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: '**/app/db/**')
+		}))
+	}
+
+	// configure it so only xml is generated for the report
+	reports {
+		xml.enabled true
+		xml.destination file("$buildDir/reports/jacoco/report.xml")
+		html.enabled true
+		csv.enabled false
+	}
+
+	// make sure we run all tests before this report is made
+	dependsOn tasks.withType(Test)
 }
 
 task integrationTest(type: Test) {

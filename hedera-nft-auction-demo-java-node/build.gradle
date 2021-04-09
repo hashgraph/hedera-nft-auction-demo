@@ -50,39 +50,41 @@ allprojects {
 				srcDirs "src/main/resources"
 			}
 		}
-		integrationTest {
+		testIntegration {
 			java {
 				compileClasspath += main.output + test.output
 				runtimeClasspath += main.output + test.output
-				srcDir file('src/integration-test/java')
+				srcDir file('src/testIntegration/java')
 			}
-			resources.srcDir file('src/integration-test/resources')
+			resources.srcDir file('src/testIntegration/resources')
 		}
-		systemTest {
+		testSystem {
 			java {
 				compileClasspath += main.output + test.output
 				runtimeClasspath += main.output + test.output
-				srcDir file('src/system-test/java')
+				srcDir file('src/testSystem/java')
 			}
-			resources.srcDir file('src/system-test/resources')
+			resources.srcDir file('src/testSystem/resources')
 		}
 	}
 
 	idea {
 		module {
-			sourceDirs -= file("src/integration-test/java")
-			testSourceDirs += file("src/integration-test/java")
-			sourceDirs -= file("src/system-test/java")
-			testSourceDirs += file("src/system-test/java")
+			sourceDirs -= file("src/testIntegration/java")
+			testSourceDirs += file("src/testIntegration/java")
+			sourceDirs -= file("src/testSystem/java")
+			testSourceDirs += file("src/testSystem/java")
+
+			scopes.TEST.plus += [ configurations.testIntegrationCompile ]
 		}
 	}
 
 	configurations {
-		integrationTestCompile.extendsFrom testImplementation
-		integrationTestRuntime.extendsFrom testRuntimeOnly
+		testIntegrationCompile.extendsFrom testImplementation
+		testIntegrationRuntime.extendsFrom testRuntimeOnly
 
-		systemTestCompile.extendsFrom testImplementation
-		systemTestRuntime.extendsFrom testRuntimeOnly
+		testSystemCompile.extendsFrom testImplementation
+		testSystemRuntime.extendsFrom testRuntimeOnly
 	}
 
 	dependencies {
@@ -185,7 +187,8 @@ dependencies {
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion'
 	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion'
 
-	testImplementation 'io.vertx:vertx-junit5:3.9.2'
+	testImplementation 'io.vertx:vertx-junit5:3.9.6'
+	testImplementation 'io.vertx:vertx-unit:3.9.6'
 
 	testRuntimeOnly "org.testcontainers:testcontainers:1.15.2"
 	testImplementation "org.testcontainers:junit-jupiter:1.15.2"
@@ -235,16 +238,25 @@ jacocoTestReport {
 	dependsOn tasks.withType(Test)
 }
 
-task integrationTest(type: Test) {
-	testClassesDirs = sourceSets.integrationTest.output.classesDirs
-	classpath = sourceSets.integrationTest.runtimeClasspath
+task testIntegration(type: Test) {
+	description = 'Runs the integration tests.'
+	group = 'verification'
+	testClassesDirs = sourceSets.testIntegration.output.classesDirs
+	classpath = sourceSets.testIntegration.runtimeClasspath
 	outputs.upToDateWhen { false }
+	mustRunAfter test
 }
 
-task systemTest(type: Test) {
-	testClassesDirs = sourceSets.systemTest.output.classesDirs
-	classpath = sourceSets.systemTest.runtimeClasspath
+check.dependsOn testIntegration
+
+task testSystem(type: Test) {
+	description = 'Runs the system tests.'
+	group = 'verification'
+	testClassesDirs = sourceSets.testSystem.output.classesDirs
+	classpath = sourceSets.testSystem.runtimeClasspath
 	outputs.upToDateWhen { false }
+	mustRunAfter testIntegration
+	mustRunAfter test
 }
 
 flyway {

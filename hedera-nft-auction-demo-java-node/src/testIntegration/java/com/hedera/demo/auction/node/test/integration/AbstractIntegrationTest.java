@@ -1,13 +1,30 @@
-package com.hedera.demo.auction.node.test.integration.database;
+package com.hedera.demo.auction.node.test.integration;
 
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.domain.Bid;
+import io.github.cdimascio.dotenv.Dotenv;
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.junit5.VertxExtension;
 import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.PostgreSQLContainer;
+
+import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class AbstractDatabaseTest {
+@ExtendWith(VertxExtension.class)
+public class AbstractIntegrationTest {
+
+    private final WebClientOptions webClientOptions = new WebClientOptions()
+            .setUserAgent("HederaAuction/1.0")
+            .setKeepAlive(false);
+    protected WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
+    protected final static Dotenv env = Dotenv.configure().filename(".env.integration").ignoreIfMissing().load();
 
     private int index;
 
@@ -92,7 +109,7 @@ public class AbstractDatabaseTest {
         return stringPlusIndex("transactionhash");
     }
 
-    Auction testAuctionObject(int index) {
+    protected Auction testAuctionObject(int index) {
         this.index = index;
         Auction auction = new Auction();
 
@@ -129,7 +146,7 @@ public class AbstractDatabaseTest {
         assertEquals(auction.getMinimumbid(),getAuction.getMinimumbid());
     }
 
-    Bid testBidObject(int index, int auctionId) {
+    protected Bid testBidObject(int index, int auctionId) {
         this.index = index;
         Bid bid = new Bid();
 
@@ -171,7 +188,7 @@ public class AbstractDatabaseTest {
         assertEquals(transactionhash(), bid.getTransactionhash());
     }
 
-    void migrate(PostgreSQLContainer postgres) {
+    protected void migrate(PostgreSQLContainer postgres) {
         String postgresUrl = postgres.getJdbcUrl();
         String postgresUser = postgres.getUsername();
         String postgresPassword = postgres.getPassword();
@@ -182,5 +199,22 @@ public class AbstractDatabaseTest {
                 .load();
         flyway.migrate();
 
+    }
+
+    protected DeploymentOptions getVerticleDeploymentOptions(String databaseUrl, String username, String password) throws IOException {
+//        ServerSocket socket = new ServerSocket(0);
+//        int port = socket.getLocalPort();
+//        socket.close();
+
+        JsonObject config = new JsonObject()
+                .put("envFile",".env")
+                .put("envPath",".")
+                .put("DATABASE_URL",databaseUrl.replace("jdbc:",""))
+                .put("DATABASE_USERNAME", username)
+                .put("DATABASE_PASSWORD", password)
+                .put("POOL_SIZE", "1")
+                .put("VUE_APP_API_PORT","9005");
+        DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(1);
+        return options;
     }
 }

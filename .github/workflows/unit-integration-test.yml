@@ -85,4 +85,4 @@ jobs:
         GRPC_DRAGONGLASS_MAINNET: api.kabuto.sh:50211
         GRPC_DRAGONGLASS_TESTNET: api.testnet.kabuto.sh:50211
         GRPC_DRAGONGLASS_PREVIEWNET:
-      run: cd hedera-nft-auction-demo-java-node && ./gradlew build integrationTest
+      run: cd hedera-nft-auction-demo-java-node && ./gradlew build testIntegration

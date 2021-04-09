@@ -1,20 +1,9 @@
 package com.hedera.demo.auction.node.test.integration.mirror;
 
 import com.hedera.demo.auction.node.app.HederaClient;
-import io.github.cdimascio.dotenv.Dotenv;
-import io.vertx.core.Vertx;
-import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.client.WebClientOptions;
-import io.vertx.junit5.VertxExtension;
-import org.junit.jupiter.api.extension.ExtendWith;
+import com.hedera.demo.auction.node.test.integration.AbstractIntegrationTest;
 
-@ExtendWith(VertxExtension.class)
-public class AbstractMirrorTest {
-    private final WebClientOptions webClientOptions = new WebClientOptions()
-            .setUserAgent("HederaAuction/1.0")
-            .setKeepAlive(false);
-    protected WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
-    protected final static Dotenv env = Dotenv.configure().filename(".env.integration").ignoreIfMissing().load();
+public class AbstractMirrorTest extends AbstractIntegrationTest {
 
 //    private final static boolean restAPI = Optional.ofNullable(env.get("REST_API")).map(Boolean::parseBoolean).orElse(false);
 //    private final static int restApiVerticleCount = Optional.ofNullable(env.get("API_VERTICLE_COUNT")).map(Integer::parseInt).orElse(2);

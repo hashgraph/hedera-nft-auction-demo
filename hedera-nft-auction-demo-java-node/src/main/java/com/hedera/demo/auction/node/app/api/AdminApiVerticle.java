@@ -28,7 +28,7 @@ public class AdminApiVerticle extends AbstractVerticle {
                 .ignoreIfMissing()
                 .load();
 
-        int httpPort = Optional.ofNullable(env.get("ADMIN_API_PORT")).map(Integer::parseInt).orElse(9005);
+        int httpPort = Integer.parseInt(Optional.ofNullable(config().getString("VUE_APP_API_PORT")).orElse(Optional.ofNullable(env.get("VUE_APP_API_PORT")).orElse("9006")));
 
         var server = vertx.createHttpServer();
         var router = Router.router(vertx);

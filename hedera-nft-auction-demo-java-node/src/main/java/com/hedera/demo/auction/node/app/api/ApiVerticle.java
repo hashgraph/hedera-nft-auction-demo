@@ -12,10 +12,10 @@ import io.vertx.pgclient.PgConnectOptions;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
 import lombok.extern.log4j.Log4j2;
+import org.jooq.tools.StringUtils;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -23,7 +23,7 @@ import java.util.Set;
 public class ApiVerticle extends AbstractVerticle {
 
     @Override
-    public void start(Promise<Void> startPromise) {
+    public void start(Promise<Void> startPromise) throws Exception {
 
         Dotenv env = Dotenv
                 .configure()
@@ -32,16 +32,25 @@ public class ApiVerticle extends AbstractVerticle {
                 .ignoreIfMissing()
                 .load();
 
-        String url = Objects.requireNonNull(env.get("DATABASE_URL"), "missing environment variable DATABASE_URL");
+        String url = Optional.ofNullable(config().getString("DATABASE_URL")).orElse(Optional.ofNullable(env.get("DATABASE_URL")).orElse(""));
+        String username = Optional.ofNullable(config().getString("DATABASE_USERNAME")).orElse(Optional.ofNullable(env.get("DATABASE_USERNAME")).orElse(""));
+        String password = Optional.ofNullable(config().getString("DATABASE_PASSWORD")).orElse(Optional.ofNullable(env.get("DATABASE_PASSWORD")).orElse(""));
+        int poolSize = Integer.parseInt(Optional.ofNullable(config().getString("POOL_SIZE")).orElse(Optional.ofNullable(env.get("POOL_SIZE")).orElse("1")));
+        int httpPort = Integer.parseInt(Optional.ofNullable(config().getString("VUE_APP_API_PORT")).orElse(Optional.ofNullable(env.get("VUE_APP_API_PORT")).orElse("9005")));
 
-        String username = Objects.requireNonNull(
-                env.get("DATABASE_USERNAME"), "missing environment variable DATABASE_USERNAME");
+        System.out.println("url=" + url);
+        System.out.println("username=" + username);
+        System.out.println("password=" + password);
 
-        String password = Objects.requireNonNull(
-                env.get("DATABASE_PASSWORD"), "missing environment variable DATABASE_PASSWORD");
-
-        int poolSize = Integer.parseInt(Optional.ofNullable(env.get("POOL_SIZE")).orElse("10"));
-
+        if (StringUtils.isEmpty(url)) {
+            throw new Exception("missing environment variable DATABASE_URL");
+        }
+        if (StringUtils.isEmpty(username)) {
+            throw new Exception("missing environment variable DATABASE_USERNAME");
+        }
+        if (StringUtils.isEmpty(password)) {
+            throw new Exception("missing environment variable DATABASE_PASSWORD");
+        }
         PgConnectOptions pgConnectOptions = PgConnectOptions
                         .fromUri(url)
                         .setUser(username)
@@ -49,8 +58,6 @@ public class ApiVerticle extends AbstractVerticle {
         PoolOptions poolOptions = new PoolOptions().setMaxSize(poolSize);
 
         PgPool pgPool = PgPool.pool(vertx, pgConnectOptions, poolOptions);
-//        this.pgPool = new PGPool(env).createPgPool();
-        int httpPort = Optional.ofNullable(env.get("VUE_APP_API_PORT")).map(Integer::parseInt).orElse(9005);
 
         var server = vertx.createHttpServer();
         var router = Router.router(vertx);

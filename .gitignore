@@ -41,3 +41,4 @@ node_modules
 docker-files/postgres-data
 docker-files/sample-files/initDemo.json
 hedera-nft-auction-demo-java-node/src/integration-test/resources/.env.integration
+hedera-nft-auction-demo-java-node/src/testIntegration/resources/.env.integration

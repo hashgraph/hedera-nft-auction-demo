@@ -17,9 +17,10 @@ import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class HederaMirrorMappingTransactionTest extends  AbstractMirrorTest {
+public class HederaMirrorMappingTransactionTest extends AbstractMirrorTest {
 
     public HederaMirrorMappingTransactionTest() throws Exception {
+        super("hedera");
     }
 
     @Test

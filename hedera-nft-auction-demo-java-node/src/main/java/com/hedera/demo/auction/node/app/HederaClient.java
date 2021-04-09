@@ -17,9 +17,10 @@ import java.util.Optional;
 public class HederaClient {
     private final AccountId operatorId;
     private final PrivateKey operatorKey;
-    private final String mirrorProvider;
-    private final String mirrorUrl;
+    private String mirrorProvider;
+    private String mirrorUrl;
     private final Client client;
+    private final String network;
 
     public HederaClient(AccountId operatorId, PrivateKey operatorKey, String network, String mirrorProvider, String mirrorUrl, String mirrorAddress) throws Exception {
         this.operatorId = operatorId;
@@ -27,6 +28,7 @@ public class HederaClient {
         this.mirrorProvider = mirrorProvider;
         this.client = clientForNetwork(network);
         this.mirrorUrl = mirrorUrl;
+        this.network = network;
 
         if ( ! StringUtils.isEmpty(mirrorAddress)) {
             client.setMirrorNetwork(List.of(mirrorAddress));
@@ -38,21 +40,23 @@ public class HederaClient {
         this.operatorKey = PrivateKey.fromString(Objects.requireNonNull(env.get("OPERATOR_KEY")));
         this.mirrorProvider = Optional.ofNullable(env.get("MIRROR_PROVIDER").toUpperCase()).orElse("KABUTO");
 
-        String vueAppNetwork = Optional.ofNullable(env.get("VUE_APP_NETWORK").toUpperCase()).orElse("");
+        this.network = Optional.ofNullable(env.get("VUE_APP_NETWORK").toUpperCase()).orElse("");
+        this.client = clientForNetwork(this.network);
+        setClientMirror(env);
+    }
 
-        this.client = clientForNetwork(vueAppNetwork);
-
+    private void setClientMirror(Dotenv env) throws Exception {
         @Var String envVariable = "GRPC_".concat(this.mirrorProvider).concat("_")
-                .concat(vueAppNetwork);
+                .concat(this.network);
         String url = env.get(envVariable);
         if (StringUtils.isBlank(url)) {
             throw new Exception("VUE_APP_NETWORK and/or MIRROR_PROVIDER environment variables not set");
         }
 
-        client.setMirrorNetwork(List.of(url));
+        this.client.setMirrorNetwork(List.of(url));
 
         envVariable = "REST_".concat(this.mirrorProvider).concat("_")
-                .concat(vueAppNetwork);
+                .concat(this.network);
         this.mirrorUrl = env.get(envVariable);
         if (StringUtils.isBlank(this.mirrorUrl)) {
             throw new Exception("VUE_APP_NETWORK and/or MIRROR_PROVIDER environment variables not set");
@@ -67,6 +71,9 @@ public class HederaClient {
         return this.operatorId;
     }
     public String mirrorProvider() {return this.mirrorProvider;}
+    public void setMirrorProvider(String mirrorProvider) {
+        this.mirrorProvider = mirrorProvider;
+    }
     public String mirrorUrl() {return this.mirrorUrl;}
     public Client client() {return this.client;}
 

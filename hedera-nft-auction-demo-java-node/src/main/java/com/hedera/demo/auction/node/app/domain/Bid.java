@@ -7,6 +7,7 @@ package com.hedera.demo.auction.node.app.domain;
 import io.github.jklingsporn.vertx.jooq.shared.internal.VertxPojo;
 import io.vertx.core.json.JsonObject;
 import io.vertx.sqlclient.Row;
+import org.jooq.Record;
 
 import java.io.Serializable;
 
@@ -39,6 +40,19 @@ public class Bid implements VertxPojo, Serializable {
         this.status = row.getString(BIDS.STATUS.getName());
         this.timestamp = row.getString(BIDS.TIMESTAMP.getName());
         this.transactionhash = row.getString(BIDS.TRANSACTIONHASH.getName());
+    }
+
+    public Bid(Record record) {
+        this.auctionid = record.get(BIDS.AUCTIONID);
+        this.bidamount = record.get(BIDS.BIDAMOUNT);
+        this.bidderaccountid = record.get(BIDS.BIDDERACCOUNTID);
+        this.refunded = record.get(BIDS.REFUNDED);
+        this.refundtxid = record.get(BIDS.REFUNDTXID);
+        this.refundtxhash = record.get(BIDS.REFUNDTXHASH);
+        this.transactionid = record.get(BIDS.TRANSACTIONID);
+        this.status = record.get(BIDS.STATUS);
+        this.timestamp = record.get(BIDS.TIMESTAMP);
+        this.transactionhash = record.get(BIDS.TRANSACTIONHASH);
     }
 
 //    public Bid(

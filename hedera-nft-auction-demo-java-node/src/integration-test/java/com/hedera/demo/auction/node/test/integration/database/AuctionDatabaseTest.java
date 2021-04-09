@@ -14,7 +14,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
-class AuctionDatabaseTest extends AbstractAuction {
+class AuctionDatabaseTest extends AbstractDatabaseTest {
 
     public AuctionDatabaseTest() {
     }
@@ -256,7 +256,7 @@ class AuctionDatabaseTest extends AbstractAuction {
                 assertEquals(testAuction.getEndtimestamp(), auction.getEndtimestamp());
                 assertEquals(testAuction.getReserve(), auction.getReserve());
                 assertEquals(testAuction.getStatus(), auction.getStatus());
-                assertEquals(true, auction.getWinnerCanBid());
+                assertEquals(testAuction.getWinnerCanBid(), auction.getWinnerCanBid());
                 assertEquals(testAuction.getWinningtxid(), auction.getWinningtxid());
                 assertEquals(testAuction.getWinningtxhash(), auction.getWinningtxhash());
                 assertEquals(testAuction.getTokenimage(), auction.getTokenimage());

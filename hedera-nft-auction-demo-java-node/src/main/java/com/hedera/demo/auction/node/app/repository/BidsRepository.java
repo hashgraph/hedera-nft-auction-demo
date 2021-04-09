@@ -6,10 +6,15 @@ import com.hedera.demo.auction.node.app.db.Tables;
 import com.hedera.demo.auction.node.app.domain.Bid;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.Result;
 import org.jooq.exception.DataAccessException;
 
+import javax.annotation.Nullable;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.hedera.demo.auction.node.app.db.Tables.BIDS;
@@ -20,6 +25,37 @@ public class BidsRepository {
 
     public BidsRepository(SqlConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
+    }
+
+    @Nullable
+    private Result<Record> getBids () {
+        @Var DSLContext cx = null;
+        @Var Result<Record> rows = null;
+        try {
+            cx = connectionManager.dsl();
+            rows = cx.fetch("SELECT * FROM bids ORDER BY timestamp");
+        } catch (Exception e) {
+            if (cx != null) {
+                cx.close();
+            }
+        } finally {
+            if (cx != null) {
+                cx.close();
+            }
+        }
+        return rows;
+    }
+
+    public List<Bid> getBidsList() {
+        List<Bid> bids = new ArrayList<>();
+        Result<Record> bidsData = getBids();
+        if (bidsData != null) {
+            for (Record record : bidsData) {
+                Bid bid = new Bid(record);
+                bids.add(bid);
+            }
+        }
+        return bids;
     }
 
     public void deleteAllBids() {
@@ -112,7 +148,15 @@ public class BidsRepository {
                     BIDS.BIDDERACCOUNTID,
                     BIDS.TRANSACTIONID,
                     BIDS.TRANSACTIONHASH
-            ).values(bid.getAuctionid(), bid.getStatus(), bid.getTimestamp(), bid.getBidamount(), bid.getBidderaccountid(), bid.getTransactionid(), bid.getTransactionhash()).execute();
+            ).values(
+                    bid.getAuctionid(),
+                    bid.getStatus(),
+                    bid.getTimestamp(),
+                    bid.getBidamount(),
+                    bid.getBidderaccountid(),
+                    bid.getTransactionid(),
+                    bid.getTransactionhash()
+            ).execute();
             result = true;
         } catch (DataAccessException e) {
             log.info("Bid already in database");

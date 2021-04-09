@@ -92,4 +92,4 @@ jobs:
     - name: Grant execute permission for gradlew
       run: cd hedera-nft-auction-demo-java-node && chmod +x gradlew
     - name: Build with Gradle
-      run: cd hedera-nft-auction-demo-java-node && ./gradlew build integrationTests
+      run: cd hedera-nft-auction-demo-java-node && ./gradlew build integrationTest

@@ -17,74 +17,59 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK 14
-      env: 
+      env:
         OPERATOR_ID: ${{ secrets.OPERATOR_ID }}
         OPERATOR_KEY: ${{ secrets.OPERATOR_KEY }}
         REFUND_KEY: ${{ secrets.OPERATOR_KEY }}
-        # Dragonglass only
+#       Dragonglass only
 #        DG_API_KEY= // from secrets
-
         VUE_APP_NETWORK=testnet
-
-        # Run the REST API true/false
+#       Run the REST API true/false
         REST_API=true
         VUE_APP_API_PORT=8081
-        API_VERTICLE_COUNT=16
-
-        # Run the admin REST API true/false
+        API_VERTICLE_COUNT=1
+#       Run the admin REST API true/false
         ADMIN_API=true
         ADMIN_API_PORT=8082
         ADMIN_API_VERTICLE_COUNT=1
-
-        # Run the Auction Node true/false
+#       Run the Auction Node true/false
         AUCTION_NODE=true
-
-        # only if participating in refund transactions
+#       only if participating in refund transactions
         TRANSFER_ON_WIN=true
-
-        # auction topic details
+#       auction topic details
         VUE_APP_TOPIC_ID=
-
-        # mirror node detail
-        # the mirror provider may be hedera, kabuto or dragonglass
+#       mirror node detail
+#       the mirror provider may be hedera, kabuto or dragonglass
         MIRROR_PROVIDER=hedera
         MIRROR_QUERY_FREQUENCY=5000
-
-        # Database information for transaction and event logging
+#       Database information for transaction and event logging
         DATABASE_URL=postgresql://localhost:5432/postgres
         DATABASE_USERNAME=postgres
         DATABASE_PASSWORD=password
-        # Database information for transaction and event logging
-        POOL_SIZE=10
-
-        # REST Mirror urls
+#       Database information for transaction and event logging
+        POOL_SIZE=1
+#       REST Mirror urls
         REST_HEDERA_MAINNET=mainnet.mirrornode.hedera.com
         REST_HEDERA_TESTNET=testnet.mirrornode.hedera.com
-        #REST_HEDERA_PREVIEWNET=previewnet.mirrornode.hedera.com
+#        REST_HEDERA_PREVIEWNET=previewnet.mirrornode.hedera.com
         REST_HEDERA_PREVIEWNET=162.222.182.83
-
         REST_KABUTO_MAINNET=api.kabuto.sh
         REST_KABUTO_TESTNET=api.testnet.kabuto.sh
         REST_KABUTO_PREVIEWNET=
-
         REST_DRAGONGLASS_MAINNET=
         REST_DRAGONGLASS_TESTNET=
         REST_DRAGONGLASS_PREVIEWNET=
-
-        # GRPC Mirror urls
+#       GRPC Mirror urls
         GRPC_HEDERA_MAINNET=hcs.mainnet.mirrornode.hedera.com:5600
         GRPC_HEDERA_TESTNET=hcs.testnet.mirrornode.hedera.com:5600
-        #GRPC_HEDERA_PREVIEWNET=hcs.previewnet.mirrornode.hedera.com:5600
+#        GRPC_HEDERA_PREVIEWNET=hcs.previewnet.mirrornode.hedera.com:5600
         GRPC_HEDERA_PREVIEWNET=hcs.previewnet.mirrornode.hedera.com:5600
-
         GRPC_KABUTO_MAINNET=api.kabuto.sh:50211
         GRPC_KABUTO_TESTNET=api.testnet.kabuto.sh:50211
         GRPC_KABUTO_PREVIEWNET=
-
         GRPC_DRAGONGLASS_MAINNET=api.kabuto.sh:50211
         GRPC_DRAGONGLASS_TESTNET=api.testnet.kabuto.sh:50211
         GRPC_DRAGONGLASS_PREVIEWNET=
-
       uses: actions/setup-java@v2
       with:
         java-version: '14'

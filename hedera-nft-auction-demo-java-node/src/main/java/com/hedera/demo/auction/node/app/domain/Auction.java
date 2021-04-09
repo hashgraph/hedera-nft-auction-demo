@@ -60,6 +60,7 @@ public class Auction implements VertxPojo, Serializable {
 
     public Auction (Row row) {
         this.id = row.getInteger(AUCTIONS.ID.getName());
+        this.lastconsensustimestamp = row.getString(AUCTIONS.LASTCONSENSUSTIMESTAMP.getName());
         this.auctionaccountid = row.getString(AUCTIONS.AUCTIONACCOUNTID.getName());
         this.endtimestamp = row.getString(AUCTIONS.ENDTIMESTAMP.getName());
         this.winningbid = row.getLong(AUCTIONS.WINNINGBID.getName());
@@ -68,6 +69,7 @@ public class Auction implements VertxPojo, Serializable {
         this.tokenid = row.getString(AUCTIONS.TOKENID.getName());
         this.reserve = row.getLong(AUCTIONS.RESERVE.getName());
         this.status = row.getString(AUCTIONS.STATUS.getName());
+        this.winnercanbid = row.getBoolean(AUCTIONS.WINNERCANBID.getName());
         this.winningtxid = row.getString(AUCTIONS.WINNINGTXID.getName());
         this.winningtxhash = row.getString(AUCTIONS.WINNINGTXHASH.getName());
         this.tokenimage = row.getString(AUCTIONS.TOKENIMAGE.getName());

@@ -9,6 +9,7 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
 import lombok.extern.log4j.Log4j2;
 
+import java.sql.SQLException;
 import java.util.Map;
 
 @Log4j2
@@ -19,7 +20,7 @@ public class HederaRefundChecker extends AbstractRefundChecker implements Refund
     }
 
     @Override
-    public void watch() {
+    public void watch() throws SQLException {
 
         log.info("Checking for bid refunds");
 

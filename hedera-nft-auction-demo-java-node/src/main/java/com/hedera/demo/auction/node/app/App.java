@@ -21,6 +21,7 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import org.flywaydb.core.Flyway;
 
+import java.sql.SQLException;
 import java.util.Optional;
 
 public final class App {
@@ -108,7 +109,7 @@ public final class App {
         t.start();
 
     }
-    private static void startBidWatchers(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
+    private static void startBidWatchers(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) throws SQLException {
         for (Auction auction : auctionsRepository.getAuctionsList()) {
             if (! auction.isPending()) {
                 // auction is not pending
@@ -125,7 +126,7 @@ public final class App {
         t.start();
     }
 
-    private static void startAuctionReadinessWatchers(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
+    private static void startAuctionReadinessWatchers(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) throws SQLException {
         for (Auction auction : auctionsRepository.getAuctionsList()) {
             if (auction.isPending()) {
                 // start the thread to monitor token transfers to the auction account

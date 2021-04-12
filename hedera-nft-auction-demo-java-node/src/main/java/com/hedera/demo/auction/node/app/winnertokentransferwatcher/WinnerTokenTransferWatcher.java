@@ -7,6 +7,8 @@ import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 
+import java.sql.SQLException;
+
 @Log4j2
 public class WinnerTokenTransferWatcher implements Runnable {
 
@@ -53,6 +55,8 @@ public class WinnerTokenTransferWatcher implements Runnable {
             } catch (InterruptedException e) {
                 log.error(e);
             } catch (RuntimeException e) {
+                log.error(e);
+            } catch (SQLException e) {
                 log.error(e);
             }
         }

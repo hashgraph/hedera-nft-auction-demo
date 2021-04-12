@@ -30,6 +30,7 @@ public abstract class AbstractBidsWatcher {
     protected String mirrorURL;
     protected final int auctionId;
     protected final HederaClient hederaClient;
+    protected boolean testing = false;
 
     protected AbstractBidsWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, String refundKey, int mirrorQueryFrequency) throws Exception {
         this.webClient = webClient;
@@ -41,6 +42,10 @@ public abstract class AbstractBidsWatcher {
         this.hederaClient = hederaClient;
         this.mirrorURL = hederaClient.mirrorUrl();
         this.auction = auctionsRepository.getAuction(auctionId);
+    }
+
+    public void setTesting() {
+        this.testing = true;
     }
 
     void handleResponse(JsonObject response) {
@@ -134,7 +139,7 @@ public abstract class AbstractBidsWatcher {
                 // refund previous bid
                 if ( ! StringUtils.isEmpty(this.auction.getWinningaccount())) {
                     // do not refund the very first bid !!!
-                    startRefundThread (this.auction.getWinningbid(), this.auction.getWinningaccount(), this.auction.getWinningtimestamp(), this.auction.getWinningtxid());
+                    startRefundThread(this.auction.getWinningbid(), this.auction.getWinningaccount(), this.auction.getWinningtimestamp(), this.auction.getWinningtxid());
                     refund = false;
                 }
                 // update prior winning bid
@@ -173,7 +178,7 @@ public abstract class AbstractBidsWatcher {
         }
     }
 
-    boolean checkMemos(String memo) {
+    public boolean checkMemos(String memo) {
         if (StringUtils.isEmpty(memo)) {
             return false;
         }
@@ -182,6 +187,9 @@ public abstract class AbstractBidsWatcher {
     }
 
     void startRefundThread(long refundAmound, String refundToAccount, String timestamp, String transactionId) {
+        if (testing) {
+            return;
+        }
         Thread t = new Thread(new Refunder(hederaClient, bidsRepository, auction.getAuctionaccountid(), refundAmound, refundToAccount, timestamp, transactionId, refundKey));
         t.start();
     }

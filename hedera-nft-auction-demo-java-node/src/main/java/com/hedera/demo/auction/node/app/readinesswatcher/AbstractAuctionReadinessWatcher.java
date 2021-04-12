@@ -3,11 +3,11 @@ package com.hedera.demo.auction.node.app.readinesswatcher;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.bidwatcher.BidsWatcher;
 import com.hedera.demo.auction.node.app.domain.Auction;
-import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTokenTransfer;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransaction;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
+import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
+import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import kotlin.Pair;
@@ -26,6 +26,7 @@ public abstract class AbstractAuctionReadinessWatcher {
     protected String mirrorURL;
     protected final String refundKey;
     protected final HederaClient hederaClient;
+    protected boolean testing = false;
 
     protected AbstractAuctionReadinessWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
@@ -38,7 +39,11 @@ public abstract class AbstractAuctionReadinessWatcher {
         this.mirrorURL = hederaClient.mirrorUrl();
     }
 
-    protected Pair<Boolean, String> handleResponse(JsonObject response) {
+    public void setTesting() {
+        this.testing = true;
+    }
+
+    public Pair<Boolean, String> handleResponse(JsonObject response) {
         try {
             if (response != null) {
                 MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
@@ -55,13 +60,15 @@ public abstract class AbstractAuctionReadinessWatcher {
                                 log.info("Account " + auction.getAuctionaccountid() + " owns token " + auction.getTokenid() + ", starting auction");
                                 auctionsRepository.setActive(auction, transaction.consensusTimestamp);
                                 // start the thread to monitor bids
-                                Thread t = new Thread(new BidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency));
-                                t.start();
+                                if (! this.testing) {
+                                    Thread t = new Thread(new BidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency));
+                                    t.start();
+                                }
+                                    
                                 return new Pair<Boolean, String>(true, "");
                             }
                         }
                     }
-                } else {
                     return new Pair<Boolean, String>(false, mirrorTransactions.links.next);
                 }
             }
@@ -72,7 +79,7 @@ public abstract class AbstractAuctionReadinessWatcher {
         }
     }
 
-    protected boolean checkAssociation(String account, String tokenId, long amount) {
+    public boolean checkAssociation(String account, String tokenId, long amount) {
         if (account.equals(this.auction.getAuctionaccountid())) {
             if (tokenId.equals(this.auction.getTokenid())) {
                 return (amount != 0);

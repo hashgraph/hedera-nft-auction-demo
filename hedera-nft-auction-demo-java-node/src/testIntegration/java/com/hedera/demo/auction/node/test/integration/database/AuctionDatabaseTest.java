@@ -12,12 +12,13 @@ import org.junit.jupiter.api.TestInstance;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -145,7 +146,7 @@ class AuctionDatabaseTest extends AbstractIntegrationTest {
         auction.setWinningtxid("updatedWinningTxId");
         auction.setWinningtxhash("updatedWinningTxHash");
 
-        assertTrue(auctionsRepository.save(auction));
+        auctionsRepository.save(auction);
 
         Auction getAuction = auctionsRepository.getAuction(newAuction.getId());
         assertEquals(auction.getLastconsensustimestamp(), getAuction.getLastconsensustimestamp());
@@ -157,7 +158,7 @@ class AuctionDatabaseTest extends AbstractIntegrationTest {
         auctionsRepository.deleteAllAuctions();
     }
     @Test
-    public void openAndPendingAuctionsTest() {
+    public void openAndPendingAuctionsTest() throws SQLException {
         @Var Auction auction = testAuctionObject(1);
         auction.setStatus(Auction.transfer());
         auctionsRepository.createComplete(auction);
@@ -185,7 +186,7 @@ class AuctionDatabaseTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void getAuctionsListTest() {
+    public void getAuctionsListTest() throws SQLException {
         int testCount = 5;
         int[] ids = new int[testCount];
 
@@ -225,7 +226,7 @@ class AuctionDatabaseTest extends AbstractIntegrationTest {
         auctionsRepository.deleteAllAuctions();
     }
     @Test
-    public void deleteAllAuctionsTest() {
+    public void deleteAllAuctionsTest() throws SQLException {
         int testCount = 2;
 
         for (int i=0; i < testCount; i++) {
@@ -239,13 +240,24 @@ class AuctionDatabaseTest extends AbstractIntegrationTest {
         assertEquals(0, auctions.size());
     }
     @Test
-    public void duplicateAuctionTest() {
+    public void duplicateAuctionTest() throws SQLException {
         Auction auction = testAuctionObject(1);
         auctionsRepository.add(auction);
         auctionsRepository.add(auction);
 
         List<Auction> auctions = auctionsRepository.getAuctionsList();
         assertEquals(1, auctions.size());
+        auctionsRepository.deleteAllAuctions();
+    }
+
+    @Test
+    public void auctionNotFoundTest() throws SQLException {
+        Auction auction = testAuctionObject(1);
+        auctionsRepository.add(auction);
+
+        assertThrows(Exception.class, () -> {
+            auctionsRepository.getAuction(2);
+        });
         auctionsRepository.deleteAllAuctions();
     }
 }

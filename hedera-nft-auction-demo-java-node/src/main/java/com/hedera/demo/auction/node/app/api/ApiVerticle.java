@@ -38,10 +38,6 @@ public class ApiVerticle extends AbstractVerticle {
         int poolSize = Integer.parseInt(Optional.ofNullable(config().getString("POOL_SIZE")).orElse(Optional.ofNullable(env.get("POOL_SIZE")).orElse("1")));
         int httpPort = Integer.parseInt(Optional.ofNullable(config().getString("VUE_APP_API_PORT")).orElse(Optional.ofNullable(env.get("VUE_APP_API_PORT")).orElse("9005")));
 
-        System.out.println("url=" + url);
-        System.out.println("username=" + username);
-        System.out.println("password=" + password);
-
         if (StringUtils.isEmpty(url)) {
             throw new Exception("missing environment variable DATABASE_URL");
         }

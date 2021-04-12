@@ -10,6 +10,7 @@ import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.binary.Hex;
 
+import java.sql.SQLException;
 import java.util.Base64;
 import java.util.Optional;
 
@@ -54,7 +55,7 @@ public class AbstractRefundChecker {
             } else {
                 log.debug("No " + transactionId + " transaction found");
             }
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | SQLException e) {
             log.error(e);
         }
     }

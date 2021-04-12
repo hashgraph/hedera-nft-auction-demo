@@ -13,7 +13,6 @@ import org.jooq.exception.DataAccessException;
 import javax.annotation.Nullable;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,25 +27,14 @@ public class BidsRepository {
     }
 
     @Nullable
-    private Result<Record> getBids () {
-        @Var DSLContext cx = null;
-        @Var Result<Record> rows = null;
-        try {
-            cx = connectionManager.dsl();
-            rows = cx.fetch("SELECT * FROM bids ORDER BY timestamp");
-        } catch (Exception e) {
-            if (cx != null) {
-                cx.close();
-            }
-        } finally {
-            if (cx != null) {
-                cx.close();
-            }
-        }
+    private Result<Record> getBids () throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+        Result<Record> rows = cx.fetch("SELECT * FROM bids ORDER BY timestamp");
+        cx.close();
         return rows;
     }
 
-    public List<Bid> getBidsList() {
+    public List<Bid> getBidsList() throws SQLException {
         List<Bid> bids = new ArrayList<>();
         Result<Record> bidsData = getBids();
         if (bidsData != null) {
@@ -58,84 +46,43 @@ public class BidsRepository {
         return bids;
     }
 
-    public void deleteAllBids() {
-        @Var DSLContext cx = null;
-        try {
-            cx = connectionManager.dsl();
-            cx.deleteFrom(BIDS)
+    public void deleteAllBids() throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+        cx.deleteFrom(BIDS)
+            .execute();
+        cx.close();
+    }
+
+    public boolean setStatus(Bid bid) throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+        cx.update(BIDS)
+                .set(BIDS.STATUS, bid.getStatus())
+                .where(BIDS.TIMESTAMP.eq(bid.getTimestamp()))
                 .execute();
-        } catch (SQLException e) {
-            log.error(e);
-        } finally {
-            if (cx != null) {
-                cx.close();
-            }
-        }
+        return true;
     }
 
-    public boolean setStatus(Bid bid) {
-        @Var DSLContext cx = null;
-        @Var boolean result = false;
-        try {
-            cx = connectionManager.dsl();
-            cx.update(BIDS)
-                    .set(BIDS.STATUS, bid.getStatus())
-                    .where(BIDS.TIMESTAMP.eq(bid.getTimestamp()))
-                    .execute();
-            result = true;
-        } catch (SQLException e) {
-            log.error(e);
-        } finally {
-            if (cx != null) {
-                cx.close();
-            }
-        }
-        return result;
+    public void setRefundInProgress(String consensusTimestamp, String transactionId, String transactionHash) throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+        cx.update(Tables.BIDS)
+                .set(BIDS.REFUNDTXID, transactionId)
+                .set(BIDS.REFUNDTXHASH, transactionHash)
+                .where(BIDS.TIMESTAMP.eq(consensusTimestamp))
+                .execute();
+        cx.close();
     }
 
-    public boolean setRefundInProgress(String consensusTimestamp, String transactionId, String transactionHash) {
-        @Var DSLContext cx = null;
-        @Var boolean result = false;
-        try {
-            cx = connectionManager.dsl();
-            cx.update(Tables.BIDS)
-                    .set(BIDS.REFUNDTXID, transactionId)
-                    .set(BIDS.REFUNDTXHASH, transactionHash)
-                    .where(BIDS.TIMESTAMP.eq(consensusTimestamp))
-                    .execute();
-            result = true;
-        } catch (SQLException e) {
-            log.error(e);
-        } finally {
-            if (cx != null) {
-                cx.close();
-            }
-        }
-        return result;
-    }
+    public void setRefunded(String consensusTimestamp, String transactionHash) throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+        cx.update(Tables.BIDS)
+                .set(BIDS.REFUNDED, true)
+                .set(BIDS.TRANSACTIONHASH, transactionHash)
+                .where(BIDS.TIMESTAMP.eq(consensusTimestamp))
+                .execute();
+        cx.close();
+   }
 
-    public boolean setRefunded(String consensusTimestamp, String transactionHash) {
-        @Var DSLContext cx = null;
-        @Var boolean result = false;
-        try {
-            cx = connectionManager.dsl();
-            cx.update(Tables.BIDS)
-                    .set(BIDS.REFUNDED, true)
-                    .set(BIDS.TRANSACTIONHASH, transactionHash)
-                    .where(BIDS.TIMESTAMP.eq(consensusTimestamp))
-                    .execute();
-            result = true;
-        } catch (SQLException e) {
-            log.error(e);
-        } finally {
-            if (cx != null) {
-                cx.close();
-            }
-        }
-        return result;
-    }
-
-    public boolean add(Bid bid) {
+    public boolean add(Bid bid) throws SQLException {
         @Var DSLContext cx = null;
         @Var boolean result = false;
         try {
@@ -160,8 +107,6 @@ public class BidsRepository {
             result = true;
         } catch (DataAccessException e) {
             log.info("Bid already in database");
-        } catch (SQLException e) {
-            log.error(e);
         } finally {
             if (cx != null) {
                 cx.close();
@@ -170,23 +115,14 @@ public class BidsRepository {
         return result;
     }
 
-    public Map<String, String> bidsRefundToConfirm() {
-        @Var DSLContext cx = null;
-        @Var Map<String, String> rows = new HashMap<>();
-        try {
-            cx = connectionManager.dsl();
-            rows = cx.select(BIDS.REFUNDTXID, BIDS.TIMESTAMP)
-                    .from(BIDS)
-                    .where(BIDS.REFUNDED.eq(false))
-                    .and(BIDS.REFUNDTXID.ne(""))
-                    .fetchMap(BIDS.TIMESTAMP, BIDS.REFUNDTXID);
-        } catch (SQLException e) {
-            log.error(e);
-        } finally {
-            if (cx != null) {
-                cx.close();
-            }
-        }
+    public Map<String, String> bidsRefundToConfirm() throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+        Map<String, String> rows = cx.select(BIDS.REFUNDTXID, BIDS.TIMESTAMP)
+                .from(BIDS)
+                .where(BIDS.REFUNDED.eq(false))
+                .and(BIDS.REFUNDTXID.ne(""))
+                .fetchMap(BIDS.TIMESTAMP, BIDS.REFUNDTXID);
+        cx.close();
 
         return rows;
     }

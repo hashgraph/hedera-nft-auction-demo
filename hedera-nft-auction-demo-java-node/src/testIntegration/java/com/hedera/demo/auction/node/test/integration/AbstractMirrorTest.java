@@ -1,7 +1,6 @@
-package com.hedera.demo.auction.node.test.integration.mirror;
+package com.hedera.demo.auction.node.test.integration;
 
 import com.hedera.demo.auction.node.app.HederaClient;
-import com.hedera.demo.auction.node.test.integration.AbstractIntegrationTest;
 
 public class AbstractMirrorTest extends AbstractIntegrationTest {
 

@@ -219,7 +219,7 @@ jacocoTestReport {
 	// make sure to use any/all test coverage data for the report
 	executionData fileTree(dir: buildDir, include: "jacoco/*.exec")
 
-	// remove generated proto files from report
+	// remove generated db files from report
 	afterEvaluate {
 		classDirectories.setFrom(files(classDirectories.files.collect {
 			fileTree(dir: it, exclude: '**/app/db/**')

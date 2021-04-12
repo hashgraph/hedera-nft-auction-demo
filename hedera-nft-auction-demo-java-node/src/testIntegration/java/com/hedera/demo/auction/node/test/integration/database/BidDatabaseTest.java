@@ -13,6 +13,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -32,7 +33,7 @@ class BidDatabaseTest extends AbstractIntegrationTest {
     }
 
     @BeforeAll
-    public void setupDatabase() {
+    public void setupDatabase() throws SQLException {
         PostgreSQLContainer<?> postgres = new PostgreSQLContainer("postgres:12.6");
         postgres.start();
         migrate(postgres);
@@ -52,7 +53,7 @@ class BidDatabaseTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void addBidTest() {
+    public void addBidTest() throws SQLException {
 
         Bid bid = testBidObject(1, auctionId);
         bidsRepository.add(bid);
@@ -65,7 +66,7 @@ class BidDatabaseTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void addDuplicateBidTest() {
+    public void addDuplicateBidTest() throws SQLException {
 
         Bid bid = testBidObject(1, auctionId);
         bidsRepository.add(bid);
@@ -78,7 +79,7 @@ class BidDatabaseTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void setStatusTest() {
+    public void setStatusTest() throws SQLException {
         Bid bid = testBidObject(1, auctionId);
         bidsRepository.add(bid);
 
@@ -96,7 +97,7 @@ class BidDatabaseTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void setRefundInProgressTest() {
+    public void setRefundInProgressTest() throws SQLException {
         Bid bid = testBidObject(1, auctionId);
         bidsRepository.add(bid);
 
@@ -114,7 +115,7 @@ class BidDatabaseTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void setRefunded() {
+    public void setRefunded() throws SQLException {
         Bid bid = testBidObject(1, auctionId);
         bidsRepository.add(bid);
 
@@ -130,7 +131,7 @@ class BidDatabaseTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void bidsRefundToConfirmTest() {
+    public void bidsRefundToConfirmTest() throws SQLException {
         int numBids = 3;
 
         for (int i=0; i < numBids; i++) {
@@ -149,7 +150,7 @@ class BidDatabaseTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void deleteAllBidsTest() {
+    public void deleteAllBidsTest() throws SQLException {
 
         for (int i=0; i < 5; i++) {
             Bid bid = testBidObject(i, auctionId);
@@ -161,7 +162,5 @@ class BidDatabaseTest extends AbstractIntegrationTest {
         List<Bid> bids = bidsRepository.getBidsList();
         assertNotNull(bids);
         assertEquals(0, bids.size());
-
-        bidsRepository.deleteAllBids();
     }
 }

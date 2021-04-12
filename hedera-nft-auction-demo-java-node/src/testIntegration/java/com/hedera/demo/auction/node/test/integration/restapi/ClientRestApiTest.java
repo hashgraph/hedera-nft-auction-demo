@@ -25,9 +25,11 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(VertxExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -36,9 +38,10 @@ public class ClientRestApiTest extends AbstractIntegrationTest {
     private PostgreSQLContainer postgres;
     private AuctionsRepository auctionsRepository;
     private BidsRepository bidsRepository;
+    Vertx vertx;
 
     @BeforeAll
-    public void setupDatabase() {
+    public void beforeAll(VertxTestContext testContext) throws Throwable {
         PostgreSQLContainer<?> postgres = new PostgreSQLContainer("postgres:12.6");
         postgres.start();
         migrate(postgres);
@@ -47,69 +50,75 @@ public class ClientRestApiTest extends AbstractIntegrationTest {
 
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
+
+        vertx = Vertx.vertx();
+
+        DeploymentOptions options = getVerticleDeploymentOptions(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+//        vertx.deployVerticle(new ApiVerticle(), options, testContext.completing());
+        vertx.deployVerticle(new ApiVerticle(), options, testContext.completing());
+
+        webClient = WebClient.create(vertx);
+
+        assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+        if (testContext.failed()) {
+            throw testContext.causeOfFailure();
+        }
+        System.out.println("Server started");
+
     }
     @AfterAll
-    public void stopDatabase() {
+    public void afterAll(VertxTestContext testContext) {
+        vertx.close(testContext.completing());
         this.postgres.close();
     }
 
     @Test
-    public void getAuctionTest(Vertx vertx, VertxTestContext testContext) throws IOException, SQLException {
+    public void getAuctionTest() throws SQLException {
+        VertxTestContext testContext = new VertxTestContext();
         Auction auction = testAuctionObject(1);
         Auction newAuction = auctionsRepository.createComplete(auction);
+        webClient.get(9005, "localhost", "/v1/auctions/".concat(String.valueOf(newAuction.getId())))
+                .as(BodyCodec.jsonObject())
+                .send(testContext.succeeding(response -> testContext.verify(() -> {
 
-        WebClient webClient = WebClient.create(vertx);
+                    assertNotNull(response.body());
+                    JsonObject body = JsonObject.mapFrom(response.body());
+                    assertNotNull(body);
 
-        DeploymentOptions options = getVerticleDeploymentOptions(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-        vertx.deployVerticle(new ApiVerticle(), options, testContext.succeeding(id -> {
+                    verifyAuction(newAuction, body);
 
-            webClient.get(9005, "localhost", "/v1/auctions/".concat(String.valueOf(newAuction.getId())))
-                    .as(BodyCodec.jsonObject())
-                    .send(testContext.succeeding(response -> testContext.verify(() -> {
-                        assertNotNull(response);
-                        JsonObject body = JsonObject.mapFrom(response.body());
-                        assertNotNull(body);
+                    auctionsRepository.deleteAllAuctions();
 
-                        verifyAuction(newAuction, body);
-
-                        vertx.close(testContext.succeeding());
-                        auctionsRepository.deleteAllAuctions();
-                        testContext.completeNow();
-                    })));
-        }));
+                    testContext.completeNow();
+                })));
     }
 
     @Test
-    public void getAuctionsTest(Vertx vertx, VertxTestContext testContext) throws IOException, SQLException {
+    public void getAuctionsTest() throws IOException, SQLException {
+        VertxTestContext testContext = new VertxTestContext();
         @Var Auction auction = testAuctionObject(1);
         Auction newAuction1 = auctionsRepository.createComplete(auction);
         auction = testAuctionObject(2);
         Auction newAuction2 = auctionsRepository.createComplete(auction);
 
-        WebClient webClient = WebClient.create(vertx);
+        webClient.get(9005, "localhost", "/v1/auctions/")
+                .as(BodyCodec.buffer())
+                .send(testContext.succeeding(response -> testContext.verify(() -> {
+                    assertNotNull(response);
+                    JsonArray body = new JsonArray(response.body());
+                    assertNotNull(body);
+                    assertEquals(2, body.size());
+                    verifyAuction(newAuction1, body.getJsonObject(0));
+                    verifyAuction(newAuction2, body.getJsonObject(1));
 
-        DeploymentOptions options = getVerticleDeploymentOptions(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-        vertx.deployVerticle(new ApiVerticle(), options, testContext.succeeding(id -> {
-
-            webClient.get(9005, "localhost", "/v1/auctions/")
-                    .as(BodyCodec.buffer())
-                    .send(testContext.succeeding(response -> testContext.verify(() -> {
-                        assertNotNull(response);
-                        JsonArray body = new JsonArray(response.body());
-                        assertNotNull(body);
-                        assertEquals(2, body.size());
-                        verifyAuction(newAuction1, body.getJsonObject(0));
-                        verifyAuction(newAuction2, body.getJsonObject(1));
-
-                        vertx.close(testContext.succeeding());
-                        auctionsRepository.deleteAllAuctions();
-                        testContext.completeNow();
-                    })));
-        }));
+                    auctionsRepository.deleteAllAuctions();
+                    testContext.completeNow();
+                })));
     }
 
     @Test
-    public void getBidsTest(Vertx vertx, VertxTestContext testContext) throws IOException, SQLException {
+    public void getBidsTest() throws SQLException {
+        VertxTestContext testContext = new VertxTestContext();
         Auction auction = testAuctionObject(1);
         Auction newAuction1 = auctionsRepository.createComplete(auction);
 
@@ -126,33 +135,27 @@ public class ClientRestApiTest extends AbstractIntegrationTest {
         Bid bid0 = testBidObject(0, newAuction1.getId());
         bidsRepository.add(bid0);
 
-        WebClient webClient = WebClient.create(vertx);
+        webClient.get(9005, "localhost", "/v1/bids/".concat(String.valueOf(bid1.getAuctionid())))
+                .as(BodyCodec.buffer())
+                .send(testContext.succeeding(response -> testContext.verify(() -> {
+                    assertNotNull(response);
+                    JsonArray body = new JsonArray(response.body());
+                    assertNotNull(body);
+                    assertEquals(3, body.size());
+                    verifyBid(bid1, body.getJsonObject(1));
+                    verifyBid(bid2, body.getJsonObject(0));
+                    // test for bid that has not been refunded yet
+                    assertEquals(bid0.getRefunded(), body.getJsonObject(2).getBoolean("refunded"));
 
-        DeploymentOptions options = getVerticleDeploymentOptions(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-        vertx.deployVerticle(new ApiVerticle(), options, testContext.succeeding(id -> {
-
-            webClient.get(9005, "localhost", "/v1/bids/".concat(String.valueOf(bid1.getAuctionid())))
-                    .as(BodyCodec.buffer())
-                    .send(testContext.succeeding(response -> testContext.verify(() -> {
-                        assertNotNull(response);
-                        JsonArray body = new JsonArray(response.body());
-                        assertNotNull(body);
-                        assertEquals(3, body.size());
-                        verifyBid(bid1, body.getJsonObject(1));
-                        verifyBid(bid2, body.getJsonObject(0));
-                        // test for bid that has not been refunded yet
-                        assertEquals(bid0.getRefunded(), body.getJsonObject(2).getBoolean("refunded"));
-
-                        vertx.close(testContext.succeeding());
-                        bidsRepository.deleteAllBids();
-                        auctionsRepository.deleteAllAuctions();
-                        testContext.completeNow();
-                    })));
-        }));
+                    bidsRepository.deleteAllBids();
+                    auctionsRepository.deleteAllAuctions();
+                    testContext.completeNow();
+                })));
     }
 
     @Test
-    public void getLastBidTest(Vertx vertx, VertxTestContext testContext) throws IOException, SQLException {
+    public void getLastBidTest() throws IOException, SQLException {
+        VertxTestContext testContext = new VertxTestContext();
         Auction auction = testAuctionObject(1);
         Auction newAuction1 = auctionsRepository.createComplete(auction);
 
@@ -163,33 +166,27 @@ public class ClientRestApiTest extends AbstractIntegrationTest {
         bid2.setBidderaccountid(bid1.getBidderaccountid());
         bidsRepository.add(bid2);
 
-        WebClient webClient = WebClient.create(vertx);
+        webClient.get(9005, "localhost", "/v1/lastbid/"
+                .concat(String.valueOf(bid1.getAuctionid()))
+                .concat("/")
+                .concat(bid1.getBidderaccountid())
+        )
+                .as(BodyCodec.jsonObject())
+                .send(testContext.succeeding(response -> testContext.verify(() -> {
+                    assertNotNull(response);
+                    JsonObject body = JsonObject.mapFrom(response.body());
+                    assertNotNull(body);
+                    assertEquals(bid2.getBidamount(), body.getLong("bidamount"));
+                    assertEquals(bid2.getTransactionid(), body.getString("transactionid"));
+                    assertEquals(bid2.getBidderaccountid(), body.getString("bidderaccountid"));
+                    assertEquals(bid2.getTimestamp(), body.getString("timestamp"));
+                    assertEquals(bid2.getAuctionid(), body.getInteger("auctionid"));
 
-        DeploymentOptions options = getVerticleDeploymentOptions(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-        vertx.deployVerticle(new ApiVerticle(), options, testContext.succeeding(id -> {
-
-            webClient.get(9005, "localhost", "/v1/lastbid/"
-                    .concat(String.valueOf(bid1.getAuctionid()))
-                    .concat("/")
-                    .concat(bid1.getBidderaccountid())
-            )
-                    .as(BodyCodec.jsonObject())
-                    .send(testContext.succeeding(response -> testContext.verify(() -> {
-                        assertNotNull(response);
-                        JsonObject body = JsonObject.mapFrom(response.body());
-                        assertNotNull(body);
-                        assertEquals(bid2.getBidamount(), body.getLong("bidamount"));
-                        assertEquals(bid2.getTransactionid(), body.getString("transactionid"));
-                        assertEquals(bid2.getBidderaccountid(), body.getString("bidderaccountid"));
-                        assertEquals(bid2.getTimestamp(), body.getString("timestamp"));
-                        assertEquals(bid2.getAuctionid(), body.getInteger("auctionid"));
-
-                        vertx.close(testContext.succeeding());
-                        bidsRepository.deleteAllBids();
-                        auctionsRepository.deleteAllAuctions();
-                        testContext.completeNow();
-                    })));
-        }));
+                    vertx.close(testContext.succeeding());
+                    bidsRepository.deleteAllBids();
+                    auctionsRepository.deleteAllAuctions();
+                    testContext.completeNow();
+                })));
     }
 
     private static void verifyBid(Bid bid, JsonObject body) {

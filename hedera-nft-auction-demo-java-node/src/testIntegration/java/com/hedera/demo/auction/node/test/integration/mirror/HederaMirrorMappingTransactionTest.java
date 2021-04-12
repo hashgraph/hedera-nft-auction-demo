@@ -2,6 +2,7 @@ package com.hedera.demo.auction.node.test.integration.mirror;
 
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransaction;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
+import com.hedera.demo.auction.node.test.integration.AbstractMirrorTest;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

@@ -65,6 +65,9 @@ public class HederaAuctionReadinessWatcher extends AbstractAuctionReadinessWatch
                     querying.set(false);
                 });
             }
+            if (testing) {
+                return;
+            }
             try {
                 Thread.sleep(this.mirrorQueryFrequency);
             } catch (InterruptedException e) {

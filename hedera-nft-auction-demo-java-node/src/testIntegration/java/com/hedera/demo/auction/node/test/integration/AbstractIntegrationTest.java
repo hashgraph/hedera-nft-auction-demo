@@ -217,4 +217,44 @@ public class AbstractIntegrationTest {
         DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(1);
         return options;
     }
+
+    protected void verifyBid(Bid bid, JsonObject body) {
+        assertEquals(bid.getTimestamp(), body.getString("timestamp"));
+        assertEquals(bid.getAuctionid(), body.getInteger("auctionid"));
+        assertEquals(bid.getBidderaccountid(), body.getString("bidderaccountid"));
+        assertEquals(bid.getBidamount(), body.getLong("bidamount"));
+        assertEquals(bid.getStatus(), body.getString("status"));
+        assertEquals(true, body.getBoolean("refunded"));
+        assertEquals(bid.getRefundtxid(), body.getString("refundtxid"));
+        assertEquals(bid.getRefundtxhash(), body.getString("refundtxhash"));
+        assertEquals(bid.getTransactionid(), body.getString("transactionid"));
+        assertEquals(bid.getTransactionhash(), body.getString("transactionhash"));
+    }
+
+    protected void verifyAuction(Auction auction, JsonObject body) {
+        assertEquals(auction.getId(), body.getInteger("id"));
+        assertEquals(auction.getLastconsensustimestamp(), body.getString("lastconsensustimestamp"));
+        assertEquals(auction.getWinningbid(), body.getLong("winningbid"));
+        assertEquals(auction.getWinningaccount(), body.getString("winningaccount"));
+        assertEquals(auction.getWinningtimestamp(), body.getString("winningtimestamp"));
+        assertEquals(auction.getTokenid(), body.getString("tokenid"));
+        assertEquals(auction.getAuctionaccountid(), body.getString("auctionaccountid"));
+        assertEquals(auction.getEndtimestamp(), body.getString("endtimestamp"));
+        assertEquals(auction.getReserve(), body.getLong("reserve"));
+        assertEquals(auction.getStatus(), body.getString("status"));
+        assertEquals(auction.getWinningtxid(), body.getString("winningtxid"));
+        assertEquals(auction.getWinningtxhash(), body.getString("winningtxhash"));
+        assertEquals(auction.getTokenimage(), body.getString("tokenimage"));
+        assertEquals(auction.getMinimumbid(), body.getLong("minimumbid"));
+        assertEquals(auction.getStarttimestamp(), body.getString("starttimestamp"));
+        assertEquals(auction.getTransfertxid(), body.getString("transfertxid"));
+        assertEquals(auction.getTransfertxhash(), body.getString("transfertxhash"));
+        assertEquals(auction.isActive(), body.getBoolean("active"));
+        assertEquals(auction.isPending(), body.getBoolean("pending"));
+        assertEquals(auction.isClosed(), body.getBoolean("closed"));
+        assertEquals(auction.getWinnerCanBid(), body.getBoolean("winnerCanBid"));
+        assertEquals(auction.isTransferring(), body.getBoolean("transferring"));
+        assertEquals(auction.isEnded(), body.getBoolean("ended"));
+    }
+
 }

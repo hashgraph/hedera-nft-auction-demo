@@ -8,6 +8,7 @@ import com.hedera.demo.auction.node.app.readinesswatcher.AbstractAuctionReadines
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.test.integration.AbstractIntegrationTest;
+import com.hedera.demo.auction.node.test.integration.HederaJson;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
@@ -56,7 +57,7 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testAuctionReadiness() throws Exception {
+    public void testAuctionReadiness() {
         Auction auction = new Auction();
 
         auction.setAuctionaccountid("account");
@@ -77,7 +78,7 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
         assertTrue(readinessTester.checkAssociation("account", "token", 1));
     }
     @Test
-    public void testAuctionReadinessFromMirrorData() throws  Exception {
+    public void testAuctionReadinessFromJsonData() throws Exception {
 
         @Var Auction auction = new Auction();
 
@@ -116,7 +117,7 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void testAuctionReadinessFromMirrorDataNoTransfers() throws  Exception {
+    public void testAuctionReadinessFromJsonDataNoTransfers() throws Exception {
 
         @Var Auction auction = new Auction();
 
@@ -132,15 +133,18 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
         ReadinessTester readinessTester = new ReadinessTester(hederaClient, null, auctionsRepository, null,auction, "", 5000);
         readinessTester.setTesting();
 
-        JsonObject transaction = transaction();
+        JsonObject jsonResponse = new JsonObject();
+        JsonArray transactions = new JsonArray();
 
-        Pair<Boolean, String> response = readinessTester.handleResponse(transaction);
+        jsonResponse.put("transactions", transactions);
+
+        Pair<Boolean, String> response = readinessTester.handleResponse(jsonResponse);
         assertFalse (response.getFirst());
         auctionsRepository.deleteAllAuctions();
     }
 
     @Test
-    public void testAuctionReadinessFromMirrorDataNotReadyLink() throws  Exception {
+    public void testAuctionReadinessFromJsonDataNotReadyLink() throws Exception {
 
         @Var Auction auction = new Auction();
 
@@ -156,21 +160,21 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
         ReadinessTester readinessTester = new ReadinessTester(hederaClient, null, auctionsRepository, null,auction, "", 5000);
         readinessTester.setTesting();
 
-        JsonObject transaction = transaction();
+        JsonObject jsonResponse = new JsonObject();
+        JsonArray transactions = new JsonArray();
 
-        JsonArray tokenTransfers = new JsonArray();
-        tokenTransfers.add(tokenTransfer("0.0.2", "0.0.12", 1L));
+        transactions.add(HederaJson.transaction("0.0.2", "0.0.12", 1L));
+        jsonResponse.put("transactions", transactions);
 
-        transaction.getJsonArray("transactions").getJsonObject(0).put("token_transfers", tokenTransfers);
-        transaction.put("links",new JsonObject().put("next","nextlink"));
-        Pair<Boolean, String> response = readinessTester.handleResponse(transaction);
+        jsonResponse.put("links",new JsonObject().put("next","nextlink"));
+        Pair<Boolean, String> response = readinessTester.handleResponse(jsonResponse);
         assertFalse (response.getFirst());
         assertEquals("nextlink", response.getSecond());
         auctionsRepository.deleteAllAuctions();
     }
 
     @Test
-    public void testAuctionReadinessFromMirrorDataReadyLink() throws  Exception {
+    public void testAuctionReadinessFromJsonDataReadyLink() throws Exception {
 
         @Var Auction auction = new Auction();
 
@@ -186,14 +190,14 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
         ReadinessTester readinessTester = new ReadinessTester(hederaClient, null, auctionsRepository, null,auction, "", 5000);
         readinessTester.setTesting();
 
-        JsonObject transaction = transaction();
+        JsonObject jsonResponse = new JsonObject();
+        JsonArray transactions = new JsonArray();
 
-        JsonArray tokenTransfers = new JsonArray();
-        tokenTransfers.add(tokenTransfer(accountId, tokenId, 1L));
+        transactions.add(HederaJson.transaction(accountId, tokenId, 1L));
+        jsonResponse.put("transactions", transactions);
 
-        transaction.getJsonArray("transactions").getJsonObject(0).put("token_transfers", tokenTransfers);
-        transaction.put("links",new JsonObject().put("next","nextlink"));
-        Pair<Boolean, String> response = readinessTester.handleResponse(transaction);
+        jsonResponse.put("links",new JsonObject().put("next","nextlink"));
+        Pair<Boolean, String> response = readinessTester.handleResponse(jsonResponse);
         assertTrue (response.getFirst());
         assertEquals("", response.getSecond());
         auctionsRepository.deleteAllAuctions();
@@ -201,41 +205,13 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
 
     private static boolean verifyResponse(ReadinessTester readinessTester, String account, String token, long amount) {
 
-        JsonObject transaction = transaction();
-
-        JsonArray tokenTransfers = new JsonArray();
-        tokenTransfers.add(tokenTransfer(account, token, amount));
-
-        transaction.getJsonArray("transactions").getJsonObject(0).put("token_transfers", tokenTransfers);
-        Pair<Boolean, String> response = readinessTester.handleResponse(transaction);
-        return response.getFirst();
-    }
-
-    private static JsonObject tokenTransfer(String account, String token, long amount) {
-        JsonObject transfer = new JsonObject();
-        transfer.put("amount", amount);
-        transfer.put("token_id", token);
-        transfer.put("account", account);
-        return transfer;
-    }
-
-    private static JsonObject transaction() {
-        JsonObject transaction = new JsonObject();
-        transaction.put("charged_tx_fee", 84650);
-        transaction.put("consensus_timestamp", "1617786661.662353000");
-        transaction.put("max_fee", "100000000");
-        transaction.put("memo_base64", "RGV2T3BzIFN5bnRoZXRpYyBUZXN0aW5n");
-        transaction.put("name", "CRYPTOTRANSFER");
-        transaction.put("node", "0.0.7");
-        transaction.put("result", "SUCCESS");
-        transaction.put("scheduled", false);
-        transaction.put("transaction_hash", "KeUK9l64b1HShMmvFeQ+CCO2hBvzF5tUL8X2Bvxvsh+rcdNxxkQHEb3/nS6zsRwX");
-        transaction.put("transaction_id", "0.0.90-1617786650-796134000");
-        transaction.put("valid_duration_seconds", "120");
-        transaction.put("valid_start_timestamp", "1617786650.796134000");
-
+        JsonObject jsonResponse = new JsonObject();
         JsonArray transactions = new JsonArray();
-        transactions.add(transaction);
-        return new JsonObject().put("transactions", transactions);
+
+        transactions.add(HederaJson.transaction(account, token, amount));
+        jsonResponse.put("transactions", transactions);
+
+        Pair<Boolean, String> response = readinessTester.handleResponse(jsonResponse);
+        return response.getFirst();
     }
 }

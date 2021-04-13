@@ -54,7 +54,9 @@ public abstract class AbstractBidsWatcher {
                 MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
 
                 for (MirrorTransaction transaction : mirrorTransactions.transactions) {
-                    handleTransaction(transaction);
+                    if (transaction.isSuccessful()) {
+                        handleTransaction(transaction);
+                    }
                     this.auction.setLastconsensustimestamp(transaction.consensusTimestamp);
                     auctionsRepository.save(this.auction);
                 }

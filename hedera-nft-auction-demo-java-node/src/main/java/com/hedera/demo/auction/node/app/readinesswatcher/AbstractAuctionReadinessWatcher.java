@@ -27,6 +27,7 @@ public abstract class AbstractAuctionReadinessWatcher {
     protected final String refundKey;
     protected final HederaClient hederaClient;
     protected boolean testing = false;
+    protected int mirrorPort = 80;
 
     protected AbstractAuctionReadinessWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
@@ -42,6 +43,10 @@ public abstract class AbstractAuctionReadinessWatcher {
     public void setTesting() {
         this.testing = true;
     }
+    
+    public void setTestingMirrorPort(int mirrorPort) {
+        this.mirrorPort = mirrorPort;
+    }
 
     public Pair<Boolean, String> handleResponse(JsonObject response) {
         try {
@@ -51,21 +56,22 @@ public abstract class AbstractAuctionReadinessWatcher {
                 if (mirrorTransactions.transactions != null) {
                     for (MirrorTransaction transaction : mirrorTransactions.transactions) {
                         for (MirrorTokenTransfer tokenTransfer : transaction.tokenTransfers) {
+                            if (transaction.result.equals("SUCCESS")) {
+                                String account = tokenTransfer.account;
+                                String tokenId = tokenTransfer.tokenId;
+                                long amount = tokenTransfer.amount;
+                                if (checkAssociation(account, tokenId, amount)) {
+                                    // token is associated
+                                    log.info("Account " + auction.getAuctionaccountid() + " owns token " + auction.getTokenid() + ", starting auction");
+                                    auctionsRepository.setActive(auction, transaction.consensusTimestamp);
+                                    // start the thread to monitor bids
+                                    if (!this.testing) {
+                                        Thread t = new Thread(new BidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency));
+                                        t.start();
+                                    }
 
-                            String account = tokenTransfer.account;
-                            String tokenId = tokenTransfer.tokenId;
-                            long amount = tokenTransfer.amount;
-                            if (checkAssociation(account, tokenId, amount)) {
-                                // token is associated
-                                log.info("Account " + auction.getAuctionaccountid() + " owns token " + auction.getTokenid() + ", starting auction");
-                                auctionsRepository.setActive(auction, transaction.consensusTimestamp);
-                                // start the thread to monitor bids
-                                if (! this.testing) {
-                                    Thread t = new Thread(new BidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency));
-                                    t.start();
+                                    return new Pair<Boolean, String>(true, "");
                                 }
-                                    
-                                return new Pair<Boolean, String>(true, "");
                             }
                         }
                     }

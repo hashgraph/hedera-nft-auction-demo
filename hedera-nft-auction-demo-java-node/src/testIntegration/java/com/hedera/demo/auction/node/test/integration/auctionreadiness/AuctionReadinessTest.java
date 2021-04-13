@@ -163,7 +163,7 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
         JsonObject jsonResponse = new JsonObject();
         JsonArray transactions = new JsonArray();
 
-        transactions.add(HederaJson.transaction("0.0.2", "0.0.12", 1L));
+        transactions.add(HederaJson.tokenTransferTransaction("0.0.2", "0.0.12", 1L));
         jsonResponse.put("transactions", transactions);
 
         jsonResponse.put("links",new JsonObject().put("next","nextlink"));
@@ -193,7 +193,7 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
         JsonObject jsonResponse = new JsonObject();
         JsonArray transactions = new JsonArray();
 
-        transactions.add(HederaJson.transaction(accountId, tokenId, 1L));
+        transactions.add(HederaJson.tokenTransferTransaction(accountId, tokenId, 1L));
         jsonResponse.put("transactions", transactions);
 
         jsonResponse.put("links",new JsonObject().put("next","nextlink"));
@@ -208,7 +208,7 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
         JsonObject jsonResponse = new JsonObject();
         JsonArray transactions = new JsonArray();
 
-        transactions.add(HederaJson.transaction(account, token, amount));
+        transactions.add(HederaJson.tokenTransferTransaction(account, token, amount));
         jsonResponse.put("transactions", transactions);
 
         Pair<Boolean, String> response = readinessTester.handleResponse(jsonResponse);

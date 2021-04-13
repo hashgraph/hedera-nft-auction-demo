@@ -117,7 +117,7 @@ public class HederaAuctionReadinessTest extends AbstractIntegrationTest {
         JsonObject response = new JsonObject();
         JsonArray transactions = new JsonArray();
 
-        transactions.add(HederaJson.transaction(account, token, amount));
+        transactions.add(HederaJson.tokenTransferTransaction(account, token, amount));
         response.put("transactions", transactions);
 
         new MockServerClient("127.0.0.1", this.mockServer.getPort())

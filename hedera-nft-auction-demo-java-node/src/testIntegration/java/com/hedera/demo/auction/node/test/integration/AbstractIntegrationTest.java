@@ -48,40 +48,40 @@ public class AbstractIntegrationTest {
         return 20L + this.index;
     }
     String status() {
-        return stringPlusIndex("endtimestamp");
+        return stringPlusIndex("status");
     }
     boolean winnercanbid() {
         return (this.index == 1);
     }
     String winningtxid() {
-        return stringPlusIndex("endtimestamp");
+        return stringPlusIndex("winningtxid");
     }
     String winningtxhash() {
-        return stringPlusIndex("endtimestamp");
+        return stringPlusIndex("winningtxhash");
     }
     String tokenimage() {
-        return stringPlusIndex("endtimestamp");
+        return stringPlusIndex("tokenimage");
     }
     long minimumbid() {
         return 10L + this.index;
     }
     String starttimestamp() {
-        return stringPlusIndex("endtimestamp");
+        return stringPlusIndex("starttimestamp");
     }
     String transfertxid() {
-        return stringPlusIndex("endtimestamp");
+        return stringPlusIndex("transfertxid");
     }
     String transfertxhash() {
-        return stringPlusIndex("endtimestamp");
+        return stringPlusIndex("transfertxhash");
     }
     String lastConsensusTimestamp() {
-        return stringPlusIndex("endtimestamp");
+        return stringPlusIndex("lastConsensusTimestamp");
     }
     String auctionAccountId() {
-        return stringPlusIndex("endtimestamp");
+        return stringPlusIndex("auctionAccountId");
     }
     String tokenId() {
-        return stringPlusIndex("endtimestamp");
+        return stringPlusIndex("tokenId");
     }
 
     public String timestamp() {

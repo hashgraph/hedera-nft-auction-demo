@@ -48,13 +48,15 @@ public abstract class AbstractBidsWatcher {
         this.testing = true;
     }
 
-    void handleResponse(JsonObject response) {
+    public void handleResponse(JsonObject response) {
         try {
             if (response != null) {
                 MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
 
                 for (MirrorTransaction transaction : mirrorTransactions.transactions) {
-                    handleTransaction(transaction);
+                    if (transaction.isSuccessful()) {
+                        handleTransaction(transaction);
+                    }
                     this.auction.setLastconsensustimestamp(transaction.consensusTimestamp);
                     auctionsRepository.save(this.auction);
                 }
@@ -65,7 +67,7 @@ public abstract class AbstractBidsWatcher {
     }
 
 
-    void handleTransaction(MirrorTransaction transaction) throws SQLException {
+    public void handleTransaction(MirrorTransaction transaction) throws SQLException {
         @Var String rejectReason = "";
         @Var boolean refund = false;
         String auctionAccountId = auction.getAuctionaccountid();
@@ -107,17 +109,18 @@ public abstract class AbstractBidsWatcher {
                 }
             }
 
-            if ( ! refund) {
-                // find payment amount
-                for (MirrorHbarTransfer transfer : transaction.hbarTransfers) {
-                    if (transfer.account.equals(auctionAccountId)) {
-                        bidAmount = transfer.amount;
-                        log.debug("Bid amount is " + bidAmount);
-                        break;
-                    }
+            // find payment amount
+            for (MirrorHbarTransfer transfer : transaction.hbarTransfers) {
+                if (transfer.account.equals(auctionAccountId)) {
+                    bidAmount = transfer.amount;
+                    log.debug("Bid amount is " + bidAmount);
+                    break;
                 }
+            }
 
-                long bidDelta = (bidAmount - this.auction.getWinningbid()) / 100000000;
+            if ( ! refund) {
+
+                long bidDelta = (bidAmount - this.auction.getWinningbid());
                 if ((bidDelta > 0) && (bidDelta < this.auction.getMinimumbid())) {
                     rejectReason = "Bid increase too small";
                     refund = true;
@@ -158,7 +161,6 @@ public abstract class AbstractBidsWatcher {
 
             // store the bid
             Bid currentBid = new Bid();
-            currentBid.setStatus(rejectReason);
             currentBid.setBidamount(bidAmount);
             currentBid.setAuctionid(this.auction.getId());
             currentBid.setBidderaccountid(transaction.payer());

@@ -43,7 +43,7 @@ public abstract class AbstractAuctionReadinessWatcher {
     public void setTesting() {
         this.testing = true;
     }
-    
+
     public void setTestingMirrorPort(int mirrorPort) {
         this.mirrorPort = mirrorPort;
     }
@@ -56,7 +56,7 @@ public abstract class AbstractAuctionReadinessWatcher {
                 if (mirrorTransactions.transactions != null) {
                     for (MirrorTransaction transaction : mirrorTransactions.transactions) {
                         for (MirrorTokenTransfer tokenTransfer : transaction.tokenTransfers) {
-                            if (transaction.result.equals("SUCCESS")) {
+                            if (transaction.isSuccessful()) {
                                 String account = tokenTransfer.account;
                                 String tokenId = tokenTransfer.tokenId;
                                 long amount = tokenTransfer.amount;

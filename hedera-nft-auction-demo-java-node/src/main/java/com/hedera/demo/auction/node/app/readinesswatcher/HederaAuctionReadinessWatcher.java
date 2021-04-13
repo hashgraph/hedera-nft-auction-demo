@@ -39,8 +39,8 @@ public class HederaAuctionReadinessWatcher extends AbstractAuctionReadinessWatch
             if (!querying.get()) {
                 querying.set(true);
 
-                var webQuery  = webClient
-                        .get(mirrorURL, uri.get())
+                var webQuery = webClient
+                        .get(this.mirrorPort, mirrorURL, uri.get())
                         .as(BodyCodec.jsonObject())
                         .addQueryParam("account.id", this.auction.getAuctionaccountid())
                         .addQueryParam("transactiontype", "CRYPTOTRANSFER")
@@ -55,26 +55,30 @@ public class HederaAuctionReadinessWatcher extends AbstractAuctionReadinessWatch
                             // token is associated, exit this thread
                             return;
                         } else {
+                            if (testing) {
+                                return;
+                            }
                             if (!StringUtils.isEmpty(checkAssociation.getSecond())) {
                                 uri.set(checkAssociation.getSecond());
                             }
                         }
                     } else {
                         log.error(response.cause().getMessage());
+                        return;
                     }
-                    querying.set(false);
+                    querying.set(testing);
                 });
             }
             if (testing) {
                 return;
-            }
-            try {
-                Thread.sleep(this.mirrorQueryFrequency);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                log.error(e);
+            } else {
+                try {
+                    Thread.sleep(this.mirrorQueryFrequency);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    log.error(e);
+                }
             }
         }
     }
-
 }

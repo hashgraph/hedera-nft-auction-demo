@@ -55,30 +55,6 @@ public class Bid implements VertxPojo, Serializable {
         this.transactionhash = record.get(BIDS.TRANSACTIONHASH);
     }
 
-//    public Bid(
-//        String timestamp,
-//        Integer auctionid,
-//        String bidderaccountid,
-//        Long bidamount,
-//        String status,
-//        Boolean refunded,
-//        String refundtxid,
-//        String refundtxhash,
-//        String transactionid,
-//        String transactionhash
-//    ) {
-//        this.timestamp = timestamp;
-//        this.auctionid = auctionid;
-//        this.bidderaccountid = bidderaccountid;
-//        this.bidamount = bidamount;
-//        this.status = status;
-//        this.refunded = refunded;
-//        this.refundtxid = refundtxid;
-//        this.refundtxhash = refundtxhash;
-//        this.transactionid = transactionid;
-//        this.transactionhash = transactionhash;
-//    }
-
     public Bid(io.vertx.core.json.JsonObject json) {
         this();
         fromJson(json);

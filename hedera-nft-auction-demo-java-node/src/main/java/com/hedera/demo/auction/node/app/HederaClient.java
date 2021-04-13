@@ -49,6 +49,10 @@ public class HederaClient {
         return new HederaClient(AccountId.fromString("0.0.1"), PrivateKey.generate(), "TESTNET", "hedera", "", "");
     }
 
+    public void setTestingMirrorURL(String testUrl) {
+        this.mirrorUrl = testUrl;
+    }
+
     private void setClientMirror(Dotenv env) throws Exception {
         @Var String envVariable = "GRPC_".concat(this.mirrorProvider).concat("_")
                 .concat(this.network);

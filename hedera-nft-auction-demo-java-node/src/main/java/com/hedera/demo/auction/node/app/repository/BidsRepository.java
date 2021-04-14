@@ -62,11 +62,11 @@ public class BidsRepository {
         return true;
     }
 
-    public void setRefundInProgress(String consensusTimestamp, String transactionId, String transactionHash) throws SQLException {
+    public void setRefundInProgress(String consensusTimestamp, String refundTransactionId, String refundTransactionHash) throws SQLException {
         DSLContext cx = connectionManager.dsl();
         cx.update(Tables.BIDS)
-                .set(BIDS.REFUNDTXID, transactionId)
-                .set(BIDS.REFUNDTXHASH, transactionHash)
+                .set(BIDS.REFUNDTXID, refundTransactionId)
+                .set(BIDS.REFUNDTXHASH, refundTransactionHash)
                 .where(BIDS.TIMESTAMP.eq(consensusTimestamp))
                 .execute();
         cx.close();
@@ -76,7 +76,7 @@ public class BidsRepository {
         DSLContext cx = connectionManager.dsl();
         cx.update(Tables.BIDS)
                 .set(BIDS.REFUNDED, true)
-                .set(BIDS.TRANSACTIONHASH, transactionHash)
+                .set(BIDS.REFUNDTXHASH, transactionHash)
                 .where(BIDS.TIMESTAMP.eq(consensusTimestamp))
                 .execute();
         cx.close();

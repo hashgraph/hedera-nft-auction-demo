@@ -7,10 +7,8 @@ import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.codec.binary.Hex;
 
 import java.sql.SQLException;
-import java.util.Base64;
 
 @Log4j2
 public class AbstractRefundChecker {
@@ -39,10 +37,8 @@ public class AbstractRefundChecker {
                     if (transaction.isSuccessful()) {
                         // set refunded to true
                         log.debug("Found successful refund transaction on " + timestamp + " transaction id " + transactionId);
-                        byte[] txHashBytes = Base64.getDecoder().decode(transaction.getTransactionHash());
-                        String transactionHash = Hex.encodeHexString(txHashBytes);
 
-                        bidsRepository.setRefunded(timestamp, transactionHash);
+                        bidsRepository.setRefunded(timestamp, transaction.getTransactionHashString());
                     } else {
                         log.debug("Refund transaction on " + timestamp + " transaction id " + transactionId + " failed: " + transaction.result);
                     }

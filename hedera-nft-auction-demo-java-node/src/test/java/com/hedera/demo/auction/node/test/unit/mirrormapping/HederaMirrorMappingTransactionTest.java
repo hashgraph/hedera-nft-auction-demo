@@ -4,12 +4,9 @@ import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransaction;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.apache.commons.codec.binary.Hex;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -25,19 +22,16 @@ public class HederaMirrorMappingTransactionTest extends AbstractMirrorMapping {
         boolean scheduled = transaction.getBoolean("scheduled");
         String transactionId = transaction.getString("transaction_id");
 
-        byte[] transactionMemoBytes = Base64.getDecoder().decode(transaction.getString("memo_base64"));
-        String memo = new String(transactionMemoBytes, StandardCharsets.UTF_8);
-
-        byte[] txHashBytes = Base64.getDecoder().decode(transaction.getString("transaction_hash"));
-        String transactionHash = Hex.encodeHexString(txHashBytes);
+        String memo = transaction.getString("memo_base64");
+        String transactionHash = transaction.getString("transaction_hash");
 
         MirrorTransaction mirrorTransaction = transaction.mapTo(MirrorTransaction.class);
 
         assertEquals(consensusTimestamp, mirrorTransaction.consensusTimestamp);
-        assertEquals(memo, mirrorTransaction.getMemo());
+        assertEquals(memo, mirrorTransaction.memo);
         assertEquals(result, mirrorTransaction.result);
         assertEquals(scheduled, mirrorTransaction.scheduled);
-        assertEquals(transactionHash, mirrorTransaction.getTransactionHash());
+        assertEquals(transactionHash, mirrorTransaction.transactionHash);
         assertEquals(transactionId, mirrorTransaction.transactionId);
 
         JsonArray hbarTransfers = transaction.getJsonArray("transfers");

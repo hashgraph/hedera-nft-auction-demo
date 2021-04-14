@@ -7,7 +7,9 @@ import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.test.integration.AbstractIntegrationTest;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -27,13 +29,13 @@ class BidDatabaseTest extends AbstractIntegrationTest {
     private PostgreSQLContainer postgres;
     private BidsRepository bidsRepository;
     private int auctionId;
-
+    private Bid bid;
 
     public BidDatabaseTest() {
     }
 
     @BeforeAll
-    public void setupDatabase() throws SQLException {
+    public void beforeAll() throws SQLException {
         PostgreSQLContainer<?> postgres = new PostgreSQLContainer("postgres:12.6");
         postgres.start();
         migrate(postgres);
@@ -48,40 +50,41 @@ class BidDatabaseTest extends AbstractIntegrationTest {
     }
 
     @AfterAll
-    public void stopDatabase() {
+    public void afterAll() {
         this.postgres.close();
     }
 
+    @BeforeEach
+    public void beforeEach() throws SQLException {
+        bid = testBidObject(1, auctionId);
+        bidsRepository.add(bid);
+    }
+    @AfterEach
+    public void afterEach() throws SQLException {
+        bidsRepository.deleteAllBids();
+    }
     @Test
     public void addBidTest() throws SQLException {
-
-        Bid bid = testBidObject(1, auctionId);
-        bidsRepository.add(bid);
 
         List<Bid> bids = bidsRepository.getBidsList();
         assertNotNull(bids);
         assertEquals(1, bids.size());
         testNewBid(bid, bids.get(0));
-        bidsRepository.deleteAllBids();
     }
 
     @Test
     public void addDuplicateBidTest() throws SQLException {
 
-        Bid bid = testBidObject(1, auctionId);
-        bidsRepository.add(bid);
+        // adding to the @beforeEach bid that's already created
         bidsRepository.add(bid);
 
         List<Bid> bids = bidsRepository.getBidsList();
         assertNotNull(bids);
         assertEquals(1, bids.size());
-        bidsRepository.deleteAllBids();
     }
 
     @Test
     public void setStatusTest() throws SQLException {
-        Bid bid = testBidObject(1, auctionId);
-        bidsRepository.add(bid);
 
         String newStatus = "test status update";
         bid.setStatus(newStatus);
@@ -93,13 +96,10 @@ class BidDatabaseTest extends AbstractIntegrationTest {
         assertEquals(1, bids.size());
         assertEquals(newStatus, bids.get(0).getStatus());
 
-        bidsRepository.deleteAllBids();
     }
 
     @Test
     public void setRefundInProgressTest() throws SQLException {
-        Bid bid = testBidObject(1, auctionId);
-        bidsRepository.add(bid);
 
         String transactionId = "refundTransactionId";
         String transactionHash = "refundTransactionHash";
@@ -111,13 +111,10 @@ class BidDatabaseTest extends AbstractIntegrationTest {
         assertEquals(transactionId, bids.get(0).getRefundtxid());
         assertEquals(transactionHash, bids.get(0).getRefundtxhash());
 
-        bidsRepository.deleteAllBids();
     }
 
     @Test
     public void setRefunded() throws SQLException {
-        Bid bid = testBidObject(1, auctionId);
-        bidsRepository.add(bid);
 
         String transactionHash = "refundTransactionHash";
         bidsRepository.setRefunded(bid.getTimestamp(), transactionHash);
@@ -125,14 +122,14 @@ class BidDatabaseTest extends AbstractIntegrationTest {
         List<Bid> bids = bidsRepository.getBidsList();
         assertNotNull(bids);
         assertEquals(1, bids.size());
-        assertEquals(transactionHash, bids.get(0).getTransactionhash());
+        assertEquals(transactionHash, bids.get(0).getRefundtxhash());
 
-        bidsRepository.deleteAllBids();
     }
 
     @Test
     public void bidsRefundToConfirmTest() throws SQLException {
         int numBids = 3;
+        bidsRepository.deleteAllBids();
 
         for (int i=0; i < numBids; i++) {
             Bid bid = testBidObject(i, auctionId);
@@ -146,7 +143,6 @@ class BidDatabaseTest extends AbstractIntegrationTest {
         assertNotNull(bids);
         assertEquals(numBids, bids.size());
 
-        bidsRepository.deleteAllBids();
     }
 
     @Test

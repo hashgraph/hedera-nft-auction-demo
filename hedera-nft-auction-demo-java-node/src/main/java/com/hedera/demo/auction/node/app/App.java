@@ -122,7 +122,7 @@ public final class App {
 
     private static void startRefundChecker(HederaClient hederaClient, WebClient webClient, BidsRepository bidsRepository) {
         // start the thread to monitor bids
-        Thread t = new Thread(new RefundChecker(hederaClient, webClient, bidsRepository, env));
+        Thread t = new Thread(new RefundChecker(hederaClient, webClient, bidsRepository, mirrorQueryFrequency));
         t.start();
     }
 

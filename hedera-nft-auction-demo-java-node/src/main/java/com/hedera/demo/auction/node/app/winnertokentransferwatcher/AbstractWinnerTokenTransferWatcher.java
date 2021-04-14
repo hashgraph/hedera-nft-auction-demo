@@ -2,16 +2,14 @@ package com.hedera.demo.auction.node.app.winnertokentransferwatcher;
 
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;
-import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransaction;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
+import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.codec.binary.Hex;
 
 import java.sql.SQLException;
-import java.util.Base64;
 
 @Log4j2
 public abstract class AbstractWinnerTokenTransferWatcher {
@@ -36,9 +34,7 @@ public abstract class AbstractWinnerTokenTransferWatcher {
                     if (transaction.isSuccessful()) {
                         // token transfer was successful
                         log.debug("Found successful token transfer transaction");
-                        byte[] txHashBytes = Base64.getDecoder().decode(transaction.getTransactionHash());
-                        String hash = Hex.encodeHexString(txHashBytes);
-                        auctionsRepository.setEnded(auction.getId(), hash);
+                        auctionsRepository.setEnded(auction.getId(), transaction.getTransactionHashString());
                     } else {
                         log.debug("Token transfer transaction id " + auction.getTransfertxid() + " failed: " + transaction.result);
                     }

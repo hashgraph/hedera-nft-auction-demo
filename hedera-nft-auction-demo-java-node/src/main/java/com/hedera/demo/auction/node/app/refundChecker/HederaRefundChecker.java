@@ -3,7 +3,6 @@ package com.hedera.demo.auction.node.app.refundChecker;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.Utils;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
@@ -15,8 +14,8 @@ import java.util.Map;
 @Log4j2
 public class HederaRefundChecker extends AbstractRefundChecker implements RefundCheckerInterface {
 
-    public HederaRefundChecker(HederaClient hederaClient, WebClient webClient, BidsRepository bidsRepository, Dotenv env) {
-        super(hederaClient, webClient, bidsRepository, env);
+    public HederaRefundChecker(HederaClient hederaClient, WebClient webClient, BidsRepository bidsRepository, int mirrorQueryFrequency) {
+        super(hederaClient, webClient, bidsRepository, mirrorQueryFrequency);
     }
 
     @Override

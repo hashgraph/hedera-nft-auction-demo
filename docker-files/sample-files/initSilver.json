@@ -3,7 +3,7 @@
   "auctionaccountid": "0.0.392766",
   "endtimestamp": "123132",
   "reserve": 0,
-  "minimumbid": 100,
+  "minimumbid": 1000000,
   "winnercanbid": true
 }
 

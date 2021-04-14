@@ -1,6 +1,5 @@
 package com.hedera.demo.auction.node.test.integration.auctionreadiness;
 
-import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.SqlConnectionManager;
 import com.hedera.demo.auction.node.app.domain.Auction;
@@ -9,16 +8,14 @@ import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.test.integration.AbstractIntegrationTest;
 import com.hedera.demo.auction.node.test.integration.HederaJson;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import kotlin.Pair;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -31,7 +28,14 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
 
     private PostgreSQLContainer postgres;
     private AuctionsRepository auctionsRepository;
-    private HederaClient hederaClient;
+    private Auction auction;
+    private final String accountId = "0.0.1";
+    private final String tokenId = "0.0.10";
+    private HederaClient hederaClient = HederaClient.emptyTestClient();
+    private ReadinessTester readinessTester;
+
+    public AuctionReadinessTest() throws Exception {
+    }
 
     static class ReadinessTester extends AbstractAuctionReadinessWatcher {
 
@@ -41,7 +45,7 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
     }
 
     @BeforeAll
-    public void setupDatabase() throws Exception {
+    public void beforeAll() throws Exception {
         PostgreSQLContainer<?> postgres = new PostgreSQLContainer("postgres:12.6");
         postgres.start();
         migrate(postgres);
@@ -52,47 +56,41 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
     }
 
     @AfterAll
-    public void stopDatabase() {
+    public void afterAll() {
         this.postgres.close();
     }
 
+    @BeforeEach
+    public void beforeEach() throws SQLException {
+        auction = new Auction();
+        auction.setAuctionaccountid(accountId);
+        auction.setTokenid(tokenId);
+        auction = auctionsRepository.add(auction);
+
+        readinessTester = new ReadinessTester(hederaClient, null, auctionsRepository, null,auction, "", 5000);
+        readinessTester.setTesting();
+    }
+    
+    @AfterEach
+    public void afterEach() throws SQLException {
+        auctionsRepository.deleteAllAuctions();;
+    }
     @Test
     public void testAuctionReadiness() {
-        Auction auction = new Auction();
-
-        auction.setAuctionaccountid("account");
-        auction.setTokenid("token");
-
-        ReadinessTester readinessTester = new ReadinessTester(hederaClient, null, auctionsRepository, null,auction, "", 5000);
-        readinessTester.setTesting();
 
         assertFalse(readinessTester.checkAssociation("diffaccount", "difftoken", 0));
-        assertFalse(readinessTester.checkAssociation("account", "difftoken", 0));
-        assertFalse(readinessTester.checkAssociation("diffaccount", "token", 0));
+        assertFalse(readinessTester.checkAssociation(accountId, "difftoken", 0));
+        assertFalse(readinessTester.checkAssociation("diffaccount", tokenId, 0));
 
         assertFalse(readinessTester.checkAssociation("diffaccount", "difftoken", 1));
-        assertFalse(readinessTester.checkAssociation("account", "difftoken", 1));
-        assertFalse(readinessTester.checkAssociation("diffaccount", "token", 1));
+        assertFalse(readinessTester.checkAssociation(accountId, "difftoken", 1));
+        assertFalse(readinessTester.checkAssociation("diffaccount", tokenId, 1));
 
-        assertFalse(readinessTester.checkAssociation("account", "token", 0));
-        assertTrue(readinessTester.checkAssociation("account", "token", 1));
+        assertFalse(readinessTester.checkAssociation(accountId, tokenId, 0));
+        assertTrue(readinessTester.checkAssociation(accountId, tokenId, 1));
     }
     @Test
     public void testAuctionReadinessFromJsonData() throws Exception {
-
-        @Var Auction auction = new Auction();
-
-        String accountId = "0.0.1";
-        String tokenId = "0.0.10";
-
-        auction.setAuctionaccountid(accountId);
-        auction.setTokenid(tokenId);
-
-        auction = auctionsRepository.add(auction);
-
-        HederaClient hederaClient = HederaClient.emptyTestClient();
-        ReadinessTester readinessTester = new ReadinessTester(hederaClient, null, auctionsRepository, null,auction, "", 5000);
-        readinessTester.setTesting();
 
         assertFalse(verifyResponse(readinessTester, "0.0.2", "0.0.12", 0L));
         assertFalse(verifyResponse(readinessTester, accountId, "0.0.12", 0L));
@@ -119,24 +117,8 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
     @Test
     public void testAuctionReadinessFromJsonDataNoTransfers() throws Exception {
 
-        @Var Auction auction = new Auction();
-
-        String accountId = "0.0.1";
-        String tokenId = "0.0.10";
-
-        auction.setAuctionaccountid(accountId);
-        auction.setTokenid(tokenId);
-
-        auction = auctionsRepository.add(auction);
-
-        HederaClient hederaClient = HederaClient.emptyTestClient();
-        ReadinessTester readinessTester = new ReadinessTester(hederaClient, null, auctionsRepository, null,auction, "", 5000);
-        readinessTester.setTesting();
-
-        JsonObject jsonResponse = new JsonObject();
-        JsonArray transactions = new JsonArray();
-
-        jsonResponse.put("transactions", transactions);
+        // create an empty response
+        JsonObject jsonResponse = HederaJson.mirrorTransactions(new JsonObject());
 
         Pair<Boolean, String> response = readinessTester.handleResponse(jsonResponse);
         assertFalse (response.getFirst());
@@ -146,25 +128,10 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
     @Test
     public void testAuctionReadinessFromJsonDataNotReadyLink() throws Exception {
 
-        @Var Auction auction = new Auction();
-
-        String accountId = "0.0.1";
-        String tokenId = "0.0.10";
-
-        auction.setAuctionaccountid(accountId);
-        auction.setTokenid(tokenId);
-
-        auction = auctionsRepository.add(auction);
-
-        HederaClient hederaClient = HederaClient.emptyTestClient();
         ReadinessTester readinessTester = new ReadinessTester(hederaClient, null, auctionsRepository, null,auction, "", 5000);
         readinessTester.setTesting();
 
-        JsonObject jsonResponse = new JsonObject();
-        JsonArray transactions = new JsonArray();
-
-        transactions.add(HederaJson.tokenTransferTransaction("0.0.2", "0.0.12", 1L));
-        jsonResponse.put("transactions", transactions);
+        JsonObject jsonResponse = HederaJson.mirrorTransactions(HederaJson.tokenTransferTransaction("0.0.2", "0.0.12", 1L));
 
         jsonResponse.put("links",new JsonObject().put("next","nextlink"));
         Pair<Boolean, String> response = readinessTester.handleResponse(jsonResponse);
@@ -176,25 +143,7 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
     @Test
     public void testAuctionReadinessFromJsonDataReadyLink() throws Exception {
 
-        @Var Auction auction = new Auction();
-
-        String accountId = "0.0.1";
-        String tokenId = "0.0.10";
-
-        auction.setAuctionaccountid(accountId);
-        auction.setTokenid(tokenId);
-
-        auction = auctionsRepository.add(auction);
-
-        HederaClient hederaClient = HederaClient.emptyTestClient();
-        ReadinessTester readinessTester = new ReadinessTester(hederaClient, null, auctionsRepository, null,auction, "", 5000);
-        readinessTester.setTesting();
-
-        JsonObject jsonResponse = new JsonObject();
-        JsonArray transactions = new JsonArray();
-
-        transactions.add(HederaJson.tokenTransferTransaction(accountId, tokenId, 1L));
-        jsonResponse.put("transactions", transactions);
+        JsonObject jsonResponse = HederaJson.mirrorTransactions(HederaJson.tokenTransferTransaction(accountId, tokenId, 1L));
 
         jsonResponse.put("links",new JsonObject().put("next","nextlink"));
         Pair<Boolean, String> response = readinessTester.handleResponse(jsonResponse);
@@ -205,11 +154,7 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
 
     private static boolean verifyResponse(ReadinessTester readinessTester, String account, String token, long amount) {
 
-        JsonObject jsonResponse = new JsonObject();
-        JsonArray transactions = new JsonArray();
-
-        transactions.add(HederaJson.tokenTransferTransaction(account, token, amount));
-        jsonResponse.put("transactions", transactions);
+        JsonObject jsonResponse = HederaJson.mirrorTransactions(HederaJson.tokenTransferTransaction(account, token, amount));
 
         Pair<Boolean, String> response = readinessTester.handleResponse(jsonResponse);
         return response.getFirst();

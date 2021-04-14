@@ -94,4 +94,19 @@ public final class HederaJson {
 
         return transaction;
     }
+
+    public static JsonObject mirrorTransactions(JsonObject transaction) {
+        JsonObject response = new JsonObject();
+        JsonArray transactions = new JsonArray();
+        transactions.add(transaction);
+
+        response.put("transactions", transactions);
+        return response;
+    }
+
+    public static JsonObject mirrorTransactions(JsonObject currentMirrorTransactions, JsonObject transaction) {
+        // adds a transaction to the existing array of transactions
+        currentMirrorTransactions.getJsonArray("transactions").add(transaction);
+        return currentMirrorTransactions;
+    }
 }

@@ -6,7 +6,9 @@ import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.test.integration.AbstractIntegrationTest;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -29,9 +31,10 @@ class AuctionDatabaseTest extends AbstractIntegrationTest {
 
     private PostgreSQLContainer postgres;
     private AuctionsRepository auctionsRepository;
+    private Auction auction;
 
     @BeforeAll
-    public void setupDatabase() {
+    public void beforeAll() {
         PostgreSQLContainer<?> postgres = new PostgreSQLContainer("postgres:12.6");
         postgres.start();
         migrate(postgres);
@@ -40,104 +43,90 @@ class AuctionDatabaseTest extends AbstractIntegrationTest {
         this.postgres = postgres;
     }
     @AfterAll
-    public void stopDatabase() {
+    public void afterAll() {
         this.postgres.close();
+    }
+
+    @BeforeEach
+    public void beforeEach() throws SQLException {
+        auction = testAuctionObject(1);
+        auction = auctionsRepository.add(auction);
+    }
+
+    @AfterEach
+    public void afterEach() throws SQLException {
+        auctionsRepository.deleteAllAuctions();
     }
 
     @Test
     public void addAuctionTest() throws Exception {
 
-        Auction auction = testAuctionObject(1);
-        Auction newAuction = auctionsRepository.add(auction);
+        assertNotEquals(0, auction.getId());
 
-        assertNotEquals(0, newAuction.getId());
-
-        Auction getAuction = auctionsRepository.getAuction(newAuction.getId());
+        Auction getAuction = auctionsRepository.getAuction(auction.getId());
 
         testNewAuction(auction, getAuction);
 
-        auctionsRepository.deleteAllAuctions();
     }
 
     @Test
     public void setAuctionActiveTest() throws Exception {
-        Auction auction = testAuctionObject(1);
-        Auction newAuction = auctionsRepository.add(auction);
 
-        auctionsRepository.setActive(newAuction, auction.getStarttimestamp());
-        Auction getAuction = auctionsRepository.getAuction(newAuction.getId());
+        auctionsRepository.setActive(auction, auction.getStarttimestamp());
+        Auction getAuction = auctionsRepository.getAuction(auction.getId());
 
         assertEquals(Auction.active(), getAuction.getStatus());
         assertEquals(auction.getStarttimestamp(), getAuction.getStarttimestamp());
 
-        auctionsRepository.deleteAllAuctions();
     }
 
     @Test
     public void setAuctionTransferringTest() throws Exception {
-        Auction auction = testAuctionObject(1);
-        Auction newAuction = auctionsRepository.add(auction);
 
         auctionsRepository.setTransferring(auction.getTokenid());
-        Auction getAuction = auctionsRepository.getAuction(newAuction.getId());
+        Auction getAuction = auctionsRepository.getAuction(auction.getId());
 
         assertEquals(Auction.transfer(), getAuction.getStatus());
-        auctionsRepository.deleteAllAuctions();
     }
 
     @Test
     public void setTransferTransactionTest() throws Exception {
-        Auction auction = testAuctionObject(1);
-        Auction newAuction = auctionsRepository.add(auction);
-
-        auctionsRepository.setTransferTransaction(newAuction.getId(), auction.getTransfertxid(), auction.getTransfertxhash());
-        Auction getAuction = auctionsRepository.getAuction(newAuction.getId());
+        auctionsRepository.setTransferTransaction(auction.getId(), auction.getTransfertxid(), auction.getTransfertxhash());
+        Auction getAuction = auctionsRepository.getAuction(auction.getId());
 
         assertEquals(auction.getTransfertxid(), getAuction.getTransfertxid());
         assertEquals(auction.getTransfertxhash(), getAuction.getTransfertxhash());
-        auctionsRepository.deleteAllAuctions();
     }
 
     @Test
     public void setEndedTest() throws Exception {
-        Auction auction = testAuctionObject(1);
-        Auction newAuction = auctionsRepository.add(auction);
 
-        auctionsRepository.setEnded(newAuction.getId(), auction.getTransfertxhash());
-        Auction getAuction = auctionsRepository.getAuction(newAuction.getId());
+        auctionsRepository.setEnded(auction.getId(), auction.getTransfertxhash());
+        Auction getAuction = auctionsRepository.getAuction(auction.getId());
 
         assertEquals(auction.getTransfertxhash(), getAuction.getTransfertxhash());
-        auctionsRepository.deleteAllAuctions();
     }
     @Test
     public void setClosedByAuctionTest() throws Exception {
-        Auction auction = testAuctionObject(1);
-        @Var Auction newAuction = auctionsRepository.add(auction);
 
-        newAuction = auctionsRepository.setClosed(newAuction);
-        assertEquals(Auction.closed(), newAuction.getStatus());
+        auction = auctionsRepository.setClosed(auction);
+        assertEquals(Auction.closed(), auction.getStatus());
 
-        Auction getAuction = auctionsRepository.getAuction(newAuction.getId());
+        Auction getAuction = auctionsRepository.getAuction(auction.getId());
         assertEquals(Auction.closed(), getAuction.getStatus());
-        auctionsRepository.deleteAllAuctions();
     }
 
     @Test
     public void setClosedByAuctionIdTest() throws Exception {
-        Auction auction = testAuctionObject(1);
-        Auction newAuction = auctionsRepository.add(auction);
 
-        auctionsRepository.setClosed(newAuction.getId());
+        auctionsRepository.setClosed(auction.getId());
 
-        Auction getAuction = auctionsRepository.getAuction(newAuction.getId());
+        Auction getAuction = auctionsRepository.getAuction(auction.getId());
         assertEquals(Auction.closed(), getAuction.getStatus());
-        auctionsRepository.deleteAllAuctions();
     }
 
     @Test
     public void saveTest() throws Exception {
-        Auction auction = testAuctionObject(1);
-        Auction newAuction = auctionsRepository.add(auction);
 
         auction.setLastconsensustimestamp("updatedTimestamp");
         auction.setWinningaccount("updatedWinningAccount");
@@ -148,18 +137,21 @@ class AuctionDatabaseTest extends AbstractIntegrationTest {
 
         auctionsRepository.save(auction);
 
-        Auction getAuction = auctionsRepository.getAuction(newAuction.getId());
+        Auction getAuction = auctionsRepository.getAuction(auction.getId());
         assertEquals(auction.getLastconsensustimestamp(), getAuction.getLastconsensustimestamp());
         assertEquals(auction.getWinningaccount(), getAuction.getWinningaccount());
         assertEquals(auction.getWinningbid(), getAuction.getWinningbid());
         assertEquals(auction.getWinningtimestamp(), getAuction.getWinningtimestamp());
         assertEquals(auction.getWinningtxid(), getAuction.getWinningtxid());
         assertEquals(auction.getWinningtxhash(), getAuction.getWinningtxhash());
-        auctionsRepository.deleteAllAuctions();
+
     }
+
     @Test
     public void openAndPendingAuctionsTest() throws SQLException {
-        @Var Auction auction = testAuctionObject(1);
+
+        auctionsRepository.deleteAllAuctions();
+
         auction.setStatus(Auction.transfer());
         auctionsRepository.createComplete(auction);
 
@@ -182,7 +174,6 @@ class AuctionDatabaseTest extends AbstractIntegrationTest {
         Map<String, Integer> openPending = auctionsRepository.openAndPendingAuctions();
 
         assertEquals(2, openPending.size());
-        auctionsRepository.deleteAllAuctions();
     }
 
     @Test
@@ -190,48 +181,51 @@ class AuctionDatabaseTest extends AbstractIntegrationTest {
         int testCount = 5;
         int[] ids = new int[testCount];
 
+        auctionsRepository.deleteAllAuctions();
+
         for (int i=0; i < testCount; i++) {
-            @Var Auction auction = testAuctionObject(i);
-            auction = auctionsRepository.createComplete(auction);
-            ids[i] = auction.getId();
+            @Var Auction auctionTest = testAuctionObject(i);
+            auctionTest = auctionsRepository.createComplete(auctionTest);
+            ids[i] = auctionTest.getId();
 
         }
         List<Auction> auctions = auctionsRepository.getAuctionsList();
 
         for (int i=0; i < testCount; i++) {
 
-            Auction auction = auctions.get(i);
+            Auction auctionToTest = auctions.get(i);
             Auction testAuction = testAuctionObject(i);
 
-            assertEquals(ids[i], auction.getId());
+            assertEquals(ids[i], auctionToTest.getId());
 
-            assertEquals(testAuction.getWinningbid(), auction.getWinningbid());
-            assertEquals(testAuction.getWinningaccount(), auction.getWinningaccount());
-            assertEquals(testAuction.getWinningtimestamp(), auction.getWinningtimestamp());
-            assertEquals(testAuction.getTokenid(), auction.getTokenid());
-            assertEquals(testAuction.getAuctionaccountid(), auction.getAuctionaccountid());
-            assertEquals(testAuction.getEndtimestamp(), auction.getEndtimestamp());
-            assertEquals(testAuction.getReserve(), auction.getReserve());
-            assertEquals(testAuction.getStatus(), auction.getStatus());
-            assertEquals(testAuction.getWinnerCanBid(), auction.getWinnerCanBid());
-            assertEquals(testAuction.getWinningtxid(), auction.getWinningtxid());
-            assertEquals(testAuction.getWinningtxhash(), auction.getWinningtxhash());
-            assertEquals(testAuction.getTokenimage(), auction.getTokenimage());
-            assertEquals(testAuction.getMinimumbid(), auction.getMinimumbid());
-            assertEquals(testAuction.getStarttimestamp(), auction.getStarttimestamp());
-            assertEquals(testAuction.getTransfertxid(), auction.getTransfertxid());
-            assertEquals(testAuction.getTransfertxhash(), auction.getTransfertxhash());
-            assertEquals(testAuction.getLastconsensustimestamp(), auction.getLastconsensustimestamp());
+            assertEquals(testAuction.getWinningbid(), auctionToTest.getWinningbid());
+            assertEquals(testAuction.getWinningaccount(), auctionToTest.getWinningaccount());
+            assertEquals(testAuction.getWinningtimestamp(), auctionToTest.getWinningtimestamp());
+            assertEquals(testAuction.getTokenid(), auctionToTest.getTokenid());
+            assertEquals(testAuction.getAuctionaccountid(), auctionToTest.getAuctionaccountid());
+            assertEquals(testAuction.getEndtimestamp(), auctionToTest.getEndtimestamp());
+            assertEquals(testAuction.getReserve(), auctionToTest.getReserve());
+            assertEquals(testAuction.getStatus(), auctionToTest.getStatus());
+            assertEquals(testAuction.getWinnerCanBid(), auctionToTest.getWinnerCanBid());
+            assertEquals(testAuction.getWinningtxid(), auctionToTest.getWinningtxid());
+            assertEquals(testAuction.getWinningtxhash(), auctionToTest.getWinningtxhash());
+            assertEquals(testAuction.getTokenimage(), auctionToTest.getTokenimage());
+            assertEquals(testAuction.getMinimumbid(), auctionToTest.getMinimumbid());
+            assertEquals(testAuction.getStarttimestamp(), auctionToTest.getStarttimestamp());
+            assertEquals(testAuction.getTransfertxid(), auctionToTest.getTransfertxid());
+            assertEquals(testAuction.getTransfertxhash(), auctionToTest.getTransfertxhash());
+            assertEquals(testAuction.getLastconsensustimestamp(), auctionToTest.getLastconsensustimestamp());
         }
-        auctionsRepository.deleteAllAuctions();
     }
     @Test
     public void deleteAllAuctionsTest() throws SQLException {
         int testCount = 2;
 
+        auctionsRepository.deleteAllAuctions();
+
         for (int i=0; i < testCount; i++) {
-            Auction auction = testAuctionObject(i);
-            auctionsRepository.add(auction);
+            Auction auctionCreate = testAuctionObject(i);
+            auctionsRepository.add(auctionCreate);
         }
         @Var List<Auction> auctions = auctionsRepository.getAuctionsList();
         assertEquals(testCount, auctions.size());
@@ -239,25 +233,20 @@ class AuctionDatabaseTest extends AbstractIntegrationTest {
         auctions = auctionsRepository.getAuctionsList();
         assertEquals(0, auctions.size());
     }
+
     @Test
     public void duplicateAuctionTest() throws SQLException {
-        Auction auction = testAuctionObject(1);
-        auctionsRepository.add(auction);
+        // adding to the @beforeEach auction that's already created
         auctionsRepository.add(auction);
 
         List<Auction> auctions = auctionsRepository.getAuctionsList();
         assertEquals(1, auctions.size());
-        auctionsRepository.deleteAllAuctions();
     }
 
     @Test
-    public void auctionNotFoundTest() throws SQLException {
-        Auction auction = testAuctionObject(1);
-        auctionsRepository.add(auction);
-
+    public void auctionNotFoundTest() {
         assertThrows(Exception.class, () -> {
-            auctionsRepository.getAuction(2);
+            auctionsRepository.getAuction(0);
         });
-        auctionsRepository.deleteAllAuctions();
     }
 }

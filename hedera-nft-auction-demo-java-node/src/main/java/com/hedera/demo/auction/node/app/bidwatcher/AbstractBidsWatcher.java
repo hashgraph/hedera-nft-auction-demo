@@ -80,7 +80,7 @@ public abstract class AbstractBidsWatcher {
 
         if (transaction.isSuccessful()) {
             //Handle memo on transfer and create to allow for transactions that aren't bids
-            if (checkMemos(transaction.getMemo())) {
+            if (checkMemos(transaction.getMemoString())) {
                 return;
             }
 
@@ -156,7 +156,7 @@ public abstract class AbstractBidsWatcher {
                 this.auction.setWinningaccount(transaction.payer());
                 this.auction.setWinningbid(bidAmount);
                 this.auction.setWinningtxid(transaction.transactionId);
-                this.auction.setWinningtxhash(transaction.getTransactionHash());
+                this.auction.setWinningtxhash(transaction.getTransactionHashString());
             }
 
             // store the bid
@@ -167,7 +167,7 @@ public abstract class AbstractBidsWatcher {
             currentBid.setTimestamp(transaction.consensusTimestamp);
             currentBid.setStatus(rejectReason);
             currentBid.setTransactionid(transaction.transactionId);
-            currentBid.setTransactionhash(transaction.getTransactionHash());
+            currentBid.setTransactionhash(transaction.getTransactionHashString());
             bidsRepository.add(currentBid);
 
             if (refund) {

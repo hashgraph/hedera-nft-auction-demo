@@ -221,6 +221,8 @@ You can change some of the attribute values if you wish
 }
 ```
 
+*Note: the minimum bid and reserve are expressed in `tinybars`*
+
 __Create the auction__
 ```shell
 ./gradlew createAuction --args="./sample-files/initDemo.json"
@@ -348,11 +350,13 @@ curl -H "Content-Type: application/json" -X POST -d '
   "tokenid": "{{tokenId}}", 
   "auctionaccountid": "{{accountId}}", 
   "reserve": "", 
-  "minimumbid": "10", 
+  "minimumbid": "1000000", 
   "endtimestamp": "", 
   "winnercanbid": true
 }' http://localhost:8082/v1/admin/auction
 ```
+
+*Note: the minimum bid and reserve are expressed in `tinybars`*
 
 __Transfer the token to the auction account__
 

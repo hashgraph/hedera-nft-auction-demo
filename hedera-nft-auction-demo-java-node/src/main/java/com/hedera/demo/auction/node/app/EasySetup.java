@@ -64,7 +64,7 @@ public class EasySetup extends AbstractCreate {
         auction.put("tokenid", tokenId.toString());
         auction.put("auctionaccountid", auctionAccount.toString());
         auction.put("reserve", 0);
-        auction.put("minimumbid", 10);
+        auction.put("minimumbid", 1000000);
         auction.put("winnercanbid", true);
 
         // store auction data in initDemo.json file

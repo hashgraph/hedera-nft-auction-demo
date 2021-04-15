@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class WinnerTokenTransferWatcherIntegrationTest extends AbstractIntegrationTest {
 
-    private static class WinnerTokenTransferWatcher extends AbstractWinnerTokenTransferWatcher {
+    static class WinnerTokenTransferWatcher extends AbstractWinnerTokenTransferWatcher {
         protected WinnerTokenTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, Auction auction) {
             super(hederaClient, webClient, auctionsRepository, auction);
         }

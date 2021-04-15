@@ -9,7 +9,7 @@ import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.test.integration.AbstractIntegrationTest;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.junit5.VertxExtension;
@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(VertxExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class GetLastBidTest extends AbstractIntegrationTest {
+public class GetBidsIntegrationTest extends AbstractIntegrationTest {
 
     private PostgreSQLContainer postgres;
     private AuctionsRepository auctionsRepository;
@@ -67,34 +67,35 @@ public class GetLastBidTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void getLastBidTest(VertxTestContext testContext) throws SQLException {
+    public void getBidsTest(VertxTestContext testContext) throws SQLException {
         Auction auction = testAuctionObject(1);
         Auction newAuction1 = auctionsRepository.createComplete(auction);
 
         Bid bid1 = testBidObject(1, newAuction1.getId());
         bidsRepository.add(bid1);
+        bidsRepository.setRefundInProgress(bid1.getTimestamp(), bid1.getRefundtxid(), bid1.getRefundtxhash());
+        bidsRepository.setRefunded(bid1.getTimestamp(), bid1.getRefundtxhash());
 
         Bid bid2 = testBidObject(2, newAuction1.getId());
-        bid2.setBidderaccountid(bid1.getBidderaccountid());
         bidsRepository.add(bid2);
+        bidsRepository.setRefundInProgress(bid2.getTimestamp(), bid2.getRefundtxid(), bid2.getRefundtxhash());
+        bidsRepository.setRefunded(bid2.getTimestamp(), bid2.getRefundtxhash());
 
-        webClient.get(9005, "localhost", "/v1/lastbid/"
-                .concat(String.valueOf(bid1.getAuctionid()))
-                .concat("/")
-                .concat(bid1.getBidderaccountid())
-        )
-                .as(BodyCodec.jsonObject())
+        Bid bid0 = testBidObject(0, newAuction1.getId());
+        bidsRepository.add(bid0);
+
+        webClient.get(9005, "localhost", "/v1/bids/".concat(String.valueOf(bid1.getAuctionid())))
+                .as(BodyCodec.buffer())
                 .send(testContext.succeeding(response -> testContext.verify(() -> {
                     assertNotNull(response);
-                    JsonObject body = JsonObject.mapFrom(response.body());
+                    JsonArray body = new JsonArray(response.body());
                     assertNotNull(body);
-                    assertEquals(bid2.getBidamount(), body.getLong("bidamount"));
-                    assertEquals(bid2.getTransactionid(), body.getString("transactionid"));
-                    assertEquals(bid2.getBidderaccountid(), body.getString("bidderaccountid"));
-                    assertEquals(bid2.getTimestamp(), body.getString("timestamp"));
-                    assertEquals(bid2.getAuctionid(), body.getInteger("auctionid"));
+                    assertEquals(3, body.size());
+                    verifyBid(bid1, body.getJsonObject(1));
+                    verifyBid(bid2, body.getJsonObject(0));
+                    // test for bid that has not been refunded yet
+                    assertEquals(bid0.getRefunded(), body.getJsonObject(2).getBoolean("refunded"));
 
-                    vertx.close(testContext.succeeding());
                     bidsRepository.deleteAllBids();
                     auctionsRepository.deleteAllAuctions();
                     testContext.completeNow();

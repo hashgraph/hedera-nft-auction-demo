@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class RefundCheckerTest extends AbstractIntegrationTest {
+public class RefundCheckerIntegrationTest extends AbstractIntegrationTest {
 
     private PostgreSQLContainer postgres;
     private AuctionsRepository auctionsRepository;
@@ -44,7 +44,7 @@ public class RefundCheckerTest extends AbstractIntegrationTest {
     RefundTester refundTester;
     Bid bid;
 
-    public RefundCheckerTest() throws Exception {
+    public RefundCheckerIntegrationTest() throws Exception {
     }
 
     static class RefundTester extends AbstractRefundChecker {

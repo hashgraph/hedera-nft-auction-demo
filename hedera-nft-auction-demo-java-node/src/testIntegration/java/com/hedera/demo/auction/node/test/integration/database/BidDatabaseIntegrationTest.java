@@ -24,14 +24,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class BidDatabaseTest extends AbstractIntegrationTest {
+class BidDatabaseIntegrationTest extends AbstractIntegrationTest {
 
     private PostgreSQLContainer postgres;
     private BidsRepository bidsRepository;
     private int auctionId;
     private Bid bid;
 
-    public BidDatabaseTest() {
+    public BidDatabaseIntegrationTest() {
     }
 
     @BeforeAll

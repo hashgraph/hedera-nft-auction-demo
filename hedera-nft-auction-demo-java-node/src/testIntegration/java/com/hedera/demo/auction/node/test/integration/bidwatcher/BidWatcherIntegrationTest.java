@@ -34,9 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class BidWatcherTest extends AbstractIntegrationTest {
+class BidWatcherIntegrationTest extends AbstractIntegrationTest {
 
-    public BidWatcherTest() {
+    public BidWatcherIntegrationTest() {
     }
 
     private PostgreSQLContainer postgres;

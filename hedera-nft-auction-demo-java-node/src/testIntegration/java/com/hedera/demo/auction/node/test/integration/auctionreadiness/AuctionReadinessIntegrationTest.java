@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class AuctionReadinessTest extends AbstractIntegrationTest {
+public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
 
     private PostgreSQLContainer postgres;
     private AuctionsRepository auctionsRepository;
@@ -39,7 +39,7 @@ public class AuctionReadinessTest extends AbstractIntegrationTest {
     private HederaClient hederaClient = HederaClient.emptyTestClient();
     private ReadinessTester readinessTester;
 
-    public AuctionReadinessTest() throws Exception {
+    public AuctionReadinessIntegrationTest() throws Exception {
     }
 
     static class ReadinessTester extends AbstractAuctionReadinessWatcher {

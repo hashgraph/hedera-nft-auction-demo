@@ -2,7 +2,7 @@ package com.hedera.demo.auction.node.test.integration.mirror;
 
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransaction;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
-import com.hedera.demo.auction.node.test.integration.AbstractMirrorTest;
+import com.hedera.demo.auction.node.test.integration.AbstractMirrorIntegrationTest;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -15,9 +15,9 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class HederaMirrorMappingTransactionTest extends AbstractMirrorTest {
+public class HederaMirrorMappingTransactionIntegrationTest extends AbstractMirrorIntegrationTest {
 
-    public HederaMirrorMappingTransactionTest() throws Exception {
+    public HederaMirrorMappingTransactionIntegrationTest() throws Exception {
         super("hedera");
     }
 

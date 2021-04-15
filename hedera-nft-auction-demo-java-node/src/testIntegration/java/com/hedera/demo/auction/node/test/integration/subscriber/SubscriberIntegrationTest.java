@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class SubscriberTest extends AbstractIntegrationTest {
+public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
     private PostgreSQLContainer postgres;
     private AuctionsRepository auctionsRepository;
@@ -49,7 +49,7 @@ public class SubscriberTest extends AbstractIntegrationTest {
     private final static long sequenceNumber = 0;
     private final static TransactionId transactionId = null;
 
-    public SubscriberTest() throws Exception {
+    public SubscriberIntegrationTest() throws Exception {
     }
 
     @BeforeAll

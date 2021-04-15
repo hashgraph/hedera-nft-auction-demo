@@ -1,18 +1,12 @@
 package com.hedera.demo.auction.node.app;
 
 import com.google.errorprone.annotations.Var;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.PrecheckStatusException;
-import com.hedera.hashgraph.sdk.ReceiptStatusException;
-import com.hedera.hashgraph.sdk.TopicCreateTransaction;
-import com.hedera.hashgraph.sdk.TopicId;
-import com.hedera.hashgraph.sdk.TransactionReceipt;
-import com.hedera.hashgraph.sdk.TransactionResponse;
+import com.hedera.hashgraph.sdk.*;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,11 +18,15 @@ import java.util.concurrent.TimeoutException;
 @Log4j2
 public class CreateTopic extends AbstractCreate {
 
+    private String dotEnvFile = ".env";
+
     public CreateTopic() throws Exception {
         hederaClient = new HederaClient(env);
     }
 
-
+    public void setTargetDotEnvFile(String dotEnvFile) {
+        this.dotEnvFile = dotEnvFile;
+    }
     /**
      * Creates a Topic Id with a submit key and adds it to the .env file
      * Note: This will also replace the existing value if it exists
@@ -40,7 +38,6 @@ public class CreateTopic extends AbstractCreate {
      */
 
     public TopicId create() throws Exception {
-        String dotEnvFile = ".env";
 
         Client client = hederaClient.client();
 
@@ -57,7 +54,7 @@ public class CreateTopic extends AbstractCreate {
 
         Path dotEnvPath = Paths.get(dotEnvFile);
         Path dotEnvTempPath = Paths.get(dotEnvFile.concat(".test"));
-        PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(dotEnvTempPath, Charset.defaultCharset()));
+        PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(dotEnvTempPath, StandardCharsets.UTF_8));
 
         List<String> dotEnvLines = Files.readAllLines(dotEnvPath);
 

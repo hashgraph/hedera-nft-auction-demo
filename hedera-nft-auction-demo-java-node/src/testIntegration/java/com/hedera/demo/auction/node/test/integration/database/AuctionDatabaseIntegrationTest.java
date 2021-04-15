@@ -24,9 +24,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class AuctionDatabaseTest extends AbstractIntegrationTest {
+class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
 
-    public AuctionDatabaseTest() {
+    public AuctionDatabaseIntegrationTest() {
     }
 
     private PostgreSQLContainer postgres;

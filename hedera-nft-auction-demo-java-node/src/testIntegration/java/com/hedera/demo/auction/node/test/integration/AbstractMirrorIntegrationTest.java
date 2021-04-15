@@ -2,7 +2,7 @@ package com.hedera.demo.auction.node.test.integration;
 
 import com.hedera.demo.auction.node.app.HederaClient;
 
-public class AbstractMirrorTest extends AbstractIntegrationTest {
+public class AbstractMirrorIntegrationTest extends AbstractIntegrationTest {
 
 //    private final static boolean restAPI = Optional.ofNullable(env.get("REST_API")).map(Boolean::parseBoolean).orElse(false);
 //    private final static int restApiVerticleCount = Optional.ofNullable(env.get("API_VERTICLE_COUNT")).map(Integer::parseInt).orElse(2);
@@ -20,7 +20,7 @@ public class AbstractMirrorTest extends AbstractIntegrationTest {
     protected String mirrorURL;
     protected HederaClient hederaClient;
 
-    public AbstractMirrorTest(String mirrorProvider) throws Exception {
+    public AbstractMirrorIntegrationTest(String mirrorProvider) throws Exception {
         this.hederaClient = new HederaClient(env);
         this.hederaClient.setMirrorProvider(mirrorProvider);
         this.mirrorURL = this.hederaClient.mirrorUrl();

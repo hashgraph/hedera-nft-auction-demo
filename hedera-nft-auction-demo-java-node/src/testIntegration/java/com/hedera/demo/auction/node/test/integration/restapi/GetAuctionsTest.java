@@ -14,7 +14,6 @@ import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -23,6 +22,10 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(VertxExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -48,7 +51,7 @@ public class GetAuctionsTest extends AbstractIntegrationTest {
 
         this.webClient = WebClient.create(this.vertx);
 
-        Assertions.assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+        assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
         if (testContext.failed()) {
             throw testContext.causeOfFailure();
         }
@@ -70,10 +73,10 @@ public class GetAuctionsTest extends AbstractIntegrationTest {
         webClient.get(9005, "localhost", "/v1/auctions/")
                 .as(BodyCodec.buffer())
                 .send(testContext.succeeding(response -> testContext.verify(() -> {
-                    Assertions.assertNotNull(response);
+                    assertNotNull(response);
                     JsonArray body = new JsonArray(response.body());
-                    Assertions.assertNotNull(body);
-                    Assertions.assertEquals(2, body.size());
+                    assertNotNull(body);
+                    assertEquals(2, body.size());
                     verifyAuction(newAuction1, body.getJsonObject(0));
                     verifyAuction(newAuction2, body.getJsonObject(1));
 

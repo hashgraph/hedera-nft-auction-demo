@@ -12,7 +12,6 @@ import com.hedera.hashgraph.sdk.TransactionId;
 import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +24,10 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -92,14 +95,14 @@ public class SubscriberTest extends AbstractIntegrationTest {
 
         List<Auction> auctions = auctionsRepository.getAuctionsList();
 
-        Assertions.assertEquals(1, auctions.size());
+        assertEquals(1, auctions.size());
         consensusTimestamp = consensusTimestamp.plus(2, ChronoUnit.DAYS);
-        Assertions.assertEquals(consensusTimeStampWithNanos(), auctions.get(0).getEndtimestamp());
-        Assertions.assertEquals(0, auctions.get(0).getWinningbid());
-        Assertions.assertEquals(tokenId, auctions.get(0).getTokenid());
-        Assertions.assertEquals(auctionAccountId, auctions.get(0).getAuctionaccountid());
-        Assertions.assertEquals(100, auctions.get(0).getReserve());
-        Assertions.assertTrue(auctions.get(0).getWinnerCanBid());
+        assertEquals(consensusTimeStampWithNanos(), auctions.get(0).getEndtimestamp());
+        assertEquals(0, auctions.get(0).getWinningbid());
+        assertEquals(tokenId, auctions.get(0).getTokenid());
+        assertEquals(auctionAccountId, auctions.get(0).getAuctionaccountid());
+        assertEquals(100, auctions.get(0).getReserve());
+        assertTrue(auctions.get(0).getWinnerCanBid());
     }
 
     @Test
@@ -113,13 +116,13 @@ public class SubscriberTest extends AbstractIntegrationTest {
 
         List<Auction> auctions = auctionsRepository.getAuctionsList();
 
-        Assertions.assertEquals(1, auctions.size());
-        Assertions.assertEquals(consensusTimeStampWithNanos(), auctions.get(0).getEndtimestamp());
-        Assertions.assertEquals(0, auctions.get(0).getWinningbid());
-        Assertions.assertEquals(tokenId, auctions.get(0).getTokenid());
-        Assertions.assertEquals(auctionAccountId, auctions.get(0).getAuctionaccountid());
-        Assertions.assertEquals(100, auctions.get(0).getReserve());
-        Assertions.assertTrue(auctions.get(0).getWinnerCanBid());
+        assertEquals(1, auctions.size());
+        assertEquals(consensusTimeStampWithNanos(), auctions.get(0).getEndtimestamp());
+        assertEquals(0, auctions.get(0).getWinningbid());
+        assertEquals(tokenId, auctions.get(0).getTokenid());
+        assertEquals(auctionAccountId, auctions.get(0).getAuctionaccountid());
+        assertEquals(100, auctions.get(0).getReserve());
+        assertTrue(auctions.get(0).getWinnerCanBid());
     }
 
     @Test
@@ -132,14 +135,14 @@ public class SubscriberTest extends AbstractIntegrationTest {
 
         List<Auction> auctions = auctionsRepository.getAuctionsList();
 
-        Assertions.assertEquals(1, auctions.size());
+        assertEquals(1, auctions.size());
         consensusTimestamp = consensusTimestamp.plus(2, ChronoUnit.DAYS);
-        Assertions.assertEquals(consensusTimeStampWithNanos(), auctions.get(0).getEndtimestamp());
-        Assertions.assertEquals(0, auctions.get(0).getWinningbid());
-        Assertions.assertEquals(tokenId, auctions.get(0).getTokenid());
-        Assertions.assertEquals(auctionAccountId, auctions.get(0).getAuctionaccountid());
-        Assertions.assertEquals(100, auctions.get(0).getReserve());
-        Assertions.assertFalse(auctions.get(0).getWinnerCanBid());
+        assertEquals(consensusTimeStampWithNanos(), auctions.get(0).getEndtimestamp());
+        assertEquals(0, auctions.get(0).getWinningbid());
+        assertEquals(tokenId, auctions.get(0).getTokenid());
+        assertEquals(auctionAccountId, auctions.get(0).getAuctionaccountid());
+        assertEquals(100, auctions.get(0).getReserve());
+        assertFalse(auctions.get(0).getWinnerCanBid());
     }
 
     @Test
@@ -154,14 +157,14 @@ public class SubscriberTest extends AbstractIntegrationTest {
 
         List<Auction> auctions = auctionsRepository.getAuctionsList();
 
-        Assertions.assertEquals(1, auctions.size());
+        assertEquals(1, auctions.size());
         consensusTimestamp = consensusTimestamp.plus(2, ChronoUnit.DAYS);
-        Assertions.assertEquals(consensusTimeStampWithNanos(), auctions.get(0).getEndtimestamp());
-        Assertions.assertEquals(0, auctions.get(0).getWinningbid());
-        Assertions.assertEquals(tokenId, auctions.get(0).getTokenid());
-        Assertions.assertEquals(auctionAccountId, auctions.get(0).getAuctionaccountid());
-        Assertions.assertEquals(0, auctions.get(0).getReserve());
-        Assertions.assertFalse(auctions.get(0).getWinnerCanBid());
+        assertEquals(consensusTimeStampWithNanos(), auctions.get(0).getEndtimestamp());
+        assertEquals(0, auctions.get(0).getWinningbid());
+        assertEquals(tokenId, auctions.get(0).getTokenid());
+        assertEquals(auctionAccountId, auctions.get(0).getAuctionaccountid());
+        assertEquals(0, auctions.get(0).getReserve());
+        assertFalse(auctions.get(0).getWinnerCanBid());
     }
 
     private void createTopicMessageWrapper() {

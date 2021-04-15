@@ -26,7 +26,7 @@ public abstract class AbstractWinnerTokenTransferWatcher {
         this.mirrorURL = hederaClient.mirrorUrl();
     }
 
-    protected void handleResponse(JsonObject response, Auction auction) {
+    public void handleResponse(JsonObject response, Auction auction) {
         try {
             MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
             if (mirrorTransactions.transactions.size() > 0) {

@@ -33,7 +33,6 @@ public class WinnerTokenTransfer implements Runnable {
     protected final String refundKey;
     protected final HederaClient hederaClient;
 
-
     public WinnerTokenTransfer(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
@@ -72,12 +71,6 @@ public class WinnerTokenTransfer implements Runnable {
 
                     winnerTokenTransfer.checkAssociation();
 
-                    try {
-                        Thread.sleep(this.mirrorQueryFrequency);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        log.error(e);
-                    }
                 }
                 if (auction.isTransferring()) {
                     if (auction.getTransfertxid().isEmpty()) {
@@ -86,10 +79,16 @@ public class WinnerTokenTransfer implements Runnable {
                     }
                 }
             }
+            try {
+                Thread.sleep(this.mirrorQueryFrequency);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                log.error(e);
+            }
         }
     }
 
-    private void transferToWinner(Auction auction) {
+    public void transferToWinner(Auction auction) {
         TokenId tokenId = TokenId.fromString(auction.getTokenid());
         AccountId auctionAccountId = AccountId.fromString(auction.getAuctionaccountid());
         AccountId winningAccountId = AccountId.fromString(auction.getWinningaccount());

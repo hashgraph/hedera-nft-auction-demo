@@ -293,7 +293,7 @@ public class Auction implements VertxPojo, Serializable {
         this.setTokenid(json.getString("tokenid"));
         this.setAuctionaccountid(json.getString("auctionaccountid"));
         this.setEndtimestamp(json.getString("endtimestamp", ""));
-        this.setReserve(json.getLong("reserve"));
+        this.setReserve(json.getLong("reserve", 0L));
         this.setStatus(json.getString("status", "PENDING"));
         this.setWinnercanbid(json.getBoolean("winnercanbid", /* def= */false));
         this.setWinningtxid(json.getString("winningtxid"));

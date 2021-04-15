@@ -8,6 +8,8 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
 import lombok.extern.log4j.Log4j2;
 
+import java.sql.SQLException;
+
 @Log4j2
 public class HederaWinnerTokenTransfer extends AbstractWinnerTokenTransfer implements WinnerTokenTransferInterface {
 
@@ -32,17 +34,7 @@ public class HederaWinnerTokenTransfer extends AbstractWinnerTokenTransfer imple
             if (response.succeeded()) {
                 JsonObject body = response.result().body();
                 try {
-                    if (body.containsKey("balances")) {
-                        JsonArray balances = body.getJsonArray("balances");
-                        if (balances.size() != 0) {
-                            for (Object balanceObject : balances) {
-                                JsonObject balance = JsonObject.mapFrom(balanceObject);
-                                if (balance.getString("account").equals(winningAccountId)) {
-                                    auctionsRepository.setTransferring(tokenId);
-                                }
-                            }
-                        }
-                    }
+                    checkTransfer(body);
                 } catch (Exception e) {
                     log.error(e);
                 }
@@ -50,5 +42,19 @@ public class HederaWinnerTokenTransfer extends AbstractWinnerTokenTransfer imple
                 log.error(response.cause().getMessage());
             }
         });
+    }
+    
+    public void checkTransfer(JsonObject body) throws SQLException {
+        if (body.containsKey("balances")) {
+            JsonArray balances = body.getJsonArray("balances");
+            if (balances.size() != 0) {
+                for (Object balanceObject : balances) {
+                    JsonObject balance = JsonObject.mapFrom(balanceObject);
+                    if (balance.getString("account").equals(winningAccountId)) {
+                        auctionsRepository.setTransferring(tokenId);
+                    }
+                }
+            }
+        }
     }
 }

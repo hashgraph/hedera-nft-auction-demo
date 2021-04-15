@@ -34,7 +34,7 @@ public class HederaWinnerTokenTransfer extends AbstractWinnerTokenTransfer imple
             if (response.succeeded()) {
                 JsonObject body = response.result().body();
                 try {
-                    checkTransfer(body);
+                    checkForAssociation(body);
                 } catch (Exception e) {
                     log.error(e);
                 }
@@ -43,8 +43,10 @@ public class HederaWinnerTokenTransfer extends AbstractWinnerTokenTransfer imple
             }
         });
     }
-    
-    public void checkTransfer(JsonObject body) throws SQLException {
+
+    public void checkForAssociation(JsonObject body) throws SQLException {
+        // if the token is associated with the account, it will be in the response
+        // the actual balance is not important, a balance of 0 means associated in any case
         if (body.containsKey("balances")) {
             JsonArray balances = body.getJsonArray("balances");
             if (balances.size() != 0) {

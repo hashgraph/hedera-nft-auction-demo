@@ -43,6 +43,7 @@ public class TopicSubscriber implements Runnable{
     private final String refundKey;
     private final int mirrorQueryFrequency;
     private final HederaClient hederaClient;
+    private boolean testing = false;
 
     public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, WebClient webClient, TopicId topicId, String refundKey, int mirrorQueryFrequency) {
         this.auctionsRepository = auctionsRepository;
@@ -54,6 +55,9 @@ public class TopicSubscriber implements Runnable{
         this.hederaClient = hederaClient;
     }
 
+    public void setTesting() {
+        testing = true;
+    }
     @Override
     public void run() {
         try {
@@ -96,40 +100,48 @@ public class TopicSubscriber implements Runnable{
         }
     }
 
+
     private void handle(Client client, TopicMessage topicMessage) {
+        TopicMessageWrapper topicMessageWrapper = new TopicMessageWrapper(topicMessage);
+        handle(client, topicMessageWrapper);
+    }
+
+    public void handle(Client client, TopicMessageWrapper topicMessageWrapper) {
         try {
-            String auctionData = new String(topicMessage.contents, StandardCharsets.UTF_8);
+            String auctionData = new String(topicMessageWrapper.contents, StandardCharsets.UTF_8);
             JsonObject auctionJson = new JsonObject(auctionData);
             Auction newAuction = new Auction().fromJson(auctionJson);
             @Var String endTimeStamp = newAuction.getEndtimestamp();
             if (StringUtils.isEmpty(endTimeStamp)) {
                 // no end timestamp, use consensus timestamp + 2 days
-                Instant consensusTime = topicMessage.consensusTimestamp;
+                Instant consensusTime = topicMessageWrapper.consensusTimestamp;
                 endTimeStamp = String.valueOf(consensusTime.plus(2, ChronoUnit.DAYS).getEpochSecond());
             }
             newAuction.setEndtimestamp(endTimeStamp.concat(".000000000")); // add nanoseconds
             newAuction.setWinningbid(0L);
 
-            // get token info
-            TokenInfo tokenInfo = new TokenInfoQuery()
-                    .setTokenId(TokenId.fromString(newAuction.getTokenid()))
-                    .execute(client);
-
-            // if token symbol starts with HEDERA://
-            // load file from hedera
-            if (tokenInfo.symbol.startsWith("HEDERA://")) {
-                String fileId = tokenInfo.symbol.replace("HEDERA://", "");
-                ByteString contentsQuery = new FileContentsQuery()
-                        .setFileId(FileId.fromString(fileId))
+            if (! testing) {
+                // get token info
+                TokenInfo tokenInfo = new TokenInfoQuery()
+                        .setTokenId(TokenId.fromString(newAuction.getTokenid()))
                         .execute(client);
-                String contents = contentsQuery.toString(StandardCharsets.UTF_8);
-                // set token image data
-                newAuction.setTokenimage(contents);
+
+                // if token symbol starts with HEDERA://
+                // load file from hedera
+                if (tokenInfo.symbol.startsWith("HEDERA://")) {
+                    String fileId = tokenInfo.symbol.replace("HEDERA://", "");
+                    ByteString contentsQuery = new FileContentsQuery()
+                            .setFileId(FileId.fromString(fileId))
+                            .execute(client);
+                    String contents = contentsQuery.toString(StandardCharsets.UTF_8);
+                    // set token image data
+                    newAuction.setTokenimage(contents);
+                }
             }
 
             Auction auction = auctionsRepository.add(newAuction);
 
-            if (auction.getId() != null) {
+            if ((auction.getId() != 0) && ! testing) {
                 log.info("Auction for token " + newAuction.getTokenid() + " added");
 
                 // If refund key, associate with the token using a scheduled transaction

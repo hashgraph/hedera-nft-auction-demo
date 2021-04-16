@@ -15,7 +15,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TopicCreateTest {
+public class TopicCreateSystemTest {
     Dotenv dotenv = Dotenv.configure().filename(".env.system").ignoreIfMissing().load();
 
     @Test

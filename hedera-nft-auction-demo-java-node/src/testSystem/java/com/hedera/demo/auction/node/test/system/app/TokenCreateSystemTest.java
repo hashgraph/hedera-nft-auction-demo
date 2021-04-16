@@ -18,7 +18,7 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TokenCreateTest {
+public class TokenCreateSystemTest {
     private static final Dotenv dotenv = Dotenv.configure().filename(".env.system").ignoreIfMissing().load();
     private static CreateToken createToken;
     private static HederaClient hederaClient;

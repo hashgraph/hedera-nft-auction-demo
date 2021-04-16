@@ -6,7 +6,8 @@ name: Java System CI with Gradle
 on:
   release:
     branches: [ master ]
-
+  workflow_dispatch:
+    
 jobs:
   build:
 

@@ -18,7 +18,7 @@
 
 The java projects use Lombok, ensure that the plug is installed in your IDE and configured properly [Lombok Plugin](https://www.baeldung.com/lombok-ide)
 
-Note that enabling annotation processing differs between versions of IntelliJ `Preferences > Compiler > Annotation Processors` before IntelliJ2017, starting with IntelliJ 2017, the "Enable Annotation Processing" checkbox has moved to: `Settings > Build, Execution, Deployment > Compiler > Annotation Processors`
+*Note that enabling annotation processing differs between versions of IntelliJ `Preferences > Compiler > Annotation Processors` before IntelliJ2017, starting with IntelliJ 2017, the "Enable Annotation Processing" checkbox has moved to: `Settings > Build, Execution, Deployment > Compiler > Annotation Processors`*
 
 ## Description
 
@@ -34,8 +34,8 @@ The back end fulfils 3 separate roles
 
 The latter can be run in readonly mode, meaning the processing will validate bids but will not be able to participate in refunds or token transfers on auction completion.
 
-Note: The three roles can be run within a single instance of the Java application or run in individual Java instances, for example, one instance could process bids, while one or more others could serve the UI REST API for scalability purposes. This is determined by environment variable parameters.
-The Docker deployment runs two instances, one for bid processing, the other for the UI and Admin REST APIs for example.
+*Note: The three roles can be run within a single instance of the Java application or run in individual Java instances, for example, one instance could process bids, while one or more others could serve the UI REST API for scalability purposes. This is determined by environment variable parameters.
+The Docker deployment runs two instances, one for bid processing, the other for the UI and Admin REST APIs for example.*
 
 The admin API runs on a separate port to the UI REST API to ensure it can be firewalled separately and protected from malicious execution.
 
@@ -61,7 +61,7 @@ git clone https://github.com/hashgraph/hedera-nft-auction-demo.git
 
 All database objects will be created in the `public` database.
 
-Note the installation below assumes the user is `postgres` and the password is `password`.
+*Note the installation below assumes the user is `postgres` and the password is `password`.*
 
 #### Java Appnet Node
 
@@ -81,6 +81,12 @@ nano .env
 ```
 
 set the following properties according to your Hedera account and refund key details
+
+*Note: 
+The operator id/key is used to query the hedera network (free queries) 
+* It is also used to set the submit key for the auction topic and also for creating the auction account, submitting auction creation messages to the topic.
+* And optionally creating a token to auction, then transferring it to the auction account*
+
 
 * OPERATOR_ID=
 * OPERATOR_KEY=302.....
@@ -115,7 +121,7 @@ nano .env
 
 A number of helper functions are available from the project in order to get you started quickly.
 
-Note, this section assumes you are running the commands from the `hedera-nft-auction-demo-java-node` directory.
+*Note, this section assumes you are running the commands from the `hedera-nft-auction-demo-java-node` directory.*
 
 ```shell
 cd hedera-nft-auction-demo
@@ -199,7 +205,7 @@ This command will create an auction account with an initial balance of `100` hba
 ./gradlew createAuctionAccount --args="100"
 ```
 
-_Note: For more complex key structures, use the REST admin api.
+*Note: For more complex key structures, use the REST admin api.*
 
 set the resulting `Account Id` to the `auctionaccountid` attribute in your `./sample-files/initDemo.json` file.
 
@@ -374,7 +380,7 @@ curl -H "Content-Type: application/json" -X POST -d '
 
 #### Run the components
 
-_Note: Each of the steps below need to be run from a different command line window_
+*Note: Each of the steps below need to be run from a different command line window*
 
 ```shell
 cd hedera-nft-auction-demo

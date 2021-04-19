@@ -22,7 +22,7 @@ import java.nio.file.Path;
 public class CreateToken extends AbstractCreate {
 
     public CreateToken() throws Exception {
-        hederaClient = new HederaClient(env);
+        super();
     }
 
     /**

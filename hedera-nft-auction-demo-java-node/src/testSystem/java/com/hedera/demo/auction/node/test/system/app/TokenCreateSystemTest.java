@@ -1,11 +1,10 @@
 package com.hedera.demo.auction.node.test.system.app;
 
 import com.google.protobuf.ByteString;
-import com.hedera.demo.auction.node.app.CreateToken;
-import com.hedera.demo.auction.node.app.HederaClient;
-import com.hedera.hashgraph.sdk.*;
-import io.github.cdimascio.dotenv.Dotenv;
-import org.junit.jupiter.api.BeforeAll;
+import com.hedera.hashgraph.sdk.FileContentsQuery;
+import com.hedera.hashgraph.sdk.FileId;
+import com.hedera.hashgraph.sdk.FileInfo;
+import com.hedera.hashgraph.sdk.FileInfoQuery;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
@@ -15,31 +14,19 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class TokenCreateSystemTest {
-    private static final Dotenv dotenv = Dotenv.configure().filename(".env.system").ignoreIfMissing().load();
-    private static CreateToken createToken;
-    private static HederaClient hederaClient;
-    private static final String tokenName = "TestToken";
-    private static final long initialSupply = 10;
-    private static final int decimals = 2;
-    private static final String symbol = "TestSymbol";
+public class TokenCreateSystemTest extends AbstractSystemTest {
 
-    @BeforeAll
-    public void beforeAll() throws Exception {
-        hederaClient = new HederaClient(dotenv);
-        createToken = new CreateToken();
-        createToken.setEnv(dotenv);
+    TokenCreateSystemTest() throws Exception {
     }
+
     @Test
     public void testCreateTokenNoFile() throws Exception {
-        TokenId tokenId = createToken.create(tokenName, symbol, initialSupply, decimals);
-
-        TokenInfo tokenInfo = new TokenInfoQuery()
-                .setTokenId(tokenId)
-                .execute(hederaClient.client());
+        createTokenAndGetInfo(symbol);
 
         assertEquals(tokenName, tokenInfo.name);
         assertEquals(symbol, tokenInfo.symbol);
@@ -63,11 +50,7 @@ public class TokenCreateSystemTest {
         printWriter.print(fileTestData);
         printWriter.close();
 
-        TokenId tokenId = createToken.create(tokenName, tempFile.getAbsolutePath(), initialSupply, decimals);
-
-        TokenInfo tokenInfo = new TokenInfoQuery()
-                .setTokenId(tokenId)
-                .execute(hederaClient.client());
+        createTokenAndGetInfo(tempFile.getAbsolutePath());
 
         assertEquals(tokenName, tokenInfo.name);
         assertNull(tokenInfo.adminKey);
@@ -111,11 +94,7 @@ public class TokenCreateSystemTest {
         printWriter.print(fileTestData);
         printWriter.close();
 
-        TokenId tokenId = createToken.create(tokenName, tempFile.getAbsolutePath(), initialSupply, decimals);
-
-        TokenInfo tokenInfo = new TokenInfoQuery()
-                .setTokenId(tokenId)
-                .execute(hederaClient.client());
+        createTokenAndGetInfo(tempFile.getAbsolutePath());
 
         assertEquals(tokenName, tokenInfo.name);
         assertNull(tokenInfo.adminKey);

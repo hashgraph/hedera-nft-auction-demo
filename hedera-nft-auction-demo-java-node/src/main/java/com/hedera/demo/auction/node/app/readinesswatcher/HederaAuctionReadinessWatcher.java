@@ -35,7 +35,7 @@ public class HederaAuctionReadinessWatcher extends AbstractAuctionReadinessWatch
         AtomicReference<String> uri = new AtomicReference<>("");
         uri.set("/api/v1/transactions");
 
-        while (true) {
+        while (runThread) {
             if (!querying.get()) {
                 querying.set(true);
 

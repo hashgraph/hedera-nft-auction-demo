@@ -31,7 +31,7 @@ public class HederaBidsWatcher extends AbstractBidsWatcher implements BidsWatche
                 .addQueryParam("order", "asc")
                 .addQueryParam("timestamp","gt:0");
 
-        while (true) {
+        while (runThread) {
             if (!querying.get()) {
                 querying.set(true);
 

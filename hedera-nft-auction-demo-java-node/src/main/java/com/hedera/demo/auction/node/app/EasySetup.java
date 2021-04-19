@@ -18,7 +18,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class EasySetup extends AbstractCreate {
 
     public EasySetup() throws Exception {
-        hederaClient = new HederaClient(env);
+        super();
     }
 
     final static SqlConnectionManager connectionManager = new SqlConnectionManager(env);

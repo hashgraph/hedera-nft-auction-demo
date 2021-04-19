@@ -1,6 +1,5 @@
 package com.hedera.demo.auction.node.app.winnertokentransferwatcher;
 
-import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
@@ -17,6 +16,8 @@ public class WinnerTokenTransferWatcher implements Runnable {
     private final int mirrorQueryFrequency;
     private final String mirrorProvider;
     private final HederaClient hederaClient;
+    private boolean runThread = true;
+    private WinnerTokenTransferWatcherInterface winnerTokenTransferWatcher = null;
 
     public WinnerTokenTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency) {
         this.webClient = webClient;
@@ -28,9 +29,7 @@ public class WinnerTokenTransferWatcher implements Runnable {
 
     @Override
     public void run() {
-        @Var WinnerTokenTransferWatcherInterface winnerTokenTransferWatcher;
-
-        while (true) {
+        while (runThread) {
             try {
                 for (Auction auction : auctionsRepository.getAuctionsList()) {
                     if (auction.isTransferring()) {
@@ -60,5 +59,9 @@ public class WinnerTokenTransferWatcher implements Runnable {
                 log.error(e);
             }
         }
+    }
+    
+    public void stop() {
+        runThread = false;
     }
 }

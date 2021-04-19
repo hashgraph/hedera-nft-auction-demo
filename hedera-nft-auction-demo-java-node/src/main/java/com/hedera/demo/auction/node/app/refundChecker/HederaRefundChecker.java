@@ -25,7 +25,7 @@ public class HederaRefundChecker extends AbstractRefundChecker implements Refund
 
         String uri = "/api/v1/transactions";
 
-        while (true) {
+        while (runThread) {
             // get list of bids where refund is in progress (refunded = false)
             // look for a successful scheduled transaction
             // and set bid accordingly (refunded)

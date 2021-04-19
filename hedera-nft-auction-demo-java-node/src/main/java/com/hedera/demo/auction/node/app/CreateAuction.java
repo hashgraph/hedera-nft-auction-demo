@@ -21,6 +21,7 @@ import java.util.concurrent.TimeoutException;
 public class CreateAuction extends AbstractCreate {
 
     public CreateAuction() throws Exception {
+        super();
     }
 
     /**

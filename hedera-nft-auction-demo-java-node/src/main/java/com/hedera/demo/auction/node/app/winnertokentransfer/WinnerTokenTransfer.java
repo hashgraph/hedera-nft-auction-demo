@@ -32,6 +32,7 @@ public class WinnerTokenTransfer implements Runnable {
     protected final String mirrorProvider;
     protected final String refundKey;
     protected final HederaClient hederaClient;
+    protected boolean runThread = true;
 
     public WinnerTokenTransfer(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
@@ -42,6 +43,10 @@ public class WinnerTokenTransfer implements Runnable {
         this.mirrorProvider = hederaClient.mirrorProvider();
     }
 
+    public void stop() {
+        runThread = false;
+    }
+
     /**
      * check association between winner and token for auctions that are currently "CLOSED"
      */
@@ -50,7 +55,7 @@ public class WinnerTokenTransfer implements Runnable {
     public void run() {
         @Var WinnerTokenTransferInterface winnerTokenTransfer;
 
-        while (true) {
+        while (runThread) {
             List<Auction> auctionsList = auctionsRepository.getAuctionsList();
             for (Auction auction: auctionsList) {
                 if (auction.isClosed()) {

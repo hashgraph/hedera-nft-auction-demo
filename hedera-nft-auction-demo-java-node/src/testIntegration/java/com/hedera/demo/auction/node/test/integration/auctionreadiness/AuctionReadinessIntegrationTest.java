@@ -51,12 +51,11 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeAll
     public void beforeAll() throws Exception {
-        PostgreSQLContainer<?> postgres = new PostgreSQLContainer("postgres:12.6");
+        postgres = new PostgreSQLContainer("postgres:12.6");
         postgres.start();
         migrate(postgres);
         SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
-        this.postgres = postgres;
         this.hederaClient = HederaClient.emptyTestClient();
     }
 
@@ -75,7 +74,7 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
         readinessTester = new ReadinessTester(hederaClient, null, auctionsRepository, null,auction, "", 5000);
         readinessTester.setTesting();
     }
-    
+
     @AfterEach
     public void afterEach() throws SQLException {
         auctionsRepository.deleteAllAuctions();;

@@ -14,6 +14,7 @@ public class AuctionsClosureWatcher implements Runnable {
     private final boolean transferOnWin;
     private final String refundKey;
     private final HederaClient hederaClient;
+    private AuctionClosureWatcherInterface auctionClosureWatcher = null;
 
     public AuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey) {
         this.webClient = webClient;
@@ -28,7 +29,7 @@ public class AuctionsClosureWatcher implements Runnable {
     @SneakyThrows
     @Override
     public void run() {
-        AuctionClosureWatcherInterface auctionClosureWatcher;
+        
         switch (mirrorProvider) {
             case "HEDERA":
                 auctionClosureWatcher = new HederaAuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
@@ -41,5 +42,11 @@ public class AuctionsClosureWatcher implements Runnable {
                 break;
         }
         auctionClosureWatcher.watch();
+    }
+    
+    public void stop() {
+        if (auctionClosureWatcher != null) {
+            auctionClosureWatcher.stop();
+        }
     }
 }

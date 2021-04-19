@@ -16,6 +16,8 @@ public class BidsWatcher implements Runnable {
     private final int mirrorQueryFrequency;
     private final String mirrorProvider;
     private final HederaClient hederaClient;
+    protected boolean runThread = true;
+    private BidsWatcherInterface bidsWatcher = null;
 
     public BidsWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
@@ -31,8 +33,6 @@ public class BidsWatcher implements Runnable {
     @SneakyThrows
     @Override
     public void run() {
-
-        BidsWatcherInterface bidsWatcher;
         switch (mirrorProvider) {
             case "HEDERA":
                 bidsWatcher = new HederaBidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auctionId, refundKey, mirrorQueryFrequency);
@@ -45,5 +45,11 @@ public class BidsWatcher implements Runnable {
                 break;
         }
         bidsWatcher.watch();
+    }
+
+    public void stop() {
+        if (bidsWatcher != null) {
+            bidsWatcher.stop();
+        }
     }
 }

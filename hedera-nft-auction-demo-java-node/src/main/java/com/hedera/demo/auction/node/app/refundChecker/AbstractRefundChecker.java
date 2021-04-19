@@ -19,6 +19,7 @@ public class AbstractRefundChecker {
     protected final String mirrorURL;
     protected final String mirrorProvider;
     protected final HederaClient hederaClient;
+    protected boolean runThread = true;
 
     public AbstractRefundChecker(HederaClient hederaClient, WebClient webClient, BidsRepository bidsRepository, int mirrorQueryFrequency) {
         this.webClient = webClient;
@@ -27,6 +28,10 @@ public class AbstractRefundChecker {
         this.mirrorURL = hederaClient.mirrorUrl();
         this.hederaClient = hederaClient;
         this.mirrorProvider = hederaClient.mirrorProvider();
+    }
+    
+    public void stop() {
+        runThread = false;
     }
 
     public void handleResponse(JsonObject response, String timestamp, String transactionId) {

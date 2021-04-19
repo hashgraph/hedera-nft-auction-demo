@@ -29,6 +29,7 @@ public abstract class AbstractAuctionsClosureWatcher {
     protected boolean transferOnWin;
     private final String refundKey;
     private final HederaClient hederaClient;
+    protected boolean runThread = true;
 
     protected AbstractAuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey) {
         this.webClient = webClient;
@@ -50,6 +51,10 @@ public abstract class AbstractAuctionsClosureWatcher {
                 }
             }
         }
+    }
+
+    public void stop() {
+        runThread = false;
     }
 
     protected void closeAuctionIfPastEnd(String consensusTimestamp) throws Exception {

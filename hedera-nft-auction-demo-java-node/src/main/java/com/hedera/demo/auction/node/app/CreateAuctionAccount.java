@@ -19,7 +19,7 @@ import org.jooq.tools.StringUtils;
 public class CreateAuctionAccount extends AbstractCreate {
 
     public CreateAuctionAccount() throws Exception {
-        hederaClient = new HederaClient(env);
+        super();
     }
 
     /**
@@ -58,7 +58,6 @@ public class CreateAuctionAccount extends AbstractCreate {
                 }
             }
         }
-        log.info(keyList.toString());
 
         accountCreateTransaction.setKey(keyList);
         accountCreateTransaction.setInitialBalance(Hbar.from(initialBalance));

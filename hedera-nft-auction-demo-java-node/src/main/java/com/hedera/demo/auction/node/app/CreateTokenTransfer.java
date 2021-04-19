@@ -14,7 +14,7 @@ import lombok.extern.log4j.Log4j2;
 public class CreateTokenTransfer extends AbstractCreate {
 
     public CreateTokenTransfer() throws Exception {
-        hederaClient = new HederaClient(env);
+        super();
     }
 
     /**

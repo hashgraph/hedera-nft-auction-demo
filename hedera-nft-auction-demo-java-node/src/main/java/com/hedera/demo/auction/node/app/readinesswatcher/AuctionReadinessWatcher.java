@@ -17,6 +17,7 @@ public class AuctionReadinessWatcher implements Runnable {
     protected final String mirrorProvider;
     protected final String refundKey;
     protected final HederaClient hederaClient;
+    private AuctionReadinessWatcherInterface auctionReadinessWatcher;
 
     public AuctionReadinessWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
@@ -37,7 +38,6 @@ public class AuctionReadinessWatcher implements Runnable {
     @SneakyThrows
     @Override
     public void run() {
-        AuctionReadinessWatcherInterface auctionReadinessWatcher;
         switch (mirrorProvider) {
             case "HEDERA":
                 auctionReadinessWatcher = new HederaAuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
@@ -50,5 +50,11 @@ public class AuctionReadinessWatcher implements Runnable {
                 break;
         }
         auctionReadinessWatcher.watch();
+    }
+
+    public void stop() {
+        if (auctionReadinessWatcher != null) {
+            auctionReadinessWatcher.stop();
+        }
     }
 }

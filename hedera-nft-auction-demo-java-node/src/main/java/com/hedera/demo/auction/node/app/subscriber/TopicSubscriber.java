@@ -13,6 +13,7 @@ import com.hedera.hashgraph.sdk.FileContentsQuery;
 import com.hedera.hashgraph.sdk.FileId;
 import com.hedera.hashgraph.sdk.Hbar;
 import com.hedera.hashgraph.sdk.Status;
+import com.hedera.hashgraph.sdk.SubscriptionHandle;
 import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
 import com.hedera.hashgraph.sdk.TokenId;
 import com.hedera.hashgraph.sdk.TokenInfo;
@@ -44,6 +45,10 @@ public class TopicSubscriber implements Runnable{
     private final int mirrorQueryFrequency;
     private final HederaClient hederaClient;
     private boolean testing = false;
+    private boolean skipReadinessWatcher = false;
+    private SubscriptionHandle subscriptionHandle = null;
+    private boolean runThread = true;
+    private AuctionReadinessWatcher auctionReadinessWatcher = null;
 
     public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, WebClient webClient, TopicId topicId, String refundKey, int mirrorQueryFrequency) {
         this.auctionsRepository = auctionsRepository;
@@ -55,9 +60,24 @@ public class TopicSubscriber implements Runnable{
         this.hederaClient = hederaClient;
     }
 
+    public void stop() {
+        if (subscriptionHandle != null) {
+            subscriptionHandle.unsubscribe();
+        }
+        runThread = false;
+        if (auctionReadinessWatcher != null) {
+            auctionReadinessWatcher.stop();
+        }
+    }
+
     public void setTesting() {
         testing = true;
     }
+
+    public void setSkipReadinessWatcher() {
+        skipReadinessWatcher = true;
+    }
+
     @Override
     public void run() {
         try {
@@ -66,7 +86,7 @@ public class TopicSubscriber implements Runnable{
             e.printStackTrace();
             log.error(e);
         }
-        while (true) {
+        while (runThread) {
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException e) {
@@ -80,7 +100,7 @@ public class TopicSubscriber implements Runnable{
         try {
             Client client = hederaClient.client();
             log.info("Subscribing to topic " + topicId.toString());
-            new TopicMessageQuery()
+            subscriptionHandle = new TopicMessageQuery()
                     .setTopicId(topicId)
                     .setStartTime(startTime)
                     .subscribe(client, topicMessage -> {
@@ -166,9 +186,12 @@ public class TopicSubscriber implements Runnable{
                     }
                 }
 
-                // Start a thread to watch this new auction for readiness
-                Thread t = new Thread(new AuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, newAuction, refundKey, mirrorQueryFrequency));
-                t.start();
+                if ( ! skipReadinessWatcher) {
+                    // Start a thread to watch this new auction for readiness
+                    auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, newAuction, refundKey, mirrorQueryFrequency);
+                    Thread t = new Thread(auctionReadinessWatcher);
+                    t.start();
+                }
             }
         } catch (Exception e) {
             log.error(e);

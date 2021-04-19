@@ -31,6 +31,7 @@ public abstract class AbstractBidsWatcher {
     protected final int auctionId;
     protected final HederaClient hederaClient;
     protected boolean testing = false;
+    protected boolean runThread = true;
 
     protected AbstractBidsWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, String refundKey, int mirrorQueryFrequency) throws Exception {
         this.webClient = webClient;
@@ -46,6 +47,10 @@ public abstract class AbstractBidsWatcher {
 
     public void setTesting() {
         this.testing = true;
+    }
+
+    public void stop() {
+        runThread = false;
     }
 
     public void handleResponse(JsonObject response) {

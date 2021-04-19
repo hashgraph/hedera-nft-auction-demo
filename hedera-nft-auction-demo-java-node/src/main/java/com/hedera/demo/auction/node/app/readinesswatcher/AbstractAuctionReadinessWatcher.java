@@ -28,6 +28,8 @@ public abstract class AbstractAuctionReadinessWatcher {
     protected final HederaClient hederaClient;
     protected boolean testing = false;
     protected int mirrorPort = 80;
+    protected boolean runThread = true;
+    protected BidsWatcher bidsWatcher = null;
 
     protected AbstractAuctionReadinessWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
@@ -44,8 +46,11 @@ public abstract class AbstractAuctionReadinessWatcher {
         this.testing = true;
     }
 
-    public void setTestingMirrorPort(int mirrorPort) {
-        this.mirrorPort = mirrorPort;
+    public void stop() {
+        if (bidsWatcher != null) {
+            bidsWatcher.stop();
+        }
+        runThread = false;
     }
 
     public Pair<Boolean, String> handleResponse(JsonObject response) {
@@ -66,7 +71,8 @@ public abstract class AbstractAuctionReadinessWatcher {
                                     auctionsRepository.setActive(auction, transaction.consensusTimestamp);
                                     // start the thread to monitor bids
                                     if (!this.testing) {
-                                        Thread t = new Thread(new BidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency));
+                                        bidsWatcher = new BidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency);
+                                        Thread t = new Thread(bidsWatcher);
                                         t.start();
                                     }
 

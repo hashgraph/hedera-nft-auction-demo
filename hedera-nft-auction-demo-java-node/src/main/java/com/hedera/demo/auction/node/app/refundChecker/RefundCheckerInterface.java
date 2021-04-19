@@ -4,4 +4,5 @@ import java.sql.SQLException;
 
 public interface RefundCheckerInterface {
     void watch() throws SQLException;
+    void stop();
 }

@@ -21,7 +21,7 @@ public class HederaAuctionsClosureWatcher extends AbstractAuctionsClosureWatcher
                 .as(BodyCodec.jsonObject())
                 .addQueryParam("limit", "1"); // only need one row (the latest)
 
-        while (true) {
+        while (runThread) {
             webQuery.send(response -> {
                 if (response.succeeded()) {
 

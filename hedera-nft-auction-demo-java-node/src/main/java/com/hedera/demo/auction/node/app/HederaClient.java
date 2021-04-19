@@ -18,14 +18,15 @@ public class HederaClient {
     private final AccountId operatorId;
     private final PrivateKey operatorKey;
     private String mirrorProvider;
-    private String mirrorUrl;
+    private String mirrorUrl = "";
     private final Client client;
     private final String network;
 
     public HederaClient(AccountId operatorId, PrivateKey operatorKey, String network, String mirrorProvider, String mirrorUrl, String mirrorAddress) throws Exception {
         this.operatorId = operatorId;
         this.operatorKey = operatorKey;
-        this.mirrorProvider = mirrorProvider;
+        this.mirrorProvider = mirrorProvider.toUpperCase()
+        ;
         this.client = clientForNetwork(network);
         this.mirrorUrl = mirrorUrl;
         this.network = network;
@@ -53,7 +54,7 @@ public class HederaClient {
         this.mirrorUrl = testUrl;
     }
 
-    private void setClientMirror(Dotenv env) throws Exception {
+    public void setClientMirror(Dotenv env) throws Exception {
         @Var String envVariable = "GRPC_".concat(this.mirrorProvider).concat("_")
                 .concat(this.network);
         String url = env.get(envVariable);
@@ -80,7 +81,7 @@ public class HederaClient {
     }
     public String mirrorProvider() {return this.mirrorProvider;}
     public void setMirrorProvider(String mirrorProvider) {
-        this.mirrorProvider = mirrorProvider;
+        this.mirrorProvider = mirrorProvider.toUpperCase();
     }
     public String mirrorUrl() {return this.mirrorUrl;}
     public Client client() {return this.client;}

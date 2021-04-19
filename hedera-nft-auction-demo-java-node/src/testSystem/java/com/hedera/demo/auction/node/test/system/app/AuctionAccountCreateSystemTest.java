@@ -1,18 +1,11 @@
 package com.hedera.demo.auction.node.test.system.app;
 
 import com.google.errorprone.annotations.Var;
-import com.hedera.demo.auction.node.app.CreateAuctionAccount;
-import com.hedera.demo.auction.node.app.HederaClient;
-import com.hedera.hashgraph.sdk.AccountId;
-import com.hedera.hashgraph.sdk.AccountInfo;
-import com.hedera.hashgraph.sdk.AccountInfoQuery;
 import com.hedera.hashgraph.sdk.Key;
 import com.hedera.hashgraph.sdk.KeyList;
 import com.hedera.hashgraph.sdk.PrivateKey;
-import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
@@ -24,30 +17,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class AuctionAccountCreateSystemTest {
-    private static final Dotenv dotenv = Dotenv.configure().filename(".env.system").ignoreIfMissing().load();
-    private static CreateAuctionAccount createAuctionAccount;
-    private static HederaClient hederaClient;
-    private static final long initialBalance = 10;
+public class AuctionAccountCreateSystemTest extends AbstractSystemTest {
 
-    @BeforeAll
-    public void beforeAll() throws Exception {
-        hederaClient = new HederaClient(dotenv);
-        createAuctionAccount = new CreateAuctionAccount();
-        createAuctionAccount.setEnv(dotenv);
-    }
-
-    private static JsonObject jsonThresholdKey(int threshold, PrivateKey pk1, PrivateKey pk2) {
-        JsonObject thresholdKey = new JsonObject();
-        if (threshold != 0) {
-            thresholdKey.put("threshold", threshold);
-        }
-        JsonArray keyList = new JsonArray();
-        keyList.add(new JsonObject().put("key", pk1.getPublicKey().toString()));
-        keyList.add(new JsonObject().put("key", pk2.getPublicKey().toString()));
-        thresholdKey.put("keys", keyList);
-
-        return thresholdKey;
+    AuctionAccountCreateSystemTest() throws Exception {
     }
 
     private static String[] keylistToStringArray(KeyList keyList) {
@@ -60,6 +32,25 @@ public class AuctionAccountCreateSystemTest {
         }
 
         return pubKeys;
+    }
+
+    @Test
+    public void testCreateAccountDefault() throws Exception {
+
+        createAccountAndGetInfo("");
+
+        KeyList accountKeyList = (KeyList) accountInfo.key;
+
+        assertEquals(1, accountKeyList.size());
+        assertNull(accountKeyList.threshold);
+
+        Object[] keyListArray = accountKeyList.toArray();
+
+        Key accountKey = (Key)keyListArray[0];
+        assertEquals(hederaClient.operatorPublicKey().toString(), accountKey.toString());
+
+        assertEquals(initialBalance * 100000000, accountInfo.balance.toTinybars());
+        assertFalse(accountInfo.isReceiverSignatureRequired);
     }
 
     @Test
@@ -77,12 +68,7 @@ public class AuctionAccountCreateSystemTest {
 
         JsonObject keysCreate = new JsonObject().put("keylist", new JsonArray().add(thresholdKey1).add(thresholdKey2));
 
-        AccountId accountId = createAuctionAccount.create(initialBalance, keysCreate.toString());
-
-        AccountInfo accountInfo = new AccountInfoQuery()
-                .setAccountId(accountId)
-                .execute(hederaClient.client());
-        System.out.println(accountInfo.key.toString());
+        createAccountAndGetInfo(keysCreate.toString());
 
         KeyList accountKeyList = (KeyList) accountInfo.key;
 
@@ -121,12 +107,7 @@ public class AuctionAccountCreateSystemTest {
 
         JsonObject keysCreate = new JsonObject().put("keylist", new JsonArray().add(thresholdKey1));
 
-        AccountId accountId = createAuctionAccount.create(initialBalance, keysCreate.toString());
-
-        AccountInfo accountInfo = new AccountInfoQuery()
-                .setAccountId(accountId)
-                .execute(hederaClient.client());
-        System.out.println(accountInfo.key.toString());
+        createAccountAndGetInfo(keysCreate.toString());
 
         KeyList accountKeyList = (KeyList) accountInfo.key;
 
@@ -156,12 +137,7 @@ public class AuctionAccountCreateSystemTest {
 
         JsonObject keysCreate = new JsonObject().put("keylist", new JsonArray().add(thresholdKey1));
 
-        AccountId accountId = createAuctionAccount.create(initialBalance, keysCreate.toString());
-
-        AccountInfo accountInfo = new AccountInfoQuery()
-                .setAccountId(accountId)
-                .execute(hederaClient.client());
-        System.out.println(accountInfo.key.toString());
+        createAccountAndGetInfo(keysCreate.toString());
 
         KeyList accountKeyList = (KeyList) accountInfo.key;
 

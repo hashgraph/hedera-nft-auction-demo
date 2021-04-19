@@ -1,39 +1,29 @@
 package com.hedera.demo.auction.node.test.system.app;
 
 import com.google.errorprone.annotations.Var;
-import com.hedera.demo.auction.node.app.CreateTopic;
-import com.hedera.demo.auction.node.app.HederaClient;
-import com.hedera.hashgraph.sdk.TopicId;
-import com.hedera.hashgraph.sdk.TopicInfo;
-import com.hedera.hashgraph.sdk.TopicInfoQuery;
-import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class TopicCreateSystemTest {
-    Dotenv dotenv = Dotenv.configure().filename(".env.system").ignoreIfMissing().load();
+public class TopicCreateSystemTest extends AbstractSystemTest {
+
+    TopicCreateSystemTest() throws Exception {
+    }
 
     @Test
     public void testCreateTopic() throws Exception {
         File tempFile = File.createTempFile("test-", "");
 
-        HederaClient hederaClient = new HederaClient(dotenv);
-        CreateTopic createTopic = new CreateTopic();
         createTopic.setTargetDotEnvFile(tempFile.getAbsolutePath());
 
-        createTopic.setEnv(dotenv);
-
-        TopicId topicId = createTopic.create();
-        // check topic Id exists on Hedera
-        TopicInfo topicInfo = new TopicInfoQuery()
-                .setTopicId(topicId)
-                .execute(hederaClient.client());
-
+        createTopicAndGetInfo();
+        
         assertEquals(topicId.toString(), topicInfo.topicId.toString());
         assertEquals(hederaClient.operatorPublicKey().toString(), topicInfo.submitKey.toString());
         assertNull(topicInfo.adminKey);

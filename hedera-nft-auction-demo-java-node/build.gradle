@@ -174,10 +174,11 @@ dependencies {
 	compile 'org.apache.logging.log4j:log4j-core:2.13.2'
 
 	// lombok
-	compileOnly 'org.projectlombok:lombok:1.18.16'
+	implementation 'org.projectlombok:lombok:1.18.16'
 	annotationProcessor 'org.projectlombok:lombok:1.18.16'
-	testCompileOnly 'org.projectlombok:lombok:1.18.16'
+//	testCompileOnly 'org.projectlombok:lombok:1.18.16'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+	testSystemAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
 
 	// flyway
 	compile "org.flywaydb:flyway-core:7.7.0"
@@ -198,6 +199,8 @@ dependencies {
 	testImplementation "org.mock-server:mockserver-client-java:5.11.2"
 
 	testImplementation "org.awaitility:awaitility:4.0.3"
+	testImplementation 'org.glassfish:javax.json:1.1.4'
+	testImplementation 'net.joshka:junit-json-params:1.1.0'
 
 }
 

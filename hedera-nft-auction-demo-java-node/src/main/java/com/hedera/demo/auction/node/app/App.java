@@ -21,6 +21,7 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import org.flywaydb.core.Flyway;
 
+import javax.annotation.Nullable;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,18 +45,20 @@ public final class App {
 
     private HederaClient hederaClient;
 
+    @Nullable
     private TopicSubscriber topicSubscriber = null;
+    @Nullable
     private AuctionsClosureWatcher auctionsClosureWatcher = null;
-    private List<BidsWatcher> bidsWatchers = new ArrayList<>(0);
+    private final List<BidsWatcher> bidsWatchers = new ArrayList<>(0);
+    @Nullable
     private RefundChecker refundChecker = null;
-    private List<AuctionReadinessWatcher> auctionReadinessWatchers = new ArrayList<>(0);
+    private final List<AuctionReadinessWatcher> auctionReadinessWatchers = new ArrayList<>(0);
+    @Nullable
     private WinnerTokenTransfer winnerTokenTransfer = null;
+    @Nullable
     private WinnerTokenTransferWatcher winnerTokenTransferWatcher = null;
 
     //    private final static String dgApiKey = Optional.ofNullable(env.get("DG_API_KEY")).orElse("");
-
-    private App() {
-    }
 
     public static void main(String[] args) throws Exception {
         App app = new App();
@@ -74,7 +77,7 @@ public final class App {
         this.topicId = topicId;
         this.mirrorQueryFrequency = 1000;
         this.refundKey = refundKey;
-        this.postgresUrl = postgresUrl;
+        this.postgresUrl = postgresUrl.replaceAll("jdbc:", "");
         this.postgresUser = postgresUser;
         this.postgresPassword = postgresPassword;
         this.transferOnWin = transferOnWin;
@@ -108,7 +111,7 @@ public final class App {
         }
 
         if (auctionNode) {
-            SqlConnectionManager connectionManager = new SqlConnectionManager(env);
+            SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgresUrl, this.postgresUser, this.postgresPassword);
             AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
             BidsRepository bidsRepository = new BidsRepository(connectionManager);
 

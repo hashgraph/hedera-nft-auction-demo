@@ -10,6 +10,7 @@ import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.FileWriter;
+import java.util.Objects;
 import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -21,7 +22,13 @@ public class EasySetup extends AbstractCreate {
         super();
     }
 
-    final static SqlConnectionManager connectionManager = new SqlConnectionManager(env);
+    final static String url = Objects.requireNonNull(env.get("DATABASE_URL"), "missing environment variable DATABASE_URL");
+    final static String username = Objects.requireNonNull(
+            env.get("DATABASE_USERNAME"), "missing environment variable DATABASE_USERNAME");
+    final static String password = Objects.requireNonNull(
+            env.get("DATABASE_PASSWORD"), "missing environment variable DATABASE_PASSWORD");
+
+    final static SqlConnectionManager connectionManager = new SqlConnectionManager(url, username, password);
     final static AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
     final static BidsRepository bidsRepository = new BidsRepository(connectionManager);
     static String topicId = Optional.ofNullable(env.get("VUE_APP_TOPIC_ID")).orElse("");

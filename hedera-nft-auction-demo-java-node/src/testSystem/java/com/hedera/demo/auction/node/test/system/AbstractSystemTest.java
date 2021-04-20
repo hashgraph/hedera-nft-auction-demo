@@ -1,4 +1,4 @@
-package com.hedera.demo.auction.node.test.system.app;
+package com.hedera.demo.auction.node.test.system;
 
 import com.hedera.demo.auction.node.app.CreateAuction;
 import com.hedera.demo.auction.node.app.CreateAuctionAccount;
@@ -9,18 +9,7 @@ import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.hashgraph.sdk.AccountBalance;
-import com.hedera.hashgraph.sdk.AccountBalanceQuery;
-import com.hedera.hashgraph.sdk.AccountId;
-import com.hedera.hashgraph.sdk.AccountInfo;
-import com.hedera.hashgraph.sdk.AccountInfoQuery;
-import com.hedera.hashgraph.sdk.PrivateKey;
-import com.hedera.hashgraph.sdk.TokenId;
-import com.hedera.hashgraph.sdk.TokenInfo;
-import com.hedera.hashgraph.sdk.TokenInfoQuery;
-import com.hedera.hashgraph.sdk.TopicId;
-import com.hedera.hashgraph.sdk.TopicInfo;
-import com.hedera.hashgraph.sdk.TopicInfoQuery;
+import com.hedera.hashgraph.sdk.*;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -34,6 +23,7 @@ import java.nio.file.Files;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeoutException;
 
 public abstract class AbstractSystemTest {
     protected static final Dotenv dotenv = Dotenv.configure().filename(".env.system").ignoreIfMissing().load();
@@ -66,7 +56,12 @@ public abstract class AbstractSystemTest {
     protected static TokenId tokenId;
     protected static TokenInfo tokenInfo;
 
-    AbstractSystemTest() throws Exception {
+    // test token owner
+    PrivateKey tokenOwnerPrivateKey;
+    AccountId tokenOwnerAccountId;
+    Client tokenOwnerClient;
+
+    protected AbstractSystemTest() throws Exception {
         hederaClient = new HederaClient(dotenv);
 
         createTopic = new CreateTopic();
@@ -78,7 +73,7 @@ public abstract class AbstractSystemTest {
         createTopic.setEnv(dotenv); // other "create" classes share the same abstract class, no need to repeat
     }
 
-    static JsonObject jsonThresholdKey(int threshold, PrivateKey pk1, PrivateKey pk2) {
+    protected static JsonObject jsonThresholdKey(int threshold, PrivateKey pk1, PrivateKey pk2) {
         JsonObject thresholdKey = new JsonObject();
         if (threshold != 0) {
             thresholdKey.put("threshold", threshold);
@@ -123,8 +118,36 @@ public abstract class AbstractSystemTest {
 
     protected void createAuction(long reserve, long minimumBid, boolean winnerCanBid) throws Exception {
         createTopicAndGetInfo();
+        // auction account id
         createAccountAndGetInfo("");
-        createTokenAndGetInfo(symbol);
+        // simulating creation from a different account
+        tokenOwnerPrivateKey = PrivateKey.generate();
+
+        // create a temp account for the token creation
+        TransactionResponse accountCreateResponse = new AccountCreateTransaction()
+                .setKey(tokenOwnerPrivateKey.getPublicKey())
+                .setInitialBalance(Hbar.from(100))
+                .execute(hederaClient.client());
+
+        TransactionReceipt accountCreateResponseReceipt = accountCreateResponse.getReceipt(hederaClient.client());
+
+        tokenOwnerAccountId = accountCreateResponseReceipt.accountId;
+
+        tokenOwnerClient = Client.forTestnet();
+        tokenOwnerClient.setOperator(tokenOwnerAccountId, tokenOwnerPrivateKey);
+
+        // create a token
+        TransactionResponse tokenCreateResponse = new TokenCreateTransaction()
+                .setTokenName(tokenName)
+                .setTokenSymbol(symbol)
+                .setDecimals(0)
+                .setInitialSupply(1)
+                .setTreasuryAccountId(tokenOwnerAccountId)
+                .execute(tokenOwnerClient);
+
+        TransactionReceipt tokenCreateResponseReceipt = tokenCreateResponse.getReceipt(hederaClient.client());
+
+        tokenId = tokenCreateResponseReceipt.tokenId;
 
         JsonObject auction = new JsonObject();
         auction.put("tokenid", tokenId.toString());
@@ -154,11 +177,75 @@ public abstract class AbstractSystemTest {
         flyway.migrate();
     }
 
+    protected void transferToken() throws TimeoutException, PrecheckStatusException, ReceiptStatusException {
+        // transfer token to auction
+        TransactionResponse tokenTransferResponse = new TransferTransaction()
+                .addTokenTransfer(tokenId, tokenOwnerAccountId, -1)
+                .addTokenTransfer(tokenId, auctionAccountId, 1)
+                .execute(tokenOwnerClient);
+
+        tokenTransferResponse.getReceipt(tokenOwnerClient);
+    }
+
     protected Callable<Boolean> auctionsCountMatches(int matchCount) throws SQLException {
         return () -> {
-            System.out.println("AuctionsCountEquals");
             List<Auction> auctionsList = auctionsRepository.getAuctionsList();
             return (auctionsList.size() == matchCount);
+        };
+    }
+
+    protected Callable<Boolean> tokenAssociatedNotTransferred() throws SQLException {
+        return () -> {
+            AccountBalance balance = new AccountBalanceQuery()
+                    .setAccountId(auctionAccountId)
+                    .execute(hederaClient.client());
+            if (balance.token.containsKey(tokenId)) {
+                if (balance.token.get(tokenId) == 0) {
+                    return true;
+                }
+            }
+            return false;
+        };
+    }
+
+    private static String getAuctionValue(Auction auctionSource, String parameter) {
+        switch (parameter) {
+            case "winningAccount":
+                return auctionSource.getWinningaccount();
+            case "winningBid":
+                return auctionSource.getWinningbid().toString();
+            case "endTimestamp":
+                return auctionSource.getEndtimestamp();
+            case "lastConsensusTimestamp":
+                return auctionSource.getLastconsensustimestamp();
+            case "startTimestamp":
+                return auctionSource.getStarttimestamp();
+            case "status":
+                return auctionSource.getStatus();
+            case "transferTxHash":
+                return auctionSource.getTransfertxhash();
+            case "transferTxId":
+                return auctionSource.getTransfertxid();
+            case "winningTxHash":
+                return auctionSource.getWinningtxhash();
+            case "winningTxId":
+                return auctionSource.getWinningtxid();
+            default:
+                return "";
+        }
+    }
+
+    protected Callable<Boolean> auctionValueAssert(String parameter, String value, String condition) throws SQLException {
+        return () -> {
+            Auction testAuction = auctionsRepository.getAuction(auction.getId());
+
+            String valueToCheck = getAuctionValue(testAuction, parameter);
+
+            if (condition.equals("equals")) {
+                return (value.equals(valueToCheck));
+            }
+
+            return false;
         };
     }
 }

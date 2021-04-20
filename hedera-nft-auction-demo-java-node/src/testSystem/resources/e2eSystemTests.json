@@ -1,0 +1,25 @@
+[
+  {
+    "testName": "Auction Starts after token transfer",
+    "mirrors": ["hedera"],
+    "auctionDetails" : {
+      "reserve": 0,
+      "winnerCanBid": true,
+      "minimumBid": 0,
+      "transferOnWin": true
+    },
+    "tasks": [
+      {
+        "name": "transferToken"
+      }
+    ],
+    "assertions": [
+      {
+        "object": "auction",
+        "parameter": "status",
+        "value": "ACTIVE",
+        "condition": "equals"
+      }
+    ]
+  }
+]

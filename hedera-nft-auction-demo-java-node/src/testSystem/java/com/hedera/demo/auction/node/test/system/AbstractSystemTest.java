@@ -88,6 +88,10 @@ public abstract class AbstractSystemTest {
 
     protected void createAccountAndGetInfo(String keys) throws Exception {
         auctionAccountId = createAuctionAccount.create(initialBalance, keys);
+        getAccountInfo();
+    }
+
+    protected void getAccountInfo() throws Exception {
         accountInfo = new AccountInfoQuery()
                 .setAccountId(auctionAccountId)
                 .execute(hederaClient.client());
@@ -95,6 +99,10 @@ public abstract class AbstractSystemTest {
 
     protected void createTokenAndGetInfo(String symbol) throws Exception {
         tokenId = createToken.create(tokenName, symbol, initialSupply, decimals);
+        getTokenInfo();
+    }
+
+    protected void getTokenInfo() throws Exception {
         tokenInfo = new TokenInfoQuery()
                 .setTokenId(tokenId)
                 .execute(hederaClient.client());
@@ -102,7 +110,10 @@ public abstract class AbstractSystemTest {
 
     protected void transferTokenAndGetBalance() throws Exception {
         createTokenTransfer.transfer(tokenId.toString(), auctionAccountId.toString());
+        getAccountBalance();
+    }
 
+    protected void getAccountBalance() throws Exception {
         accountBalance = new AccountBalanceQuery()
                 .setAccountId(auctionAccountId)
                 .execute(hederaClient.client());
@@ -111,6 +122,10 @@ public abstract class AbstractSystemTest {
     protected void createTopicAndGetInfo() throws Exception {
         topicId = createTopic.create();
         // check topic Id exists on Hedera
+        getTopicInfo();
+    }
+
+    protected void getTopicInfo() throws Exception {
         topicInfo = new TopicInfoQuery()
                 .setTopicId(topicId)
                 .execute(hederaClient.client());

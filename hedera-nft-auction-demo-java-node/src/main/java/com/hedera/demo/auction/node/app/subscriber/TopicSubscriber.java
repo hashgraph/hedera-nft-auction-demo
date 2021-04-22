@@ -46,9 +46,9 @@ public class TopicSubscriber implements Runnable{
     private final HederaClient hederaClient;
     private boolean testing = false;
     private boolean skipReadinessWatcher = false;
-    private SubscriptionHandle subscriptionHandle = null;
+    private SubscriptionHandle subscriptionHandle;
     private boolean runThread = true;
-    private AuctionReadinessWatcher auctionReadinessWatcher = null;
+    private AuctionReadinessWatcher auctionReadinessWatcher;
 
     public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, WebClient webClient, TopicId topicId, String refundKey, int mirrorQueryFrequency) {
         this.auctionsRepository = auctionsRepository;

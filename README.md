@@ -70,7 +70,7 @@ cd hedera-nft-auction-demo
 cd hedera-nft-auction-demo-java-node
 
 # Build the code
-./gradlew build
+./gradlew assemble
 ```
 
 setup the environment
@@ -90,7 +90,7 @@ The operator id/key is used to query the hedera network (free queries)
 
 * OPERATOR_ID=
 * OPERATOR_KEY=302.....
-* REFUND_KEY=302.......
+* REFUND_KEY=302....... (Same as operator key)
 * TRANSFER_ON_WIN=true
 
 You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish
@@ -415,3 +415,25 @@ __Build the database classes__
 ```shell script
 ./gradlew jooqGenerate
 ````
+
+## Testing
+
+The project contains a number of tests suites which are described below
+
+### Unit testing
+
+Unit testing is run automatically when you `./gradlew build`, you can run these independently with `./gradlew test`. 
+
+There are no interactions with the database or the Hedera network in these tests.
+
+### Integration testing
+
+Integration testing is run automatically when you `./gradlew build`, you can run these independently with `./gradlew testIntegration`.
+
+These tests include testing the outcome of various operations in the database.
+
+### System testing
+
+System testing is run with `./gradlew testSystem`.
+
+These tests include testing the outcome of various operations in the database and invoke Hedera APIs.

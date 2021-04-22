@@ -9,7 +9,10 @@
         </Console>
     </Appenders>
     <Loggers>
-        <logger name="com.hedera.demo" level="DEBUG" additivity="false">
+        <Root level="INFO" >
+            <AppenderRef ref="Console" />
+        </Root>
+        <logger name="com.hedera.demo" level="DEBUG">
             <AppenderRef ref="Console" />
         </logger>
         <Logger name="io.netty" level="OFF">

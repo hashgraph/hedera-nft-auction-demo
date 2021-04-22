@@ -26,6 +26,8 @@ plugins {
 	id "org.flywaydb.flyway" version "6.5.5"
 	id 'nu.studer.jooq' version '5.0.1'
 	id "jacoco"
+	id 'java'
+	id 'com.bmuschko.docker-java-application' version '6.7.0'
 }
 
 allprojects {
@@ -33,7 +35,8 @@ allprojects {
 	apply plugin: "idea"
 	apply plugin: "net.ltgt.errorprone"
 	apply plugin: "com.github.ben-manes.versions"
-	apply plugin :"nebula.lint"
+	apply plugin: "nebula.lint"
+
 	gradleLint {
 		rules=['unused-dependency']
 	}
@@ -150,7 +153,6 @@ dependencies {
 // https://mvnrepository.com/artifact/com.hedera.hashgraph/sdk
 	implementation group: 'com.hedera.hashgraph', name: 'sdk', version: '2.0.5-beta.3'
 
-
 	implementation 'io.grpc:grpc-netty-shaded:1.35.0'
 
 	implementation "io.vertx:vertx-web:3.9.2"
@@ -206,7 +208,6 @@ dependencies {
 	testImplementation "net.joshka:junit-json-params:1.1.0"
 
 	testImplementation "org.slf4j:slf4j-log4j12:1.7.28"
-
 }
 
 tasks.withType(Test) {
@@ -257,6 +258,7 @@ task testIntegration(type: Test) {
 	testClassesDirs = sourceSets.testIntegration.output.classesDirs
 	classpath = sourceSets.testIntegration.runtimeClasspath
 	outputs.upToDateWhen { false }
+
 	mustRunAfter test
 }
 
@@ -265,11 +267,21 @@ check.dependsOn testIntegration
 task testSystem(type: Test) {
 	description = 'Runs the system tests.'
 	group = 'verification'
+	dependsOn 'dockerBuildImage'
+
 	testClassesDirs = sourceSets.testSystem.output.classesDirs
 	classpath = sourceSets.testSystem.runtimeClasspath
 	outputs.upToDateWhen { false }
-	mustRunAfter testIntegration
-	mustRunAfter test
+}
+
+docker {
+	println "Building docker image"
+	javaApplication {
+		baseImage = 'adoptopenjdk:14-jre-hotspot'
+		ports = [8081, 8082]
+		images = ["hedera/${rootProject.name}:latest"]
+		mainClassName = "com.hedera.demo.auction.node.app.App"
+	}
 }
 
 flyway {

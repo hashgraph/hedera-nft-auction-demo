@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.node.test.system.app;
 
+import com.hedera.demo.auction.node.test.system.AbstractSystemTest;
 import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
 import com.hedera.hashgraph.sdk.TokenId;
 import com.hedera.hashgraph.sdk.TransactionResponse;
@@ -17,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class TokenTransferSystemTest extends AbstractSystemTest {
 
     TokenTransferSystemTest() throws Exception {
+        super();
     }
 
     @BeforeAll

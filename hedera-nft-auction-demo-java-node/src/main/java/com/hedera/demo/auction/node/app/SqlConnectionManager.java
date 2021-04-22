@@ -1,6 +1,5 @@
 package com.hedera.demo.auction.node.app;
 
-import io.github.cdimascio.dotenv.Dotenv;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
@@ -9,7 +8,6 @@ import javax.annotation.Nullable;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Objects;
 
 public class SqlConnectionManager {
     private final String url;
@@ -21,19 +19,9 @@ public class SqlConnectionManager {
     @Nullable
     private Connection connection;
 
-    public SqlConnectionManager(Dotenv env) {
-        url = Objects.requireNonNull(env.get("DATABASE_URL"), "missing environment variable DATABASE_URL");
-
-        username = Objects.requireNonNull(
-            env.get("DATABASE_USERNAME"), "missing environment variable DATABASE_USERNAME");
-
-        password = Objects.requireNonNull(
-            env.get("DATABASE_PASSWORD"), "missing environment variable DATABASE_PASSWORD");
-    }
-
     // Blank SqlConnectionManager for testing
     public SqlConnectionManager(String url, String username, String password) {
-        this.url = url.replace("jdbc:", "");
+        this.url = url.replaceAll("jdbc:", "");
         this.username = username;
         this.password = password;
     }

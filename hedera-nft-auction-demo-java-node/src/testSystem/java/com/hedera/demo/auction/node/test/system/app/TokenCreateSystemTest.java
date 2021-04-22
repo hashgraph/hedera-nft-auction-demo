@@ -1,6 +1,7 @@
 package com.hedera.demo.auction.node.test.system.app;
 
 import com.google.protobuf.ByteString;
+import com.hedera.demo.auction.node.test.system.AbstractSystemTest;
 import com.hedera.hashgraph.sdk.FileContentsQuery;
 import com.hedera.hashgraph.sdk.FileId;
 import com.hedera.hashgraph.sdk.FileInfo;
@@ -22,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class TokenCreateSystemTest extends AbstractSystemTest {
 
     TokenCreateSystemTest() throws Exception {
+        super();
     }
 
     @Test

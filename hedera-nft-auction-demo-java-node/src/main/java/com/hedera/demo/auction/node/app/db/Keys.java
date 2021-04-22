@@ -34,7 +34,8 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     public static final UniqueKey<Record> AUCTIONS_PKEY = UniqueKeys0.AUCTIONS_PKEY;
-    public static final UniqueKey<Record> AUCTIONS_TOKENID_AUCTIONACCOUNTID_KEY = UniqueKeys0.AUCTIONS_TOKENID_AUCTIONACCOUNTID_KEY;
+    public static final UniqueKey<Record> AUCTIONS_TOKENID_KEY = UniqueKeys0.AUCTIONS_TOKENID_KEY;
+    public static final UniqueKey<Record> AUCTIONS_AUCTIONACCOUNTID_KEY = UniqueKeys0.AUCTIONS_AUCTIONACCOUNTID_KEY;
     public static final UniqueKey<Record> BIDS_PKEY = UniqueKeys0.BIDS_PKEY;
     public static final UniqueKey<Record> FLYWAY_SCHEMA_HISTORY_PK = UniqueKeys0.FLYWAY_SCHEMA_HISTORY_PK;
 
@@ -54,7 +55,8 @@ public class Keys {
 
     private static class UniqueKeys0 {
         public static final UniqueKey<Record> AUCTIONS_PKEY = Internal.createUniqueKey(Auctions.AUCTIONS, "auctions_pkey", new TableField[] { Auctions.AUCTIONS.ID }, true);
-        public static final UniqueKey<Record> AUCTIONS_TOKENID_AUCTIONACCOUNTID_KEY = Internal.createUniqueKey(Auctions.AUCTIONS, "auctions_tokenid_auctionaccountid_key", new TableField[] { Auctions.AUCTIONS.TOKENID, Auctions.AUCTIONS.AUCTIONACCOUNTID }, true);
+        public static final UniqueKey<Record> AUCTIONS_TOKENID_KEY = Internal.createUniqueKey(Auctions.AUCTIONS, "auctions_tokenid_key", new TableField[] { Auctions.AUCTIONS.TOKENID }, true);
+        public static final UniqueKey<Record> AUCTIONS_AUCTIONACCOUNTID_KEY = Internal.createUniqueKey(Auctions.AUCTIONS, "auctions_auctionaccountid_key", new TableField[] { Auctions.AUCTIONS.AUCTIONACCOUNTID }, true);
         public static final UniqueKey<Record> BIDS_PKEY = Internal.createUniqueKey(Bids.BIDS, "bids_pkey", new TableField[] { Bids.BIDS.TIMESTAMP }, true);
         public static final UniqueKey<Record> FLYWAY_SCHEMA_HISTORY_PK = Internal.createUniqueKey(FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, "flyway_schema_history_pk", new TableField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.INSTALLED_RANK }, true);
     }

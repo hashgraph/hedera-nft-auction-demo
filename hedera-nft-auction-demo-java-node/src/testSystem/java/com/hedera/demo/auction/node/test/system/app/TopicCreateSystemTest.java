@@ -1,6 +1,7 @@
 package com.hedera.demo.auction.node.test.system.app;
 
 import com.google.errorprone.annotations.Var;
+import com.hedera.demo.auction.node.test.system.AbstractSystemTest;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -14,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class TopicCreateSystemTest extends AbstractSystemTest {
 
     TopicCreateSystemTest() throws Exception {
+        super();
     }
 
     @Test
@@ -23,7 +25,7 @@ public class TopicCreateSystemTest extends AbstractSystemTest {
         createTopic.setTargetDotEnvFile(tempFile.getAbsolutePath());
 
         createTopicAndGetInfo();
-        
+
         assertEquals(topicId.toString(), topicInfo.topicId.toString());
         assertEquals(hederaClient.operatorPublicKey().toString(), topicInfo.submitKey.toString());
         assertNull(topicInfo.adminKey);

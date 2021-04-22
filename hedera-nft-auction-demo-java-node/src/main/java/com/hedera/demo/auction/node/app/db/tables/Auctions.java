@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Auctions extends TableImpl<Record> {
 
-    private static final long serialVersionUID = -454980735;
+    private static final long serialVersionUID = 302875033;
 
     /**
      * The reference instance of <code>public.auctions</code>
@@ -185,7 +185,7 @@ public class Auctions extends TableImpl<Record> {
 
     @Override
     public List<UniqueKey<Record>> getKeys() {
-        return Arrays.<UniqueKey<Record>>asList(Keys.AUCTIONS_PKEY, Keys.AUCTIONS_TOKENID_AUCTIONACCOUNTID_KEY);
+        return Arrays.<UniqueKey<Record>>asList(Keys.AUCTIONS_PKEY, Keys.AUCTIONS_TOKENID_KEY, Keys.AUCTIONS_AUCTIONACCOUNTID_KEY);
     }
 
     @Override

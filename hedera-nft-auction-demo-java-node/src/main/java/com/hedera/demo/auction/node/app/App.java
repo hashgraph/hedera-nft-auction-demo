@@ -19,13 +19,17 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
+import lombok.extern.log4j.Log4j2;
 import org.flywaydb.core.Flyway;
+import org.jooq.tools.StringUtils;
 
+import javax.annotation.Nullable;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Log4j2
 public final class App {
     private final Dotenv env = Dotenv.configure().ignoreIfMissing().load();
     private boolean restAPI = Optional.ofNullable(env.get("REST_API")).map(Boolean::parseBoolean).orElse(false);
@@ -44,18 +48,20 @@ public final class App {
 
     private HederaClient hederaClient;
 
+    @Nullable
     private TopicSubscriber topicSubscriber = null;
+    @Nullable
     private AuctionsClosureWatcher auctionsClosureWatcher = null;
-    private List<BidsWatcher> bidsWatchers = new ArrayList<>(0);
+    private final List<BidsWatcher> bidsWatchers = new ArrayList<>(0);
+    @Nullable
     private RefundChecker refundChecker = null;
-    private List<AuctionReadinessWatcher> auctionReadinessWatchers = new ArrayList<>(0);
+    private final List<AuctionReadinessWatcher> auctionReadinessWatchers = new ArrayList<>(0);
+    @Nullable
     private WinnerTokenTransfer winnerTokenTransfer = null;
+    @Nullable
     private WinnerTokenTransferWatcher winnerTokenTransferWatcher = null;
 
     //    private final static String dgApiKey = Optional.ofNullable(env.get("DG_API_KEY")).orElse("");
-
-    private App() {
-    }
 
     public static void main(String[] args) throws Exception {
         App app = new App();
@@ -74,7 +80,7 @@ public final class App {
         this.topicId = topicId;
         this.mirrorQueryFrequency = 1000;
         this.refundKey = refundKey;
-        this.postgresUrl = postgresUrl;
+        this.postgresUrl = postgresUrl.replaceAll("jdbc:", "");
         this.postgresUser = postgresUser;
         this.postgresPassword = postgresPassword;
         this.transferOnWin = transferOnWin;
@@ -108,7 +114,7 @@ public final class App {
         }
 
         if (auctionNode) {
-            SqlConnectionManager connectionManager = new SqlConnectionManager(env);
+            SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgresUrl, this.postgresUser, this.postgresPassword);
             AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
             BidsRepository bidsRepository = new BidsRepository(connectionManager);
 
@@ -137,11 +143,14 @@ public final class App {
         auctionsClosureWatcherThread.start();
     }
     private void startSubscription(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
-        topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository, webClient, TopicId.fromString(topicId), refundKey, mirrorQueryFrequency);
-        // start the thread to monitor bids
-        Thread topicSubscriberThread = new Thread(topicSubscriber);
-        topicSubscriberThread.start();
-
+        if (StringUtils.isEmpty(topicId)) {
+            log.warn("No topic Id found in environment variables, not subscribing");
+        } else {
+            topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository, webClient, TopicId.fromString(topicId), refundKey, mirrorQueryFrequency);
+            // start the thread to monitor bids
+            Thread topicSubscriberThread = new Thread(topicSubscriber);
+            topicSubscriberThread.start();
+        }
     }
     private void startBidWatchers(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) throws SQLException {
         for (Auction auction : auctionsRepository.getAuctionsList()) {

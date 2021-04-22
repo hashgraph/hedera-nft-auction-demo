@@ -39,6 +39,7 @@ public class AdminApiVerticle extends AbstractVerticle {
         PostTransferHandler postTransferHandler = new PostTransferHandler(env);
         PostAuctionHandler postAuctionHandler = new PostAuctionHandler(env);
         PostEasySetupHandler postEasySetupHandler = new PostEasySetupHandler();
+        RootHandler rootHandler = new RootHandler();
 
         Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.POST));
         Set<String> allowedHeaders = new LinkedHashSet<>(Arrays.asList("content-type"));
@@ -55,6 +56,7 @@ public class AdminApiVerticle extends AbstractVerticle {
         router.post("/v1/admin/transfer").handler(postTransferHandler);
         router.post("/v1/admin/auction").handler(postAuctionHandler);
         router.post("/v1/admin/easysetup").handler(postEasySetupHandler);
+        router.get("/").handler(rootHandler);
 
         System.out.println("Admin API Web Server Listening on port: " + httpPort);
         server

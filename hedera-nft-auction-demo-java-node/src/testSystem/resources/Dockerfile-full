@@ -20,11 +20,12 @@ COPY ./sample-files /opt/hedera-nft-auction-demo-java-node/sample-files
 
 RUN cd /opt/hedera-nft-auction-demo-java-node && ./gradlew --no-daemon assemble
 
-FROM adoptopenjdk:14-jre-hotspot
+RUN cd /opt/hedera-nft-auction-demo-java-node/build/libs
 
-RUN mkdir -p /srv
+COPY /hedera-nft-auction-demo-node-1.0.jar /srv/hedera-nft-auction-demo-node-1.0.jar
 
-# make a place to put our built JAR and copy it to there
-COPY --from=build /opt/hedera-nft-auction-demo-java-node/build/libs/hedera-nft-auction-demo-node-1.0.jar /srv/hedera-nft-auction-demo-node-1.0.jar
+ENTRYPOINT ["tail", "-f", "/dev/null"]
 
-CMD "java" "-jar" "/srv/hedera-nft-auction-demo-node-1.0.jar"
+#CMD java -jar hedera-nft-auction-demo-node-1.0.jar
+#CMD [ "java", "-jar", "hedera-nft-auction-demo-node-1.0.jar" ]
+#CMD "java" "-jar" "hedera-nft-auction-demo-node-1.0.jar"

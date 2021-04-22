@@ -9,4 +9,5 @@ public class RequestCreateAuction {
     public long minimumbid = 0L;
     public String endtimestamp = "";
     public boolean winnercanbid = false;
+    public String topicId = "";
 }

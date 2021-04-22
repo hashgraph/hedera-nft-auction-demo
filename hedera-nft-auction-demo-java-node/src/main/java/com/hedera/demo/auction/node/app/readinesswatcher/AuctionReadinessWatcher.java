@@ -28,6 +28,7 @@ public class AuctionReadinessWatcher implements Runnable {
         this.refundKey = refundKey;
         this.hederaClient = hederaClient;
         this.mirrorProvider = hederaClient.mirrorProvider();
+        this.auctionReadinessWatcher = new HederaAuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
     }
 
     /**

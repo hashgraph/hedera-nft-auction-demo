@@ -1,6 +1,7 @@
 package com.hedera.demo.auction.node.test.system.app;
 
 import com.google.errorprone.annotations.Var;
+import com.hedera.demo.auction.node.test.system.AbstractSystemTest;
 import com.hedera.hashgraph.sdk.Key;
 import com.hedera.hashgraph.sdk.KeyList;
 import com.hedera.hashgraph.sdk.PrivateKey;
@@ -20,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 public class AuctionAccountCreateSystemTest extends AbstractSystemTest {
 
     AuctionAccountCreateSystemTest() throws Exception {
+        super();
     }
 
     private static String[] keylistToStringArray(KeyList keyList) {

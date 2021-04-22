@@ -25,6 +25,9 @@ public class HederaAuctionReadinessWatcher extends AbstractAuctionReadinessWatch
      * check transaction history for token, if associated update auction status
      * start new bidding monitor thread
      * and close this thread
+     *
+     * Note: Considered simply checking balances for the account, but this doesn't give us
+     * a common consensus timestamp to indicate the start of the auction
      */
     @Override
     public void watch() {

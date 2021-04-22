@@ -3,13 +3,13 @@ package com.hedera.demo.auction.node.app;
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.hashgraph.sdk.AccountId;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.TokenId;
+import com.hedera.hashgraph.sdk.*;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.FileWriter;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -21,7 +21,13 @@ public class EasySetup extends AbstractCreate {
         super();
     }
 
-    final static SqlConnectionManager connectionManager = new SqlConnectionManager(env);
+    final static String url = Objects.requireNonNull(env.get("DATABASE_URL"), "missing environment variable DATABASE_URL");
+    final static String username = Objects.requireNonNull(
+            env.get("DATABASE_USERNAME"), "missing environment variable DATABASE_USERNAME");
+    final static String password = Objects.requireNonNull(
+            env.get("DATABASE_PASSWORD"), "missing environment variable DATABASE_PASSWORD");
+
+    final static SqlConnectionManager connectionManager = new SqlConnectionManager(url, username, password);
     final static AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
     final static BidsRepository bidsRepository = new BidsRepository(connectionManager);
     static String topicId = Optional.ofNullable(env.get("VUE_APP_TOPIC_ID")).orElse("");
@@ -54,9 +60,20 @@ public class EasySetup extends AbstractCreate {
 
         CreateToken createToken = new CreateToken();
         TokenId tokenId = createToken.create(name, symbol, 1L, 0);
-        String key = client.getOperatorPublicKey().toString();
+//        String key = client.getOperatorPublicKey().toString();
         CreateAuctionAccount createAuctionAccount = new CreateAuctionAccount();
-        AccountId auctionAccount = createAuctionAccount.create(100, key);
+        AccountId auctionAccount = createAuctionAccount.create(100, "");
+        // associate auction account with token
+        TransactionResponse response = new TokenAssociateTransaction()
+                .setAccountId(auctionAccount)
+                .setTokenIds(List.of(tokenId))
+                .execute(client);
+
+        TransactionReceipt receipt = response.getReceipt(client);
+
+        if (receipt.status != Status.SUCCESS) {
+            log.error("error associating with token");
+        }
         CreateTokenTransfer createTokenTransfer = new CreateTokenTransfer();
         createTokenTransfer.transfer(tokenId.toString(), auctionAccount.toString());
 
@@ -78,7 +95,7 @@ public class EasySetup extends AbstractCreate {
         CreateAuction createAuction = new CreateAuction();
         createAuction.create("./sample-files/initDemo.json", topicId);
     }
-    public void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
         EasySetup easySetup = new EasySetup();
         easySetup.setup(args);
     }

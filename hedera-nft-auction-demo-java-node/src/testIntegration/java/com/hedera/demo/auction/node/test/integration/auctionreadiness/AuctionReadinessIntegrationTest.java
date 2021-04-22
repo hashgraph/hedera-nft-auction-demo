@@ -34,8 +34,8 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
     private PostgreSQLContainer postgres;
     private AuctionsRepository auctionsRepository;
     private Auction auction;
-    private final String accountId = "0.0.1";
-    private final String tokenId = "0.0.10";
+    private final static String accountId = "0.0.1";
+    private final static String tokenId = "0.0.10";
     private HederaClient hederaClient = HederaClient.emptyTestClient();
     private ReadinessTester readinessTester;
 

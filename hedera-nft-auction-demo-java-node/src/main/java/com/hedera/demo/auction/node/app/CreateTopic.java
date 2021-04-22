@@ -59,30 +59,34 @@ public class CreateTopic extends AbstractCreate {
         log.info("New topic created: " + topicId);
 
         Path dotEnvPath = Paths.get(dotEnvFile);
-        Path dotEnvTempPath = Paths.get(dotEnvFile.concat(".test"));
-        PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(dotEnvTempPath, StandardCharsets.UTF_8));
+        if (Files.exists(dotEnvPath)) {
+            Path dotEnvTempPath = Paths.get(dotEnvFile.concat(".test"));
+            PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(dotEnvTempPath, StandardCharsets.UTF_8));
 
-        List<String> dotEnvLines = Files.readAllLines(dotEnvPath);
+            List<String> dotEnvLines = Files.readAllLines(dotEnvPath);
 
-        @Var boolean bFoundTopicId = false;
-        for (@Var String line : dotEnvLines) {
-            if (line.trim().startsWith("VUE_APP_TOPIC_ID")) {
-                line = "VUE_APP_TOPIC_ID=" + topicId;
-                bFoundTopicId = true;
-            } else if (line.trim().startsWith("#VUE_APP_TOPIC_ID")) {
-                line = "VUE_APP_TOPIC_ID=" + topicId;
-                bFoundTopicId = true;
+            @Var boolean bFoundTopicId = false;
+            for (@Var String line : dotEnvLines) {
+                if (line.trim().startsWith("VUE_APP_TOPIC_ID")) {
+                    line = "VUE_APP_TOPIC_ID=" + topicId;
+                    bFoundTopicId = true;
+                } else if (line.trim().startsWith("#VUE_APP_TOPIC_ID")) {
+                    line = "VUE_APP_TOPIC_ID=" + topicId;
+                    bFoundTopicId = true;
+                }
+                printWriter.println(line);
             }
-            printWriter.println(line);
+            if (!bFoundTopicId) {
+                String line = "VUE_APP_TOPIC_ID=" + topicId;
+                printWriter.println(line);
+            }
+            printWriter.close();
+            Files.copy(dotEnvTempPath, dotEnvPath, StandardCopyOption.REPLACE_EXISTING);
+            Files.delete(dotEnvTempPath);
+            log.info(".env file updated with new topic id " + topicId);
+        } else {
+            log.warn("no .env file to update with topic id");
         }
-        if (! bFoundTopicId) {
-            String line = "VUE_APP_TOPIC_ID=" + topicId;
-            printWriter.println(line);
-        }
-        printWriter.close();
-        Files.copy(dotEnvTempPath, dotEnvPath, StandardCopyOption.REPLACE_EXISTING);
-        Files.delete(dotEnvTempPath);
-        log.info(".env file updated with new topic id " + topicId);
 
         return topicId;
     }

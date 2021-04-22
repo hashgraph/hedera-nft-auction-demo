@@ -24,10 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AuctionCreateSystemTest extends AbstractSystemTest {
 
-    private static final long reserve = 1000000;
-    private static final long minimumBid = 0;
-    private static final boolean winnerCanBid = true;
-
     AuctionCreateSystemTest() throws Exception {
         super();
     }
@@ -51,7 +47,7 @@ public class AuctionCreateSystemTest extends AbstractSystemTest {
     public void beforeEach() throws Exception {
         bidsRepository.deleteAllBids();
         auctionsRepository.deleteAllAuctions();
-        createAuction(reserve, minimumBid, winnerCanBid);
+        createAuction(auctionReserve, minimumBid, winnerCanBid);
     }
     @Test
     public void testCreateAuctionHederaMirror() throws Exception {
@@ -83,7 +79,7 @@ public class AuctionCreateSystemTest extends AbstractSystemTest {
         assertEquals(tokenId.toString(), auction.getTokenid());
         assertEquals(auctionAccountId.toString(), auction.getAuctionaccountid());
         assertNotNull(auction.getEndtimestamp());
-        assertEquals(reserve, auction.getReserve());
+        assertEquals(auctionReserve, auction.getReserve());
         assertEquals("0.0", auction.getLastconsensustimestamp());
         assertEquals(winnerCanBid, auction.getWinnerCanBid());
         assertNull(auction.getTokenimage());

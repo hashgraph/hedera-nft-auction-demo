@@ -9,11 +9,34 @@ import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.AccountBalance;
+import com.hedera.hashgraph.sdk.AccountBalanceQuery;
+import com.hedera.hashgraph.sdk.AccountCreateTransaction;
+import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.AccountInfo;
+import com.hedera.hashgraph.sdk.AccountInfoQuery;
+import com.hedera.hashgraph.sdk.Client;
+import com.hedera.hashgraph.sdk.Hbar;
+import com.hedera.hashgraph.sdk.Key;
+import com.hedera.hashgraph.sdk.KeyList;
+import com.hedera.hashgraph.sdk.PrecheckStatusException;
+import com.hedera.hashgraph.sdk.PrivateKey;
+import com.hedera.hashgraph.sdk.ReceiptStatusException;
+import com.hedera.hashgraph.sdk.TokenCreateTransaction;
+import com.hedera.hashgraph.sdk.TokenId;
+import com.hedera.hashgraph.sdk.TokenInfo;
+import com.hedera.hashgraph.sdk.TokenInfoQuery;
+import com.hedera.hashgraph.sdk.TopicId;
+import com.hedera.hashgraph.sdk.TopicInfo;
+import com.hedera.hashgraph.sdk.TopicInfoQuery;
+import com.hedera.hashgraph.sdk.TransactionReceipt;
+import com.hedera.hashgraph.sdk.TransactionResponse;
+import com.hedera.hashgraph.sdk.TransferTransaction;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.flywaydb.core.Flyway;
+import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.io.File;
@@ -29,6 +52,7 @@ public abstract class AbstractSystemTest {
     protected static final Dotenv dotenv = Dotenv.configure().filename(".env.system").ignoreIfMissing().load();
     protected HederaClient hederaClient;
 
+    protected static Network testContainersNetwork = Network.newNetwork();
 
     protected PostgreSQLContainer postgres;
     protected AuctionsRepository auctionsRepository;
@@ -55,6 +79,12 @@ public abstract class AbstractSystemTest {
     protected static final int decimals = 2;
     protected static TokenId tokenId;
     protected static TokenInfo tokenInfo;
+
+    protected static final long minimumBid = 0;
+    protected static final boolean winnerCanBid = true;
+    protected final long auctionReserve = 1000;
+    protected final String endTimeStamp = "0000.12313";
+
 
     // test token owner
     PrivateKey tokenOwnerPrivateKey;
@@ -263,4 +293,17 @@ public abstract class AbstractSystemTest {
             return false;
         };
     }
+
+    protected static String[] keylistToStringArray(KeyList keyList) {
+        Object[] accountKeysWithin = keyList.toArray();
+        String[] pubKeys = new String[keyList.size()];
+
+        for (int i=0; i < keyList.size(); i++) {
+            Key pubKey = (Key)accountKeysWithin[i];
+            pubKeys[i] = pubKey.toString();
+        }
+
+        return pubKeys;
+    }
+
 }

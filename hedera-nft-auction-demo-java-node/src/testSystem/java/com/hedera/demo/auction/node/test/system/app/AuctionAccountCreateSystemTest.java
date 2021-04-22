@@ -24,18 +24,6 @@ public class AuctionAccountCreateSystemTest extends AbstractSystemTest {
         super();
     }
 
-    private static String[] keylistToStringArray(KeyList keyList) {
-        Object[] accountKeysWithin = keyList.toArray();
-        String[] pubKeys = new String[keyList.size()];
-
-        for (int i=0; i < keyList.size(); i++) {
-            Key pubKey = (Key)accountKeysWithin[i];
-            pubKeys[i] = pubKey.toString();
-        }
-
-        return pubKeys;
-    }
-
     @Test
     public void testCreateAccountDefault() throws Exception {
 

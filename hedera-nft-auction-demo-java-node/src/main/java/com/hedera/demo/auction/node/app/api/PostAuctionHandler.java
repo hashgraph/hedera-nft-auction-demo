@@ -9,14 +9,19 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.TimeoutException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+@Log4j2
 public class PostAuctionHandler implements Handler<RoutingContext> {
     private final Dotenv env;
     public PostAuctionHandler(Dotenv env) {
@@ -40,6 +45,15 @@ public class PostAuctionHandler implements Handler<RoutingContext> {
             if (StringUtils.isEmpty(fileName)) {
                 fileName = "./sample-files/initDemo.json";
 
+                if (!Files.exists(Path.of(fileName))) {
+                    try {
+                        Files.createDirectory(Path.of("./sample-files"));
+                    } catch (FileAlreadyExistsException e) {
+                        log.info("./sample-files already exists.");
+                    }
+                    Files.createFile(Path.of(fileName));
+                }
+
                 JsonObject auction = new JsonObject();
                 auction.put("tokenid", data.tokenid);
                 auction.put("auctionaccountid", data.auctionaccountid);
@@ -56,7 +70,11 @@ public class PostAuctionHandler implements Handler<RoutingContext> {
 
             CreateAuction createAuction = new CreateAuction();
             createAuction.setEnv(env);
-            createAuction.create(fileName, "");
+            @Var String localTopicId = env.get("VUE_APP_TOPIC_ID");
+            if (! StringUtils.isEmpty(data.topicId)) {
+                localTopicId = data.topicId;
+            }
+            createAuction.create(fileName, localTopicId);
 
             JsonObject response = new JsonObject();
             response.put("status", "created");

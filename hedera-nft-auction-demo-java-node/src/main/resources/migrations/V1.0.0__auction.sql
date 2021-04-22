@@ -18,7 +18,8 @@ CREATE TABLE auctions
     tokenImage             TEXT DEFAULT '',
     minimumbid             INT8  DEFAULT 0,
     startTimestamp         TEXT  DEFAULT '',
-    UNIQUE (tokenId, auctionAccountId)
+    UNIQUE (tokenId),
+    UNIQUE (auctionAccountId)
 );
 
 CREATE TABLE "bids"

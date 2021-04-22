@@ -62,6 +62,7 @@ public class ApiVerticle extends AbstractVerticle {
         GetAuctionHandler getAuctionHandler = new GetAuctionHandler(pgPool);
         GetLastBidderBidHandler getLastBidderBidHandler = new GetLastBidderBidHandler(pgPool);
         GetBidsHandler getBidsHandler = new GetBidsHandler(pgPool);
+        RootHandler rootHandler = new RootHandler();
 
         Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.GET));
         Set<String> allowedHeaders = new LinkedHashSet<>(Arrays.asList("content-type"));
@@ -76,6 +77,7 @@ public class ApiVerticle extends AbstractVerticle {
         router.get("/v1/auctions").handler(getAuctionsHandler);
         router.get("/v1/lastbid/:auctionid/:bidderaccountid").handler(getLastBidderBidHandler);
         router.get("/v1/bids/:auctionid").handler(getBidsHandler);
+        router.get("/").handler(rootHandler);
 
         System.out.println("API Web Server Listening on port: " + httpPort);
         server

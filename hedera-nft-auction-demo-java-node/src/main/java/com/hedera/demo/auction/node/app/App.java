@@ -19,7 +19,9 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
+import lombok.extern.log4j.Log4j2;
 import org.flywaydb.core.Flyway;
+import org.jooq.tools.StringUtils;
 
 import javax.annotation.Nullable;
 import java.sql.SQLException;
@@ -27,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Log4j2
 public final class App {
     private final Dotenv env = Dotenv.configure().ignoreIfMissing().load();
     private boolean restAPI = Optional.ofNullable(env.get("REST_API")).map(Boolean::parseBoolean).orElse(false);
@@ -140,11 +143,14 @@ public final class App {
         auctionsClosureWatcherThread.start();
     }
     private void startSubscription(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
-        topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository, webClient, TopicId.fromString(topicId), refundKey, mirrorQueryFrequency);
-        // start the thread to monitor bids
-        Thread topicSubscriberThread = new Thread(topicSubscriber);
-        topicSubscriberThread.start();
-
+        if (StringUtils.isEmpty(topicId)) {
+            log.warn("No topic Id found in environment variables, not subscribing");
+        } else {
+            topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository, webClient, TopicId.fromString(topicId), refundKey, mirrorQueryFrequency);
+            // start the thread to monitor bids
+            Thread topicSubscriberThread = new Thread(topicSubscriber);
+            topicSubscriberThread.start();
+        }
     }
     private void startBidWatchers(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) throws SQLException {
         for (Auction auction : auctionsRepository.getAuctionsList()) {

@@ -187,6 +187,7 @@ public class AuctionsRepository {
             auction.setId(id);
         } catch (DataAccessException e) {
             log.info("Auction already in database");
+            auction.setId(0);
         } finally {
             if (cx != null) {
                 cx.close();

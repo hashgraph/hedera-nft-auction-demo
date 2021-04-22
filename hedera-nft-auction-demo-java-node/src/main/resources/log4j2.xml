@@ -21,5 +21,8 @@
         <Logger name="io.grpc.internal" level="OFF">
             <AppenderRef ref="Console" />
         </Logger>
+        <logger name="org.testcontainers" level="INFO">
+            <AppenderRef ref="Console" />
+        </logger>
     </Loggers>
 </Configuration>

@@ -14,28 +14,17 @@ RUN cd /opt/hedera-nft-auction-demo-java-node && ./gradlew
 COPY ./build.gradle /opt/hedera-nft-auction-demo-java-node/build.gradle
 COPY ./settings.gradle /opt/hedera-nft-auction-demo-java-node/settings.gradle
 
-#RUN cd /opt/hedera-nft-auction-demo-java-node && ./gradlew --no-daemon compileJava
-
 # now, finally copy in the source and build a JAR
 COPY ./src /opt/hedera-nft-auction-demo-java-node/src
 COPY ./sample-files /opt/hedera-nft-auction-demo-java-node/sample-files
 
-#RUN cd /opt/hedera-nft-auction-demo-java-node && ./gradlew flywayMigrate
-
-#RUN cd /opt/hedera-nft-auction-demo-java-node && ./gradlew jooqGenerate
-
-RUN cd /opt/hedera-nft-auction-demo-java-node && ./gradlew --no-daemon build
-
-CMD "ls" "/opt/hedera-nft-auction-demo-java-node/build/libs/"
+RUN cd /opt/hedera-nft-auction-demo-java-node && ./gradlew --no-daemon assemble
 
 FROM adoptopenjdk:14-jre-hotspot
 
+RUN mkdir -p /srv
+
 # make a place to put our built JAR and copy it to there
-WORKDIR /srv
-COPY --from=build /opt/hedera-nft-auction-demo-java-node/build/libs/hedera-nft-auction-demo-1.0.jar /srv/hedera-nft-auction-demo-1.0.jar
-#COPY --from=build /opt/hedera-nft-auction-demo-java-node/sample-files /demo/sample-files
+COPY --from=build /opt/hedera-nft-auction-demo-java-node/build/libs/hedera-nft-auction-demo-node-1.0.jar /srv/hedera-nft-auction-demo-node-1.0.jar
 
-# run
-WORKDIR /demo
-
-CMD java "-jar" "/srv/hedera-nft-auction-demo-1.0.jar"
+CMD "java" "-jar" "/srv/hedera-nft-auction-demo-node-1.0.jar"

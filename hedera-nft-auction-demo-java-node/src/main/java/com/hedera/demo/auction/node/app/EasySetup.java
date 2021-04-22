@@ -3,13 +3,12 @@ package com.hedera.demo.auction.node.app;
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.hashgraph.sdk.AccountId;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.TokenId;
+import com.hedera.hashgraph.sdk.*;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.FileWriter;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -61,9 +60,20 @@ public class EasySetup extends AbstractCreate {
 
         CreateToken createToken = new CreateToken();
         TokenId tokenId = createToken.create(name, symbol, 1L, 0);
-        String key = client.getOperatorPublicKey().toString();
+//        String key = client.getOperatorPublicKey().toString();
         CreateAuctionAccount createAuctionAccount = new CreateAuctionAccount();
-        AccountId auctionAccount = createAuctionAccount.create(100, key);
+        AccountId auctionAccount = createAuctionAccount.create(100, "");
+        // associate auction account with token
+        TransactionResponse response = new TokenAssociateTransaction()
+                .setAccountId(auctionAccount)
+                .setTokenIds(List.of(tokenId))
+                .execute(client);
+
+        TransactionReceipt receipt = response.getReceipt(client);
+
+        if (receipt.status != Status.SUCCESS) {
+            log.error("error associating with token");
+        }
         CreateTokenTransfer createTokenTransfer = new CreateTokenTransfer();
         createTokenTransfer.transfer(tokenId.toString(), auctionAccount.toString());
 
@@ -85,7 +95,7 @@ public class EasySetup extends AbstractCreate {
         CreateAuction createAuction = new CreateAuction();
         createAuction.create("./sample-files/initDemo.json", topicId);
     }
-    public void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
         EasySetup easySetup = new EasySetup();
         easySetup.setup(args);
     }

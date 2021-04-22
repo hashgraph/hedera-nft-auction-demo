@@ -35,10 +35,12 @@ public class CreateAuction extends AbstractCreate {
      */
     public void create(String auctionFile, String overrideTopicId) throws Exception {
 
-        @Var String topicId = "";
+        @Var String localTopicId = "";
 
         if (! overrideTopicId.isBlank()) {
-            topicId = overrideTopicId;
+            localTopicId = overrideTopicId;
+        } else {
+            localTopicId = topicId;
         }
         if (! Files.exists(Path.of(auctionFile))) {
             log.error("File " + auctionFile + " not found");
@@ -47,10 +49,10 @@ public class CreateAuction extends AbstractCreate {
             log.info("Loading " + auctionFile + " file");
             String auctionInitData = Files.readString(Path.of(auctionFile), StandardCharsets.US_ASCII);
 
-            log.info("Submitting " + auctionFile + " file contents to HCS on topic " + topicId);
+            log.info("Submitting " + auctionFile + " file contents to HCS on topic " + localTopicId);
 
             TopicMessageSubmitTransaction topicMessageSubmitTransaction = new TopicMessageSubmitTransaction()
-                    .setTopicId(TopicId.fromString(topicId))
+                    .setTopicId(TopicId.fromString(localTopicId))
                     .setTransactionMemo("CreateAuction")
                     .setMessage(auctionInitData);
             TransactionResponse response = topicMessageSubmitTransaction.execute(hederaClient.client());
@@ -64,14 +66,15 @@ public class CreateAuction extends AbstractCreate {
         }
     }
 
-    public void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
         if (args.length != 1) {
             log.error("Invalid number of arguments supplied");
         } else if (StringUtils.isEmpty(topicId)) {
             log.error("No VUE_APP_TOPIC_ID in .env file");
         } else {
             log.info("Creating auction");
-            create(args[0], "");
+            CreateAuction createAuction = new CreateAuction();
+            createAuction.create(args[0], "");
         }
     }
 }

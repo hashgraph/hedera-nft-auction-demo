@@ -49,11 +49,70 @@ git clone https://github.com/hashgraph/hedera-nft-auction-demo.git
 
 ### With docker
 
-//TODO:
+#### Setup environment
+
+```shell
+cd hedera-nft-auction-demo
+cd docker-files
+cp .env.sample .env
+nano .env 
+```
+
+setup the `.env` properties as follows
+
+* OPERATOR_ID= (input your account id for the Hedera network)
+* OPERATOR_KEY= (input your private key associated with the Hedera account above - 302xxxx)
+* REFUND_KEY= (Same as operator key for testing purposes)
+
+you may leave the other properties as is for now
+
+#### Start docker images
+
+```shell
+cd ..
+docker-compose build
+docker-compose up
+```
+
+you may now navigate to [http://localhost:8080](http://localhost:8080) to verify the UI is up and running, it should indicate no auctions are currently setup.
+
+#### Create a sample auction
 
 ```shell script
-./gradlew easySetup --args="--name=myToken --symbol=./sample-files/gold-base64.txt"
+curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8082/v1/admin/easysetup
 ```
+
+#### Restart the docker containers for the topic to be taken into account
+
+Stop the containers with `CTRL+C`
+
+Restart the containers
+
+```shell script
+docker-compose up
+```
+
+You should see logs similar to
+
+`
+nft-auction-demo-node | 2021-04-23 12:26:27.063 INFO  com.hedera.demo.auction.node.app.subscriber.TopicSubscriber - Auction for token 0.0.539174 added (150)
+nft-auction-demo-node | 2021-04-23 12:26:27.063 INFO  com.hedera.demo.auction.node.app.subscriber.TopicSubscriber - Auction for token 0.0.539174 added (150)
+nft-auction-demo-node | 2021-04-23 12:26:29.022 INFO  com.hedera.demo.auction.node.app.readinesswatcher.HederaAuctionReadinessWatcher - Watching auction account Id 0.0.539175, token Id 0.0.539174 (36)
+nft-auction-demo-node | 2021-04-23 12:26:29.024 DEBUG com.hedera.demo.auction.node.app.readinesswatcher.HederaAuctionReadinessWatcher - Checking ownership of token 0.0.539174 for account 0.0.539175 (52)
+nft-auction-demo-node | 2021-04-23 12:26:29.364 INFO  com.hedera.demo.auction.node.app.readinesswatcher.AbstractAuctionReadinessWatcher - Account 0.0.539175 owns token 0.0.539174, starting auction (70)
+nft-auction-demo-node | 2021-04-23 12:26:39.380 DEBUG com.hedera.demo.auction.node.app.bidwatcher.HederaBidsWatcher - Checking for bids on account 0.0.539175 and token 0.0.539174 (38)
+...
+`
+
+you may now navigate to [http://localhost:8080](http://localhost:8080) to verify the UI is up and running, it should show the auction created above (it may take a few seconds to appear).
+
+#### Notes
+
+* EasySetup which is invoked to create an auction deletes all the data from the database, creates a new topic and a new auction. Make sure you restart the containers after running this easySetup.
+
+* Database files are persisted on your host under `docker-files\postgres-data`, to completely delete the database, delete this folder and restart the containers.
+
+* The `docker-files` folder is mounted as a volume on the containers.
 
 ### Standalone
 
@@ -88,9 +147,9 @@ The operator id/key is used to query the hedera network (free queries)
 * And optionally creating a token to auction, then transferring it to the auction account*
 
 
-* OPERATOR_ID=
-* OPERATOR_KEY=302.....
-* REFUND_KEY=302....... (Same as operator key)
+* OPERATOR_ID= (input your account id for the Hedera network)
+* OPERATOR_KEY= (input your private key associated with the Hedera account above - 302xxxx)
+* REFUND_KEY= (Same as operator key for testing purposes)
 * TRANSFER_ON_WIN=true
 
 You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish

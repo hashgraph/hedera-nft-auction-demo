@@ -20,7 +20,7 @@ public class HederaClient {
     private String mirrorProvider;
     private String mirrorUrl = "";
     private final Client client;
-    private final String network;
+    private String network;
 
     public HederaClient(AccountId operatorId, PrivateKey operatorKey, String network, String mirrorProvider, String mirrorUrl, String mirrorAddress) throws Exception {
         this.operatorId = operatorId;
@@ -39,9 +39,11 @@ public class HederaClient {
     public HederaClient(Dotenv env) throws Exception {
         this.operatorId = AccountId.fromString(Objects.requireNonNull(env.get("OPERATOR_ID")));
         this.operatorKey = PrivateKey.fromString(Objects.requireNonNull(env.get("OPERATOR_KEY")));
-        this.mirrorProvider = Optional.ofNullable(env.get("MIRROR_PROVIDER").toUpperCase()).orElse("KABUTO");
+        this.mirrorProvider = Optional.ofNullable(env.get("MIRROR_PROVIDER")).orElse("KABUTO");
+        this.mirrorProvider = this.mirrorProvider.toUpperCase();
 
-        this.network = Optional.ofNullable(env.get("VUE_APP_NETWORK").toUpperCase()).orElse("");
+        this.network = Optional.ofNullable(env.get("VUE_APP_NETWORK")).orElse("");
+        this.network = this.network.toUpperCase();
         this.client = clientForNetwork(this.network);
         setClientMirror(env);
     }

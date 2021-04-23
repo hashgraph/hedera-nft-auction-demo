@@ -8,7 +8,6 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
-#      - POSTGRES_MULTIPLE_DATABASES=auctions
   #  networks:
   #    - hcs_heal
 #    expose:
@@ -25,9 +24,16 @@ services:
       context: hedera-nft-auction-demo-java-node
     restart: unless-stopped
     environment:
+      # Database connection
+      - DATABASE_URL=postgresql://postgres:5432/postgres
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=password
+      - POOL_SIZE=10
+      # Run auction node only
       - AUCTION_NODE=true
       - REST_API=false
       - ADMIN_API=false
+
     env_file:
       - docker-files/.env
     depends_on:
@@ -41,15 +47,26 @@ services:
       context: hedera-nft-auction-demo-java-node
     restart: unless-stopped
     environment:
+      # Run API only
       - REST_API=true
       - ADMIN_API=true
       - AUCTION_NODE=false
+      # Database connection
+      - DATABASE_URL=postgresql://postgres:5432/postgres
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=password
+      - POOL_SIZE=10
+      # REST API Ports
+      - VUE_APP_API_PORT=8081
+      - API_VERTICLE_COUNT=16
+      - ADMIN_API_PORT=8082
+      - ADMIN_API_VERTICLE_COUNT=1
     env_file:
       - docker-files/.env
     ports:
       - "8081:8081"
-# uncomment to expose the admin api outside the docker component (not recommended)
-#      - "8082:8082"
+# comment to hide the admin api outside the docker component (recommended in production)
+      - "8082:8082"
     depends_on:
       - postgres
     volumes:
@@ -59,6 +76,18 @@ services:
     build:
       context: hedera-nft-auction-demo-javascript-client
     restart: unless-stopped
+    environment:
+      # Location of browser extension for installation
+      - VUE_APP_BROWSER_EXTENSION_URL=https://github.com/nsjames/iv-extension/releases/tag/0.1.0
+      # UI Port for serve
+      - PORT=8080
+      # Backend API port
+      - VUE_APP_API_PORT=8081
+      # Explorer Mirror urls
+      - VUE_APP_EXPLORER_HEDERA=https://explorer.kabuto.sh/
+      - VUE_APP_EXPLORER_KABUTO=https://explorer.kabuto.sh/
+      - VUE_APP_EXPLORER_DRAGONGLASS_MAINNET=https://app.dragonglass.me/hedera/
+      - VUE_APP_EXPLORER_DRAGONGLASS_TESTNET=https://testnet.dragonglass.me/hedera/
     env_file:
       - docker-files/.env
     ports:

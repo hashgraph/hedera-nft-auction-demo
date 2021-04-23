@@ -84,6 +84,7 @@ services:
       # Backend API port
       - VUE_APP_API_PORT=8081
       # Explorer Mirror urls
+      - VUE_APP_NETWORK=testnet
       - VUE_APP_EXPLORER_HEDERA=https://explorer.kabuto.sh/
       - VUE_APP_EXPLORER_KABUTO=https://explorer.kabuto.sh/
       - VUE_APP_EXPLORER_DRAGONGLASS_MAINNET=https://app.dragonglass.me/hedera/

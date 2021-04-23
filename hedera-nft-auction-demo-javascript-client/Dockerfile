@@ -6,8 +6,7 @@ COPY ./.browserslistrc /srv/hedera-nft-auction-demo-javascript-client/.browsersl
 COPY ./.eslintrc.js /srv/hedera-nft-auction-demo-javascript-client/.eslintrc.js
 COPY ./babel.config.js /srv/hedera-nft-auction-demo-javascript-client/babel.config.js
 COPY ./vue.config.js /srv/hedera-nft-auction-demo-javascript-client/vue.config.js
-#COPY ./.env /srv/hedera-nft-auction-demo-javascript-client/.env
-#COPY ./.env /srv/hedera-nft-auction-demo-javascript-client/.env.production
+COPY ./.env /srv/hedera-nft-auction-demo-javascript-client/.env
 ADD ./src /srv/hedera-nft-auction-demo-javascript-client/src
 ADD ./public /srv/hedera-nft-auction-demo-javascript-client/public
 
@@ -19,7 +18,7 @@ FROM nginx:alpine
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 RUN rm -rf /usr/share/nginx/html/*
 COPY --from=build /srv/hedera-nft-auction-demo-javascript-client/dist /usr/share/nginx/html
-#COPY --from=build /srv/hedera-nft-auction-demo-javascript-client/.env /usr/share/nginx/html/.env
-#COPY --from=build /srv/hedera-nft-auction-demo-javascript-client/.env /usr/share/nginx/html/.env.production
+COPY --from=build /srv/hedera-nft-auction-demo-javascript-client/.env /usr/share/nginx/html/.env
+COPY --from=build /srv/hedera-nft-auction-demo-javascript-client/.env /usr/share/nginx/html/.env.production
 
 CMD ["nginx", "-g", "daemon off;"]

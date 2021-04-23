@@ -76,19 +76,6 @@ services:
     build:
       context: hedera-nft-auction-demo-javascript-client
     restart: unless-stopped
-    environment:
-      # Location of browser extension for installation
-      - VUE_APP_BROWSER_EXTENSION_URL=https://github.com/nsjames/iv-extension/releases/tag/0.1.0
-      # UI Port for serve
-      - PORT=8080
-      # Backend API port
-      - VUE_APP_API_PORT=8081
-      # Explorer Mirror urls
-      - VUE_APP_NETWORK=testnet
-      - VUE_APP_EXPLORER_HEDERA=https://explorer.kabuto.sh/
-      - VUE_APP_EXPLORER_KABUTO=https://explorer.kabuto.sh/
-      - VUE_APP_EXPLORER_DRAGONGLASS_MAINNET=https://app.dragonglass.me/hedera/
-      - VUE_APP_EXPLORER_DRAGONGLASS_TESTNET=https://testnet.dragonglass.me/hedera/
     env_file:
       - docker-files/.env
     ports:

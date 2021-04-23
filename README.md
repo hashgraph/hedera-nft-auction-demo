@@ -66,6 +66,14 @@ setup the `.env` properties as follows
 
 you may leave the other properties as is for now
 
+```shell
+cd hedera-nft-auction-demo
+cd hedera-nft-auction-demo-javascript-client
+cp .env.sample .env
+```
+
+you may leave the properties as is for now
+
 #### Start docker images
 
 ```shell

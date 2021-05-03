@@ -1,13 +1,7 @@
 package com.hedera.demo.auction.node.app;
 
 import com.google.errorprone.annotations.Var;
-import com.hedera.hashgraph.sdk.PrecheckStatusException;
-import com.hedera.hashgraph.sdk.ReceiptStatusException;
-import com.hedera.hashgraph.sdk.Status;
-import com.hedera.hashgraph.sdk.TopicId;
-import com.hedera.hashgraph.sdk.TopicMessageSubmitTransaction;
-import com.hedera.hashgraph.sdk.TransactionReceipt;
-import com.hedera.hashgraph.sdk.TransactionResponse;
+import com.hedera.hashgraph.sdk.*;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
@@ -51,17 +45,22 @@ public class CreateAuction extends AbstractCreate {
 
             log.info("Submitting " + auctionFile + " file contents to HCS on topic " + localTopicId);
 
-            TopicMessageSubmitTransaction topicMessageSubmitTransaction = new TopicMessageSubmitTransaction()
-                    .setTopicId(TopicId.fromString(localTopicId))
-                    .setTransactionMemo("CreateAuction")
-                    .setMessage(auctionInitData);
-            TransactionResponse response = topicMessageSubmitTransaction.execute(hederaClient.client());
+            try {
+                TopicMessageSubmitTransaction topicMessageSubmitTransaction = new TopicMessageSubmitTransaction()
+                        .setTopicId(TopicId.fromString(localTopicId))
+                        .setTransactionMemo("CreateAuction")
+                        .setMessage(auctionInitData);
 
-            TransactionReceipt receipt = response.getReceipt(hederaClient.client());
-            if (receipt.status != Status.SUCCESS) {
-                log.error("Topic submit failed " + receipt.status);
-            } else {
-                log.info("Auction submitted");
+                TransactionResponse response = topicMessageSubmitTransaction.execute(hederaClient.client());
+                TransactionReceipt receipt = response.getReceipt(hederaClient.client());
+                if (receipt.status != Status.SUCCESS) {
+                    log.error("Topic submit failed " + receipt.status);
+                } else {
+                    log.info("Auction submitted");
+                }
+            } catch (Exception e) {
+                log.error(e);
+                throw e;
             }
         }
     }

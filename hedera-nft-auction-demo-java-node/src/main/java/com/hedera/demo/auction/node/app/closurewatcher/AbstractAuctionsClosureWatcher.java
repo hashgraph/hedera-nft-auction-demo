@@ -111,12 +111,17 @@ public abstract class AbstractAuctionsClosureWatcher {
         accountUpdateTransaction.setAccountId(AccountId.fromString(auction.getAuctionaccountid()));
         accountUpdateTransaction.setReceiverSignatureRequired(true);
 
-        TransactionResponse response = accountUpdateTransaction.execute(client);
-        // check for receipt
-        TransactionReceipt receipt = response.getReceipt(client);
-        if (receipt.status != Status.SUCCESS) {
-            log.error("Setting receiver signature required on account " + auction.getAuctionaccountid() + " failed with " + receipt.status);
-            return;
+        try {
+            TransactionResponse response = accountUpdateTransaction.execute(client);
+            // check for receipt
+            TransactionReceipt receipt = response.getReceipt(client);
+            if (receipt.status != Status.SUCCESS) {
+                log.error("Setting receiver signature required on account " + auction.getAuctionaccountid() + " failed with " + receipt.status);
+                return;
+            }
+        } catch (Exception e) {
+            log.error(e);
+            throw e;
         }
     }
 }

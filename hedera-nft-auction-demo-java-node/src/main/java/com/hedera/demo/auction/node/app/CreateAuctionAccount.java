@@ -59,18 +59,23 @@ public class CreateAuctionAccount extends AbstractCreate {
             }
         }
 
-        accountCreateTransaction.setKey(keyList);
-        accountCreateTransaction.setInitialBalance(Hbar.from(initialBalance));
-        TransactionResponse response = accountCreateTransaction.execute(client);
+        try {
+            accountCreateTransaction.setKey(keyList);
+            accountCreateTransaction.setInitialBalance(Hbar.from(initialBalance));
+            TransactionResponse response = accountCreateTransaction.execute(client);
 
-        TransactionReceipt receipt = response.getReceipt(client);
-        if (receipt.status != Status.SUCCESS) {
-            log.error("Account creation failed " + receipt.status);
-            throw new Exception("Account creation failed " + receipt.status);
-        } else {
-            log.info("Account created " + receipt.accountId.toString());
+            TransactionReceipt receipt = response.getReceipt(client);
+            if (receipt.status != Status.SUCCESS) {
+                log.error("Account creation failed " + receipt.status);
+                throw new Exception("Account creation failed " + receipt.status);
+            } else {
+                log.info("Account created " + receipt.accountId.toString());
+            }
+            return receipt.accountId;
+        } catch (Exception e) {
+            log.error(e);
+            throw e;
         }
-        return receipt.accountId;
     }
 
     public static void main(String[] args) throws Exception {

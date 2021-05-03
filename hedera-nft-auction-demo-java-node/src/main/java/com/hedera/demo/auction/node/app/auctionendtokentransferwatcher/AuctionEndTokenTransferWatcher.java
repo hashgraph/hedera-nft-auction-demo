@@ -1,4 +1,4 @@
-package com.hedera.demo.auction.node.app.winnertokentransferwatcher;
+package com.hedera.demo.auction.node.app.auctionendtokentransferwatcher;
 
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;
@@ -9,7 +9,7 @@ import lombok.extern.log4j.Log4j2;
 import java.sql.SQLException;
 
 @Log4j2
-public class WinnerTokenTransferWatcher implements Runnable {
+public class AuctionEndTokenTransferWatcher implements Runnable {
 
     private final WebClient webClient;
     private final AuctionsRepository auctionsRepository;
@@ -17,9 +17,9 @@ public class WinnerTokenTransferWatcher implements Runnable {
     private final String mirrorProvider;
     private final HederaClient hederaClient;
     private boolean runThread = true;
-    private WinnerTokenTransferWatcherInterface winnerTokenTransferWatcher = null;
+    private AuctionEndTokenTransferWatcherInterface auctionEndTokenTransferWatcherInterface = null;
 
-    public WinnerTokenTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency) {
+    public AuctionEndTokenTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
@@ -37,16 +37,16 @@ public class WinnerTokenTransferWatcher implements Runnable {
                             // find if transaction is complete and successful
                             switch (mirrorProvider) {
                                 case "HEDERA":
-                                    winnerTokenTransferWatcher = new HederaWinnerTokenTransferWatcher(hederaClient, webClient, auctionsRepository, auction);
+                                    auctionEndTokenTransferWatcherInterface = new HederaAuctionEndTokenTransferWatcher(hederaClient, webClient, auctionsRepository, auction);
                                     break;
                                 case "DRAGONGLASS":
-                                    winnerTokenTransferWatcher = new DragonglassWinnerTokenTransferWatcher(hederaClient, webClient, auctionsRepository, auction);
+                                    auctionEndTokenTransferWatcherInterface = new DragonglassAuctionEndTokenTransferWatcher(hederaClient, webClient, auctionsRepository, auction);
                                     break;
                                 default:
-                                    winnerTokenTransferWatcher = new KabutoWinnerTokenTransferWatcher(hederaClient, webClient, auctionsRepository, auction);
+                                    auctionEndTokenTransferWatcherInterface = new KabutoAuctionEndTokenTransferWatcher(hederaClient, webClient, auctionsRepository, auction);
                                     break;
                             }
-                            winnerTokenTransferWatcher.check();
+                            auctionEndTokenTransferWatcherInterface.check();
                         }
                     }
                 }
@@ -60,7 +60,7 @@ public class WinnerTokenTransferWatcher implements Runnable {
             }
         }
     }
-    
+
     public void stop() {
         runThread = false;
     }

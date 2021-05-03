@@ -5,7 +5,7 @@ import com.hedera.demo.auction.node.app.SqlConnectionManager;
 import com.hedera.demo.auction.node.app.Utils;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.node.app.winnertokentransferwatcher.AbstractWinnerTokenTransferWatcher;
+import com.hedera.demo.auction.node.app.auctionendtokentransferwatcher.AbstractAuctionEndTokenTransferWatcher;
 import com.hedera.demo.auction.node.test.integration.AbstractIntegrationTest;
 import com.hedera.demo.auction.node.test.integration.HederaJson;
 import io.vertx.core.json.JsonObject;
@@ -26,10 +26,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class WinnerTokenTransferWatcherIntegrationTest extends AbstractIntegrationTest {
+public class AuctionEndTokenTransferWatcherIntegrationTest extends AbstractIntegrationTest {
 
-    static class WinnerTokenTransferWatcher extends AbstractWinnerTokenTransferWatcher {
-        protected WinnerTokenTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, Auction auction) {
+    static class AuctionEndTokenTransferWatcher extends AbstractAuctionEndTokenTransferWatcher {
+        protected AuctionEndTokenTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, Auction auction) {
             super(hederaClient, webClient, auctionsRepository, auction);
         }
     }
@@ -39,13 +39,13 @@ public class WinnerTokenTransferWatcherIntegrationTest extends AbstractIntegrati
     private final HederaClient hederaClient = HederaClient.emptyTestClient();
     private final static String tokenId = "0.0.10";
     private final static String auctionAccountId = "0.0.30";
-    private WinnerTokenTransferWatcher winnerTokenTransferWatcher;
+    private AuctionEndTokenTransferWatcher winnerTokenTransferWatcher;
     private Auction auction;
     private String transactionId;
     private String transactionHash;
     private JsonObject response;
 
-    public WinnerTokenTransferWatcherIntegrationTest() throws Exception {
+    public AuctionEndTokenTransferWatcherIntegrationTest() throws Exception {
     }
 
     @BeforeAll
@@ -76,7 +76,7 @@ public class WinnerTokenTransferWatcherIntegrationTest extends AbstractIntegrati
         auction.setTransfertxid(transactionId);
         auctionsRepository.setTransferTransaction(auction.getId(), transactionId, "");
 
-        winnerTokenTransferWatcher = new WinnerTokenTransferWatcher(hederaClient, webClient, auctionsRepository, auction);
+        winnerTokenTransferWatcher = new AuctionEndTokenTransferWatcher(hederaClient, webClient, auctionsRepository, auction);
     }
 
     @AfterEach

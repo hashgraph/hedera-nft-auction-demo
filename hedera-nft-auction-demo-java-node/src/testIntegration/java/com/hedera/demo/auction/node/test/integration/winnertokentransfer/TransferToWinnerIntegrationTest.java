@@ -5,7 +5,7 @@ import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.SqlConnectionManager;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.node.app.winnertokentransfer.WinnerTokenTransfer;
+import com.hedera.demo.auction.node.app.auctionendtokentransfer.AuctionEndTokenTransfer;
 import com.hedera.demo.auction.node.test.integration.AbstractIntegrationTest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -31,7 +31,7 @@ public class TransferToWinnerIntegrationTest extends AbstractIntegrationTest {
     private final static String tokenId = "0.0.10";
     private final static String auctionAccountId = "0.0.30";
     private final static String winningAccountId = "0.0.20";
-    private WinnerTokenTransfer winnerTokenTransfer;
+    private AuctionEndTokenTransfer auctionEndTokenTransfer;
     private Auction auction;
 
     public TransferToWinnerIntegrationTest() throws Exception {
@@ -44,7 +44,7 @@ public class TransferToWinnerIntegrationTest extends AbstractIntegrationTest {
         migrate(this.postgres);
         SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
-        winnerTokenTransfer = new WinnerTokenTransfer(hederaClient, webClient, auctionsRepository, "", 5000);
+        auctionEndTokenTransfer = new AuctionEndTokenTransfer(hederaClient, webClient, auctionsRepository, "", 5000);
     }
 
     @AfterAll
@@ -75,7 +75,7 @@ public class TransferToWinnerIntegrationTest extends AbstractIntegrationTest {
         assertEquals("", updatedAuction.getTransfertxid());
         assertEquals("", updatedAuction.getTransfertxhash());
 
-        winnerTokenTransfer.transferToWinner(auction);
+        auctionEndTokenTransfer.transferToken(auction);
 
         updatedAuction = auctionsRepository.getAuction(auction.getId());
         assertNotEquals("", updatedAuction.getTransfertxid());

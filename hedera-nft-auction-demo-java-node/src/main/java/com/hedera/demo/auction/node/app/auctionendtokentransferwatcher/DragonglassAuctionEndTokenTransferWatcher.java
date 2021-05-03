@@ -1,4 +1,4 @@
-package com.hedera.demo.auction.node.app.winnertokentransferwatcher;
+package com.hedera.demo.auction.node.app.auctionendtokentransferwatcher;
 
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;
@@ -7,9 +7,9 @@ import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
-public class DragonglassWinnerTokenTransferWatcher extends AbstractWinnerTokenTransferWatcher implements WinnerTokenTransferWatcherInterface {
+public class DragonglassAuctionEndTokenTransferWatcher extends AbstractAuctionEndTokenTransferWatcher implements AuctionEndTokenTransferWatcherInterface {
 
-    public DragonglassWinnerTokenTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, Auction auction) {
+    public DragonglassAuctionEndTokenTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, Auction auction) {
         super(hederaClient, webClient, auctionsRepository, auction);
     }
 

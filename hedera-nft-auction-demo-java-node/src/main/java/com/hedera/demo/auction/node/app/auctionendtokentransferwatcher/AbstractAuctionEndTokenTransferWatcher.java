@@ -1,4 +1,4 @@
-package com.hedera.demo.auction.node.app.winnertokentransferwatcher;
+package com.hedera.demo.auction.node.app.auctionendtokentransferwatcher;
 
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;
@@ -12,14 +12,14 @@ import lombok.extern.log4j.Log4j2;
 import java.sql.SQLException;
 
 @Log4j2
-public abstract class AbstractWinnerTokenTransferWatcher {
+public abstract class AbstractAuctionEndTokenTransferWatcher {
 
     protected final WebClient webClient;
     protected final AuctionsRepository auctionsRepository;
     protected final Auction auction;
     protected String mirrorURL;
 
-    protected AbstractWinnerTokenTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, Auction auction) {
+    protected AbstractAuctionEndTokenTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, Auction auction) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.auction = auction;

@@ -1,4 +1,4 @@
-package com.hedera.demo.auction.node.app.winnertokentransfer;
+package com.hedera.demo.auction.node.app.auctionendtokentransfer;
 
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
@@ -11,9 +11,9 @@ import lombok.extern.log4j.Log4j2;
 import java.sql.SQLException;
 
 @Log4j2
-public class HederaWinnerTokenTransfer extends AbstractWinnerTokenTransfer implements WinnerTokenTransferInterface {
+public class HederaAuctionEndTokenTransfer extends AbstractAuctionEndTokenTransfer implements AuctionEndTokenTransferInterface {
 
-    public HederaWinnerTokenTransfer(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, String tokenId, String winningAccountId) {
+    public HederaAuctionEndTokenTransfer(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, String tokenId, String winningAccountId) {
         super(hederaClient, webClient, auctionsRepository, tokenId, winningAccountId);
     }
 

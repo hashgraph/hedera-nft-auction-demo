@@ -1,10 +1,10 @@
-package com.hedera.demo.auction.node.app.winnertokentransfer;
+package com.hedera.demo.auction.node.app.auctionendtokentransfer;
 
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import io.vertx.ext.web.client.WebClient;
 
-public abstract class AbstractWinnerTokenTransfer {
+public abstract class AbstractAuctionEndTokenTransfer {
 
     protected final WebClient webClient;
     protected final AuctionsRepository auctionsRepository;
@@ -13,7 +13,7 @@ public abstract class AbstractWinnerTokenTransfer {
     protected final String mirrorURL;
     protected final HederaClient hederaClient;
 
-    protected AbstractWinnerTokenTransfer(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, String tokenId, String winningAccountId) {
+    protected AbstractAuctionEndTokenTransfer(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, String tokenId, String winningAccountId) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.tokenId = tokenId;

@@ -34,6 +34,24 @@ public class BidsRepository {
         return rows;
     }
 
+    @Nullable
+    public Bid getBid (int auctionId, String accountId, long bidAmount) throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+        Result<Record> result = cx.fetch("SELECT * FROM bids WHERE auctionid = "
+                .concat(String.valueOf(auctionId))
+                .concat(" AND bidamount=")
+                .concat(String.valueOf(bidAmount))
+                .concat(" AND bidderaccountid='")
+                .concat(accountId)
+                .concat("'"));
+        cx.close();
+        if (result.size() != 1) {
+            return null;
+        } else {
+            return new Bid(result.get(0));
+        }
+    }
+
     public List<Bid> getBidsList() throws SQLException {
         List<Bid> bids = new ArrayList<>();
         Result<Record> bidsData = getBids();

@@ -34,6 +34,7 @@ public class Auction implements VertxPojo, Serializable {
     private String starttimestamp = "";
     private String transfertxid = "";
     private String transfertxhash = "";
+    private String tokenOwnerAccount = "";
 
     public Auction() {}
 
@@ -56,6 +57,7 @@ public class Auction implements VertxPojo, Serializable {
         this.starttimestamp = record.get(AUCTIONS.STARTTIMESTAMP);
         this.transfertxid = record.get(AUCTIONS.TRANSFERTXID);
         this.transfertxhash = record.get(AUCTIONS.TRANSFERTXHASH);
+        this.tokenOwnerAccount = record.get(AUCTIONS.TOKENOWNER);
     }
 
     public Auction (Row row) {
@@ -77,6 +79,7 @@ public class Auction implements VertxPojo, Serializable {
         this.starttimestamp = row.getString(AUCTIONS.STARTTIMESTAMP.getName());
         this.transfertxid = row.getString(AUCTIONS.TRANSFERTXID.getName());
         this.transfertxhash = row.getString(AUCTIONS.TRANSFERTXHASH.getName());
+        this.tokenOwnerAccount = row.getString(AUCTIONS.TOKENOWNER.getName());
     }
 
     public Auction(io.vertx.core.json.JsonObject json) {
@@ -250,6 +253,10 @@ public class Auction implements VertxPojo, Serializable {
         this.transfertxhash = transfertxhash;
     }
 
+    public String getTokenowneraccount() { return this.tokenOwnerAccount; }
+
+    public void setTokenowneraccount(String tokenOwnerAccount) { this.tokenOwnerAccount = tokenOwnerAccount; }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Auctions (");
@@ -272,6 +279,7 @@ public class Auction implements VertxPojo, Serializable {
         sb.append(", ").append(starttimestamp);
         sb.append(", ").append(transfertxid);
         sb.append(", ").append(transfertxhash);
+        sb.append(", ").append(tokenOwnerAccount);
 
         sb.append(")");
         return sb.toString();
@@ -297,6 +305,7 @@ public class Auction implements VertxPojo, Serializable {
         this.setStarttimestamp(json.getString("starttimestamp", "0.0"));
         this.setTransfertxid(json.getString("transfertxid", ""));
         this.setTransfertxhash(json.getString("transfertxhash", ""));
+        this.setTokenowneraccount(json.getString("tokenowneraccount", ""));
         return this;
     }
 
@@ -322,6 +331,7 @@ public class Auction implements VertxPojo, Serializable {
         json.put("starttimestamp", getStarttimestamp());
         json.put("transfertxid", getTransfertxid());
         json.put("transfertxhash", getTransfertxhash());
+        json.put("tokenowneraccount", getTokenowneraccount());
 
         return json;
     }

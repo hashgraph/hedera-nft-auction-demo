@@ -84,12 +84,13 @@ public class AuctionsRepository {
         }
     }
 
-    public Auction setActive(Auction auction, String timestamp) throws SQLException {
+    public Auction setActive(Auction auction, String tokenOwnerAccount, String timestamp) throws SQLException {
         DSLContext cx = connectionManager.dsl();
 
         cx.update(AUCTIONS)
                 .set(AUCTIONS.STATUS, Auction.ACTIVE)
                 .set(AUCTIONS.STARTTIMESTAMP, timestamp)
+                .set(AUCTIONS.TOKENOWNER, tokenOwnerAccount)
                 .where(AUCTIONS.AUCTIONACCOUNTID.eq(auction.getAuctionaccountid()))
                 .execute();
         cx.close();
@@ -239,7 +240,8 @@ public class AuctionsRepository {
                     AUCTIONS.WINNINGTXHASH,
                     AUCTIONS.STARTTIMESTAMP,
                     AUCTIONS.TRANSFERTXID,
-                    AUCTIONS.TRANSFERTXHASH
+                    AUCTIONS.TRANSFERTXHASH,
+                    AUCTIONS.TOKENOWNER
             ).values(auction.getTokenid(),
                     auction.getAuctionaccountid(),
                     auction.getEndtimestamp(),
@@ -256,7 +258,8 @@ public class AuctionsRepository {
                     auction.getWinningtxhash(),
                     auction.getStarttimestamp(),
                     auction.getTransfertxid(),
-                    auction.getTransfertxhash()
+                    auction.getTransfertxhash(),
+                    auction.getTokenowneraccount()
             ).returning(AUCTIONS.ID).execute();
             int id = cx.lastID().intValue();
             auction.setId(id);

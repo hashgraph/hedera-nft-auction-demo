@@ -22,7 +22,7 @@ public class AuctionTest extends AbstractAuction {
 
         Auction auction = new Auction();
         // active
-        auction.setStatus(Auction.active());
+        auction.setStatus(Auction.ACTIVE);
         assertFalse(auction.isEnded());
         assertFalse(auction.isClosed());
         assertFalse(auction.isPending());
@@ -30,7 +30,7 @@ public class AuctionTest extends AbstractAuction {
         assertFalse(auction.isTransferring());
 
         // closed
-        auction.setStatus(Auction.closed());
+        auction.setStatus(Auction.CLOSED);
         assertFalse(auction.isEnded());
         assertTrue(auction.isClosed());
         assertFalse(auction.isPending());
@@ -38,7 +38,7 @@ public class AuctionTest extends AbstractAuction {
         assertFalse(auction.isTransferring());
 
         // ended
-        auction.setStatus(Auction.ended());
+        auction.setStatus(Auction.ENDED);
         assertTrue(auction.isEnded());
         assertFalse(auction.isClosed());
         assertFalse(auction.isPending());
@@ -46,7 +46,7 @@ public class AuctionTest extends AbstractAuction {
         assertFalse(auction.isTransferring());
 
         // pending
-        auction.setStatus(Auction.pending());
+        auction.setStatus(Auction.PENDING);
         assertFalse(auction.isEnded());
         assertFalse(auction.isClosed());
         assertTrue(auction.isPending());
@@ -54,7 +54,7 @@ public class AuctionTest extends AbstractAuction {
         assertFalse(auction.isTransferring());
 
         // transfer
-        auction.setStatus(Auction.transfer());
+        auction.setStatus(Auction.TRANSFER);
         assertFalse(auction.isEnded());
         assertFalse(auction.isClosed());
         assertFalse(auction.isPending());

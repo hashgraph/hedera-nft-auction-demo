@@ -84,32 +84,26 @@ public class Auction implements VertxPojo, Serializable {
         fromJson(json);
     }
 
-    public static String closed() {
-        return "CLOSED";
-    }
-    public static String pending() {
-        return "PENDING";
-    }
-    public static String active() {
-        return "ACTIVE";
-    }
-    public static String transfer() { return "TRANSFER"; }
-    public static String ended() { return "ENDED"; }
+    public static final String CLOSED = "CLOSED";
+    public static final String PENDING = "PENDING";
+    public static final String ACTIVE = "ACTIVE";
+    public static final String TRANSFER = "TRANSFER";
+    public static final String ENDED = "ENDED";
 
     public boolean isPending() {
-        return this.status.equals(Auction.pending());
+        return this.status.equals(Auction.PENDING);
     }
     public boolean isActive() {
-        return this.status.equals(Auction.active());
+        return this.status.equals(Auction.ACTIVE);
     }
     public boolean isTransferring() {
-        return this.status.equals(Auction.transfer());
+        return this.status.equals(Auction.TRANSFER);
     }
     public boolean isEnded() {
-        return this.status.equals(Auction.ended());
+        return this.status.equals(Auction.ENDED);
     }
     public boolean isClosed() {
-        return this.status.equals(Auction.closed());
+        return this.status.equals(Auction.CLOSED);
     }
 
     public Integer getId() {

@@ -128,8 +128,8 @@ public class WinnerTokenTransfer implements Runnable {
         transferTransaction.addTokenTransfer(tokenId, winningAccountId, 1L);
         transferTransaction.freezeWith(hederaClient.client());
 
-        try {
-            if ( ! this.refundKey.isBlank()) {
+        if ( ! this.refundKey.isBlank()) {
+            try {
                 transferTransaction.sign(clientKey);
                 TransactionResponse response = transferTransaction.execute(hederaClient.client());
                 transactionHash = Hex.encodeHexString(response.transactionHash);
@@ -139,10 +139,10 @@ public class WinnerTokenTransfer implements Runnable {
                     log.error("Transferring token " + tokenId + " to " + winningAccountId + " failed with " + receipt.status);
                     return;
                 }
+            } catch (TimeoutException | PrecheckStatusException | ReceiptStatusException e) {
+                log.error(e);
+                return;
             }
-        } catch (TimeoutException | PrecheckStatusException | ReceiptStatusException e) {
-            log.error(e);
-            return;
         }
         // update database
         try {

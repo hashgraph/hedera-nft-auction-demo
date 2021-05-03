@@ -15,8 +15,8 @@ import java.util.Optional;
 
 @Log4j2
 public class HederaClient {
-    private final AccountId operatorId;
-    private final PrivateKey operatorKey;
+    private AccountId operatorId;
+    private PrivateKey operatorKey;
     private String mirrorProvider;
     private String mirrorUrl = "";
     private final Client client;
@@ -25,8 +25,7 @@ public class HederaClient {
     public HederaClient(AccountId operatorId, PrivateKey operatorKey, String network, String mirrorProvider, String mirrorUrl, String mirrorAddress) throws Exception {
         this.operatorId = operatorId;
         this.operatorKey = operatorKey;
-        this.mirrorProvider = mirrorProvider.toUpperCase()
-        ;
+        this.mirrorProvider = mirrorProvider.toUpperCase();
         this.client = clientForNetwork(network);
         this.mirrorUrl = mirrorUrl;
         this.network = network;
@@ -46,6 +45,10 @@ public class HederaClient {
         this.network = this.network.toUpperCase();
         this.client = clientForNetwork(this.network);
         setClientMirror(env);
+    }
+
+    public HederaClient() throws Exception {
+        this(Dotenv.load());
     }
 
     public static HederaClient emptyTestClient() throws Exception {
@@ -87,6 +90,11 @@ public class HederaClient {
     }
     public String mirrorUrl() {return this.mirrorUrl;}
     public Client client() {return this.client;}
+    public void setOperator(AccountId operatorId, PrivateKey operatorKey) {
+        this.operatorId = operatorId;
+        this.operatorKey = operatorKey;
+        client.setOperator(this.operatorId, this.operatorKey);
+    }
 
     private Client clientForNetwork(String network) throws Exception {
         Client client;

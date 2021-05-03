@@ -1,4 +1,4 @@
-package com.hedera.demo.auction.node.test.system.e2e;
+package com.hedera.demo.auction.node.test.system.e2eDocker;
 
 import com.hedera.demo.auction.node.app.CreateAuctionAccount;
 import com.hedera.demo.auction.node.app.CreateToken;
@@ -6,7 +6,14 @@ import com.hedera.demo.auction.node.app.CreateTopic;
 import com.hedera.demo.auction.node.app.SqlConnectionManager;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.demo.auction.node.test.system.AbstractE2ETest;
+import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.Key;
+import com.hedera.hashgraph.sdk.KeyList;
+import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
+import com.hedera.hashgraph.sdk.TokenId;
+import com.hedera.hashgraph.sdk.TopicId;
+import com.hedera.hashgraph.sdk.TransactionResponse;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;

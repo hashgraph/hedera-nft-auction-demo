@@ -46,62 +46,71 @@ public class CreateToken extends AbstractCreate {
             FileCreateTransaction fileCreateTransaction = new FileCreateTransaction();
             fileCreateTransaction.setContents("");
             fileCreateTransaction.setKeys(client.getOperatorPublicKey());
-            @Var TransactionResponse response = fileCreateTransaction.execute(client);
-
-            @Var TransactionReceipt receipt = response.getReceipt(client);
-            if (receipt.status != Status.SUCCESS) {
-                log.error("File creation for token failed " + receipt.status);
-                throw new Exception("File creation for token failed " + receipt.status);
-            } else {
-                log.info("Token file created " + receipt.fileId.toString());
-
-                FileId fileId = receipt.fileId;
-                // append data now
-                FileAppendTransaction fileAppendTransaction = new FileAppendTransaction();
-                fileAppendTransaction.setFileId(fileId);
-                fileAppendTransaction.setContents(contents);
-                response = fileAppendTransaction.execute(client);
-                receipt = response.getReceipt(client);
-
+            try {
+                @Var TransactionResponse response = fileCreateTransaction.execute(client);
+                @Var TransactionReceipt receipt = response.getReceipt(client);
                 if (receipt.status != Status.SUCCESS) {
-                    log.error("File append for token failed " + receipt.status);
-                    throw new Exception("File append for token failed " + receipt.status);
+                    log.error("File creation for token failed " + receipt.status);
+                    throw new Exception("File creation for token failed " + receipt.status);
                 } else {
-                    log.info("Token data appended to file");
-                    FileUpdateTransaction fileUpdateTransaction = new FileUpdateTransaction();
-                    fileUpdateTransaction.setFileId(fileId);
-                    KeyList keys = new KeyList();
-                    fileUpdateTransaction.setKeys(keys);
-                    response = fileUpdateTransaction.execute(client);
+                    log.info("Token file created " + receipt.fileId.toString());
+
+                    FileId fileId = receipt.fileId;
+                    // append data now
+                    FileAppendTransaction fileAppendTransaction = new FileAppendTransaction();
+                    fileAppendTransaction.setFileId(fileId);
+                    fileAppendTransaction.setContents(contents);
+                    response = fileAppendTransaction.execute(client);
                     receipt = response.getReceipt(client);
+
                     if (receipt.status != Status.SUCCESS) {
-                        log.error("File removal of keys failed " + receipt.status);
-                        throw new Exception("File removal of keys failed " + receipt.status);
+                        log.error("File append for token failed " + receipt.status);
+                        throw new Exception("File append for token failed " + receipt.status);
                     } else {
-                        log.info("File is now immutable");
-                        tokenSymbol = "HEDERA://" + fileId.toString();
+                        log.info("Token data appended to file");
+                        FileUpdateTransaction fileUpdateTransaction = new FileUpdateTransaction();
+                        fileUpdateTransaction.setFileId(fileId);
+                        KeyList keys = new KeyList();
+                        fileUpdateTransaction.setKeys(keys);
+                        response = fileUpdateTransaction.execute(client);
+                        receipt = response.getReceipt(client);
+                        if (receipt.status != Status.SUCCESS) {
+                            log.error("File removal of keys failed " + receipt.status);
+                            throw new Exception("File removal of keys failed " + receipt.status);
+                        } else {
+                            log.info("File is now immutable");
+                            tokenSymbol = "HEDERA://" + fileId.toString();
+                        }
                     }
                 }
+            } catch (Exception e) {
+                log.error(e);
+                throw e;
             }
         }
 
-        TokenCreateTransaction tokenCreateTransaction = new TokenCreateTransaction();
-        tokenCreateTransaction.setTokenName(name);
-        tokenCreateTransaction.setTokenSymbol(tokenSymbol);
-        tokenCreateTransaction.setInitialSupply(initialSupply);
-        tokenCreateTransaction.setDecimals(decimals);
-        tokenCreateTransaction.setTreasuryAccountId(hederaClient.operatorId());
+        try {
+            TokenCreateTransaction tokenCreateTransaction = new TokenCreateTransaction();
+            tokenCreateTransaction.setTokenName(name);
+            tokenCreateTransaction.setTokenSymbol(tokenSymbol);
+            tokenCreateTransaction.setInitialSupply(initialSupply);
+            tokenCreateTransaction.setDecimals(decimals);
+            tokenCreateTransaction.setTreasuryAccountId(hederaClient.operatorId());
 
-        TransactionResponse response = tokenCreateTransaction.execute(client);
+            TransactionResponse response = tokenCreateTransaction.execute(client);
 
-        TransactionReceipt receipt = response.getReceipt(client);
-        if (receipt.status != Status.SUCCESS) {
-            log.error("Token creation failed " + receipt.status);
-            throw new Exception("Token creation failed " + receipt.status);
-        } else {
-            log.info("Token created " + receipt.tokenId.toString());
+            TransactionReceipt receipt = response.getReceipt(client);
+            if (receipt.status != Status.SUCCESS) {
+                log.error("Token creation failed " + receipt.status);
+                throw new Exception("Token creation failed " + receipt.status);
+            } else {
+                log.info("Token created " + receipt.tokenId.toString());
+            }
+            return receipt.tokenId;
+        } catch (Exception e) {
+            log.error(e);
+            throw e;
         }
-        return receipt.tokenId;
     }
 
     public static void main(String[] args) throws Exception {

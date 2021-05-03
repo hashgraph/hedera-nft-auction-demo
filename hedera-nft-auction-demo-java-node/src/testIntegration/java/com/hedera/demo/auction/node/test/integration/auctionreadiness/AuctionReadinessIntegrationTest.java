@@ -108,12 +108,12 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
 
         Auction notStartedAuction = auctionsRepository.getAuction(auction.getId());
         assertEquals("", notStartedAuction.getStarttimestamp());
-        assertEquals(Auction.pending(), notStartedAuction.getStatus());
+        assertEquals(Auction.PENDING, notStartedAuction.getStatus());
 
         assertTrue(verifyResponse(readinessTester, accountId, tokenId, 1L));
         Auction startedAuction = auctionsRepository.getAuction(auction.getId());
         assertNotEquals("", startedAuction.getStarttimestamp());
-        assertEquals(Auction.active(), startedAuction.getStatus());
+        assertEquals(Auction.ACTIVE, startedAuction.getStatus());
 
         auctionsRepository.deleteAllAuctions();
     }

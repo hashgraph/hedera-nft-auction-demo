@@ -1,10 +1,9 @@
-package com.hedera.demo.auction.node.test.system.e2e;
+package com.hedera.demo.auction.node.test.system;
 
 import com.hedera.demo.auction.node.app.api.RequestCreateAuction;
 import com.hedera.demo.auction.node.app.api.RequestCreateAuctionAccount;
 import com.hedera.demo.auction.node.app.api.RequestCreateToken;
 import com.hedera.demo.auction.node.app.api.RequestTokenTransfer;
-import com.hedera.demo.auction.node.test.system.AbstractSystemTest;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonArray;

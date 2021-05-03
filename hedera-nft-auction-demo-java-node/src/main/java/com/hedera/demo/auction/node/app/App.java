@@ -31,6 +31,7 @@ import java.util.Optional;
 
 @Log4j2
 public final class App {
+    Vertx vertx = Vertx.vertx();
     private final Dotenv env = Dotenv.configure().ignoreIfMissing().load();
     private boolean restAPI = Optional.ofNullable(env.get("REST_API")).map(Boolean::parseBoolean).orElse(false);
     private int restApiVerticleCount = Optional.ofNullable(env.get("API_VERTICLE_COUNT")).map(Integer::parseInt).orElse(2);
@@ -46,7 +47,7 @@ public final class App {
     private String postgresPassword = Optional.ofNullable(env.get("DATABASE_PASSWORD")).orElse("password");
     private boolean transferOnWin = Optional.ofNullable(env.get("TRANSFER_ON_WIN")).map(Boolean::parseBoolean).orElse(true);
 
-    private HederaClient hederaClient;
+    private HederaClient hederaClient = new HederaClient(env);
 
     @Nullable
     private TopicSubscriber topicSubscriber = null;
@@ -60,6 +61,9 @@ public final class App {
     private WinnerTokenTransfer winnerTokenTransfer = null;
     @Nullable
     private WinnerTokenTransferWatcher winnerTokenTransferWatcher = null;
+
+    public App() throws Exception {
+    }
 
     //    private final static String dgApiKey = Optional.ofNullable(env.get("DG_API_KEY")).orElse("");
 
@@ -95,14 +99,12 @@ public final class App {
                 .load();
         flyway.migrate();
 
-        hederaClient = new HederaClient(env);
-
         if (restAPI) {
             JsonObject config = new JsonObject()
                     .put("envFile",".env")
                     .put("envPath",".");
             DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(restApiVerticleCount);
-            Vertx.vertx().deployVerticle(ApiVerticle.class.getName(), options);
+            vertx.deployVerticle(ApiVerticle.class.getName(), options);
         }
 
         if (adminAPI) {
@@ -110,7 +112,7 @@ public final class App {
                     .put("envFile",".env")
                     .put("envPath",".");
             DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(adminApiVerticleCount);
-            Vertx.vertx().deployVerticle(AdminApiVerticle.class.getName(), options);
+            vertx.deployVerticle(AdminApiVerticle.class.getName(), options);
         }
 
         if (auctionNode) {
@@ -223,6 +225,10 @@ public final class App {
 
         for (AuctionReadinessWatcher auctionReadinessWatcher : auctionReadinessWatchers) {
             auctionReadinessWatcher.stop();
+        }
+
+        for (String verticle : vertx.deploymentIDs()) {
+            vertx.undeploy(verticle);
         }
     }
 }

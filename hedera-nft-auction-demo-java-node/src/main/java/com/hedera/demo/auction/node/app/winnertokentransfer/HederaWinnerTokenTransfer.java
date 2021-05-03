@@ -23,12 +23,14 @@ public class HederaWinnerTokenTransfer extends AbstractWinnerTokenTransfer imple
     @Override
     public void checkAssociation() {
 
-        String uri = "/api/v1/tokens/".concat(tokenId).concat("/balances");
+        String uri = "/api/v1/transactions";
 
         var webQuery  = webClient
                 .get(mirrorURL, uri)
                 .as(BodyCodec.jsonObject())
-                .addQueryParam("account.id", winningAccountId);
+                .addQueryParam("account.id", winningAccountId)
+                .addQueryParam("transactiontype", "TOKENASSOCIATE")
+                .addQueryParam("result", "SUCCESS");
 
         webQuery.send(response -> {
             if (response.succeeded()) {
@@ -45,17 +47,11 @@ public class HederaWinnerTokenTransfer extends AbstractWinnerTokenTransfer imple
     }
 
     public void checkForAssociation(JsonObject body) throws SQLException {
-        // if the token is associated with the account, it will be in the response
-        // the actual balance is not important, a balance of 0 means associated in any case
-        if (body.containsKey("balances")) {
-            JsonArray balances = body.getJsonArray("balances");
-            if (balances.size() != 0) {
-                for (Object balanceObject : balances) {
-                    JsonObject balance = JsonObject.mapFrom(balanceObject);
-                    if (balance.getString("account").equals(winningAccountId)) {
-                        auctionsRepository.setTransferring(tokenId);
-                    }
-                }
+        if (body.containsKey("transactions")) {
+            JsonArray transactions = body.getJsonArray("transactions");
+
+            if (transactions.size() != 0) {
+                auctionsRepository.setTransferring(tokenId);
             }
         }
     }

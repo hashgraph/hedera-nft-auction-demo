@@ -7,7 +7,23 @@ import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.readinesswatcher.AuctionReadinessWatcher;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.Client;
+import com.hedera.hashgraph.sdk.FileContentsQuery;
+import com.hedera.hashgraph.sdk.FileId;
+import com.hedera.hashgraph.sdk.Hbar;
+import com.hedera.hashgraph.sdk.PrecheckStatusException;
+import com.hedera.hashgraph.sdk.Status;
+import com.hedera.hashgraph.sdk.SubscriptionHandle;
+import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
+import com.hedera.hashgraph.sdk.TokenId;
+import com.hedera.hashgraph.sdk.TokenInfo;
+import com.hedera.hashgraph.sdk.TokenInfoQuery;
+import com.hedera.hashgraph.sdk.TopicId;
+import com.hedera.hashgraph.sdk.TopicMessage;
+import com.hedera.hashgraph.sdk.TopicMessageQuery;
+import com.hedera.hashgraph.sdk.TransactionReceipt;
+import com.hedera.hashgraph.sdk.TransactionResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
@@ -84,7 +100,6 @@ public class TopicSubscriber implements Runnable{
     private void startSubscription() {
         try {
             Client client = hederaClient.client();
-            log.info("Subscribing to topic " + topicId.toString());
             subscriptionHandle = new TopicMessageQuery()
                     .setTopicId(topicId)
                     .setStartTime(startTime)
@@ -127,20 +142,25 @@ public class TopicSubscriber implements Runnable{
 
             if (! testing) {
                 // get token info
-                TokenInfo tokenInfo = new TokenInfoQuery()
-                        .setTokenId(TokenId.fromString(newAuction.getTokenid()))
-                        .execute(client);
-
-                // if token symbol starts with HEDERA://
-                // load file from hedera
-                if (tokenInfo.symbol.startsWith("HEDERA://")) {
-                    String fileId = tokenInfo.symbol.replace("HEDERA://", "");
-                    ByteString contentsQuery = new FileContentsQuery()
-                            .setFileId(FileId.fromString(fileId))
+                try {
+                    TokenInfo tokenInfo = new TokenInfoQuery()
+                            .setTokenId(TokenId.fromString(newAuction.getTokenid()))
                             .execute(client);
-                    String contents = contentsQuery.toString(StandardCharsets.UTF_8);
-                    // set token image data
-                    newAuction.setTokenimage(contents);
+
+                    // if token symbol starts with HEDERA://
+                    // load file from hedera
+                    if (tokenInfo.symbol.startsWith("HEDERA://")) {
+                        String fileId = tokenInfo.symbol.replace("HEDERA://", "");
+                        ByteString contentsQuery = new FileContentsQuery()
+                                .setFileId(FileId.fromString(fileId))
+                                .execute(client);
+                        String contents = contentsQuery.toString(StandardCharsets.UTF_8);
+                        // set token image data
+                        newAuction.setTokenimage(contents);
+                    }
+                } catch (Exception e) {
+                    log.error(e);
+                    throw e;
                 }
             }
 

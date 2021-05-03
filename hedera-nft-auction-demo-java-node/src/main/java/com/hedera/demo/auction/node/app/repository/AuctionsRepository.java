@@ -44,6 +44,17 @@ public class AuctionsRepository {
         return auctionRecord;
     }
 
+    public void setEndTimestampForTesting(int auctionId) throws SQLException {
+        // get last consensus timestamp from auction and use to set end timestamp
+
+        DSLContext cx = connectionManager.dsl();
+        cx.update(AUCTIONS)
+                .set(AUCTIONS.ENDTIMESTAMP, AUCTIONS.LASTCONSENSUSTIMESTAMP)
+                .where(AUCTIONS.ID.eq(auctionId))
+                .execute();
+        cx.close();
+
+    }
     public void deleteAllAuctions() throws SQLException {
         DSLContext cx = connectionManager.dsl();
         cx.deleteFrom(AUCTIONS)
@@ -77,12 +88,12 @@ public class AuctionsRepository {
         DSLContext cx = connectionManager.dsl();
 
         cx.update(AUCTIONS)
-                .set(AUCTIONS.STATUS, Auction.active())
+                .set(AUCTIONS.STATUS, Auction.ACTIVE)
                 .set(AUCTIONS.STARTTIMESTAMP, timestamp)
                 .where(AUCTIONS.AUCTIONACCOUNTID.eq(auction.getAuctionaccountid()))
                 .execute();
         cx.close();
-        auction.setStatus(Auction.active());
+        auction.setStatus(Auction.ACTIVE);
         return auction;
 
     }
@@ -91,7 +102,7 @@ public class AuctionsRepository {
         DSLContext cx = connectionManager.dsl();
 
         cx.update(AUCTIONS)
-                .set(AUCTIONS.STATUS, Auction.transfer())
+                .set(AUCTIONS.STATUS, Auction.TRANSFER)
                 .where(AUCTIONS.TOKENID.eq(tokenId))
                 .execute();
         cx.close();
@@ -112,7 +123,7 @@ public class AuctionsRepository {
         DSLContext cx = connectionManager.dsl();
 
         cx.update(AUCTIONS)
-                .set(AUCTIONS.STATUS, Auction.ended())
+                .set(AUCTIONS.STATUS, Auction.ENDED)
                 .set(AUCTIONS.TRANSFERTXHASH, transferTransactionHash)
                 .where(AUCTIONS.ID.eq(auctionId))
                 .execute();
@@ -120,8 +131,8 @@ public class AuctionsRepository {
     }
 
     public Auction setClosed(Auction auction) throws SQLException {
-        updateStatus(auction.getAuctionaccountid(), Auction.closed());
-        auction.setStatus(Auction.closed());
+        updateStatus(auction.getAuctionaccountid(), Auction.CLOSED);
+        auction.setStatus(Auction.CLOSED);
         return auction;
     }
 
@@ -130,7 +141,7 @@ public class AuctionsRepository {
         DSLContext cx = connectionManager.dsl();
 
         cx.update(AUCTIONS)
-                .set(AUCTIONS.STATUS, Auction.closed())
+                .set(AUCTIONS.STATUS, Auction.CLOSED)
                 .where(AUCTIONS.ID.eq(auctionId))
                 .execute();
         cx.close();
@@ -200,8 +211,8 @@ public class AuctionsRepository {
         DSLContext cx = connectionManager.dsl();
         Map<String, Integer> rows = cx.select(AUCTIONS.ID, AUCTIONS.ENDTIMESTAMP)
                 .from(AUCTIONS)
-                .where(AUCTIONS.STATUS.eq(Auction.active()))
-                .or(AUCTIONS.STATUS.eq(Auction.pending()))
+                .where(AUCTIONS.STATUS.eq(Auction.ACTIVE))
+                .or(AUCTIONS.STATUS.eq(Auction.PENDING))
                 .fetchMap(AUCTIONS.ENDTIMESTAMP, AUCTIONS.ID);
         return rows;
     }

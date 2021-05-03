@@ -97,10 +97,10 @@ public abstract class AbstractBidsWatcher {
                 }
                 // find payment amount
                 refund = true;
-                rejectReason = "Auction is closed";
+                rejectReason = Bid.AUCTION_CLOSED;
             } else if (transaction.consensusTimestamp.compareTo(this.auction.getStarttimestamp()) <= 0) {
                 refund = true;
-                rejectReason = "Auction has not started yet";
+                rejectReason = Bid.AUCTION_NOT_STARTED;
             }
 
             if ( ! refund) {
@@ -108,7 +108,7 @@ public abstract class AbstractBidsWatcher {
                 if (transaction.payer().equals(this.auction.getWinningaccount())) {
                     if (! this.auction.getWinnerCanBid()) {
                         // same account as winner, not allowed
-                        rejectReason = "Winner can't bid again";
+                        rejectReason = Bid.WINNER_CANT_BID;
                         refund = true;
                     }
                 }
@@ -127,15 +127,16 @@ public abstract class AbstractBidsWatcher {
 
                 long bidDelta = (bidAmount - this.auction.getWinningbid());
                 if ((bidDelta > 0) && (bidDelta < this.auction.getMinimumbid())) {
-                    rejectReason = "Bid increase too small";
+                    rejectReason = Bid.INCREASE_TOO_SMALL;
                     refund = true;
                 }
                 if (bidAmount != 0) { // if bid !=0, no refund is expected at this stage
                     // we have a bid, check it against bidding rules
                     if (bidAmount < this.auction.getReserve()) {
-                        rejectReason = "Bid below reserve";
+                        rejectReason = Bid.BELOW_RESERVE;
+                        refund = true;
                     } else if (bidAmount <= this.auction.getWinningbid()) {
-                        rejectReason = "Under bid";
+                        rejectReason = Bid.UNDER_BID;
                         refund = true;
                     }
                 }
@@ -153,7 +154,7 @@ public abstract class AbstractBidsWatcher {
                 // update prior winning bid
                 Bid priorBid = new Bid();
                 priorBid.setTimestamp(this.auction.getWinningtimestamp());
-                priorBid.setStatus("Higher bid received");
+                priorBid.setStatus(Bid.HIGHER_BID);
                 bidsRepository.setStatus(priorBid);
 
                 // update the auction

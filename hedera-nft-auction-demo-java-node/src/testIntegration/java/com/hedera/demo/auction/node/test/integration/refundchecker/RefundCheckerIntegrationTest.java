@@ -35,7 +35,7 @@ public class RefundCheckerIntegrationTest extends AbstractIntegrationTest {
     private PostgreSQLContainer postgres;
     private AuctionsRepository auctionsRepository;
     private BidsRepository bidsRepository;
-    private HederaClient hederaClient = HederaClient.emptyTestClient();
+    private final HederaClient hederaClient = HederaClient.emptyTestClient();
     Auction auction;
     JsonObject bidTransaction;
     JsonObject bidTransactions;

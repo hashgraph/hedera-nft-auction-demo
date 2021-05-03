@@ -12,19 +12,19 @@
         <Root level="INFO" >
             <AppenderRef ref="Console" />
         </Root>
-        <logger name="com.hedera.demo" level="DEBUG">
+        <logger name="com.hedera.demo" level="DEBUG" additivity="false">
             <AppenderRef ref="Console" />
         </logger>
-        <Logger name="io.netty" level="OFF">
+        <Logger name="io.netty" level="OFF" additivity="false">
             <AppenderRef ref="Console" />
         </Logger>
-        <Logger name="io.vertx.core" level="OFF">
+        <Logger name="io.vertx.core" level="OFF" additivity="false">
             <AppenderRef ref="Console" />
         </Logger>
-        <Logger name="io.grpc.internal" level="OFF">
+        <Logger name="io.grpc.internal" level="OFF" additivity="false">
             <AppenderRef ref="Console" />
         </Logger>
-        <logger name="org.testcontainers" level="INFO">
+        <logger name="org.testcontainers" level="INFO" additivity="false">
             <AppenderRef ref="Console" />
         </logger>
     </Loggers>

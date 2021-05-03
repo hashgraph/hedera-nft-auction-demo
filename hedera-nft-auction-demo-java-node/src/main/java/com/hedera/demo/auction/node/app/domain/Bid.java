@@ -14,6 +14,14 @@ import java.io.Serializable;
 import static com.hedera.demo.auction.node.app.db.Tables.BIDS;
 public class Bid implements VertxPojo, Serializable {
 
+    public static final String HIGHER_BID = "Higher bid received";
+    public static final String AUCTION_CLOSED = "Auction is closed";
+    public static final String AUCTION_NOT_STARTED = "Auction has not started yet";
+    public static final String WINNER_CANT_BID = "Winner can't bid again";
+    public static final String INCREASE_TOO_SMALL = "Bid increase too small";
+    public static final String BELOW_RESERVE = "Bid below reserve";
+    public static final String UNDER_BID = "Under bid";
+
     private static final long serialVersionUID = -286838882;
 
     private String timestamp = "";

@@ -64,36 +64,41 @@ public class EasySetup extends AbstractCreate {
         CreateAuctionAccount createAuctionAccount = new CreateAuctionAccount();
         AccountId auctionAccount = createAuctionAccount.create(100, "");
         // associate auction account with token
-        TransactionResponse response = new TokenAssociateTransaction()
-                .setAccountId(auctionAccount)
-                .setTokenIds(List.of(tokenId))
-                .execute(client);
+        try {
+            TransactionResponse response = new TokenAssociateTransaction()
+                    .setAccountId(auctionAccount)
+                    .setTokenIds(List.of(tokenId))
+                    .execute(client);
 
-        TransactionReceipt receipt = response.getReceipt(client);
+            TransactionReceipt receipt = response.getReceipt(client);
 
-        if (receipt.status != Status.SUCCESS) {
-            log.error("error associating with token");
+            if (receipt.status != Status.SUCCESS) {
+                log.error("error associating with token");
+            }
+            CreateTokenTransfer createTokenTransfer = new CreateTokenTransfer();
+            createTokenTransfer.transfer(tokenId.toString(), auctionAccount.toString());
+
+            JsonObject auction = new JsonObject();
+            auction.put("tokenid", tokenId.toString());
+            auction.put("auctionaccountid", auctionAccount.toString());
+            auction.put("reserve", 0);
+            auction.put("minimumbid", 1000000);
+            auction.put("winnercanbid", true);
+
+            // store auction data in initDemo.json file
+            FileWriter myWriter = new FileWriter("./sample-files/initDemo.json", UTF_8);
+            myWriter.write(auction.encodePrettily());
+            myWriter.close();
+
+            log.info("*************************");
+            log.info(" ./sample-files/initDemo.json file written");
+
+            CreateAuction createAuction = new CreateAuction();
+            createAuction.create("./sample-files/initDemo.json", topicId);
+        } catch (Exception e) {
+            log.error(e);
+            throw e;
         }
-        CreateTokenTransfer createTokenTransfer = new CreateTokenTransfer();
-        createTokenTransfer.transfer(tokenId.toString(), auctionAccount.toString());
-
-        JsonObject auction = new JsonObject();
-        auction.put("tokenid", tokenId.toString());
-        auction.put("auctionaccountid", auctionAccount.toString());
-        auction.put("reserve", 0);
-        auction.put("minimumbid", 1000000);
-        auction.put("winnercanbid", true);
-
-        // store auction data in initDemo.json file
-        FileWriter myWriter = new FileWriter("./sample-files/initDemo.json", UTF_8);
-        myWriter.write(auction.encodePrettily());
-        myWriter.close();
-
-        log.info("*************************");
-        log.info(" ./sample-files/initDemo.json file written");
-
-        CreateAuction createAuction = new CreateAuction();
-        createAuction.create("./sample-files/initDemo.json", topicId);
     }
     public static void main(String[] args) throws Exception {
         EasySetup easySetup = new EasySetup();

@@ -3,26 +3,11 @@ package com.hedera.demo.auction.node.app.subscriber;
 import com.google.errorprone.annotations.Var;
 import com.google.protobuf.ByteString;
 import com.hedera.demo.auction.node.app.HederaClient;
-import com.hedera.demo.auction.node.app.readinesswatcher.AuctionReadinessWatcher;
 import com.hedera.demo.auction.node.app.domain.Auction;
+import com.hedera.demo.auction.node.app.readinesswatcher.AuctionReadinessWatcher;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.hashgraph.sdk.AccountId;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.FileContentsQuery;
-import com.hedera.hashgraph.sdk.FileId;
-import com.hedera.hashgraph.sdk.Hbar;
-import com.hedera.hashgraph.sdk.Status;
-import com.hedera.hashgraph.sdk.SubscriptionHandle;
-import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
-import com.hedera.hashgraph.sdk.TokenId;
-import com.hedera.hashgraph.sdk.TokenInfo;
-import com.hedera.hashgraph.sdk.TokenInfoQuery;
-import com.hedera.hashgraph.sdk.TopicId;
-import com.hedera.hashgraph.sdk.TopicMessage;
-import com.hedera.hashgraph.sdk.TopicMessageQuery;
-import com.hedera.hashgraph.sdk.TransactionReceipt;
-import com.hedera.hashgraph.sdk.TransactionResponse;
+import com.hedera.hashgraph.sdk.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
@@ -175,14 +160,19 @@ public class TopicSubscriber implements Runnable{
                     tokenAssociateTransaction.setTransactionMemo("Associate");
                     tokenAssociateTransaction.setAccountId(AccountId.fromString(auction.getAuctionaccountid()));
 
-                    TransactionResponse response = tokenAssociateTransaction.execute(client);
+                    try {
+                        TransactionResponse response = tokenAssociateTransaction.execute(client);
 
-                    TransactionReceipt receipt = response.getReceipt(client);
-                    if (receipt.status != Status.SUCCESS) {
-                        log.error("Token association failed " + receipt.status);
-                        throw new Exception("Token association failed " + receipt.status);
-                    } else {
-                        log.info("Scheduled transaction to associate token " + auction.getTokenid() + " with auction account " + auction.getAuctionaccountid());
+                        TransactionReceipt receipt = response.getReceipt(client);
+                        if (receipt.status != Status.SUCCESS) {
+                            log.error("Token association failed " + receipt.status);
+                        } else {
+                            log.info("Scheduled transaction to associate token " + auction.getTokenid() + " with auction account " + auction.getAuctionaccountid());
+                        }
+                    } catch (PrecheckStatusException e) {
+                        if (e.status != Status.TOKEN_ALREADY_ASSOCIATED_TO_ACCOUNT) {
+                            log.error("Error during association " + e.getMessage());
+                        }
                     }
                 }
 

@@ -6,8 +6,12 @@ name: Java Unit+Integration Tests
 on:
   push:
     branches: [ master ]
+    paths:
+      - hedera-nft-auction-demo-java-node
   pull_request:
     branches: [ master ]
+    paths:
+      - hedera-nft-auction-demo-java-node
 
 jobs:
   build:

@@ -7,7 +7,6 @@ COPY ./.eslintrc.js /srv/hedera-nft-auction-demo-javascript-client/.eslintrc.js
 COPY ./babel.config.js /srv/hedera-nft-auction-demo-javascript-client/babel.config.js
 COPY ./vue.config.js /srv/hedera-nft-auction-demo-javascript-client/vue.config.js
 COPY ./.env /srv/hedera-nft-auction-demo-javascript-client/.env
-#COPY ./.env /srv/hedera-nft-auction-demo-javascript-client/.env.production
 ADD ./src /srv/hedera-nft-auction-demo-javascript-client/src
 ADD ./public /srv/hedera-nft-auction-demo-javascript-client/public
 

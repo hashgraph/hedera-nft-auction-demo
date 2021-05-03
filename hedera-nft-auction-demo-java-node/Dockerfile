@@ -27,4 +27,6 @@ RUN mkdir -p /srv
 # make a place to put our built JAR and copy it to there
 COPY --from=build /opt/hedera-nft-auction-demo-java-node/build/libs/hedera-nft-auction-demo-node-1.0.jar /srv/hedera-nft-auction-demo-node-1.0.jar
 
+WORKDIR /demo
+
 CMD "java" "-jar" "/srv/hedera-nft-auction-demo-node-1.0.jar"

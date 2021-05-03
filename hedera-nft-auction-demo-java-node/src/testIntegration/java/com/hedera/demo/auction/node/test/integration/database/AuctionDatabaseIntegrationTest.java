@@ -75,7 +75,7 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
         auctionsRepository.setActive(auction, auction.getStarttimestamp());
         Auction getAuction = auctionsRepository.getAuction(auction.getId());
 
-        assertEquals(Auction.active(), getAuction.getStatus());
+        assertEquals(Auction.ACTIVE, getAuction.getStatus());
         assertEquals(auction.getStarttimestamp(), getAuction.getStarttimestamp());
 
     }
@@ -86,7 +86,7 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
         auctionsRepository.setTransferring(auction.getTokenid());
         Auction getAuction = auctionsRepository.getAuction(auction.getId());
 
-        assertEquals(Auction.transfer(), getAuction.getStatus());
+        assertEquals(Auction.TRANSFER, getAuction.getStatus());
     }
 
     @Test
@@ -110,10 +110,10 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
     public void setClosedByAuctionTest() throws Exception {
 
         auction = auctionsRepository.setClosed(auction);
-        assertEquals(Auction.closed(), auction.getStatus());
+        assertEquals(Auction.CLOSED, auction.getStatus());
 
         Auction getAuction = auctionsRepository.getAuction(auction.getId());
-        assertEquals(Auction.closed(), getAuction.getStatus());
+        assertEquals(Auction.CLOSED, getAuction.getStatus());
     }
 
     @Test
@@ -122,7 +122,7 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
         auctionsRepository.setClosed(auction.getId());
 
         Auction getAuction = auctionsRepository.getAuction(auction.getId());
-        assertEquals(Auction.closed(), getAuction.getStatus());
+        assertEquals(Auction.CLOSED, getAuction.getStatus());
     }
 
     @Test
@@ -152,23 +152,23 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
 
         auctionsRepository.deleteAllAuctions();
 
-        auction.setStatus(Auction.transfer());
+        auction.setStatus(Auction.TRANSFER);
         auctionsRepository.createComplete(auction);
 
         auction = testAuctionObject(2);
-        auction.setStatus(Auction.pending());
+        auction.setStatus(Auction.PENDING);
         auctionsRepository.createComplete(auction);
 
         auction = testAuctionObject(3);
-        auction.setStatus(Auction.ended());
+        auction.setStatus(Auction.ENDED);
         auctionsRepository.createComplete(auction);
 
         auction = testAuctionObject(4);
-        auction.setStatus(Auction.closed());
+        auction.setStatus(Auction.CLOSED);
         auctionsRepository.createComplete(auction);
 
         auction = testAuctionObject(5);
-        auction.setStatus(Auction.active());
+        auction.setStatus(Auction.ACTIVE);
         auctionsRepository.createComplete(auction);
 
         Map<String, Integer> openPending = auctionsRepository.openAndPendingAuctions();

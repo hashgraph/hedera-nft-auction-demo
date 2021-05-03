@@ -38,6 +38,7 @@ public class AbstractIntegrationTest {
     String winningAccount() {
         return stringPlusIndex("winningAccount");
     }
+    String tokenOwnerAccount() { return stringPlusIndex("tokenOwnerAccount"); }
     String winningTimestamp() {
         return stringPlusIndex("winningTimestamp");
     }
@@ -130,6 +131,7 @@ public class AbstractIntegrationTest {
         auction.setTransfertxid(transfertxid());
         auction.setTransfertxhash(transfertxhash());
         auction.setLastconsensustimestamp(lastConsensusTimestamp());
+        auction.setTokenowneraccount(tokenOwnerAccount());
 
         return auction;
     }
@@ -255,6 +257,6 @@ public class AbstractIntegrationTest {
         assertEquals(auction.getWinnerCanBid(), body.getBoolean("winnerCanBid"));
         assertEquals(auction.isTransferring(), body.getBoolean("transferring"));
         assertEquals(auction.isEnded(), body.getBoolean("ended"));
+        assertEquals(auction.getTokenowneraccount(), body.getString("tokenowneraccount"));
     }
-
 }

@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.node.test.integration;
 
+import com.google.errorprone.annotations.Var;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -8,7 +9,7 @@ public final class HederaJson {
     private HederaJson() {
 
     }
-    public static JsonObject tokenTransferTransaction(String account, String token, long amount) {
+    public static JsonObject tokenTransferTransaction(String fromAccount, String toAccount, String token, long amount) {
         JsonObject transaction = new JsonObject();
         transaction.put("charged_tx_fee", 84650);
         transaction.put("consensus_timestamp", "1617786661.662353000");
@@ -23,9 +24,12 @@ public final class HederaJson {
         transaction.put("valid_duration_seconds", "120");
         transaction.put("valid_start_timestamp", "1617786650.796134000");
 
-        JsonObject transfer = tokenTransfer(account, token, amount);
+        @Var JsonObject transfer = tokenTransfer(fromAccount, token, -amount);
 
         JsonArray tokenTransfers = new JsonArray();
+        tokenTransfers.add(transfer);
+
+        transfer = tokenTransfer(toAccount, token, amount);
         tokenTransfers.add(transfer);
 
         transaction.put("token_transfers", tokenTransfers);

@@ -207,7 +207,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testBeforeStart() throws Exception {
 
-        auctionsRepository.setActive(auction, "z");
+        auctionsRepository.setActive(auction, auction.getTokenowneraccount(), "z");
         BidTester bidTester = new BidTester(hederaClient, webClient, auctionsRepository, bidsRepository, auction.getId(), "", 5000);
         bidTester.setTesting();
 
@@ -233,7 +233,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         // if index below set to 0, winner can't bid
         @Var Auction winnerCantBidAuction = testAuctionObject(0);
         winnerCantBidAuction = auctionsRepository.add(winnerCantBidAuction);
-        auctionsRepository.setActive(winnerCantBidAuction, "a");
+        auctionsRepository.setActive(winnerCantBidAuction, winnerCantBidAuction.getTokenowneraccount(), "a");
 
         BidTester bidTester = new BidTester(hederaClient, webClient, auctionsRepository, bidsRepository, winnerCantBidAuction.getId(), "", 5000);
         bidTester.setTesting();
@@ -274,7 +274,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         @Var Auction winnerCanBidAuction = testAuctionObject(1);
         winnerCanBidAuction.setMinimumbid(1L);
         winnerCanBidAuction = auctionsRepository.add(winnerCanBidAuction);
-        auctionsRepository.setActive(winnerCanBidAuction, "a");
+        auctionsRepository.setActive(winnerCanBidAuction, winnerCanBidAuction.getTokenowneraccount(), "a");
 
         BidTester bidTester = new BidTester(hederaClient, webClient, auctionsRepository, bidsRepository, winnerCanBidAuction.getId(), "", 5000);
         bidTester.setTesting();
@@ -314,7 +314,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         smallIncreaseAuction.setWinningbid(0L);
         smallIncreaseAuction.setMinimumbid(bidAmount * 2);
         smallIncreaseAuction = auctionsRepository.add(smallIncreaseAuction);
-        auctionsRepository.setActive(smallIncreaseAuction, "a");
+        auctionsRepository.setActive(smallIncreaseAuction, smallIncreaseAuction.getTokenowneraccount(), "a");
 
         BidTester bidTester = new BidTester(hederaClient, webClient, auctionsRepository, bidsRepository, smallIncreaseAuction.getId(), "", 5000);
         bidTester.setTesting();
@@ -343,7 +343,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         smallIncreaseAuction.setWinningbid(0L);
         smallIncreaseAuction.setMinimumbid(100L);
         smallIncreaseAuction = auctionsRepository.add(smallIncreaseAuction);
-        auctionsRepository.setActive(smallIncreaseAuction, "a");
+        auctionsRepository.setActive(smallIncreaseAuction, smallIncreaseAuction.getTokenowneraccount(), "a");
 
         BidTester bidTester = new BidTester(hederaClient, webClient, auctionsRepository, bidsRepository, smallIncreaseAuction.getId(), "", 5000);
         bidTester.setTesting();
@@ -383,7 +383,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         belowReserveAuction.setReserve(bidAmount * 2);
         belowReserveAuction.setWinningbid(0L);
         belowReserveAuction = auctionsRepository.add(belowReserveAuction);
-        auctionsRepository.setActive(belowReserveAuction, "a");
+        auctionsRepository.setActive(belowReserveAuction, belowReserveAuction.getTokenowneraccount(), "a");
 
         BidTester bidTester = new BidTester(hederaClient, webClient, auctionsRepository, bidsRepository, belowReserveAuction.getId(), "", 5000);
         bidTester.setTesting();
@@ -412,7 +412,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         smallIncreaseAuction.setWinningbid(0L);
         smallIncreaseAuction.setMinimumbid(100L);
         smallIncreaseAuction = auctionsRepository.add(smallIncreaseAuction);
-        auctionsRepository.setActive(smallIncreaseAuction, "a");
+        auctionsRepository.setActive(smallIncreaseAuction, smallIncreaseAuction.getTokenowneraccount(), "a");
 
         BidTester bidTester = new BidTester(hederaClient, webClient, auctionsRepository, bidsRepository, smallIncreaseAuction.getId(), "", 5000);
         bidTester.setTesting();
@@ -455,7 +455,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         priorBidUpdateAuction.setWinningbid(0L);
         priorBidUpdateAuction.setMinimumbid(1L);
         priorBidUpdateAuction = auctionsRepository.add(priorBidUpdateAuction);
-        auctionsRepository.setActive(priorBidUpdateAuction, "a");
+        auctionsRepository.setActive(priorBidUpdateAuction, priorBidUpdateAuction.getTokenowneraccount(), "a");
 
         BidTester bidTester = new BidTester(hederaClient, webClient, auctionsRepository, bidsRepository, priorBidUpdateAuction.getId(), "", 5000);
         bidTester.setTesting();

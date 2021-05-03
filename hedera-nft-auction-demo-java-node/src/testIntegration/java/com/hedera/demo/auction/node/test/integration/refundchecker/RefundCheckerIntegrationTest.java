@@ -76,7 +76,7 @@ public class RefundCheckerIntegrationTest extends AbstractIntegrationTest {
         auction = testAuctionObject(1);
         auction = auctionsRepository.add(auction);
 
-        auctionsRepository.setActive(auction, "a");
+        auctionsRepository.setActive(auction, auction.getTokenowneraccount(), "a");
 
         bidTransaction = HederaJson.singleTransaction();
         bidTransactions = HederaJson.mirrorTransactions(bidTransaction);

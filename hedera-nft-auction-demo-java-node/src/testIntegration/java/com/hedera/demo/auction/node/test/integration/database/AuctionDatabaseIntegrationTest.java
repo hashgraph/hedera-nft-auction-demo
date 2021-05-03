@@ -72,7 +72,7 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void setAuctionActiveTest() throws Exception {
 
-        auctionsRepository.setActive(auction, auction.getStarttimestamp());
+        auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
         Auction getAuction = auctionsRepository.getAuction(auction.getId());
 
         assertEquals(Auction.ACTIVE, getAuction.getStatus());

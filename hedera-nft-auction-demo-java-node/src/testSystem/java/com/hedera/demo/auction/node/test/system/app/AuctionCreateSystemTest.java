@@ -47,6 +47,9 @@ public class AuctionCreateSystemTest extends AbstractSystemTest {
     public void beforeEach() throws Exception {
         bidsRepository.deleteAllBids();
         auctionsRepository.deleteAllAuctions();
+        createTopicAndGetInfo();
+        createAccountAndGetInfo("");
+        createTokenAndGetInfo(symbol);
         createAuction(auctionReserve, minimumBid, winnerCanBid);
     }
     @Test

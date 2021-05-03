@@ -1,6 +1,7 @@
 package com.hedera.demo.auction.node.test.system.app;
 
 import com.google.protobuf.ByteString;
+import com.hedera.demo.auction.node.app.CreateToken;
 import com.hedera.demo.auction.node.test.system.AbstractSystemTest;
 import com.hedera.hashgraph.sdk.FileContentsQuery;
 import com.hedera.hashgraph.sdk.FileId;
@@ -15,9 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TokenCreateSystemTest extends AbstractSystemTest {
@@ -28,7 +27,9 @@ public class TokenCreateSystemTest extends AbstractSystemTest {
 
     @Test
     public void testCreateTokenNoFile() throws Exception {
-        createTokenAndGetInfo(symbol);
+        CreateToken createToken = new CreateToken();
+        tokenId = createToken.create(tokenName, symbol, initialSupply, decimals);
+        getTokenInfo();
 
         assertEquals(tokenName, tokenInfo.name);
         assertEquals(symbol, tokenInfo.symbol);
@@ -43,6 +44,7 @@ public class TokenCreateSystemTest extends AbstractSystemTest {
         assertNull(tokenInfo.wipeKey);
     }
 
+
     @Test
     public void testCreateTokenWithSmallFile() throws Exception {
         // create a test file
@@ -52,7 +54,9 @@ public class TokenCreateSystemTest extends AbstractSystemTest {
         printWriter.print(fileTestData);
         printWriter.close();
 
-        createTokenAndGetInfo(tempFile.getAbsolutePath());
+        CreateToken createToken = new CreateToken();
+        tokenId = createToken.create(tokenName, tempFile.getAbsolutePath(), initialSupply, decimals);
+        getTokenInfo();
 
         assertEquals(tokenName, tokenInfo.name);
         assertNull(tokenInfo.adminKey);
@@ -96,7 +100,9 @@ public class TokenCreateSystemTest extends AbstractSystemTest {
         printWriter.print(fileTestData);
         printWriter.close();
 
-        createTokenAndGetInfo(tempFile.getAbsolutePath());
+        CreateToken createToken = new CreateToken();
+        tokenId = createToken.create(tokenName, tempFile.getAbsolutePath(), initialSupply, decimals);
+        getTokenInfo();
 
         assertEquals(tokenName, tokenInfo.name);
         assertNull(tokenInfo.adminKey);

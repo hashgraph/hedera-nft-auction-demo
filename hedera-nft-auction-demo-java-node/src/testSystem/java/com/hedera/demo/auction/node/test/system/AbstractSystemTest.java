@@ -1,41 +1,17 @@
 package com.hedera.demo.auction.node.test.system;
 
-import com.hedera.demo.auction.node.app.CreateAuction;
-import com.hedera.demo.auction.node.app.CreateAuctionAccount;
-import com.hedera.demo.auction.node.app.CreateToken;
-import com.hedera.demo.auction.node.app.CreateTokenTransfer;
-import com.hedera.demo.auction.node.app.CreateTopic;
-import com.hedera.demo.auction.node.app.HederaClient;
+import com.hedera.demo.auction.node.app.*;
 import com.hedera.demo.auction.node.app.domain.Auction;
+import com.hedera.demo.auction.node.app.domain.Bid;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.hashgraph.sdk.AccountBalance;
-import com.hedera.hashgraph.sdk.AccountBalanceQuery;
-import com.hedera.hashgraph.sdk.AccountCreateTransaction;
-import com.hedera.hashgraph.sdk.AccountId;
-import com.hedera.hashgraph.sdk.AccountInfo;
-import com.hedera.hashgraph.sdk.AccountInfoQuery;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.Hbar;
-import com.hedera.hashgraph.sdk.Key;
-import com.hedera.hashgraph.sdk.KeyList;
-import com.hedera.hashgraph.sdk.PrecheckStatusException;
-import com.hedera.hashgraph.sdk.PrivateKey;
-import com.hedera.hashgraph.sdk.ReceiptStatusException;
-import com.hedera.hashgraph.sdk.TokenCreateTransaction;
-import com.hedera.hashgraph.sdk.TokenId;
-import com.hedera.hashgraph.sdk.TokenInfo;
-import com.hedera.hashgraph.sdk.TokenInfoQuery;
-import com.hedera.hashgraph.sdk.TopicId;
-import com.hedera.hashgraph.sdk.TopicInfo;
-import com.hedera.hashgraph.sdk.TopicInfoQuery;
-import com.hedera.hashgraph.sdk.TransactionReceipt;
-import com.hedera.hashgraph.sdk.TransactionResponse;
-import com.hedera.hashgraph.sdk.TransferTransaction;
+import com.hedera.hashgraph.sdk.*;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import lombok.extern.log4j.Log4j2;
 import org.flywaydb.core.Flyway;
+import org.junit.platform.commons.util.StringUtils;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
 
@@ -44,13 +20,17 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeoutException;
 
+@Log4j2
 public abstract class AbstractSystemTest {
     protected static final Dotenv dotenv = Dotenv.configure().filename(".env.system").ignoreIfMissing().load();
     protected HederaClient hederaClient;
+    protected HederaClient hederaTestRunnerClient;
+    protected HederaClient hederaBidderClient;
 
     protected static Network testContainersNetwork = Network.newNetwork();
 
@@ -65,7 +45,7 @@ public abstract class AbstractSystemTest {
     protected CreateToken createToken;
     protected CreateAuction createAuction;
 
-    protected static final long initialBalance = 10;
+    protected static final long initialBalance = 100;
     protected static AccountId auctionAccountId;
     protected static AccountInfo accountInfo;
     protected static AccountBalance accountBalance;
@@ -85,14 +65,29 @@ public abstract class AbstractSystemTest {
     protected final long auctionReserve = 1000;
     protected final String endTimeStamp = "0000.12313";
 
+    protected boolean transferOnWin = true;
+    protected final PrivateKey auctionAccountKey = PrivateKey.generate();
+
+    protected long maxBid = 0;
+    protected AccountId maxBidAccount;
+
+    protected Map<String, AccountId> biddingAccounts = new HashMap<>();
+    protected final PrivateKey bidAccountKey = PrivateKey.generate();
 
     // test token owner
     PrivateKey tokenOwnerPrivateKey;
-    AccountId tokenOwnerAccountId;
-    Client tokenOwnerClient;
+    protected AccountId tokenOwnerAccountId;
+    protected Client tokenOwnerClient;
+    protected Client bidderClient;
+    protected Client testRunnerClient;
 
     protected AbstractSystemTest() throws Exception {
         hederaClient = new HederaClient(dotenv);
+        hederaTestRunnerClient = new HederaClient(dotenv);
+        hederaBidderClient = new HederaClient(dotenv);
+
+        bidderClient = hederaBidderClient.client();
+        testRunnerClient = hederaTestRunnerClient.client();
 
         createTopic = new CreateTopic();
         createAuctionAccount = new CreateAuctionAccount();
@@ -101,6 +96,25 @@ public abstract class AbstractSystemTest {
         createAuction = new CreateAuction();
 
         createTopic.setEnv(dotenv); // other "create" classes share the same abstract class, no need to repeat
+    }
+
+    protected void setMaxBid(long newMaxBid, AccountId newAccount) {
+        if (newMaxBid > maxBid) {
+            maxBid = newMaxBid;
+            maxBidAccount = newAccount;
+        }
+    }
+
+    protected static JsonObject jsonThresholdKey(int threshold, PrivateKey pk1) {
+        JsonObject thresholdKey = new JsonObject();
+        if (threshold != 0) {
+            thresholdKey.put("threshold", threshold);
+        }
+        JsonArray keyList = new JsonArray();
+        keyList.add(new JsonObject().put("key", pk1.getPublicKey().toString()));
+        thresholdKey.put("keys", keyList);
+
+        return thresholdKey;
     }
 
     protected static JsonObject jsonThresholdKey(int threshold, PrivateKey pk1, PrivateKey pk2) {
@@ -128,7 +142,35 @@ public abstract class AbstractSystemTest {
     }
 
     protected void createTokenAndGetInfo(String symbol) throws Exception {
-        tokenId = createToken.create(tokenName, symbol, initialSupply, decimals);
+        // simulating creation from a different account
+        tokenOwnerPrivateKey = PrivateKey.generate();
+
+        // create a temp account for the token creation
+        TransactionResponse accountCreateResponse = new AccountCreateTransaction()
+                .setKey(tokenOwnerPrivateKey.getPublicKey())
+                .setInitialBalance(Hbar.from(100))
+                .execute(hederaClient.client());
+
+        TransactionReceipt accountCreateResponseReceipt = accountCreateResponse.getReceipt(hederaClient.client());
+
+        tokenOwnerAccountId = accountCreateResponseReceipt.accountId;
+
+        tokenOwnerClient = Client.forTestnet();
+        tokenOwnerClient.setOperator(tokenOwnerAccountId, tokenOwnerPrivateKey);
+
+        // create a token
+        TransactionResponse tokenCreateResponse = new TokenCreateTransaction()
+                .setTokenName(tokenName)
+                .setTokenSymbol(symbol)
+                .setDecimals(decimals)
+                .setInitialSupply(initialSupply)
+                .setTreasuryAccountId(tokenOwnerAccountId)
+                .execute(tokenOwnerClient);
+
+        TransactionReceipt tokenCreateResponseReceipt = tokenCreateResponse.getReceipt(hederaClient.client());
+
+        tokenId = tokenCreateResponseReceipt.tokenId;
+
         getTokenInfo();
     }
 
@@ -139,7 +181,7 @@ public abstract class AbstractSystemTest {
     }
 
     protected void transferTokenAndGetBalance() throws Exception {
-        createTokenTransfer.transfer(tokenId.toString(), auctionAccountId.toString());
+        createTokenTransfer.transfer(tokenId.toString(), auctionAccountId.toString(), tokenOwnerAccountId, tokenOwnerPrivateKey);
         getAccountBalance();
     }
 
@@ -162,37 +204,6 @@ public abstract class AbstractSystemTest {
     }
 
     protected void createAuction(long reserve, long minimumBid, boolean winnerCanBid) throws Exception {
-        createTopicAndGetInfo();
-        // auction account id
-        createAccountAndGetInfo("");
-        // simulating creation from a different account
-        tokenOwnerPrivateKey = PrivateKey.generate();
-
-        // create a temp account for the token creation
-        TransactionResponse accountCreateResponse = new AccountCreateTransaction()
-                .setKey(tokenOwnerPrivateKey.getPublicKey())
-                .setInitialBalance(Hbar.from(100))
-                .execute(hederaClient.client());
-
-        TransactionReceipt accountCreateResponseReceipt = accountCreateResponse.getReceipt(hederaClient.client());
-
-        tokenOwnerAccountId = accountCreateResponseReceipt.accountId;
-
-        tokenOwnerClient = Client.forTestnet();
-        tokenOwnerClient.setOperator(tokenOwnerAccountId, tokenOwnerPrivateKey);
-
-        // create a token
-        TransactionResponse tokenCreateResponse = new TokenCreateTransaction()
-                .setTokenName(tokenName)
-                .setTokenSymbol(symbol)
-                .setDecimals(0)
-                .setInitialSupply(1)
-                .setTreasuryAccountId(tokenOwnerAccountId)
-                .execute(tokenOwnerClient);
-
-        TransactionReceipt tokenCreateResponseReceipt = tokenCreateResponse.getReceipt(hederaClient.client());
-
-        tokenId = tokenCreateResponseReceipt.tokenId;
 
         JsonObject auction = new JsonObject();
         auction.put("tokenid", tokenId.toString());
@@ -222,27 +233,55 @@ public abstract class AbstractSystemTest {
         flyway.migrate();
     }
 
-    protected void transferToken() throws TimeoutException, PrecheckStatusException, ReceiptStatusException {
-        // transfer token to auction
-        TransactionResponse tokenTransferResponse = new TransferTransaction()
-                .addTokenTransfer(tokenId, tokenOwnerAccountId, -1)
-                .addTokenTransfer(tokenId, auctionAccountId, 1)
-                .execute(tokenOwnerClient);
-
-        tokenTransferResponse.getReceipt(tokenOwnerClient);
+    protected void transferToken() throws Exception {
+        createTokenTransfer.transfer(tokenId.toString(), auctionAccountId.toString(), tokenOwnerAccountId, tokenOwnerPrivateKey);
     }
 
-    protected Callable<Boolean> auctionsCountMatches(int matchCount) throws SQLException {
+    protected Callable<Boolean> auctionsCountMatches(int matchCount) {
         return () -> {
             List<Auction> auctionsList = auctionsRepository.getAuctionsList();
             return (auctionsList.size() == matchCount);
         };
     }
 
-    protected Callable<Boolean> tokenAssociatedNotTransferred() throws SQLException {
+    protected Callable<Boolean> alwaysTrueForDelay() {
+        return () -> {
+            return true;
+        };
+    }
+
+    protected Callable<Boolean> tokenAssociatedNotTransferred() {
         return () -> {
             AccountBalance balance = new AccountBalanceQuery()
                     .setAccountId(auctionAccountId)
+                    .execute(hederaClient.client());
+            if (balance.token.containsKey(tokenId)) {
+                if (balance.token.get(tokenId) == 0) {
+                    return true;
+                }
+            }
+            return false;
+        };
+    }
+
+    protected Callable<Boolean> winnerTokenTransferred() {
+        return () -> {
+            AccountBalance balance = new AccountBalanceQuery()
+                    .setAccountId(maxBidAccount)
+                    .execute(hederaClient.client());
+            if (balance.token.containsKey(tokenId)) {
+                if (balance.token.get(tokenId) != 0) {
+                    return true;
+                }
+            }
+            return false;
+        };
+    }
+
+    protected Callable<Boolean> winnerTokenNotTransferred() {
+        return () -> {
+            AccountBalance balance = new AccountBalanceQuery()
+                    .setAccountId(maxBidAccount)
                     .execute(hederaClient.client());
             if (balance.token.containsKey(tokenId)) {
                 if (balance.token.get(tokenId) == 0) {
@@ -280,17 +319,67 @@ public abstract class AbstractSystemTest {
         }
     }
 
-    protected Callable<Boolean> auctionValueAssert(String parameter, String value, String condition) throws SQLException {
+    protected Callable<Boolean> auctionValueAssert(String parameter, String value, String condition) {
         return () -> {
             Auction testAuction = auctionsRepository.getAuction(auction.getId());
 
             String valueToCheck = getAuctionValue(testAuction, parameter);
 
-            if (condition.equals("equals")) {
-                return (value.equals(valueToCheck));
-            }
+            return checkCondition(value, condition, valueToCheck);
+        };
+    }
 
-            return false;
+    private static boolean checkCondition(String value, String condition, String valueToCheck) {
+        log.info("Checking condition " + condition + " on value " + value + " against " + valueToCheck);
+        if (condition.equals("equals")) {
+            return (value.equals(valueToCheck));
+        } else if (condition.equals("notnull")) {
+            return (StringUtils.isNotBlank(valueToCheck));
+        } else if (condition.equals("isnull")) {
+            return (StringUtils.isBlank(valueToCheck));
+        } else if (condition.equals("true")) {
+            return (valueToCheck.equals("true"));
+        } else if (condition.equals("false")) {
+            return (valueToCheck.equals("false"));
+        }
+
+        return false;
+    }
+
+    private static String getBidValue(Bid bidSource, String parameter) {
+        switch (parameter) {
+            case "bidderAccountId":
+                return bidSource.getBidderaccountid();
+            case "status":
+                return bidSource.getStatus();
+            case "timestamp":
+                return bidSource.getTimestamp();
+            case "transactionHash":
+                return bidSource.getTransactionhash();
+            case "transactionId":
+                return bidSource.getTransactionid();
+            case "refundTxHash":
+                return bidSource.getRefundtxhash();
+            case "refundTxId":
+                return bidSource.getRefundtxid();
+            case "bidAmount":
+                return String.valueOf(bidSource.getBidamount());
+            case "refunded":
+                return bidSource.getRefunded().toString();
+            default:
+                return "";
+        }
+    }
+
+    protected Callable<Boolean> bidValueAssert(String bidAccount, long bidAmount, String parameter, String value, String condition) throws SQLException {
+        return () -> {
+            Bid testBid = bidsRepository.getBid(auction.getId(), bidAccount, bidAmount);
+            if (testBid == null) {
+                return false;
+            }
+            String valueToCheck = getBidValue(testBid, parameter);
+
+            return checkCondition(value, condition, valueToCheck);
         };
     }
 

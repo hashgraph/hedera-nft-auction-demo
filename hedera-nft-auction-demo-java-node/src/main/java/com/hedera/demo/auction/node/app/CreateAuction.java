@@ -1,7 +1,13 @@
 package com.hedera.demo.auction.node.app;
 
 import com.google.errorprone.annotations.Var;
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.PrecheckStatusException;
+import com.hedera.hashgraph.sdk.ReceiptStatusException;
+import com.hedera.hashgraph.sdk.Status;
+import com.hedera.hashgraph.sdk.TopicId;
+import com.hedera.hashgraph.sdk.TopicMessageSubmitTransaction;
+import com.hedera.hashgraph.sdk.TransactionReceipt;
+import com.hedera.hashgraph.sdk.TransactionResponse;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 

@@ -19,7 +19,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.sql.SQLException;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
@@ -82,24 +82,9 @@ public class HederaCheckWinnerTokenAssociationIntegrationTest extends AbstractIn
     }
 
     @Test
-    public void testEmptyBodyBalances() throws Exception {
-
-        transfer.put("balances", balances);
-
-        hederaWinnerTokenTransfer.checkForAssociation(transfer);
-
-        Auction updatedAuction = auctionsRepository.getAuction(auction.getId());
-        assertTrue(updatedAuction.isPending());
-    }
-
-    @Test
     public void testWinningAccount() throws Exception {
 
-        balance.put("account", winningAccountId);
-        balance.put("balance", 1);
-        balances.add(balance);
-
-        transfer.put("balances", balances);
+        transfer.put("transactions", new JsonArray().add(balances));
 
         hederaWinnerTokenTransfer.checkForAssociation(transfer);
 
@@ -110,30 +95,11 @@ public class HederaCheckWinnerTokenAssociationIntegrationTest extends AbstractIn
     @Test
     public void testWinningAccountBalanceZero() throws Exception {
 
-        balance.put("account", winningAccountId);
-        balance.put("balance", 0);
-        balances.add(balance);
-
-        transfer.put("balances", balances);
+        transfer.put("transactions", new JsonArray());
 
         hederaWinnerTokenTransfer.checkForAssociation(transfer);
 
         Auction updatedAuction = auctionsRepository.getAuction(auction.getId());
-        assertTrue(updatedAuction.isTransferring());
-    }
-
-    @Test
-    public void testOtherAccount() throws Exception {
-
-        balance.put("account", "otherAccount");
-        balance.put("balance", 1);
-        balances.add(balance);
-
-        transfer.put("balances", balances);
-
-        assertDoesNotThrow(() -> hederaWinnerTokenTransfer.checkForAssociation(transfer));
-
-        Auction updatedAuction = auctionsRepository.getAuction(auction.getId());
-        assertTrue(updatedAuction.isPending());
+        assertFalse(updatedAuction.isTransferring());
     }
 }

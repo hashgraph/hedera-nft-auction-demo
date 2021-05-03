@@ -275,7 +275,7 @@ public class E2EAppTest extends AbstractSystemTest {
 
         String object = assertion.getString("object", "");
         String parameter = assertion.getString( "parameter", "");
-        String condition = assertion.getString("condition", "");
+        String condition = assertion.getString("condition", "equals");
 
         @Var String value = assertion.getString( "value", "");
         String from = assertion.getString("from", "");
@@ -292,6 +292,8 @@ public class E2EAppTest extends AbstractSystemTest {
                 value = String.valueOf(biddingAccounts.get(assertion.getString("from")));
             } else if (parameter.equals("bidAmount") && condition.equals("equals")) {
                 value = String.valueOf(assertion.getJsonNumber("amount").longValue());
+            } else if (parameter.equals("tokenOwnerAccountId")) {
+                value = tokenOwnerAccountId.toString();
             }
         }
 
@@ -339,7 +341,7 @@ public class E2EAppTest extends AbstractSystemTest {
                         .with()
                         .timeout(Duration.ofSeconds(30))
                         .await()
-                        .until(winnerTokenTransferred());
+                        .until(tokenTransferred(maxBidAccount));
                 break;
             case "winnerDoesNotOwnToken":
                 await()
@@ -349,7 +351,27 @@ public class E2EAppTest extends AbstractSystemTest {
                         .with()
                         .timeout(Duration.ofSeconds(30))
                         .await()
-                        .until(winnerTokenNotTransferred());
+                        .until(tokenNotTransferred(maxBidAccount));
+                break;
+            case "issuerOwnsToken":
+                await()
+                        .with()
+                        .pollDelay(Duration.ofSeconds(20))
+                        .and()
+                        .with()
+                        .timeout(Duration.ofSeconds(30))
+                        .await()
+                        .until(tokenTransferred(tokenOwnerAccountId));
+                break;
+            case "issuerDoesNotOwnToken":
+                await()
+                        .with()
+                        .pollDelay(Duration.ofSeconds(20))
+                        .and()
+                        .with()
+                        .timeout(Duration.ofSeconds(30))
+                        .await()
+                        .until(tokenNotTransferred(tokenOwnerAccountId));
                 break;
             default:
                 log.error("unknown assertion " + object);

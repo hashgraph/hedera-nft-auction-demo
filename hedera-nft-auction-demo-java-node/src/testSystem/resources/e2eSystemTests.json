@@ -1,5 +1,56 @@
 [
   {
+    "testName": "End to end auction test (no bids)",
+    "mirrors": ["hedera"],
+    "symbol": "tokenSymbol",
+    "transferOnWin": true,
+    "tasks": [
+      {
+        "name": "createAuction", "reserve": 0, "minimumBid": 0, "winnerCanBid": true
+      },
+      {
+        "name": "startApp",
+        "description": "start the node application",
+        "assertions": [
+          {
+            "object": "auction", "parameter": "count", "value": "1"
+          }
+        ]
+      },
+      {
+        "name": "getAuction", "index": 0
+      },
+      {
+        "name": "assertions", "description": "assertions",
+        "assertions": [
+          {
+            "object": "auction", "parameter": "status", "value": "PENDING", "condition": "equals"
+          }
+        ]
+      },
+      {
+        "name": "transferToken", "description": "transfer token to auction account",
+        "assertions": [
+          { "object": "auction", "parameter": "status", "value": "ACTIVE", "condition": "equals" },
+          { "object": "auction", "parameter": "tokenOwnerAccountId" }
+        ]
+      },
+      {
+        "name": "endAuction", "description": "End Auction",
+        "assertions": [
+          { "object": "auction", "parameter": "status", "condition": "equals", "value": "CLOSED" },
+          { "object": "auction", "parameter": "status", "condition": "equals", "value": "ENDED" },
+          { "object": "auction", "parameter": "transferTxHash", "condition": "notnull" },
+          { "object": "issuerOwnsToken" }
+        ]
+      },
+      {
+        "name": "stopApp",
+        "description": "stop the node application"
+      }
+    ]
+  },
+  {
     "testName": "Start the app with bids awaiting processing",
     "mirrors": ["hedera"],
     "symbol": "tokenSymbol",
@@ -142,9 +193,8 @@
       {
         "name": "transferToken", "description": "transfer token to auction account",
         "assertions": [
-          {
-            "object": "auction", "parameter": "status", "value": "ACTIVE", "condition": "equals"
-          }
+          { "object": "auction", "parameter": "status", "value": "ACTIVE", "condition": "equals" },
+          { "object": "auction", "parameter": "tokenOwnerAccountId" }
         ]
       },
       {
@@ -216,7 +266,8 @@
 
           { "object": "auction", "parameter": "status", "condition": "equals", "value": "ENDED" },
           { "object": "auction", "parameter": "transferTxHash", "condition": "notnull" },
-          { "object": "winnerOwnsToken" }
+          { "object": "winnerOwnsToken" },
+          { "object": "issuerDoesNotOwnToken" }
         ]
       },
       {
@@ -257,9 +308,8 @@
       {
         "name": "transferToken", "description": "transfer token to auction account",
         "assertions": [
-          {
-            "object": "auction", "parameter": "status", "value": "ACTIVE", "condition": "equals"
-          }
+          { "object": "auction", "parameter": "status", "value": "ACTIVE", "condition": "equals" },
+          { "object": "auction", "parameter": "tokenOwnerAccountId" }
         ]
       },
       {
@@ -322,9 +372,8 @@
       {
         "name": "transferToken", "description": "transfer token to auction account",
         "assertions": [
-          {
-            "object": "auction", "parameter": "status", "value": "ACTIVE", "condition": "equals"
-          }
+          { "object": "auction", "parameter": "status", "value": "ACTIVE", "condition": "equals" },
+          { "object": "auction", "parameter": "tokenOwnerAccountId" }
         ]
       },
       {
@@ -381,9 +430,8 @@
       {
         "name": "transferToken", "description": "transfer token to auction account",
         "assertions": [
-          {
-            "object": "auction", "parameter": "status", "value": "ACTIVE", "condition": "equals"
-          }
+          { "object": "auction", "parameter": "status", "value": "ACTIVE", "condition": "equals" },
+          { "object": "auction", "parameter": "tokenOwnerAccountId" }
         ]
       },
       {
@@ -440,9 +488,8 @@
       {
         "name": "transferToken", "description": "transfer token to auction account",
         "assertions": [
-          {
-            "object": "auction", "parameter": "status", "value": "ACTIVE", "condition": "equals"
-          }
+          { "object": "auction", "parameter": "status", "value": "ACTIVE", "condition": "equals" },
+          { "object": "auction", "parameter": "tokenOwnerAccountId" }
         ]
       },
       {
@@ -514,9 +561,8 @@
       {
         "name": "transferToken", "description": "transfer token to auction account",
         "assertions": [
-          {
-            "object": "auction", "parameter": "status", "value": "ACTIVE", "condition": "equals"
-          }
+          { "object": "auction", "parameter": "status", "value": "ACTIVE", "condition": "equals" },
+          { "object": "auction", "parameter": "tokenOwnerAccountId" }
         ]
       },
       {
@@ -588,7 +634,8 @@
 
           { "object": "auction", "parameter": "status", "condition": "equals", "value": "ENDED" },
           { "object": "auction", "parameter": "transferTxHash", "condition": "notnull" },
-          { "object": "winnerOwnsToken" }
+          { "object": "winnerOwnsToken" },
+          { "object": "issuerDoesNotOwnToken" }
         ]
       },
       {

@@ -264,10 +264,10 @@ public abstract class AbstractSystemTest {
         };
     }
 
-    protected Callable<Boolean> winnerTokenTransferred() {
+    protected Callable<Boolean> tokenTransferred(AccountId accountId) {
         return () -> {
             AccountBalance balance = new AccountBalanceQuery()
-                    .setAccountId(maxBidAccount)
+                    .setAccountId(accountId)
                     .execute(hederaClient.client());
             if (balance.token.containsKey(tokenId)) {
                 if (balance.token.get(tokenId) != 0) {
@@ -278,10 +278,10 @@ public abstract class AbstractSystemTest {
         };
     }
 
-    protected Callable<Boolean> winnerTokenNotTransferred() {
+    protected Callable<Boolean> tokenNotTransferred(AccountId accountId) {
         return () -> {
             AccountBalance balance = new AccountBalanceQuery()
-                    .setAccountId(maxBidAccount)
+                    .setAccountId(accountId)
                     .execute(hederaClient.client());
             if (balance.token.containsKey(tokenId)) {
                 if (balance.token.get(tokenId) == 0) {
@@ -314,6 +314,8 @@ public abstract class AbstractSystemTest {
                 return auctionSource.getWinningtxhash();
             case "winningTxId":
                 return auctionSource.getWinningtxid();
+            case "tokenOwnerAccountId":
+                return auctionSource.getTokenowneraccount();
             default:
                 return "";
         }

@@ -106,13 +106,18 @@ public class Refunder implements Runnable {
         @Var String transactionHash = "";
         if ( ! this.refundKey.isBlank()) {
             // only execute if we have a refund key
-            TransactionResponse response = transferTransaction.execute(client);
-            transactionHash = Hex.encodeHexString(response.transactionHash);
-            // check for receipt
-            TransactionReceipt receipt = response.getReceipt(client);
-            if (receipt.status != Status.SUCCESS) {
-                log.error("Refunding " + this.amount + " to " + this.accountId + " failed with " + receipt.status);
-                return;
+            try {
+                TransactionResponse response = transferTransaction.execute(client);
+                transactionHash = Hex.encodeHexString(response.transactionHash);
+                // check for receipt
+                TransactionReceipt receipt = response.getReceipt(client);
+                if (receipt.status != Status.SUCCESS) {
+                    log.error("Refunding " + this.amount + " to " + this.accountId + " failed with " + receipt.status);
+                    return;
+                }
+            } catch (Exception e) {
+                log.error(e);
+                throw e;
             }
         }
         // update database

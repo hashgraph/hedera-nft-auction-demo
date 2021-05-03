@@ -84,7 +84,6 @@ public class TopicSubscriber implements Runnable{
     private void startSubscription() {
         try {
             Client client = hederaClient.client();
-            log.info("Subscribing to topic " + topicId.toString());
             subscriptionHandle = new TopicMessageQuery()
                     .setTopicId(topicId)
                     .setStartTime(startTime)
@@ -127,20 +126,25 @@ public class TopicSubscriber implements Runnable{
 
             if (! testing) {
                 // get token info
-                TokenInfo tokenInfo = new TokenInfoQuery()
-                        .setTokenId(TokenId.fromString(newAuction.getTokenid()))
-                        .execute(client);
-
-                // if token symbol starts with HEDERA://
-                // load file from hedera
-                if (tokenInfo.symbol.startsWith("HEDERA://")) {
-                    String fileId = tokenInfo.symbol.replace("HEDERA://", "");
-                    ByteString contentsQuery = new FileContentsQuery()
-                            .setFileId(FileId.fromString(fileId))
+                try {
+                    TokenInfo tokenInfo = new TokenInfoQuery()
+                            .setTokenId(TokenId.fromString(newAuction.getTokenid()))
                             .execute(client);
-                    String contents = contentsQuery.toString(StandardCharsets.UTF_8);
-                    // set token image data
-                    newAuction.setTokenimage(contents);
+
+                    // if token symbol starts with HEDERA://
+                    // load file from hedera
+                    if (tokenInfo.symbol.startsWith("HEDERA://")) {
+                        String fileId = tokenInfo.symbol.replace("HEDERA://", "");
+                        ByteString contentsQuery = new FileContentsQuery()
+                                .setFileId(FileId.fromString(fileId))
+                                .execute(client);
+                        String contents = contentsQuery.toString(StandardCharsets.UTF_8);
+                        // set token image data
+                        newAuction.setTokenimage(contents);
+                    }
+                } catch (Exception e) {
+                    log.error(e);
+                    throw e;
                 }
             }
 

@@ -6,25 +6,19 @@ import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.app.subscriber.TopicSubscriber;
 import com.hedera.demo.auction.node.test.system.AbstractSystemTest;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.time.Duration;
 import java.util.List;
 
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class AuctionCreateSystemTest extends AbstractSystemTest {
+public class EasySetupSystemTest extends AbstractSystemTest {
 
-    AuctionCreateSystemTest() throws Exception {
+    EasySetupSystemTest() throws Exception {
         super();
     }
 
@@ -47,10 +41,8 @@ public class AuctionCreateSystemTest extends AbstractSystemTest {
     public void beforeEach() throws Exception {
         bidsRepository.deleteAllBids();
         auctionsRepository.deleteAllAuctions();
-        createTopicAndGetInfo();
-        createAccountAndGetInfo("");
-        createTokenAndGetInfo(symbol);
-        createAuction(auctionReserve, minimumBid, winnerCanBid);
+        String[] args = new String[0];
+        easySetup.setup(args);
     }
     @Test
     public void testCreateAuctionHederaMirror() throws Exception {
@@ -79,22 +71,15 @@ public class AuctionCreateSystemTest extends AbstractSystemTest {
         assertEquals(1, auctionsList.size());
         auction = auctionsList.get(0);
 
-        assertEquals(tokenId.toString(), auction.getTokenid());
-        assertEquals(auctionAccountId.toString(), auction.getAuctionaccountid());
+        assertNotNull(auction.getTokenid());
+        assertNotNull(auction.getAuctionaccountid());
         assertNotNull(auction.getEndtimestamp());
-        assertEquals(auctionReserve, auction.getReserve());
+        assertEquals(0, auction.getReserve());
         assertEquals("0.0", auction.getLastconsensustimestamp());
-        assertEquals(winnerCanBid, auction.getWinnerCanBid());
+        assertTrue(auction.getWinnerCanBid());
         assertNull(auction.getTokenimage());
         assertEquals(0, auction.getWinningbid());
-        assertEquals(minimumBid, auction.getMinimumbid());
+        assertEquals(1000000, auction.getMinimumbid());
 
-        // wait for token to be associated to auction account
-        await()
-                .with()
-                .pollInterval(Duration.ofSeconds(1))
-                .await()
-                .atMost(Duration.ofSeconds(10))
-                .until(tokenAssociatedNotTransferred());
     }
 }

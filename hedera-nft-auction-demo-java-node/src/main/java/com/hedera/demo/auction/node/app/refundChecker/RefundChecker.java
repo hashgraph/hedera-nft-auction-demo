@@ -25,12 +25,8 @@ public class RefundChecker extends AbstractRefundChecker implements Runnable {
             case "HEDERA":
                 refundChecker = new HederaRefundChecker(hederaClient, webClient, bidsRepository, mirrorQueryFrequency);
                 break;
-            case "DRAGONGLASS":
-                refundChecker = new DragonglassRefundChecker(hederaClient, webClient, bidsRepository, mirrorQueryFrequency);
-                break;
             default:
-                refundChecker = new KabutoRefundChecker(hederaClient, webClient, bidsRepository, mirrorQueryFrequency);
-                break;
+                throw new Exception("Support for non Hedera mirrors not implemented.");
         }
         refundChecker.watch();
     }

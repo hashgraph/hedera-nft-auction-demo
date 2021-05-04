@@ -83,6 +83,7 @@ public class E2EAppTest extends AbstractSystemTest {
         bidsRepository.deleteAllBids();
         auctionsRepository.deleteAllAuctions();
         maxBid = 0;
+        accountBalances = new HashMap<>();
     }
 
     private void setupTest(JsonValue mirrorValue, JsonObject test) throws Exception {
@@ -163,6 +164,7 @@ public class E2EAppTest extends AbstractSystemTest {
             JsonObject task = taskJson.asJsonObject();
             String taskName = task.getString("name", "");
             String taskDescription = task.getString("description", "");
+            String account = task.getString("account", "");
 
             log.info("  running task " + taskName + " - " + taskDescription);
 
@@ -207,6 +209,9 @@ public class E2EAppTest extends AbstractSystemTest {
                     break;
                 case "winnerAssociate":
                     associateOnBehalfOfWinner();
+                    break;
+                case "getBalance":
+                    getBalanceForAccount(account);
                     break;
                 case "assertions":
                     // in-task assertions are handled after the switch case
@@ -268,6 +273,30 @@ public class E2EAppTest extends AbstractSystemTest {
 
             assertValue(assertion);
         }
+    }
+
+    private void getBalanceForAccount(String account) throws TimeoutException, PrecheckStatusException {
+        @Var AccountId accountId;
+        switch (account) {
+            case "tokenOwner":
+                accountId = tokenOwnerAccountId;
+                break;
+            case "auctionAccount":
+                accountId = auctionAccountId;
+                break;
+            case "winner":
+                accountId = maxBidAccount;
+                break;
+            default:
+                log.info("Invalid account " + account + " for getBalance task");
+                return;
+        }
+
+        AccountBalance balance = new AccountBalanceQuery()
+                .setAccountId(accountId)
+                .execute(testRunnerClient);
+
+        accountBalances.put(account, balance.hbars.toTinybars());
     }
 
     private void assertValue(JsonObject assertion) throws SQLException {
@@ -333,6 +362,14 @@ public class E2EAppTest extends AbstractSystemTest {
                         .atMost(Duration.ofSeconds(30))
                         .until(bidValueAssert(bidAccount, bidAmount, parameter, value, condition));
                 break;
+            case "balance":
+                await()
+                        .with()
+                        .pollInterval(Duration.ofSeconds(1))
+                        .await()
+                        .atMost(Duration.ofSeconds(20))
+                        .until(checkBalance(parameter, condition));
+                break;
             case "winnerOwnsToken":
                 await()
                         .with()
@@ -377,50 +414,4 @@ public class E2EAppTest extends AbstractSystemTest {
                 log.error("unknown assertion " + object);
         }
     }
-
-//    @Test
-//    public void testCreateAuctionKabutoMirror() throws Exception {
-//
-//        hederaClient.setMirrorProvider("kabuto");
-//        hederaClient.setClientMirror(dotenv);
-//        TopicSubscriber topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository, null, topicId, hederaClient.operatorPrivateKey().toString(), 5000);
-//        topicSubscriber.setSkipReadinessWatcher();
-//        // start the thread to monitor bids
-//        Thread t = new Thread(topicSubscriber);
-//        t.start();
-//
-//        // wait for auction to appear in database
-//        await()
-//                .with()
-//                .pollInterval(Duration.ofSeconds(1))
-//                .await()
-//                .atMost(Duration.ofSeconds(20))
-//                .until(auctionsCountMatches(1));
-//
-//        topicSubscriber.stop();
-//
-//        // query repository for auctions
-//        List<Auction> auctionsList = auctionsRepository.getAuctionsList();
-//
-//        assertEquals(1, auctionsList.size());
-//        auction = auctionsList.get(0);
-//
-//        assertEquals(tokenId.toString(), auction.getTokenid());
-//        assertEquals(auctionAccountId.toString(), auction.getAuctionaccountid());
-//        assertNotNull(auction.getEndtimestamp());
-//        assertEquals(reserve, auction.getReserve());
-//        assertEquals("0.0", auction.getLastconsensustimestamp());
-//        assertEquals(winnerCanBid, auction.getWinnerCanBid());
-//        assertNull(auction.getTokenimage());
-//        assertEquals(0, auction.getWinningbid());
-//        assertEquals(minimumBid, auction.getMinimumbid());
-//
-//        // wait for token to be associated to auction account
-//        await()
-//                .with()
-//                .pollInterval(Duration.ofSeconds(1))
-//                .await()
-//                .atMost(Duration.ofSeconds(10))
-//                .until(tokenAssociatedNotTransferred());
-//    }
 }

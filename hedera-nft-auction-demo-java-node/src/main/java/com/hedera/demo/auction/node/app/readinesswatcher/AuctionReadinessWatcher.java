@@ -43,12 +43,8 @@ public class AuctionReadinessWatcher implements Runnable {
             case "HEDERA":
                 auctionReadinessWatcher = new HederaAuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
                 break;
-            case "DRAGONGLASS":
-                auctionReadinessWatcher = new DragonglassAuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
-                break;
             default:
-                auctionReadinessWatcher = new KabutoAuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
-                break;
+                throw new Exception("Support for non Hedera mirrors not implemented.");
         }
         auctionReadinessWatcher.watch();
     }

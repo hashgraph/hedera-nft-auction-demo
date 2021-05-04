@@ -1,80 +1,26 @@
-package com.hedera.demo.auction.node.test.system.e2eDocker;
+package com.hedera.demo.auction.node.test.system;
 
 import com.hedera.demo.auction.node.app.CreateAuctionAccount;
 import com.hedera.demo.auction.node.app.CreateToken;
 import com.hedera.demo.auction.node.app.CreateTopic;
-import com.hedera.demo.auction.node.app.SqlConnectionManager;
-import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.demo.auction.node.test.system.AbstractE2ETest;
-import com.hedera.hashgraph.sdk.AccountId;
-import com.hedera.hashgraph.sdk.Key;
-import com.hedera.hashgraph.sdk.KeyList;
-import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
-import com.hedera.hashgraph.sdk.TokenId;
-import com.hedera.hashgraph.sdk.TopicId;
-import com.hedera.hashgraph.sdk.TransactionResponse;
-import io.vertx.core.Vertx;
+import com.hedera.hashgraph.sdk.*;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
-import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith({VertxExtension.class})
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class AdminAPISystemTest extends AbstractE2ETest {
+public class AbstractAPITester extends AbstractE2ETest {
 
-    Vertx vertx;
-    GenericContainer container;
-
-    AdminAPISystemTest() throws Exception {
-        super();
+    protected AbstractAPITester() throws Exception {
+        adminPort = Integer.parseInt(dotenv.get("ADMIN_API_PORT"));
     }
 
-    @BeforeAll
-    public void beforeAll() {
-        postgres = (PostgreSQLContainer) new PostgreSQLContainer("postgres:12.6").withNetworkAliases("pgdb").withNetwork(testContainersNetwork);
-        postgres.start();
-        migrate(postgres);
-        SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-        auctionsRepository = new AuctionsRepository(connectionManager);
-        bidsRepository = new BidsRepository(connectionManager);
-
-        this.vertx = Vertx.vertx();
-        this.webClient = WebClient.create(this.vertx);
-    }
-
-    @AfterAll
-    public void afterAll() {
-        this.postgres.close();
-    }
-
-    @BeforeEach
-    public void beforeEach() throws Exception {
-        bidsRepository.deleteAllBids();
-        auctionsRepository.deleteAllAuctions();
-
-        container = appContainer(postgres,"", "hedera");
-    }
-
-    @AfterEach
-    public void afterEach() {
-        container.stop();
-    }
-
-    @Test
-    public void testAdminRestAPITopic(VertxTestContext testContext) {
-        webClient.post(adminPort, container.getHost(), "/v1/admin/topic")
+    public void adminRestAPITopic(VertxTestContext testContext, String host) {
+        webClient.post(adminPort, host, "/v1/admin/topic")
                 .as(BodyCodec.jsonObject())
                 .send(testContext.succeeding(response -> testContext.verify(() -> {
 
@@ -95,9 +41,8 @@ public class AdminAPISystemTest extends AbstractE2ETest {
                 })));
     }
 
-    @Test
-    public void testAdminRestAPIToken(VertxTestContext testContext) {
-        webClient.post(adminPort, container.getHost(), "/v1/admin/token")
+    public void adminRestAPIToken(VertxTestContext testContext, String host) {
+        webClient.post(adminPort, host, "/v1/admin/token")
                 .as(BodyCodec.jsonObject())
                 .sendBuffer(createTokenBody(), testContext.succeeding(response -> testContext.verify(() -> {
 
@@ -122,9 +67,8 @@ public class AdminAPISystemTest extends AbstractE2ETest {
                 })));
     }
 
-    @Test
-    public void testAdminRestAPIAuctionAccount(VertxTestContext testContext) {
-        webClient.post(adminPort, container.getHost(), "/v1/admin/auctionaccount")
+    public void adminRestAPIAuctionAccount(VertxTestContext testContext, String host) {
+        webClient.post(adminPort, host, "/v1/admin/auctionaccount")
                 .as(BodyCodec.jsonObject())
                 .sendBuffer(createAuctionAccountBody(), testContext.succeeding(response -> testContext.verify(() -> {
 
@@ -154,8 +98,7 @@ public class AdminAPISystemTest extends AbstractE2ETest {
                 })));
     }
 
-    @Test
-    public void testAdminRestAPITransferToken(VertxTestContext testContext) throws Exception {
+    public void adminRestAPITransferToken(VertxTestContext testContext, String host) throws Exception {
         CreateAuctionAccount createAuctionAccount = new CreateAuctionAccount();
         auctionAccountId = createAuctionAccount.create(initialBalance, "");
 
@@ -166,7 +109,7 @@ public class AdminAPISystemTest extends AbstractE2ETest {
 
         txResponse.getReceipt(hederaClient.client());
 
-        webClient.post(adminPort, container.getHost(), "/v1/admin/transfer")
+        webClient.post(adminPort, host, "/v1/admin/transfer")
                 .as(BodyCodec.jsonObject())
                 .sendBuffer(createTokenTransferBody(), testContext.succeeding(response -> testContext.verify(() -> {
 
@@ -189,8 +132,7 @@ public class AdminAPISystemTest extends AbstractE2ETest {
                 })));
     }
 
-    @Test
-    public void testAdminRestAPIAuction(VertxTestContext testContext) throws Exception {
+    public void adminRestAPIAuction(VertxTestContext testContext, String host) throws Exception {
         CreateTopic createTopic = new CreateTopic();
         topicId = createTopic.create();
 
@@ -200,7 +142,7 @@ public class AdminAPISystemTest extends AbstractE2ETest {
         CreateAuctionAccount createAuctionAccount = new CreateAuctionAccount();
         auctionAccountId = createAuctionAccount.create(initialBalance, "");
 
-        webClient.post(adminPort, container.getHost(), "/v1/admin/auction")
+        webClient.post(adminPort, host, "/v1/admin/auction")
                 .as(BodyCodec.jsonObject())
                 .sendBuffer(createAuctionBody(), testContext.succeeding(response -> testContext.verify(() -> {
 

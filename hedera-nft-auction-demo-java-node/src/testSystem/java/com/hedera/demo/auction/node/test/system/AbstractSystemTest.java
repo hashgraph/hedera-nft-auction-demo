@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.node.test.system;
 
+import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.*;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.domain.Bid;
@@ -44,19 +45,21 @@ public abstract class AbstractSystemTest {
     protected CreateTokenTransfer createTokenTransfer;
     protected CreateToken createToken;
     protected CreateAuction createAuction;
+    protected EasySetup easySetup;
 
     protected static final long initialBalance = 100;
     protected static AccountId auctionAccountId;
     protected static AccountInfo accountInfo;
     protected static AccountBalance accountBalance;
+    protected static Map<String, Long> accountBalances = new HashMap<>();
 
     protected static TopicId topicId;
     protected static TopicInfo topicInfo;
 
     protected static final String tokenName = "TestToken";
     protected static final String symbol = "TestSymbol";
-    protected static final long initialSupply = 10;
-    protected static final int decimals = 2;
+    protected static final long initialSupply = 1;
+    protected static final int decimals = 0;
     protected static TokenId tokenId;
     protected static TokenInfo tokenInfo;
 
@@ -94,6 +97,7 @@ public abstract class AbstractSystemTest {
         createToken = new CreateToken();
         createTokenTransfer = new CreateTokenTransfer();
         createAuction = new CreateAuction();
+        easySetup = new EasySetup();
 
         createTopic.setEnv(dotenv); // other "create" classes share the same abstract class, no need to repeat
     }
@@ -331,6 +335,44 @@ public abstract class AbstractSystemTest {
         };
     }
 
+    protected Callable<Boolean> checkBalance(String account, String condition) {
+        return () -> {
+            @Var AccountId accountId;
+            switch (account) {
+                case "tokenOwner":
+                    accountId = tokenOwnerAccountId;
+                    break;
+                case "auctionAccount":
+                    accountId = auctionAccountId;
+                    break;
+                case "winner":
+                    accountId = maxBidAccount;
+                    break;
+                default:
+                    log.warn("Invalid account " + account + " for getBalance task");
+                    return false;
+            }
+
+            if (accountId == null) {
+                log.warn("Cannot check balance of null account " + account);
+                return false;
+            }
+
+            AccountBalance balance = new AccountBalanceQuery()
+                    .setAccountId(accountId)
+                    .execute(testRunnerClient);
+
+            log.info("checking balance for " + account + " " + balance.hbars.toTinybars() + " " + condition + " than " + accountBalances.get(account));
+            if (condition.equals("greater")) {
+                return balance.hbars.toTinybars() > accountBalances.get(account);
+            } else if (condition.equals("smaller") || condition.equals("lower")) {
+                return balance.hbars.toTinybars() < accountBalances.get(account);
+            } else if (condition.equals("equals")) {
+                return balance.hbars.toTinybars() == accountBalances.get(account);
+            }
+            return false;
+        };
+    }
     private static boolean checkCondition(String value, String condition, String valueToCheck) {
         log.info("Checking condition " + condition + " on value " + value + " against " + valueToCheck);
         if (condition.equals("equals")) {

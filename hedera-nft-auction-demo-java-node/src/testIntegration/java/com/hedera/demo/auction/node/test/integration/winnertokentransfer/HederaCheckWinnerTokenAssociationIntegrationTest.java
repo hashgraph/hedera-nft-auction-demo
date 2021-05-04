@@ -4,7 +4,7 @@ import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.SqlConnectionManager;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.node.app.auctionendtokentransfer.HederaAuctionEndTokenTransfer;
+import com.hedera.demo.auction.node.app.auctionendtransfer.HederaAuctionEndTransfer;
 import com.hedera.demo.auction.node.test.integration.AbstractIntegrationTest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -31,7 +31,7 @@ public class HederaCheckWinnerTokenAssociationIntegrationTest extends AbstractIn
     private final HederaClient hederaClient = HederaClient.emptyTestClient();
     private final static String tokenId = "0.0.10";
     private final static String winningAccountId = "0.0.20";
-    private HederaAuctionEndTokenTransfer hederaWinnerTokenTransfer;
+    private HederaAuctionEndTransfer hederaWinnerTokenTransfer;
     private Auction auction;
     private JsonObject transfer;
     private JsonArray balances;
@@ -48,7 +48,7 @@ public class HederaCheckWinnerTokenAssociationIntegrationTest extends AbstractIn
         SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
 
-        hederaWinnerTokenTransfer = new HederaAuctionEndTokenTransfer(hederaClient, null, auctionsRepository, tokenId, winningAccountId);
+        hederaWinnerTokenTransfer = new HederaAuctionEndTransfer(hederaClient, null, auctionsRepository, tokenId, winningAccountId);
     }
 
     @AfterAll

@@ -1,4 +1,4 @@
-package com.hedera.demo.auction.node.app.auctionendtokentransferwatcher;
+package com.hedera.demo.auction.node.app.auctionendtransferwatcher;
 
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.Utils;
@@ -10,9 +10,9 @@ import io.vertx.ext.web.codec.BodyCodec;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
-public class HederaAuctionEndTokenTransferWatcher extends AbstractAuctionEndTokenTransferWatcher implements AuctionEndTokenTransferWatcherInterface {
+public class HederaAuctionEndTransferWatcher extends AbstractAuctionEndTransferWatcher implements AuctionEndTransferWatcherInterface {
 
-    public HederaAuctionEndTokenTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, Auction auction) {
+    public HederaAuctionEndTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, Auction auction) {
         super(hederaClient, webClient, auctionsRepository, auction);
     }
 

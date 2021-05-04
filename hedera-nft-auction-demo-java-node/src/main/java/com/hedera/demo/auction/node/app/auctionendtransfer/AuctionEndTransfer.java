@@ -1,19 +1,10 @@
-package com.hedera.demo.auction.node.app.auctionendtokentransfer;
+package com.hedera.demo.auction.node.app.auctionendtransfer;
 
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
-import com.hedera.hashgraph.sdk.AccountId;
-import com.hedera.hashgraph.sdk.PrecheckStatusException;
-import com.hedera.hashgraph.sdk.PrivateKey;
-import com.hedera.hashgraph.sdk.ReceiptStatusException;
-import com.hedera.hashgraph.sdk.Status;
-import com.hedera.hashgraph.sdk.TokenId;
-import com.hedera.hashgraph.sdk.TransactionId;
-import com.hedera.hashgraph.sdk.TransactionReceipt;
-import com.hedera.hashgraph.sdk.TransactionResponse;
-import com.hedera.hashgraph.sdk.TransferTransaction;
+import com.hedera.hashgraph.sdk.*;
 import io.vertx.ext.web.client.WebClient;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -25,7 +16,7 @@ import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 @Log4j2
-public class AuctionEndTokenTransfer implements Runnable {
+public class AuctionEndTransfer implements Runnable {
 
     protected final WebClient webClient;
     protected final AuctionsRepository auctionsRepository;
@@ -35,7 +26,7 @@ public class AuctionEndTokenTransfer implements Runnable {
     protected final HederaClient hederaClient;
     protected boolean runThread = true;
 
-    public AuctionEndTokenTransfer(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, String refundKey, int mirrorQueryFrequency) {
+    public AuctionEndTransfer(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
@@ -54,7 +45,7 @@ public class AuctionEndTokenTransfer implements Runnable {
     @SneakyThrows
     @Override
     public void run() {
-        @Var AuctionEndTokenTransferInterface auctionEndTokenTransferInterface;
+        @Var AuctionEndTransferInterface auctionEndTransferInterface;
 
         while (runThread) {
             List<Auction> auctionsList = auctionsRepository.getAuctionsList();
@@ -63,14 +54,10 @@ public class AuctionEndTokenTransfer implements Runnable {
                     // auction is closed, check association between token and winner
                     switch (mirrorProvider) {
                         case "HEDERA":
-                            auctionEndTokenTransferInterface = new HederaAuctionEndTokenTransfer(hederaClient, webClient, auctionsRepository, auction.getTokenid(), auction.getWinningaccount());
-                            break;
-                        case "DRAGONGLASS":
-                            auctionEndTokenTransferInterface = new DragonglassAuctionEndTokenTransfer(hederaClient, webClient, auctionsRepository, auction.getTokenid(), auction.getWinningaccount());
+                            auctionEndTransferInterface = new HederaAuctionEndTransfer(hederaClient, webClient, auctionsRepository, auction.getTokenid(), auction.getWinningaccount());
                             break;
                         default:
-                            auctionEndTokenTransferInterface = new KabutoAuctionEndTokenTransfer(hederaClient, webClient, auctionsRepository, auction.getTokenid(), auction.getWinningaccount());
-                            break;
+                            throw new Exception("Support for non Hedera mirrors not implemented.");
                     }
 
                     log.info("Checking association between token " + auction.getTokenid() + " and account " + auction.getWinningaccount());
@@ -79,7 +66,7 @@ public class AuctionEndTokenTransfer implements Runnable {
                         // we don't have a winning bid, transfer to the original token owner
                         auctionsRepository.setTransferring(auction.getTokenid());
                     } else {
-                        auctionEndTokenTransferInterface.checkAssociation();
+                        auctionEndTransferInterface.checkAssociation();
                     }
 
                 }
@@ -102,6 +89,7 @@ public class AuctionEndTokenTransfer implements Runnable {
     public void transferToken(Auction auction) {
         TokenId tokenId = TokenId.fromString(auction.getTokenid());
         AccountId auctionAccountId = AccountId.fromString(auction.getAuctionaccountid());
+        AccountId tokenOwnerAccount = AccountId.fromString(auction.getTokenowneraccount());
         @Var AccountId transferToAccountId = AccountId.fromString(auction.getTokenowneraccount());
         if ( ! StringUtils.isEmpty(auction.getWinningaccount())) {
             // we have a winning bid, transfer to the winning account
@@ -136,6 +124,11 @@ public class AuctionEndTokenTransfer implements Runnable {
         transferTransaction.setTransactionId(transactionId);
         transferTransaction.addTokenTransfer(tokenId, auctionAccountId, -1L);
         transferTransaction.addTokenTransfer(tokenId, transferToAccountId, 1L);
+        if (! tokenOwnerAccount.equals(transferToAccountId)) {
+            // we have a winner, add hbar transfer to the original token owner to the transaction
+            transferTransaction.addHbarTransfer(auctionAccountId, Hbar.fromTinybars(-auction.getWinningbid()));
+            transferTransaction.addHbarTransfer(tokenOwnerAccount, Hbar.fromTinybars(auction.getWinningbid()));
+        }
         transferTransaction.freezeWith(hederaClient.client());
 
         if ( ! this.refundKey.isBlank()) {

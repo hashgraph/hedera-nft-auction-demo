@@ -37,12 +37,8 @@ public class BidsWatcher implements Runnable {
             case "HEDERA":
                 bidsWatcher = new HederaBidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auctionId, refundKey, mirrorQueryFrequency);
                 break;
-            case "DRAGONGLASS":
-                bidsWatcher = new DragonglassBidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auctionId, refundKey, mirrorQueryFrequency);
-                break;
             default:
-                bidsWatcher = new KabutoBidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auctionId, refundKey, mirrorQueryFrequency);
-                break;
+                throw new Exception("Support for non Hedera mirrors not implemented.");
         }
         bidsWatcher.watch();
     }

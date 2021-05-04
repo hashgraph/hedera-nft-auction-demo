@@ -29,21 +29,17 @@ public class AuctionsClosureWatcher implements Runnable {
     @SneakyThrows
     @Override
     public void run() {
-        
+
         switch (mirrorProvider) {
             case "HEDERA":
                 auctionClosureWatcher = new HederaAuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
                 break;
-            case "DRAGONGLASS":
-                auctionClosureWatcher = new DragonglassAuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
-                break;
             default:
-                auctionClosureWatcher = new KabutoAuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
-                break;
+                throw new Exception("Support for non Hedera mirrors not implemented.");
         }
         auctionClosureWatcher.watch();
     }
-    
+
     public void stop() {
         if (auctionClosureWatcher != null) {
             auctionClosureWatcher.stop();

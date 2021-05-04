@@ -10,8 +10,8 @@ import com.hedera.demo.auction.node.app.refundChecker.RefundChecker;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.app.subscriber.TopicSubscriber;
-import com.hedera.demo.auction.node.app.auctionendtokentransfer.AuctionEndTokenTransfer;
-import com.hedera.demo.auction.node.app.auctionendtokentransferwatcher.AuctionEndTokenTransferWatcher;
+import com.hedera.demo.auction.node.app.auctionendtransfer.AuctionEndTransfer;
+import com.hedera.demo.auction.node.app.auctionendtransferwatcher.AuctionEndTransferWatcher;
 import com.hedera.hashgraph.sdk.TopicId;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.DeploymentOptions;
@@ -58,9 +58,9 @@ public final class App {
     private RefundChecker refundChecker = null;
     private final List<AuctionReadinessWatcher> auctionReadinessWatchers = new ArrayList<>(0);
     @Nullable
-    private AuctionEndTokenTransfer auctionEndTokenTransfer = null;
+    private AuctionEndTransfer auctionEndTransfer = null;
     @Nullable
-    private AuctionEndTokenTransferWatcher auctionEndTokenTransferWatcher = null;
+    private AuctionEndTransferWatcher auctionEndTransferWatcher = null;
 
     public App() throws Exception {
     }
@@ -132,8 +132,8 @@ public final class App {
             startBidWatchers(hederaClient, webClient, auctionsRepository, bidsRepository);
             startRefundChecker(hederaClient, webClient, bidsRepository);
             if (transferOnWin) {
-                startAuctionEndTokenTransfers(hederaClient, webClient, auctionsRepository);
-                startAuctionEndTokenTransferWatcher(hederaClient, webClient, auctionsRepository);
+                startAuctionEndTransfers(hederaClient, webClient, auctionsRepository);
+                startAuctionEndTransferWatcher(hederaClient, webClient, auctionsRepository);
             }
         }
     }
@@ -186,18 +186,18 @@ public final class App {
         }
     }
 
-    private void startAuctionEndTokenTransfers(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository) {
+    private void startAuctionEndTransfers(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository) {
         // start the thread to monitor winning account association with token
-        auctionEndTokenTransfer = new AuctionEndTokenTransfer(hederaClient, webClient, auctionsRepository, refundKey, mirrorQueryFrequency);
-        Thread auctionEndTokenTransferThread = new Thread(auctionEndTokenTransfer);
-        auctionEndTokenTransferThread.start();
+        auctionEndTransfer = new AuctionEndTransfer(hederaClient, webClient, auctionsRepository, refundKey, mirrorQueryFrequency);
+        Thread auctionEndTransferThread = new Thread(auctionEndTransfer);
+        auctionEndTransferThread.start();
     }
 
-    private void startAuctionEndTokenTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository) {
+    private void startAuctionEndTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository) {
         // start the thread to monitor winning account association with token
-        auctionEndTokenTransferWatcher = new AuctionEndTokenTransferWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency);
-        Thread auctionEndTokenTransferWatcherThread = new Thread(auctionEndTokenTransferWatcher);
-        auctionEndTokenTransferWatcherThread.start();
+        auctionEndTransferWatcher = new AuctionEndTransferWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency);
+        Thread auctionEndTransferWatcherThread = new Thread(auctionEndTransferWatcher);
+        auctionEndTransferWatcherThread.start();
     }
 
     public void stop() {
@@ -211,12 +211,12 @@ public final class App {
             refundChecker.stop();
         }
 
-        if (auctionEndTokenTransfer != null) {
-            auctionEndTokenTransfer.stop();
+        if (auctionEndTransfer != null) {
+            auctionEndTransfer.stop();
         }
 
-        if (auctionEndTokenTransferWatcher != null) {
-            auctionEndTokenTransferWatcher.stop();
+        if (auctionEndTransferWatcher != null) {
+            auctionEndTransferWatcher.stop();
         }
 
         for (BidsWatcher bidsWatcher : bidsWatchers) {

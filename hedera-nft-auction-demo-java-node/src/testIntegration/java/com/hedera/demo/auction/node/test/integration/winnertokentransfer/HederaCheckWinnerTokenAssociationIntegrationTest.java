@@ -35,7 +35,7 @@ public class HederaCheckWinnerTokenAssociationIntegrationTest extends AbstractIn
     private Auction auction;
     private JsonObject transfer;
     private JsonArray balances;
-    private JsonObject balance;
+//    private JsonObject balance;
 
     public HederaCheckWinnerTokenAssociationIntegrationTest() throws Exception {
     }
@@ -64,7 +64,7 @@ public class HederaCheckWinnerTokenAssociationIntegrationTest extends AbstractIn
 
         transfer = new JsonObject();
         balances = new JsonArray();
-        balance = new JsonObject();
+//        balance = new JsonObject();
     }
 
     @AfterEach

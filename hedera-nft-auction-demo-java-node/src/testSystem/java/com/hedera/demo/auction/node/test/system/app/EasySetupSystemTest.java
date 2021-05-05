@@ -6,6 +6,7 @@ import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.app.subscriber.TopicSubscriber;
 import com.hedera.demo.auction.node.test.system.AbstractSystemTest;
+import com.hedera.hashgraph.sdk.TopicId;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 
@@ -42,7 +43,8 @@ public class EasySetupSystemTest extends AbstractSystemTest {
         bidsRepository.deleteAllBids();
         auctionsRepository.deleteAllAuctions();
         String[] args = new String[0];
-        easySetup.setup(args);
+        String topic = easySetup.setup(args);
+        topicId = TopicId.fromString(topic);
     }
     @Test
     public void testCreateAuctionHederaMirror() throws Exception {

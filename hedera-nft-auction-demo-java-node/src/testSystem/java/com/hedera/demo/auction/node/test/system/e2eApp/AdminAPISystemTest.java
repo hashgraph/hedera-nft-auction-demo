@@ -53,6 +53,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
 
         app.overrideEnv(hederaClient, true, true, true, topicId.toString(), hederaClient.operatorPrivateKey().toString(), postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), true);
         app.runApp();
+        Thread.sleep(5000);
     }
 
     @AfterEach

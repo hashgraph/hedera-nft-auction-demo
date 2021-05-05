@@ -6,7 +6,6 @@ import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.hashgraph.sdk.*;
 import io.vertx.ext.web.client.WebClient;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.binary.Hex;
 import org.jooq.tools.StringUtils;
@@ -42,40 +41,50 @@ public class AuctionEndTransfer implements Runnable {
     /**
      * check association between winner and token for auctions that are currently "CLOSED"
      */
-    @SneakyThrows
     @Override
     public void run() {
         @Var AuctionEndTransferInterface auctionEndTransferInterface;
 
         while (runThread) {
-            List<Auction> auctionsList = auctionsRepository.getAuctionsList();
-            for (Auction auction: auctionsList) {
-                if (auction.isClosed()) {
-                    // auction is closed, check association between token and winner
-                    switch (mirrorProvider) {
-                        case "HEDERA":
-                            auctionEndTransferInterface = new HederaAuctionEndTransfer(hederaClient, webClient, auctionsRepository, auction.getTokenid(), auction.getWinningaccount());
-                            break;
-                        default:
-                            throw new Exception("Support for non Hedera mirrors not implemented.");
+            try {
+                List<Auction> auctionsList = auctionsRepository.getAuctionsList();
+                for (Auction auction: auctionsList) {
+                    if (auction.isClosed()) {
+                        // auction is closed, check association between token and winner
+                        switch (mirrorProvider) {
+                            case "HEDERA":
+                                auctionEndTransferInterface = new HederaAuctionEndTransfer(hederaClient, webClient, auctionsRepository, auction.getTokenid(), auction.getWinningaccount());
+                                break;
+                            default:
+                                log.error("Support for non Hedera mirrors not implemented.");
+                                return;
+                        }
+
+                        log.info("Checking association between token " + auction.getTokenid() + " and account " + auction.getWinningaccount());
+
+                        if (StringUtils.isEmpty(auction.getWinningaccount())) {
+                            // we don't have a winning bid, transfer to the original token owner
+                            try {
+                                auctionsRepository.setTransferring(auction.getTokenid());
+                            } catch (SQLException sqlException) {
+                                log.error("Failed to set auction to transferring status");
+                                log.error(sqlException);
+                            }
+                        } else {
+                            auctionEndTransferInterface.checkAssociation();
+                        }
+
                     }
-
-                    log.info("Checking association between token " + auction.getTokenid() + " and account " + auction.getWinningaccount());
-
-                    if (StringUtils.isEmpty(auction.getWinningaccount())) {
-                        // we don't have a winning bid, transfer to the original token owner
-                        auctionsRepository.setTransferring(auction.getTokenid());
-                    } else {
-                        auctionEndTransferInterface.checkAssociation();
+                    if (auction.isTransferring()) {
+                        if (auction.getTransfertxid().isEmpty()) {
+                            // ok to transfer token to winner
+                            transferToken(auction);
+                        }
                     }
-
                 }
-                if (auction.isTransferring()) {
-                    if (auction.getTransfertxid().isEmpty()) {
-                        // ok to transfer token to winner
-                        transferToken(auction);
-                    }
-                }
+            } catch (SQLException sqlException) {
+                log.error("Failed to fetch auctions");
+                log.error(sqlException);
             }
             try {
                 Thread.sleep(this.mirrorQueryFrequency);

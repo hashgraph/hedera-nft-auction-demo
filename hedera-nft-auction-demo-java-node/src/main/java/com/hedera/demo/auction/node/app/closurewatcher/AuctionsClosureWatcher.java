@@ -3,8 +3,9 @@ package com.hedera.demo.auction.node.app.closurewatcher;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import io.vertx.ext.web.client.WebClient;
-import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public class AuctionsClosureWatcher implements Runnable {
 
     private final WebClient webClient;
@@ -26,7 +27,6 @@ public class AuctionsClosureWatcher implements Runnable {
         this.mirrorProvider = hederaClient.mirrorProvider();
     }
 
-    @SneakyThrows
     @Override
     public void run() {
 
@@ -35,7 +35,8 @@ public class AuctionsClosureWatcher implements Runnable {
                 auctionClosureWatcher = new HederaAuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
                 break;
             default:
-                throw new Exception("Support for non Hedera mirrors not implemented.");
+                log.error("Support for non Hedera mirrors not implemented.");
+                return;
         }
         auctionClosureWatcher.watch();
     }

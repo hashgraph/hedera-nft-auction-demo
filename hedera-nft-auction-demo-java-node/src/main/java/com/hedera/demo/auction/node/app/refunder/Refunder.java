@@ -1,126 +1,205 @@
 package com.hedera.demo.auction.node.app.refunder;
 
-import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
+import com.hedera.demo.auction.node.app.domain.Auction;
+import com.hedera.demo.auction.node.app.domain.Bid;
+import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.hashgraph.sdk.AccountId;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.Hbar;
-import com.hedera.hashgraph.sdk.PrivateKey;
-import com.hedera.hashgraph.sdk.Status;
-import com.hedera.hashgraph.sdk.TransactionId;
-import com.hedera.hashgraph.sdk.TransactionReceipt;
-import com.hedera.hashgraph.sdk.TransactionResponse;
-import com.hedera.hashgraph.sdk.TransferTransaction;
-import lombok.SneakyThrows;
+import com.hedera.hashgraph.sdk.*;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.binary.Hex;
 
+import java.sql.SQLException;
+import java.util.List;
+import java.util.concurrent.TimeoutException;
+
 @Log4j2
 public class Refunder implements Runnable {
-
     private final BidsRepository bidsRepository;
-    private final long amount;
-    private final String refundKey;
-    private final String accountId;
-    private final String consensusTimestamp;
-    private final String auctionAccountId;
-    private final String bidTransactionId;
-    private final PrivateKey refundKeyPrivate;
+    private final AuctionsRepository auctionsRepository;
     private final HederaClient hederaClient;
+    private final int mirrorQueryFrequency;
+    private boolean testing = false;
+    private boolean runThread = true;
+    private final PrivateKey refundKeyPrivate;
+    private final String refundKey;
 
-    public Refunder(HederaClient hederaClient, BidsRepository bidsRepository, String auctionAccountId, long amount, String accountId, String consensusTimestamp, String bidTransactionId, String refundKey) {
+    public Refunder(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, String refundKey, int mirrorQueryFrequency) {
+        this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
-        this.amount = amount;
         this.refundKey = refundKey;
-        this.accountId = accountId;
-        this.consensusTimestamp = consensusTimestamp;
-        this.auctionAccountId = auctionAccountId;
-        this.bidTransactionId = bidTransactionId;
-        if (this.refundKey.isBlank()) {
+        if (refundKey.isBlank()) {
             // dummy key for the client
             this.refundKeyPrivate = PrivateKey.generate();
         } else {
             this.refundKeyPrivate = PrivateKey.fromString(refundKey);
         }
         this.hederaClient = hederaClient;
+        this.mirrorQueryFrequency = mirrorQueryFrequency;
+    }
+    public void setTesting() {
+        this.testing = true;
     }
 
-    @SneakyThrows
+    public void stop() {
+        runThread = false;
+    }
+
     @Override
     public void run() {
+        while (runThread) {
+            try {
+                List<Auction> auctions = auctionsRepository.getAuctionsList();
+                if (auctions != null) {
+                    for (Auction auction : auctions) {
+                        List<Bid> bidsToRefund = bidsRepository.bidsToRefund(auction.getId());
+                        if (bidsToRefund != null) {
+                            for (Bid bid : bidsToRefund) {
+                                issueRefund(auction.getAuctionaccountid(), bid);
+                            }
+                        }
+                    }
+                }
+            } catch (SQLException throwables) {
+                log.error(throwables);
+            }
+        }
+
+        try {
+            Thread.sleep(mirrorQueryFrequency);
+        } catch (InterruptedException e) {
+            log.error(e);
+        }
+    }
+
+    private void issueRefund(String auctionAccount, Bid bid) {
+        AccountId auctionAccountId = AccountId.fromString(auctionAccount);
         //TODO: Check a scheduled transaction has not already completed (success) for this bid
         // can only work with scheduled transactions
 
         // create a client for the auction's account
         Client client = hederaClient.client();
 
-        client.setOperator(AccountId.fromString(this.auctionAccountId), refundKeyPrivate);
-        log.info("Refunding " + this.amount + " from " + this.auctionAccountId + " to " + this.accountId);
-        String memo = "Auction refund for tx " + bidTransactionId;
+        client.setOperator(auctionAccountId, refundKeyPrivate);
+        log.info("Refunding " + bid.getBidamount() + " from " + auctionAccount + " to " + bid.getBidderaccountid());
+        String memo = "Auction refund for tx " + bid.getTransactionid();
         // issue refund
 
-//            //TODO: Scheduled transaction here
-//            // create a deterministic transaction id from the consensus timestamp of the payment transaction
-//            // note: this assumes the scheduled transaction occurs quickly after the payment
-//            String deterministicTxId = this.auctionAccountId.concat("@").concat(this.consensusTimestamp);
-//            TransactionId transactionId = TransactionId.fromString(deterministicTxId);
-//            // Create a transfer transaction for the refund
-//            TransferTransaction transferTransaction = new TransferTransaction();
-//            //TODO: Fix list of node account ids
-//            transferTransaction.setNodeAccountIds(List.of(AccountId.fromString("0.0.3")));
-//            transferTransaction.setTransactionMemo(memo);
-//            transferTransaction.setTransactionId(transactionId);
-//            transferTransaction.addHbarTransfer(AccountId.fromString(this.auctionAccountId), Hbar.fromTinybars(-this.amount));
-//            transferTransaction.addHbarTransfer(AccountId.fromString(this.accountId), Hbar.fromTinybars(this.amount));
-//            transferTransaction.freezeWith(client);
-//            transferTransaction.sign(this.refundKey);
-//
-//            // Schedule the transaction
-//            ScheduleCreateTransaction scheduleCreateTransaction = transferTransaction.schedule();
-//
-//            TransactionResponse response = scheduleCreateTransaction.execute(client);
-//            TransactionReceipt receipt = response.getReceipt(client);
-//
-//            byte[] transactionHash = response.transactionHash;
-//            if (receipt.status == Status.SUCCESS) {
-//                // update database
-//                log.debug("Scheduling refund of " + this.amount + " to " + this.accountId);
-//                bidsRepository.setRefundInProgress(this.consensusTimestamp, transactionId.toString(), Hex.encodeHexString(transactionHash));
-//                log.debug("Successfully scheduled refund of " + this.amount + " to " + this.accountId);
-//            } else {
-//                log.error("Scheduling refund of " + this.amount + " to " + this.accountId + " failed with " + receipt.status);
-//            }
+        String txId = auctionAccount.concat("@").concat(bid.getTimestampforrefund());
+        TransactionId transactionId = TransactionId.fromString(txId);
+        transactionId.setScheduled(true);
+        String shortTransactionId = transactionId.toString().replace("?scheduled", "");
 
-        TransactionId transactionId = TransactionId.generate(AccountId.fromString(this.auctionAccountId));
-
-        TransferTransaction transferTransaction = new TransferTransaction();
-        transferTransaction.setTransactionMemo(memo);
-        transferTransaction.setTransactionId(transactionId);
-        transferTransaction.addHbarTransfer(AccountId.fromString(this.auctionAccountId), Hbar.fromTinybars(-this.amount));
-        transferTransaction.addHbarTransfer(AccountId.fromString(this.accountId), Hbar.fromTinybars(this.amount));
-        transferTransaction.freezeWith(client);
-
-        transferTransaction.sign(refundKeyPrivate);
-
-        @Var String transactionHash = "";
-        if ( ! this.refundKey.isBlank()) {
-            // only execute if we have a refund key
+        if (testing) {
+            // just testing, we can't sign a scheduled transaction, just record the id of the scheduled transaction
+            // that would be generated by "validator" nodes
             try {
-                TransactionResponse response = transferTransaction.execute(client);
-                transactionHash = Hex.encodeHexString(response.transactionHash);
-                // check for receipt
+                bidsRepository.setRefundInProgress(bid.getTimestamp(), shortTransactionId, "");
+            } catch (SQLException throwables) {
+                log.error(throwables);
+            }
+        } else {
+            // Create a transfer transaction for the refund
+            TransferTransaction transferTransaction = new TransferTransaction();
+            transferTransaction.setTransactionMemo(memo);
+            transferTransaction.addHbarTransfer(auctionAccountId, Hbar.fromTinybars(-bid.getBidamount()));
+            transferTransaction.addHbarTransfer(AccountId.fromString(bid.getBidderaccountid()), Hbar.fromTinybars(bid.getBidamount()));
+
+            // Schedule the transaction
+            ScheduleCreateTransaction scheduleCreateTransaction = transferTransaction.schedule()
+                    .setPayerAccountId(auctionAccountId)
+                    .setTransactionId(transactionId)
+                    //TODO: Fix list of node account ids
+                    .setNodeAccountIds(List.of(AccountId.fromString("0.0.3")))
+                    .freezeWith(client)
+                    .sign(this.refundKeyPrivate);
+
+            try {
+                TransactionResponse response = scheduleCreateTransaction.execute(client);
                 TransactionReceipt receipt = response.getReceipt(client);
-                if (receipt.status != Status.SUCCESS) {
-                    log.error("Refunding " + this.amount + " to " + this.accountId + " failed with " + receipt.status);
-                    return;
+
+                byte[] transactionHash = response.transactionHash;
+
+                if (receipt.status == Status.SUCCESS) {
+                    // update database
+                    bidsRepository.setRefundInProgress(bid.getTimestamp(), shortTransactionId, Hex.encodeHexString(transactionHash));
+                    log.debug("Successfully scheduled refund of " + bid.getBidamount() + " to " + bid.getBidderaccountid() + "(id=" + shortTransactionId + ")");
+                } else {
+                    if (receipt.status == Status.IDENTICAL_SCHEDULE_ALREADY_CREATED) {
+                        scheduleSignTransaction(transactionId, shortTransactionId, client, bid);
+                    } else {
+                        log.error("Scheduling refund of " + bid.getBidamount() + " to " + bid.getBidderaccountid() + " failed with " + receipt.status + "(id=" + shortTransactionId + ")");
+                    }
                 }
-            } catch (Exception e) {
+            } catch (PrecheckStatusException e) {
+                if (e.status == Status.IDENTICAL_SCHEDULE_ALREADY_CREATED) {
+                    scheduleSignTransaction(transactionId, shortTransactionId, client, bid);
+                } else if (e.status == Status.SCHEDULE_ALREADY_EXECUTED) {
+                    log.info("Scheduled transaction already executed.");
+                    try {
+                        bidsRepository.setRefundInProgress(bid.getTimestamp(), shortTransactionId, "");
+                        log.debug("Refund of " + bid.getBidamount() + " to " + bid.getBidderaccountid() + " already completed through scheduled transaction (id=" + shortTransactionId + ")");
+                    } catch (SQLException throwables) {
+                        log.error(throwables);
+                    }
+                } else if (e.status == Status.TRANSACTION_EXPIRED) {
+                    // the bid's timestamp is too far in the past for a deterministic transaction id, add 30s and let the process
+                    // try again later
+                    String bidTimeStamp = bid.getTimestamp();
+                    String[] timeStampParts = bid.getTimestampforrefund().split("\\.");
+                    Long seconds = Long.parseLong(timeStampParts[0]);
+                    seconds += 30;
+                    String bidRefundTimeStamp = String.valueOf(seconds).concat(".").concat(timeStampParts[1]);
+
+                    try {
+                        bidsRepository.setBidRefundTimestamp(bidTimeStamp, bidRefundTimeStamp);
+                    } catch (SQLException sqlException) {
+                        log.error("Unable to set bid next refund timestamp - bid timestamp = " + bidTimeStamp);
+                    }
+
+                }
+            } catch (TimeoutException | ReceiptStatusException | SQLException e) {
                 log.error(e);
-                throw e;
             }
         }
-        // update database
-        bidsRepository.setRefundInProgress(this.consensusTimestamp, transactionId.toString(), transactionHash);
+    }
+
+    private void scheduleSignTransaction(TransactionId transactionId, String shortTransactionId, Client client, Bid bid) {
+        // the same tx has already been submitted, submit just the signature
+        // get the receipt for the transaction
+        try {
+            TransactionReceipt receipt = new TransactionReceiptQuery()
+                    .setTransactionId(transactionId)
+                    .execute(client);
+            ScheduleId scheduleId = receipt.scheduleId;
+
+            TransactionResponse response = new ScheduleSignTransaction()
+                    .setScheduleId(scheduleId)
+                    .setNodeAccountIds(List.of(AccountId.fromString("0.0.3")))
+                    .freezeWith(client)
+                    .sign(this.refundKeyPrivate)
+                    .execute(client);
+
+            receipt = response.getReceipt(client);
+            byte[] transactionHash = response.transactionHash;
+
+            log.debug("Scheduling refund of " + bid.getBidamount() + " to " + bid.getBidderaccountid());
+            bidsRepository.setRefundInProgress(bid.getTimestamp(), shortTransactionId, Hex.encodeHexString(transactionHash));
+            log.debug("Successfully scheduled refund of " + bid.getBidamount() + " to " + bid.getBidderaccountid() + " (id=" + shortTransactionId + ")");
+        } catch (ReceiptStatusException e) {
+            if (e.receipt.status == Status.SCHEDULE_ALREADY_EXECUTED) {
+                try {
+                    bidsRepository.setRefundInProgress(bid.getTimestamp(), shortTransactionId, "");
+                } catch (SQLException sqlException) {
+                    log.error(sqlException);
+                }
+            } else {
+                log.error("Scheduling refund of " + bid.getBidamount() + " to " + bid.getBidderaccountid() + " failed (id=" + shortTransactionId + ")");
+                log.error(e);
+            }
+        } catch (SQLException | TimeoutException | PrecheckStatusException exception) {
+            log.error("Scheduling refund of " + bid.getBidamount() + " to " + bid.getBidderaccountid() + " failed (id=" + shortTransactionId + ")");
+            log.error(exception);
+        }
     }
 }

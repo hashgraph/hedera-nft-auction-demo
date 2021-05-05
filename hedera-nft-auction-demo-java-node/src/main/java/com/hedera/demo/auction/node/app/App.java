@@ -2,16 +2,17 @@ package com.hedera.demo.auction.node.app;
 
 import com.hedera.demo.auction.node.app.api.AdminApiVerticle;
 import com.hedera.demo.auction.node.app.api.ApiVerticle;
+import com.hedera.demo.auction.node.app.auctionendtransfer.AuctionEndTransfer;
+import com.hedera.demo.auction.node.app.auctionendtransferwatcher.AuctionEndTransferWatcher;
 import com.hedera.demo.auction.node.app.bidwatcher.BidsWatcher;
 import com.hedera.demo.auction.node.app.closurewatcher.AuctionsClosureWatcher;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.readinesswatcher.AuctionReadinessWatcher;
 import com.hedera.demo.auction.node.app.refundChecker.RefundChecker;
+import com.hedera.demo.auction.node.app.refunder.Refunder;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.app.subscriber.TopicSubscriber;
-import com.hedera.demo.auction.node.app.auctionendtransfer.AuctionEndTransfer;
-import com.hedera.demo.auction.node.app.auctionendtransferwatcher.AuctionEndTransferWatcher;
 import com.hedera.hashgraph.sdk.TopicId;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.DeploymentOptions;
@@ -61,6 +62,8 @@ public final class App {
     private AuctionEndTransfer auctionEndTransfer = null;
     @Nullable
     private AuctionEndTransferWatcher auctionEndTransferWatcher = null;
+    @Nullable
+    private Refunder refunder = null;
 
     public App() throws Exception {
     }
@@ -130,7 +133,11 @@ public final class App {
             startAuctionReadinessWatchers(hederaClient, webClient, auctionsRepository, bidsRepository);
             startAuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, transferOnWin);
             startBidWatchers(hederaClient, webClient, auctionsRepository, bidsRepository);
-            startRefundChecker(hederaClient, webClient, bidsRepository);
+            if (! refundKey.isBlank()) {
+                // validator node, start the refunder thread
+                startRefunder(hederaClient, auctionsRepository, bidsRepository);
+                startRefundChecker(hederaClient, webClient, bidsRepository);
+            }
             if (transferOnWin) {
                 startAuctionEndTransfers(hederaClient, webClient, auctionsRepository);
                 startAuctionEndTransferWatcher(hederaClient, webClient, auctionsRepository);
@@ -200,7 +207,18 @@ public final class App {
         auctionEndTransferWatcherThread.start();
     }
 
+    private void startRefunder(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
+        // start the thread to monitor winning account association with token
+        refunder = new Refunder(hederaClient, auctionsRepository, bidsRepository, refundKey, mirrorQueryFrequency);
+        Thread refunderThread = new Thread(refunder);
+        refunderThread.start();
+    }
+
     public void stop() {
+        for (String verticle : vertx.deploymentIDs()) {
+            vertx.undeploy(verticle);
+        }
+
         if (topicSubscriber != null) {
             topicSubscriber.stop();
         }
@@ -227,8 +245,8 @@ public final class App {
             auctionReadinessWatcher.stop();
         }
 
-        for (String verticle : vertx.deploymentIDs()) {
-            vertx.undeploy(verticle);
+        if (refunder != null) {
+            refunder.stop();
         }
     }
 }

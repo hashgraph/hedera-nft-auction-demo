@@ -3,7 +3,6 @@ package com.hedera.demo.auction.node.app.refundChecker;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.vertx.ext.web.client.WebClient;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
@@ -13,7 +12,6 @@ public class RefundChecker extends AbstractRefundChecker implements Runnable {
         super(hederaClient, webClient, bidsRepository, mirrorQueryFrequency);
     }
 
-    @SneakyThrows
     @Override
     public void run() {
 
@@ -26,7 +24,8 @@ public class RefundChecker extends AbstractRefundChecker implements Runnable {
                 refundChecker = new HederaRefundChecker(hederaClient, webClient, bidsRepository, mirrorQueryFrequency);
                 break;
             default:
-                throw new Exception("Support for non Hedera mirrors not implemented.");
+                log.error("Support for non Hedera mirrors not implemented.");
+                return;
         }
         refundChecker.watch();
     }

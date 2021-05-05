@@ -29,7 +29,7 @@ public class AbstractRefundChecker {
         this.hederaClient = hederaClient;
         this.mirrorProvider = hederaClient.mirrorProvider();
     }
-    
+
     public void stop() {
         runThread = false;
     }
@@ -39,15 +39,14 @@ public class AbstractRefundChecker {
             MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
             if (mirrorTransactions.transactions.size() > 0) {
                 for (MirrorTransaction transaction : mirrorTransactions.transactions) {
-                    if (transaction.isSuccessful()) {
+                    if (transaction.isSuccessful() && transaction.name.equals("CRYPTOTRANSFER")) {
                         // set refunded to true
                         log.debug("Found successful refund transaction on " + timestamp + " transaction id " + transactionId);
 
                         bidsRepository.setRefunded(timestamp, transaction.getTransactionHashString());
-                    } else {
+                    } else if ( ! transaction.isSuccessful() && transaction.name.equals("CRYPTOTRANSFER")) {
                         log.debug("Refund transaction on " + timestamp + " transaction id " + transactionId + " failed: " + transaction.result);
                     }
-
                 }
             } else {
                 log.debug("No " + transactionId + " transaction found");

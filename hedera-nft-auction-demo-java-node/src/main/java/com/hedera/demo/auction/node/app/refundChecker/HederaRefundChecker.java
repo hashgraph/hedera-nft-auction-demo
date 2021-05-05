@@ -19,7 +19,7 @@ public class HederaRefundChecker extends AbstractRefundChecker implements Refund
     }
 
     @Override
-    public void watch() throws SQLException {
+    public void watch() {
 
         log.info("Checking for bid refunds");
 
@@ -29,33 +29,39 @@ public class HederaRefundChecker extends AbstractRefundChecker implements Refund
             // get list of bids where refund is in progress (refunded = false)
             // look for a successful scheduled transaction
             // and set bid accordingly (refunded)
-            for (Map.Entry<String, String> bidToRefund : bidsRepository.bidsRefundToConfirm().entrySet()) {
-                String transactionId = bidToRefund.getValue();
-                String timestamp = bidToRefund.getKey();
-                log.debug("Checking for refund on timestamp " + timestamp + " transaction id " + transactionId);
+            Map<String, String> bidsRefundToConfirm = null;
+            try {
+                bidsRefundToConfirm = bidsRepository.bidsRefundToConfirm();
+                for (Map.Entry<String, String> bidToRefund : bidsRefundToConfirm.entrySet()) {
+                    String transactionId = bidToRefund.getValue();
+                    String timestamp = bidToRefund.getKey();
+                    log.debug("Checking for refund on timestamp " + timestamp + " transaction id " + transactionId);
 
-                String txURI = uri.concat("/").concat(Utils.hederaMirrorTransactionId(transactionId));
-                var webQuery =
-                webClient
-                    .get(this.mirrorURL, txURI)
-//TODO:
-//                            .addQueryParam("scheduled", true)
-                    .as(BodyCodec.jsonObject());
+                    String txURI = uri.concat("/").concat(Utils.hederaMirrorTransactionId(transactionId));
+                    var webQuery =
+                            webClient
+                                    .get(this.mirrorURL, txURI)
+                                    .as(BodyCodec.jsonObject());
 
-                webQuery
-                        .send(response -> {
-                            if (response.succeeded()) {
-                                JsonObject body = response.result().body();
-                                try {
-                                    handleResponse(body, timestamp, transactionId);
-                                } catch (RuntimeException e) {
-                                    log.error(e);
+                    webQuery
+                            .send(response -> {
+                                if (response.succeeded()) {
+                                    JsonObject body = response.result().body();
+                                    try {
+                                        handleResponse(body, timestamp, transactionId);
+                                    } catch (RuntimeException e) {
+                                        log.error(e);
+                                    }
+                                } else {
+                                    log.error(response.cause().getMessage());
                                 }
-                            } else {
-                                log.error(response.cause().getMessage());
-                            }
-                        });
+                            });
+                }
+            } catch (SQLException sqlException) {
+                log.error("Unable to fetch bids to confirm refund on");
+                log.error(sqlException);
             }
+
             try {
                 Thread.sleep(this.mirrorQueryFrequency);
             } catch (InterruptedException e) {

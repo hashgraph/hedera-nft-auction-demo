@@ -29,7 +29,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Bids extends TableImpl<Record> {
 
-    private static final long serialVersionUID = 1402640350;
+    private static final long serialVersionUID = -465579546;
 
     /**
      * The reference instance of <code>public.bids</code>
@@ -93,6 +93,16 @@ public class Bids extends TableImpl<Record> {
      * The column <code>public.bids.transactionhash</code>.
      */
     public final TableField<Record, String> TRANSACTIONHASH = createField(DSL.name("transactionhash"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+
+    /**
+     * The column <code>public.bids.refund</code>.
+     */
+    public final TableField<Record, Boolean> REFUND = createField(DSL.name("refund"), org.jooq.impl.SQLDataType.BOOLEAN.defaultValue(org.jooq.impl.DSL.field("false", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
+
+    /**
+     * The column <code>public.bids.timestampforrefund</code>.
+     */
+    public final TableField<Record, String> TIMESTAMPFORREFUND = createField(DSL.name("timestampforrefund"), org.jooq.impl.SQLDataType.CLOB, this, "");
 
     /**
      * Create a <code>public.bids</code> table reference

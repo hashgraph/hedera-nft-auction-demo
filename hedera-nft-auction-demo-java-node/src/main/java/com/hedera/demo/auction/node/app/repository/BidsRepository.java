@@ -75,6 +75,7 @@ public class BidsRepository {
         DSLContext cx = connectionManager.dsl();
         cx.update(BIDS)
                 .set(BIDS.STATUS, bid.getStatus())
+                .set(BIDS.REFUND, bid.getRefund())
                 .where(BIDS.TIMESTAMP.eq(bid.getTimestamp()))
                 .execute();
         return true;
@@ -85,6 +86,7 @@ public class BidsRepository {
         cx.update(Tables.BIDS)
                 .set(BIDS.REFUNDTXID, refundTransactionId)
                 .set(BIDS.REFUNDTXHASH, refundTransactionHash)
+                .set(BIDS.REFUND, false)
                 .where(BIDS.TIMESTAMP.eq(consensusTimestamp))
                 .execute();
         cx.close();
@@ -100,6 +102,15 @@ public class BidsRepository {
         cx.close();
    }
 
+    public void setBidRefundTimestamp(String consensusTimestamp, String bidRefundTimestamp) throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+        cx.update(Tables.BIDS)
+                .set(BIDS.TIMESTAMPFORREFUND, bidRefundTimestamp)
+                .where(BIDS.TIMESTAMP.eq(consensusTimestamp))
+                .execute();
+        cx.close();
+    }
+
     public boolean add(Bid bid) throws SQLException {
         @Var DSLContext cx = null;
         @Var boolean result = false;
@@ -112,7 +123,9 @@ public class BidsRepository {
                     BIDS.BIDAMOUNT,
                     BIDS.BIDDERACCOUNTID,
                     BIDS.TRANSACTIONID,
-                    BIDS.TRANSACTIONHASH
+                    BIDS.TRANSACTIONHASH,
+                    BIDS.REFUND,
+                    BIDS.TIMESTAMPFORREFUND
             ).values(
                     bid.getAuctionid(),
                     bid.getStatus(),
@@ -120,7 +133,9 @@ public class BidsRepository {
                     bid.getBidamount(),
                     bid.getBidderaccountid(),
                     bid.getTransactionid(),
-                    bid.getTransactionhash()
+                    bid.getTransactionhash(),
+                    bid.getRefund(),
+                    bid.getTimestamp()
             ).execute();
             result = true;
         } catch (DataAccessException e) {
@@ -143,5 +158,25 @@ public class BidsRepository {
         cx.close();
 
         return rows;
+    }
+
+    public List<Bid> bidsToRefund(int auctionId) throws SQLException {
+
+        List<Bid> bids = new ArrayList<>();
+        DSLContext cx = connectionManager.dsl();
+        Result<Record> result = cx.fetch("SELECT * FROM bids WHERE auctionid = "
+                .concat(String.valueOf(auctionId))
+                .concat(" AND refund=true")
+                .concat(" AND refunded=false")
+        );
+        cx.close();
+
+        if (result != null) {
+            for (Record record : result) {
+                Bid bid = new Bid(record);
+                bids.add(bid);
+            }
+        }
+        return bids;
     }
 }

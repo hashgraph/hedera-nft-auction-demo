@@ -1,8 +1,11 @@
 package com.hedera.demo.auction.node.app.refundChecker;
 
+import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
+import com.hedera.demo.auction.node.app.domain.Bid;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransaction;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
+import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
@@ -14,6 +17,7 @@ import java.sql.SQLException;
 public class AbstractRefundChecker {
 
     protected final WebClient webClient;
+    protected final AuctionsRepository auctionsRepository;
     protected final BidsRepository bidsRepository;
     protected final int mirrorQueryFrequency;
     protected final String mirrorURL;
@@ -21,8 +25,9 @@ public class AbstractRefundChecker {
     protected final HederaClient hederaClient;
     protected boolean runThread = true;
 
-    public AbstractRefundChecker(HederaClient hederaClient, WebClient webClient, BidsRepository bidsRepository, int mirrorQueryFrequency) {
+    public AbstractRefundChecker(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int mirrorQueryFrequency) {
         this.webClient = webClient;
+        this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.mirrorURL = hederaClient.mirrorUrl();
@@ -34,26 +39,35 @@ public class AbstractRefundChecker {
         runThread = false;
     }
 
-    public void handleResponse(JsonObject response, String timestamp, String transactionId) {
-        try {
-            MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
-            if (mirrorTransactions.transactions.size() > 0) {
-                for (MirrorTransaction transaction : mirrorTransactions.transactions) {
-                    if (transaction.isSuccessful() && transaction.name.equals("CRYPTOTRANSFER")) {
-                        // set refunded to true
-                        log.debug("Found successful refund transaction on " + timestamp + " transaction id " + transactionId);
-
-                        bidsRepository.setRefunded(timestamp, transaction.getTransactionHashString());
-                    } else if ( ! transaction.isSuccessful() && transaction.name.equals("CRYPTOTRANSFER")) {
-                        log.debug("Refund transaction on " + timestamp + " transaction id " + transactionId + " failed: " + transaction.result);
+    public boolean handleResponse(JsonObject response) {
+        @Var boolean refundsProcessed = false;
+        MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
+        for (MirrorTransaction transaction : mirrorTransactions.transactions) {
+            if (transaction.getMemoString().contains(Bid.REFUND_MEMO_PREFIX)) {
+                String bidTransactionId = transaction.getMemoString().replace(Bid.REFUND_MEMO_PREFIX,"");
+                if (transaction.isSuccessful()) {
+                    // set bid refund complete
+                    log.debug("Found successful refund transaction on " + transaction.consensusTimestamp + " for bid transaction id " + bidTransactionId);
+                    try {
+                        bidsRepository.setRefunded(bidTransactionId, transaction.transactionId, transaction.getTransactionHashString());
+                        refundsProcessed = true;
+                    } catch (SQLException sqlException) {
+                        log.error("Error setting bid to refunded (bid transaction id + " + bidTransactionId + ")");
+                        log.error(sqlException);
+                    }
+                } else {
+                    // set bid refund pending
+                    log.debug("Found failed refund transaction on " + transaction.consensusTimestamp + " for bid transaction id " + bidTransactionId);
+                    try {
+                        bidsRepository.setRefundPending(bidTransactionId);
+                        refundsProcessed = true;
+                    } catch (SQLException sqlException) {
+                        log.error("Error setting bid to refund pending (bid transaction id + " + bidTransactionId + ")");
+                        log.error(sqlException);
                     }
                 }
-            } else {
-                log.debug("No " + transactionId + " transaction found");
             }
-        } catch (RuntimeException | SQLException e) {
-            log.error(e);
         }
+        return refundsProcessed;
     }
-
 }

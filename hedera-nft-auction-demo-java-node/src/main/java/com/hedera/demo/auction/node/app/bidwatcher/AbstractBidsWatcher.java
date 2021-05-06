@@ -151,14 +151,17 @@ public abstract class AbstractBidsWatcher {
                 // we have a winner
                 // update prior winning bid
                 Bid priorBid = new Bid();
+                // setting the timestamp for refund to match the winning timestamp
+                // will accelerate the refund (avoids repeated EXPIRED_TRANSACTIONS when refunding)
+                priorBid.setTimestampforrefund(transaction.consensusTimestamp);
                 priorBid.setTimestamp(this.auction.getWinningtimestamp());
                 priorBid.setStatus(Bid.HIGHER_BID);
                 if ( StringUtils.isEmpty(this.auction.getWinningaccount())) {
                     // do not refund the very first bid !!!
-                    priorBid.setRefund(false);
+                    priorBid.setRefundstatus("");
                     refund = false;
                 } else {
-                    priorBid.setRefund(true);
+                    priorBid.setRefundstatus(Bid.REFUND_PENDING);
                 }
                 bidsRepository.setStatus(priorBid);
 
@@ -180,7 +183,9 @@ public abstract class AbstractBidsWatcher {
             currentBid.setStatus(rejectReason);
             currentBid.setTransactionid(transaction.transactionId);
             currentBid.setTransactionhash(transaction.getTransactionHashString());
-            currentBid.setRefund(refund);
+            if (refund) {
+                currentBid.setRefundstatus(Bid.REFUND_PENDING);
+            }
             bidsRepository.add(currentBid);
         } else {
             log.debug("Transaction Id " + transaction.transactionId + " status not SUCCESS.");

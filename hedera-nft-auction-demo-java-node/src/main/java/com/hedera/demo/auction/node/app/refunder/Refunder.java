@@ -1,6 +1,7 @@
 package com.hedera.demo.auction.node.app.refunder;
 
 import com.google.common.base.Splitter;
+import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.TransactionScheduler;
 import com.hedera.demo.auction.node.app.domain.Auction;
@@ -73,8 +74,8 @@ public class Refunder implements Runnable {
     }
 
     private void issueRefund(String auctionAccount, Bid bid) {
-        boolean refundIsInProgress = false;
-        boolean delayRefund = false;
+        @Var boolean refundIsInProgress = false;
+        @Var boolean delayRefund = false;
 
         AccountId auctionAccountId = AccountId.fromString(auctionAccount);
         //TODO: Check a scheduled transaction has not already completed (success) for this bid

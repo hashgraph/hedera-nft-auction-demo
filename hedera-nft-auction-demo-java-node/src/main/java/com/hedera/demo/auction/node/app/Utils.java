@@ -44,4 +44,11 @@ public class Utils {
         return Hex.encodeHexString(bytes);
 
     }
+
+    public static String stringToBase64(String stringToConvert) {
+        String bytes = Base64.getEncoder().encodeToString(stringToConvert.getBytes(UTF_8));
+
+        return bytes;
+
+    }
 }

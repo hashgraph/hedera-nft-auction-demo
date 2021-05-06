@@ -16,7 +16,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @ExtendWith(VertxExtension.class)
 public class AbstractIntegrationTest {
@@ -95,9 +94,6 @@ public class AbstractIntegrationTest {
     Long bidamount() {
         return 30L + this.index;
     }
-    boolean refunded() {
-        return (this.index == 1);
-    }
     String refundtxid() {
         return stringPlusIndex("refundtxid");
     }
@@ -110,9 +106,8 @@ public class AbstractIntegrationTest {
     String transactionhash() {
         return stringPlusIndex("transactionhash");
     }
-
-    boolean refund() { return (this.index == 1); }
     String timestampforrefund() { return stringPlusIndex("timestampforrefund"); }
+    String refundStatus() { return Bid.REFUND_ISSUED; }
 
     protected Auction testAuctionObject(int index) {
         this.index = index;
@@ -161,12 +156,11 @@ public class AbstractIntegrationTest {
         bid.setBidderaccountid(bidderaccountid());
         bid.setBidamount(bidamount());
         bid.setStatus(status());
-        bid.setRefunded(refunded());
         bid.setRefundtxid(refundtxid());
         bid.setRefundtxhash(refundtxhash());
         bid.setTransactionid(transactionid());
         bid.setTransactionhash(transactionhash());
-        bid.setRefund(refund());
+        bid.setRefundstatus(refundStatus());
         bid.setTimestampforrefund(timestampforrefund());
 
         return bid;
@@ -181,25 +175,24 @@ public class AbstractIntegrationTest {
         assertEquals(bid.getBidderaccountid(),newBid.getBidderaccountid());
         assertEquals(bid.getTransactionid(),newBid.getTransactionid());
         assertEquals(bid.getTransactionhash(),newBid.getTransactionhash());
-        assertEquals(bid.getRefund(), newBid.getRefund());
+        assertEquals(bid.getRefundstatus(), newBid.getRefundstatus());
         assertEquals(bid.getTimestamp(), newBid.getTimestampforrefund());
     }
 
-    public void verifyBidContents(Bid bid, int auctionId) {
-        assertEquals(timestamp(), bid.getTimestamp());
-        assertEquals(auctionId, bid.getAuctionid());
-        assertEquals(bidderaccountid(), bid.getBidderaccountid());
-        assertEquals(bidamount(), bid.getBidamount());
-        assertEquals(status(), bid.getStatus());
-        assertEquals(refunded(), bid.getRefunded());
-        assertEquals(refundtxid(), bid.getRefundtxid());
-        assertEquals(refundtxhash(), bid.getRefundtxhash());
-        assertEquals(transactionid(), bid.getTransactionid());
-        assertEquals(transactionhash(), bid.getTransactionhash());
-        assertEquals(refund(), bid.getRefund());
-        assertEquals(timestampforrefund(), bid.getTimestampforrefund());
-    }
-
+//    public void verifyBidContents(Bid bid, int auctionId) {
+//        assertEquals(timestamp(), bid.getTimestamp());
+//        assertEquals(auctionId, bid.getAuctionid());
+//        assertEquals(bidderaccountid(), bid.getBidderaccountid());
+//        assertEquals(bidamount(), bid.getBidamount());
+//        assertEquals(status(), bid.getStatus());
+//        assertEquals(refundtxid(), bid.getRefundtxid());
+//        assertEquals(refundtxhash(), bid.getRefundtxhash());
+//        assertEquals(transactionid(), bid.getTransactionid());
+//        assertEquals(transactionhash(), bid.getTransactionhash());
+//        assertEquals(refundStatus(), bid.getRefundstatus());
+//        assertEquals(timestampforrefund(), bid.getTimestampforrefund());
+//    }
+//
     protected void migrate(PostgreSQLContainer postgres) {
         String postgresUrl = postgres.getJdbcUrl();
         String postgresUser = postgres.getUsername();
@@ -236,13 +229,12 @@ public class AbstractIntegrationTest {
         assertEquals(bid.getBidderaccountid(), body.getString("bidderaccountid"));
         assertEquals(bid.getBidamount(), body.getLong("bidamount"));
         assertEquals(bid.getStatus(), body.getString("status"));
-        assertEquals(true, body.getBoolean("refunded"));
         assertEquals(bid.getRefundtxid(), body.getString("refundtxid"));
         assertEquals(bid.getRefundtxhash(), body.getString("refundtxhash"));
         assertEquals(bid.getTransactionid(), body.getString("transactionid"));
         assertEquals(bid.getTransactionhash(), body.getString("transactionhash"));
-        assertFalse(body.getBoolean("refund"));
         assertEquals(bid.getTimestamp(), body.getString("timestampforrefund"));
+        assertEquals(bid.getRefundstatus(), body.getString("refundstatus"));
     }
 
     protected void verifyAuction(Auction auction, JsonObject body) {

@@ -10,12 +10,11 @@ public abstract class AbstractBid {
     String bidderaccountid = "bidderaccountid";
     Long bidamount = 30L;
     String status = "status";
-    boolean refunded = false;
     String refundtxid = "refundtxid";
     String refundtxhash = "refundtxhash";
     String transactionid = "transactionid";
     String transactionhash = "transactionhash";
-    boolean refund = true;
+    String refundStatus = Bid.REFUND_ISSUED;
     String timestampforrefund = "timestampforrefund";
 
     Bid testBidObject() {
@@ -26,12 +25,11 @@ public abstract class AbstractBid {
         bid.setBidderaccountid(bidderaccountid);
         bid.setBidamount(bidamount);
         bid.setStatus(status);
-        bid.setRefunded(refunded);
         bid.setRefundtxid(refundtxid);
         bid.setRefundtxhash(refundtxhash);
         bid.setTransactionid(transactionid);
         bid.setTransactionhash(transactionhash);
-        bid.setRefund(refund);
+        bid.setRefundstatus(refundStatus);
         bid.setTimestampforrefund(timestampforrefund);
 
         return bid;
@@ -43,12 +41,11 @@ public abstract class AbstractBid {
         assertEquals(bidderaccountid, bid.getBidderaccountid());
         assertEquals(bidamount, bid.getBidamount());
         assertEquals(status, bid.getStatus());
-        assertEquals(refunded, bid.getRefunded());
         assertEquals(refundtxid, bid.getRefundtxid());
         assertEquals(refundtxhash, bid.getRefundtxhash());
         assertEquals(transactionid, bid.getTransactionid());
         assertEquals(transactionhash, bid.getTransactionhash());
-        assertEquals(refund, bid.getRefund());
+        assertEquals(refundStatus, bid.getRefundstatus());
         assertEquals(timestampforrefund, bid.getTimestampforrefund());
     }
 }

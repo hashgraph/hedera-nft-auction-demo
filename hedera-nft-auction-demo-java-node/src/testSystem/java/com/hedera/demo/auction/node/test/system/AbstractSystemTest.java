@@ -408,8 +408,8 @@ public abstract class AbstractSystemTest {
                 return bidSource.getRefundtxid();
             case "bidAmount":
                 return String.valueOf(bidSource.getBidamount());
-            case "refunded":
-                return bidSource.getRefunded().toString();
+            case "refundstatus":
+                return bidSource.getRefundstatus();
             default:
                 return "";
         }

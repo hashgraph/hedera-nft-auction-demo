@@ -4,6 +4,7 @@ import com.google.common.base.Splitter;
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.TransactionScheduler;
+import com.hedera.demo.auction.node.app.TransactionSchedulerResult;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.domain.Bid;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
@@ -105,49 +106,40 @@ public class Refunder implements Runnable {
             transferTransaction.addHbarTransfer(AccountId.fromString(bid.getBidderaccountid()), Hbar.fromTinybars(bid.getBidamount()));
 
             try {
-                TransactionScheduler.issueScheduledTransaction(client, auctionAccountId, refundKey, transactionId, transferTransaction);
-                refundIsInProgress = true;
-                log.info("Refund transaction successfully scheduled (id " + shortTransactionId + ")");
-            } catch (ReceiptStatusException receiptStatusException) {
-                if (receiptStatusException.receipt.status == Status.SCHEDULE_ALREADY_EXECUTED) {
+                TransactionScheduler transactionScheduler = new TransactionScheduler(client, auctionAccountId, refundKey, transactionId, transferTransaction);
+                TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction();
+
+                if (transactionSchedulerResult.success) {
                     refundIsInProgress = true;
-                } else if (receiptStatusException.receipt.status == Status.TRANSACTION_EXPIRED) {
+                    log.info("Refund transaction successfully scheduled (id " + shortTransactionId + ")");
+                } else if (transactionSchedulerResult.status == Status.TRANSACTION_EXPIRED) {
                     delayRefund = true;
                 } else {
                     log.error("Error issuing refund to bid - timestamp = " + bid.getTimestamp());
-                    log.error(receiptStatusException.receipt.status);
-                }
-            } catch (PrecheckStatusException precheckStatusException) {
-                if (precheckStatusException.status == Status.SCHEDULE_ALREADY_EXECUTED) {
-                    refundIsInProgress = true;
-                } else if (precheckStatusException.status == Status.TRANSACTION_EXPIRED) {
-                    delayRefund = true;
-                } else {
-                    log.error("Error issuing refund to bid - timestamp = " + bid.getTimestamp());
-                    log.error(precheckStatusException.status);
+                    log.error(transactionSchedulerResult.status);
                 }
             } catch (TimeoutException timeoutException) {
                 log.error(timeoutException);
-            } finally {
-                if (refundIsInProgress) {
-                    log.info("setting bid to refund in progress (timestamp = " + bid.getTimestamp() + ")");
-                    setRefundInProgress(bid);
-                }
-                if (delayRefund) {
-                    // the bid's timestamp is too far in the past for a deterministic transaction id, add 30s and let the process
-                    // try again later
-                    log.info("delaying bid refund (timestamp = " + bid.getTimestamp() + ")");
-                    String bidTimeStamp = bid.getTimestamp();
-                    List<String> timeStampParts = Splitter.on('.').splitToList(bid.getTimestampforrefund());
-                    Long seconds = Long.parseLong(timeStampParts.get(0)) + 30;
-                    String bidRefundTimeStamp = String.valueOf(seconds).concat(".").concat(timeStampParts.get(1));
+            }
 
-                    try {
-                        bidsRepository.setBidRefundTimestamp(bidTimeStamp, bidRefundTimeStamp);
-                    } catch (SQLException sqlException) {
-                        log.error("Unable to set bid next refund timestamp - bid timestamp = " + bidTimeStamp);
-                        log.error(sqlException);
-                    }
+            if (refundIsInProgress) {
+                log.info("setting bid to refund in progress (timestamp = " + bid.getTimestamp() + ")");
+                setRefundInProgress(bid);
+            }
+            if (delayRefund) {
+                // the bid's timestamp is too far in the past for a deterministic transaction id, add 30s and let the process
+                // try again later
+                log.info("delaying bid refund (timestamp = " + bid.getTimestamp() + ")");
+                String bidTimeStamp = bid.getTimestamp();
+                List<String> timeStampParts = Splitter.on('.').splitToList(bid.getTimestampforrefund());
+                Long seconds = Long.parseLong(timeStampParts.get(0)) + 30;
+                String bidRefundTimeStamp = String.valueOf(seconds).concat(".").concat(timeStampParts.get(1));
+
+                try {
+                    bidsRepository.setBidRefundTimestamp(bidTimeStamp, bidRefundTimeStamp);
+                } catch (SQLException sqlException) {
+                    log.error("Unable to set bid next refund timestamp - bid timestamp = " + bidTimeStamp);
+                    log.error(sqlException);
                 }
             }
         }

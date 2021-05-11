@@ -7,6 +7,8 @@ package com.hedera.demo.auction.node.app.db;
 import com.hedera.demo.auction.node.app.db.tables.Auctions;
 import com.hedera.demo.auction.node.app.db.tables.Bids;
 import com.hedera.demo.auction.node.app.db.tables.FlywaySchemaHistory;
+import com.hedera.demo.auction.node.app.db.tables.Scheduledoperations;
+import com.hedera.demo.auction.node.app.db.tables.Scheduledoperationslog;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,7 +25,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Public extends SchemaImpl {
 
-    private static final long serialVersionUID = -88394286;
+    private static final long serialVersionUID = -818491124;
 
     /**
      * The reference instance of <code>public</code>
@@ -44,6 +46,16 @@ public class Public extends SchemaImpl {
      * The table <code>public.flyway_schema_history</code>.
      */
     public final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
+
+    /**
+     * The table <code>public.scheduledoperations</code>.
+     */
+    public final Scheduledoperations SCHEDULEDOPERATIONS = Scheduledoperations.SCHEDULEDOPERATIONS;
+
+    /**
+     * The table <code>public.scheduledoperationslog</code>.
+     */
+    public final Scheduledoperationslog SCHEDULEDOPERATIONSLOG = Scheduledoperationslog.SCHEDULEDOPERATIONSLOG;
 
     /**
      * No further instances allowed
@@ -69,6 +81,8 @@ public class Public extends SchemaImpl {
         return Arrays.<Table<?>>asList(
             Auctions.AUCTIONS,
             Bids.BIDS,
-            FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY);
+            FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY,
+            Scheduledoperations.SCHEDULEDOPERATIONS,
+            Scheduledoperationslog.SCHEDULEDOPERATIONSLOG);
     }
 }

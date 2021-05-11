@@ -3,13 +3,9 @@ package com.hedera.demo.auction.node.app;
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.hashgraph.sdk.AccountId;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.Status;
-import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
-import com.hedera.hashgraph.sdk.TokenId;
-import com.hedera.hashgraph.sdk.TransactionReceipt;
-import com.hedera.hashgraph.sdk.TransactionResponse;
+import com.hedera.demo.auction.node.app.repository.ScheduledOperationsLogRepository;
+import com.hedera.demo.auction.node.app.repository.ScheduledOperationsRepository;
+import com.hedera.hashgraph.sdk.*;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
 
@@ -36,6 +32,9 @@ public class EasySetup extends AbstractCreate {
     final static SqlConnectionManager connectionManager = new SqlConnectionManager(url, username, password);
     final static AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
     final static BidsRepository bidsRepository = new BidsRepository(connectionManager);
+    final static ScheduledOperationsRepository scheduledOperationsRepository = new ScheduledOperationsRepository(connectionManager);
+    final static ScheduledOperationsLogRepository scheduledOperationsLogRepository = new ScheduledOperationsLogRepository(connectionManager);
+
     static String topicId = Optional.ofNullable(env.get("VUE_APP_TOPIC_ID")).orElse("");
 
     public String setup(String[] args) throws Exception {
@@ -60,6 +59,8 @@ public class EasySetup extends AbstractCreate {
             log.info("Deleting existing auctions and bids and creating new topic");
             bidsRepository.deleteAllBids();
             auctionsRepository.deleteAllAuctions();
+            scheduledOperationsRepository.deleteAllScheduledOperations();
+            scheduledOperationsLogRepository.deleteAllScheduledLogOperations();
             CreateTopic createTopic = new CreateTopic();
             topicId = createTopic.create().toString();
         }

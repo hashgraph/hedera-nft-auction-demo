@@ -12,7 +12,10 @@ import com.hedera.demo.auction.node.app.refundChecker.RefundChecker;
 import com.hedera.demo.auction.node.app.refunder.Refunder;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
+import com.hedera.demo.auction.node.app.repository.ScheduledOperationsRepository;
+import com.hedera.demo.auction.node.app.scheduledoperations.ScheduleExecutor;
 import com.hedera.demo.auction.node.app.subscriber.TopicSubscriber;
+import com.hedera.hashgraph.sdk.PrivateKey;
 import com.hedera.hashgraph.sdk.TopicId;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.DeploymentOptions;
@@ -62,6 +65,8 @@ public final class App {
     private AuctionEndTransfer auctionEndTransfer = null;
     @Nullable
     private AuctionEndTransferWatcher auctionEndTransferWatcher = null;
+    @Nullable
+    private ScheduleExecutor scheduleExecutor = null;
     @Nullable
     private Refunder refunder = null;
 
@@ -122,6 +127,7 @@ public final class App {
             SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgresUrl, this.postgresUser, this.postgresPassword);
             AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
             BidsRepository bidsRepository = new BidsRepository(connectionManager);
+            ScheduledOperationsRepository scheduledOperationsRepository = new ScheduledOperationsRepository(connectionManager);
 
             WebClientOptions webClientOptions = new WebClientOptions()
                     .setUserAgent("HederaAuction/1.0")
@@ -129,43 +135,52 @@ public final class App {
             WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
 
             // subscribe to topic to get new auction notifications
-            startSubscription(webClient, auctionsRepository, bidsRepository);
+            startSubscription(webClient, auctionsRepository, bidsRepository, scheduledOperationsRepository);
 
             RefundChecker oneOffRefundChecker = new RefundChecker(hederaClient, webClient, auctionsRepository, bidsRepository, mirrorQueryFrequency);
             oneOffRefundChecker.runOnce();
 
-            startAuctionReadinessWatchers(hederaClient, webClient, auctionsRepository, bidsRepository);
-            startAuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, transferOnWin);
-            startBidWatchers(hederaClient, webClient, auctionsRepository, bidsRepository);
+            startAuctionReadinessWatchers(webClient, auctionsRepository, bidsRepository);
+            startAuctionsClosureWatcher(webClient, auctionsRepository, transferOnWin);
+            startBidWatchers(webClient, auctionsRepository, bidsRepository);
             if (! refundKey.isBlank()) {
                 // validator node, start the refunder thread
-                startRefunder(hederaClient, auctionsRepository, bidsRepository);
+                startRefunder(auctionsRepository, bidsRepository);
             }
-            startRefundChecker(hederaClient, webClient, auctionsRepository, bidsRepository);
+            startRefundChecker(webClient, auctionsRepository, bidsRepository);
             if (transferOnWin) {
-                startAuctionEndTransfers(hederaClient, webClient, auctionsRepository);
-                startAuctionEndTransferWatcher(hederaClient, webClient, auctionsRepository);
+                startAuctionEndTransfers(webClient, auctionsRepository);
+                startAuctionEndTransferWatcher(webClient, auctionsRepository);
+            }
+            if (! refundKey.isBlank()) {
+                startScheduledExecutor(auctionsRepository, scheduledOperationsRepository);
             }
         }
     }
 
-    private void startAuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, boolean transferOnWin) {
+    private void startScheduledExecutor(AuctionsRepository auctionsRepository, ScheduledOperationsRepository scheduledOperationsRepository) {
+        scheduleExecutor = new ScheduleExecutor(hederaClient, auctionsRepository, scheduledOperationsRepository, PrivateKey.fromString(refundKey));
+        Thread scheduleExecutorThread = new Thread(scheduleExecutor);
+        scheduleExecutorThread.start();
+    }
+
+    private void startAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository, boolean transferOnWin) {
         // start a thread to monitor auction closures
         auctionsClosureWatcher = new AuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
         Thread auctionsClosureWatcherThread = new Thread(auctionsClosureWatcher);
         auctionsClosureWatcherThread.start();
     }
-    private void startSubscription(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
+    private void startSubscription(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, ScheduledOperationsRepository scheduledOperationsRepository) {
         if (StringUtils.isEmpty(topicId)) {
             log.warn("No topic Id found in environment variables, not subscribing");
         } else {
-            topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository, webClient, TopicId.fromString(topicId), refundKey, mirrorQueryFrequency);
+            topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository, scheduledOperationsRepository, webClient, TopicId.fromString(topicId), refundKey, mirrorQueryFrequency);
             // start the thread to monitor bids
             Thread topicSubscriberThread = new Thread(topicSubscriber);
             topicSubscriberThread.start();
         }
     }
-    private void startBidWatchers(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) throws SQLException {
+    private void startBidWatchers(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) throws SQLException {
         for (Auction auction : auctionsRepository.getAuctionsList()) {
             if (! auction.isPending()) {
                 // auction is not pending
@@ -178,14 +193,14 @@ public final class App {
         }
     }
 
-    private void startRefundChecker(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
+    private void startRefundChecker(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
         // start the thread to monitor bids
         refundChecker = new RefundChecker(hederaClient, webClient, auctionsRepository, bidsRepository, mirrorQueryFrequency);
         Thread refundCheckerThread = new Thread(refundChecker);
         refundCheckerThread.start();
     }
 
-    private void startAuctionReadinessWatchers(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) throws SQLException {
+    private void startAuctionReadinessWatchers(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) throws SQLException {
         for (Auction auction : auctionsRepository.getAuctionsList()) {
             if (auction.isPending()) {
                 // start the thread to monitor token transfers to the auction account
@@ -197,21 +212,21 @@ public final class App {
         }
     }
 
-    private void startAuctionEndTransfers(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository) {
+    private void startAuctionEndTransfers(WebClient webClient, AuctionsRepository auctionsRepository) {
         // start the thread to monitor winning account association with token
         auctionEndTransfer = new AuctionEndTransfer(hederaClient, webClient, auctionsRepository, refundKey, mirrorQueryFrequency);
         Thread auctionEndTransferThread = new Thread(auctionEndTransfer);
         auctionEndTransferThread.start();
     }
 
-    private void startAuctionEndTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository) {
+    private void startAuctionEndTransferWatcher(WebClient webClient, AuctionsRepository auctionsRepository) {
         // start the thread to monitor winning account association with token
         auctionEndTransferWatcher = new AuctionEndTransferWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency);
         Thread auctionEndTransferWatcherThread = new Thread(auctionEndTransferWatcher);
         auctionEndTransferWatcherThread.start();
     }
 
-    private void startRefunder(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
+    private void startRefunder(AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
         // start the thread to monitor winning account association with token
         refunder = new Refunder(hederaClient, auctionsRepository, bidsRepository, refundKey, mirrorQueryFrequency);
         Thread refunderThread = new Thread(refunder);
@@ -228,6 +243,9 @@ public final class App {
         }
         if (auctionsClosureWatcher != null) {
             auctionsClosureWatcher.stop();
+        }
+        if (scheduleExecutor != null) {
+            scheduleExecutor.stop();
         }
         if (refundChecker != null) {
             refundChecker.stop();

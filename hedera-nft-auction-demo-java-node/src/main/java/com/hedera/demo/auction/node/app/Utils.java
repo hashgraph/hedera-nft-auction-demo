@@ -1,13 +1,17 @@
 package com.hedera.demo.auction.node.app;
 
+import com.google.common.base.Splitter;
 import com.google.errorprone.annotations.Var;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.binary.Hex;
+import org.jooq.tools.StringUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.Base64;
+import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -49,6 +53,22 @@ public class Utils {
         String bytes = Base64.getEncoder().encodeToString(stringToConvert.getBytes(UTF_8));
 
         return bytes;
+    }
 
+    public static String addToTimestamp(String timestamp, long secondstoAdd) {
+        List<String> timeStampParts = Splitter.on('.').splitToList(timestamp);
+        Long seconds = Long.parseLong(timeStampParts.get(0)) + secondstoAdd;
+        return String.valueOf(seconds).concat(".").concat(timeStampParts.get(1));
+    }
+
+    public static String instantToTimestamp(Instant timestamp) {
+        long seconds = timestamp.getEpochSecond();
+        long nanos = timestamp.getNano();
+
+        String secondString = String.valueOf(seconds);
+        String nanoString = StringUtils.leftPad(String.valueOf(nanos), 9, "0");
+        String consensusTimestamp = secondString.concat(".").concat(nanoString);
+
+        return consensusTimestamp;
     }
 }

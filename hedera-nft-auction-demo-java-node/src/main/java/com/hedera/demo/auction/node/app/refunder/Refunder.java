@@ -1,14 +1,14 @@
 package com.hedera.demo.auction.node.app.refunder;
 
-import com.google.common.base.Splitter;
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
-import com.hedera.demo.auction.node.app.TransactionScheduler;
-import com.hedera.demo.auction.node.app.TransactionSchedulerResult;
+import com.hedera.demo.auction.node.app.Utils;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.domain.Bid;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
+import com.hedera.demo.auction.node.app.scheduledoperations.TransactionScheduler;
+import com.hedera.demo.auction.node.app.scheduledoperations.TransactionSchedulerResult;
 import com.hedera.hashgraph.sdk.*;
 import lombok.extern.log4j.Log4j2;
 
@@ -131,9 +131,7 @@ public class Refunder implements Runnable {
                 // try again later
                 log.info("delaying bid refund (timestamp = " + bid.getTimestamp() + ")");
                 String bidTimeStamp = bid.getTimestamp();
-                List<String> timeStampParts = Splitter.on('.').splitToList(bid.getTimestampforrefund());
-                Long seconds = Long.parseLong(timeStampParts.get(0)) + 30;
-                String bidRefundTimeStamp = String.valueOf(seconds).concat(".").concat(timeStampParts.get(1));
+                String bidRefundTimeStamp = Utils.addToTimestamp(bid.getTimestampforrefund(), 30);
 
                 try {
                     bidsRepository.setBidRefundTimestamp(bidTimeStamp, bidRefundTimeStamp);

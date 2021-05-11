@@ -197,6 +197,6 @@ public abstract class AbstractBidsWatcher {
             return false;
         }
         String[] memos = new String[]{"CREATEAUCTION", "FUNDACCOUNT", "TRANSFERTOAUCTION", "ASSOCIATE", "AUCTION REFUND"};
-        return Arrays.stream(memos).anyMatch(memo.toUpperCase()::equals);
+        return Arrays.stream(memos).anyMatch(memo.toUpperCase()::startsWith);
     }
 }

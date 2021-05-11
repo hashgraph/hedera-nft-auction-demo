@@ -7,23 +7,8 @@ import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.readinesswatcher.AuctionReadinessWatcher;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import com.hedera.hashgraph.sdk.AccountId;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.FileContentsQuery;
-import com.hedera.hashgraph.sdk.FileId;
-import com.hedera.hashgraph.sdk.Hbar;
-import com.hedera.hashgraph.sdk.PrecheckStatusException;
-import com.hedera.hashgraph.sdk.Status;
-import com.hedera.hashgraph.sdk.SubscriptionHandle;
-import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
-import com.hedera.hashgraph.sdk.TokenId;
-import com.hedera.hashgraph.sdk.TokenInfo;
-import com.hedera.hashgraph.sdk.TokenInfoQuery;
-import com.hedera.hashgraph.sdk.TopicId;
-import com.hedera.hashgraph.sdk.TopicMessage;
-import com.hedera.hashgraph.sdk.TopicMessageQuery;
-import com.hedera.hashgraph.sdk.TransactionReceipt;
-import com.hedera.hashgraph.sdk.TransactionResponse;
+import com.hedera.demo.auction.node.app.repository.ScheduledOperationsRepository;
+import com.hedera.hashgraph.sdk.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
@@ -39,6 +24,7 @@ import java.util.List;
 public class TopicSubscriber implements Runnable{
     private final AuctionsRepository auctionsRepository;
     private final BidsRepository bidsRepository;
+    private final ScheduledOperationsRepository scheduledOperationsRepository;
     private final TopicId topicId;
     private static Instant startTime = Instant.EPOCH;
     private final WebClient webClient;
@@ -51,9 +37,10 @@ public class TopicSubscriber implements Runnable{
     private boolean runThread = true;
     private AuctionReadinessWatcher auctionReadinessWatcher;
 
-    public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, WebClient webClient, TopicId topicId, String refundKey, int mirrorQueryFrequency) {
+    public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, ScheduledOperationsRepository scheduledOperationsRepository, WebClient webClient, TopicId topicId, String refundKey, int mirrorQueryFrequency) {
         this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
+        this.scheduledOperationsRepository = scheduledOperationsRepository;
         this.topicId = topicId;
         this.webClient = webClient;
         this.refundKey = refundKey;
@@ -131,10 +118,10 @@ public class TopicSubscriber implements Runnable{
             String auctionData = new String(topicMessageWrapper.contents, StandardCharsets.UTF_8);
             JsonObject auctionJson = new JsonObject(auctionData);
             Auction newAuction = new Auction().fromJson(auctionJson);
+            Instant consensusTime = topicMessageWrapper.consensusTimestamp;
             @Var String endTimeStamp = newAuction.getEndtimestamp();
             if (StringUtils.isEmpty(endTimeStamp)) {
                 // no end timestamp, use consensus timestamp + 2 days
-                Instant consensusTime = topicMessageWrapper.consensusTimestamp;
                 endTimeStamp = String.valueOf(consensusTime.plus(2, ChronoUnit.DAYS).getEpochSecond());
             }
             newAuction.setEndtimestamp(endTimeStamp.concat(".000000000")); // add nanoseconds
@@ -171,7 +158,16 @@ public class TopicSubscriber implements Runnable{
 
                 // If refund key, associate with the token using a scheduled transaction
                 if ( ! StringUtils.isEmpty(refundKey)) {
-                    //TODO: Scheduled transaction - sign with refundKey
+//                    //TODO: Scheduled transaction - sign with refundKey
+//                    ScheduledOperation scheduledOperation = new ScheduledOperation();
+//                    scheduledOperation.setMemo("Associate - auction " + auction.getAuctionaccountid());
+//                    scheduledOperation.setTransactiontype(ScheduledOperation.TYPE_TOKENASSOCIATE);
+//                    scheduledOperation.setAuctionid(auction.getId());
+//                    String consensusTimestamp = Utils.instantToTimestamp(consensusTime);
+//                    scheduledOperation.setTransactiontimestamp(consensusTimestamp);
+//
+//                    scheduledOperationsRepository.add(scheduledOperation);
+
                     client.setMaxTransactionFee(Hbar.from(100));
                     TokenAssociateTransaction tokenAssociateTransaction = new TokenAssociateTransaction();
                     List<TokenId> tokenIds = new ArrayList<>();

@@ -25,10 +25,6 @@ public class HederaRefundChecker extends AbstractRefundChecker implements Refund
 
     @Override
     public void watch() {
-
-        //TODO: Run refund check as a one off at the start of the app, before anything else to avoid unnecessary refund attempts
-        //TODO: Scheduled TX everywhere, create a common scheduler for reuse
-
         while (runThread) {
             watchRefunds();
             try {

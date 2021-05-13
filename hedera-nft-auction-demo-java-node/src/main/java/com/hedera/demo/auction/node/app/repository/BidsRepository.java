@@ -99,6 +99,7 @@ public class BidsRepository {
         cx.update(BIDS)
                 .set(BIDS.STATUS, bid.getStatus())
                 .set(BIDS.REFUNDSTATUS, bid.getRefundstatus())
+                .set(BIDS.TIMESTAMPFORREFUND, bid.getTimestampforrefund())
                 .where(BIDS.TIMESTAMP.eq(bid.getTimestamp()))
                 .execute();
         return true;
@@ -124,15 +125,18 @@ public class BidsRepository {
         cx.close();
     }
 
-    public void setRefunded(String bidTransactionId, String refundTransactionId, String refundTransactionHash) throws SQLException {
+    public boolean setRefunded(String bidTransactionId, String refundTransactionId, String refundTransactionHash) throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        cx.update(Tables.BIDS)
+        int rowsUpdated = cx.update(Tables.BIDS)
                 .set(BIDS.REFUNDSTATUS, Bid.REFUND_REFUNDED)
                 .set(BIDS.REFUNDTXHASH, refundTransactionHash)
                 .set(BIDS.REFUNDTXID, refundTransactionId)
                 .where(BIDS.TRANSACTIONID.eq(bidTransactionId))
+                .and(BIDS.REFUNDSTATUS.ne(Bid.REFUND_REFUNDED))
                 .execute();
         cx.close();
+
+        return (rowsUpdated != 0);
    }
 
     public void setBidRefundTimestamp(String consensusTimestamp, String bidRefundTimestamp) throws SQLException {

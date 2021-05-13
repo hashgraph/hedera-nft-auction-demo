@@ -7,7 +7,6 @@ import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransaction;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 
@@ -39,18 +38,17 @@ public class AbstractRefundChecker {
         runThread = false;
     }
 
-    public boolean handleResponse(JsonObject response) {
+    public boolean handleResponse(MirrorTransactions mirrorTransactions) {
         @Var boolean refundsProcessed = false;
-        MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
         for (MirrorTransaction transaction : mirrorTransactions.transactions) {
-            if (transaction.getMemoString().contains(Bid.REFUND_MEMO_PREFIX)) {
+            String transactionMemo = transaction.getMemoString();
+            if (transactionMemo.contains(Bid.REFUND_MEMO_PREFIX)) {
                 String bidTransactionId = transaction.getMemoString().replace(Bid.REFUND_MEMO_PREFIX,"");
                 if (transaction.isSuccessful()) {
                     // set bid refund complete
                     log.debug("Found successful refund transaction on " + transaction.consensusTimestamp + " for bid transaction id " + bidTransactionId);
                     try {
-                        bidsRepository.setRefunded(bidTransactionId, transaction.transactionId, transaction.getTransactionHashString());
-                        refundsProcessed = true;
+                        refundsProcessed = bidsRepository.setRefunded(bidTransactionId, transaction.transactionId, transaction.getTransactionHashString());
                     } catch (SQLException sqlException) {
                         log.error("Error setting bid to refunded (bid transaction id + " + bidTransactionId + ")");
                         log.error(sqlException);

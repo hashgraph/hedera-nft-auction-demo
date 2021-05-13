@@ -1,6 +1,5 @@
 package com.hedera.demo.auction.node.test.system;
 
-import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.*;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.domain.Bid;
@@ -67,7 +66,7 @@ public abstract class AbstractSystemTest {
 
     protected static final long minimumBid = 0;
     protected static final boolean winnerCanBid = true;
-    protected final long auctionReserve = 1000;
+    protected long auctionReserve = 1000;
     protected final String endTimeStamp = "0000.12313";
 
     protected boolean transferOnWin = true;
@@ -341,7 +340,7 @@ public abstract class AbstractSystemTest {
 
     protected Callable<Boolean> checkBalance(String account, String condition) {
         return () -> {
-            @Var AccountId accountId;
+            AccountId accountId;
             switch (account) {
                 case "tokenOwner":
                     accountId = tokenOwnerAccountId;
@@ -414,6 +413,8 @@ public abstract class AbstractSystemTest {
                 return String.valueOf(bidSource.getBidamount());
             case "refundstatus":
                 return bidSource.getRefundstatus();
+            case "refunded":
+                return bidSource.isRefunded() ? "true" : "false";
             default:
                 return "";
         }

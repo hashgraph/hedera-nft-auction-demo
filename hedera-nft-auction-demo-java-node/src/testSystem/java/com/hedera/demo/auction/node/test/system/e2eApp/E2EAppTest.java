@@ -8,7 +8,17 @@ import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.test.system.AbstractSystemTest;
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.AccountBalance;
+import com.hedera.hashgraph.sdk.AccountBalanceQuery;
+import com.hedera.hashgraph.sdk.AccountCreateTransaction;
+import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.Hbar;
+import com.hedera.hashgraph.sdk.PrecheckStatusException;
+import com.hedera.hashgraph.sdk.ReceiptStatusException;
+import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
+import com.hedera.hashgraph.sdk.TransactionReceipt;
+import com.hedera.hashgraph.sdk.TransactionResponse;
+import com.hedera.hashgraph.sdk.TransferTransaction;
 import lombok.extern.log4j.Log4j2;
 import net.joshka.junit.json.params.JsonFileSource;
 import org.jooq.tools.StringUtils;
@@ -36,7 +46,6 @@ import static org.awaitility.Awaitility.await;
 public class E2EAppTest extends AbstractSystemTest {
 
     App app = new App();
-    long auctionReserve;
     long auctionMinimumBid;
     boolean auctionWinnerCanBid;
     Hbar startBalance;
@@ -160,7 +169,7 @@ public class E2EAppTest extends AbstractSystemTest {
         response.getReceipt(bidderClient);
     }
 
-    private void runTestTasks(JsonValue mirrorValue, JsonObject test, JsonArray tasks) throws Exception {
+    private void runTestTasks(JsonObject test, JsonArray tasks) throws Exception {
         for (JsonValue taskJson : tasks) {
             JsonObject task = taskJson.asJsonObject();
             String taskName = task.getString("name", "");
@@ -257,7 +266,7 @@ public class E2EAppTest extends AbstractSystemTest {
 
             JsonArray tasks = test.getJsonArray("tasks");
 
-            runTestTasks(mirrorValue, test, tasks);
+            runTestTasks(test, tasks);
 
             app.stop();
 
@@ -277,7 +286,7 @@ public class E2EAppTest extends AbstractSystemTest {
     }
 
     private void getBalanceForAccount(String account) throws TimeoutException, PrecheckStatusException {
-        @Var AccountId accountId;
+        AccountId accountId;
         switch (account) {
             case "tokenOwner":
                 accountId = tokenOwnerAccountId;

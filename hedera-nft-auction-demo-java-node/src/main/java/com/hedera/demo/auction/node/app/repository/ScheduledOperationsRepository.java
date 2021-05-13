@@ -134,7 +134,7 @@ public class ScheduledOperationsRepository {
         return result;
     }
 
-    private void createLogForTransactionId(DSLContext cx, String transactionId) {
+    private static void createLogForTransactionId(DSLContext cx, String transactionId) {
         Result<Record> operation = cx.selectFrom(SCHEDULEDOPERATIONS)
                 .where(SCHEDULEDOPERATIONS.TRANSACTIONID.eq(transactionId))
                 .fetch();
@@ -154,7 +154,7 @@ public class ScheduledOperationsRepository {
         ).execute();
     }
 
-    private void createLogForTimestamp(DSLContext cx, String transactionTimestamp) {
+    private static void createLogForTimestamp(DSLContext cx, String transactionTimestamp) {
         Result<Record> operation = cx.selectFrom(SCHEDULEDOPERATIONS)
                 .where(SCHEDULEDOPERATIONS.TRANSACTIONTIMESTAMP.eq(transactionTimestamp))
                 .fetch();

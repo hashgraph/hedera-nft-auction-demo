@@ -9,7 +9,13 @@ import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.app.scheduledoperations.TransactionScheduler;
 import com.hedera.demo.auction.node.app.scheduledoperations.TransactionSchedulerResult;
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.Client;
+import com.hedera.hashgraph.sdk.Hbar;
+import com.hedera.hashgraph.sdk.PrivateKey;
+import com.hedera.hashgraph.sdk.Status;
+import com.hedera.hashgraph.sdk.TransactionId;
+import com.hedera.hashgraph.sdk.TransferTransaction;
 import lombok.extern.log4j.Log4j2;
 
 import java.sql.SQLException;
@@ -49,15 +55,22 @@ public class Refunder implements Runnable {
                 if (auctions != null) {
                     for (Auction auction : auctions) {
                         try {
-                            List<Bid> bidsToRefund = bidsRepository.bidsToRefund(auction.getId());
-                            if (bidsToRefund != null) {
-                                for (Bid bid : bidsToRefund) {
-                                    issueRefund(auction.getAuctionaccountid(), bid);
+                            Client auctionClient = hederaClient.auctionClient(auction, refundKey);
+                            try {
+                                List<Bid> bidsToRefund = bidsRepository.bidsToRefund(auction.getId());
+                                if (bidsToRefund != null) {
+                                    for (Bid bid : bidsToRefund) {
+                                        issueRefund(auction.getAuctionaccountid(), bid, auctionClient);
+                                    }
                                 }
+                            auctionClient.close();
+                            } catch (SQLException sqlException) {
+                                log.error("unable to fetch bids to refund");
+                                log.error(sqlException);
                             }
-                        } catch (SQLException sqlException) {
-                            log.error("unable to fetch bids to refund");
-                            log.error(sqlException);
+                        } catch (Exception e) {
+                            log.error("error setting up auction client");
+                            log.error(e);
                         }
                     }
                 }
@@ -67,25 +80,15 @@ public class Refunder implements Runnable {
             }
         }
 
-        try {
-            Thread.sleep(mirrorQueryFrequency);
-        } catch (InterruptedException e) {
-            log.error(e);
-        }
+        Utils.sleep(this.mirrorQueryFrequency);
     }
 
-    private void issueRefund(String auctionAccount, Bid bid) {
+    private void issueRefund(String auctionAccount, Bid bid, Client client) {
         @Var boolean refundIsInProgress = false;
         @Var boolean delayRefund = false;
 
         AccountId auctionAccountId = AccountId.fromString(auctionAccount);
-        //TODO: Check a scheduled transaction has not already completed (success) for this bid
-        // can only work with scheduled transactions
 
-        // create a client for the auction's account
-        Client client = hederaClient.client();
-
-        client.setOperator(auctionAccountId, this.refundKey);
         log.info("Refunding " + bid.getBidamount() + " from " + auctionAccount + " to " + bid.getBidderaccountid());
         String memo = Bid.REFUND_MEMO_PREFIX.concat(bid.getTransactionid());
         // issue refund

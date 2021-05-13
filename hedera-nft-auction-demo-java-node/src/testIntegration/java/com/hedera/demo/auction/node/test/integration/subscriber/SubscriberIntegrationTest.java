@@ -25,9 +25,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -60,7 +58,7 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
 
-        topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, null, null, topicId, "", 5000);
+        topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, null, null, topicId, "", 5000, masterNode);
         topicSubscriber.setTesting();
 
         consensusTimestamp = Instant.now();
@@ -91,7 +89,7 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
         createTopicMessageWrapper();
 
-        topicSubscriber.handle(hederaClient.client(), topicMessageWrapper);
+        topicSubscriber.handle(topicMessageWrapper);
 
         List<Auction> auctions = auctionsRepository.getAuctionsList();
 
@@ -112,7 +110,7 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         auctionJson.put("endtimestamp", String.valueOf(consensusTimestamp.getEpochSecond()));
         createTopicMessageWrapper();
 
-        topicSubscriber.handle(hederaClient.client(), topicMessageWrapper);
+        topicSubscriber.handle(topicMessageWrapper);
 
         List<Auction> auctions = auctionsRepository.getAuctionsList();
 
@@ -131,7 +129,7 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         auctionJson.put("winnercanbid", false);
         createTopicMessageWrapper();
 
-        topicSubscriber.handle(hederaClient.client(), topicMessageWrapper);
+        topicSubscriber.handle(topicMessageWrapper);
 
         List<Auction> auctions = auctionsRepository.getAuctionsList();
 
@@ -153,7 +151,7 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         auctionJson.remove("winnercanbid");
         createTopicMessageWrapper();
 
-        topicSubscriber.handle(hederaClient.client(), topicMessageWrapper);
+        topicSubscriber.handle(topicMessageWrapper);
 
         List<Auction> auctions = auctionsRepository.getAuctionsList();
 

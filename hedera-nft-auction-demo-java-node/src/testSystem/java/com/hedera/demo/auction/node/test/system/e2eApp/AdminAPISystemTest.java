@@ -49,7 +49,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
         auctionsRepository.deleteAllAuctions();
         TopicId topicId = createTopic.create();
         hederaClient.setMirrorProvider("hedera");
-        hederaClient.setClientMirror(dotenv);
+        hederaClient.setClientMirror();
 
         app.overrideEnv(hederaClient, true, true, true, topicId.toString(), hederaClient.operatorPrivateKey().toString(), postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), true);
         app.runApp();

@@ -11,6 +11,7 @@ import com.hedera.demo.auction.node.test.system.AbstractSystemTest;
 import com.hedera.hashgraph.sdk.*;
 import lombok.extern.log4j.Log4j2;
 import net.joshka.junit.json.params.JsonFileSource;
+import org.jooq.tools.StringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -109,7 +110,7 @@ public class E2EAppTest extends AbstractSystemTest {
         createTokenAndGetInfo(tokenSymbolFromJson);
 
         hederaClient.setMirrorProvider(mirror);
-        hederaClient.setClientMirror(dotenv);
+        hederaClient.setClientMirror();
         hederaClient.setOperator(auctionAccountId, auctionAccountKey);
 
         app.overrideEnv(hederaClient, /* restAPI= */true, /* adminAPI= */true, /* auctionNode= */true, topicId.toString(), auctionAccountKey.toString(), postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /* transferOnWin= */transferOnWin);
@@ -312,7 +313,7 @@ public class E2EAppTest extends AbstractSystemTest {
         @Var String bidAccount = "";
         @Var long bidAmount = 0;
 
-        if (value.isEmpty()) {
+        if (StringUtils.isEmpty(value)) {
             if (parameter.equals("winningAccount") && condition.equals("equals")) {
                 value = maxBidAccount.toString();
             } else if (parameter.equals("winningBid") && condition.equals("equals")) {
@@ -327,7 +328,7 @@ public class E2EAppTest extends AbstractSystemTest {
         }
 
         if (object.equals("bid")) {
-            if (! from.isEmpty()) {
+            if (! StringUtils.isEmpty(from)) {
                 bidAccount = biddingAccounts.get(from).toString();
             }
             if (assertion.containsKey("amount")) {

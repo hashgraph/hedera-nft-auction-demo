@@ -4,12 +4,11 @@ import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.domain.Bid;
-import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorHbarTransfer;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransaction;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
-import io.vertx.core.json.JsonObject;
+import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
+import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
@@ -57,18 +56,14 @@ public abstract class AbstractBidsWatcher {
         runThread = false;
     }
 
-    public void handleResponse(JsonObject response) {
+    public void handleResponse(MirrorTransactions mirrorTransactions) {
         try {
-            if (response != null) {
-                MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
-
-                for (MirrorTransaction transaction : mirrorTransactions.transactions) {
-                    if (transaction.isSuccessful()) {
-                        handleTransaction(transaction);
-                    }
-                    this.auction.setLastconsensustimestamp(transaction.consensusTimestamp);
-                    auctionsRepository.save(this.auction);
+            for (MirrorTransaction transaction : mirrorTransactions.transactions) {
+                if (transaction.isSuccessful()) {
+                    handleTransaction(transaction);
                 }
+                this.auction.setLastconsensustimestamp(transaction.consensusTimestamp);
+                auctionsRepository.save(this.auction);
             }
         } catch (Exception e) {
             log.error(e);

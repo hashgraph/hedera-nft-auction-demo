@@ -5,7 +5,7 @@ import org.jooq.DSLContext;
 
 import java.sql.SQLException;
 
-import static com.hedera.demo.auction.node.app.db.Tables.SCHEDULEDOPERATIONS;
+import static com.hedera.demo.auction.node.app.db.Tables.SCHEDULEDOPERATIONSLOG;
 
 public class ScheduledOperationsLogRepository {
     private final SqlConnectionManager connectionManager;
@@ -16,7 +16,7 @@ public class ScheduledOperationsLogRepository {
 
     public void deleteAllScheduledLogOperations() throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        cx.deleteFrom(SCHEDULEDOPERATIONS)
+        cx.deleteFrom(SCHEDULEDOPERATIONSLOG)
             .execute();
         cx.close();
     }

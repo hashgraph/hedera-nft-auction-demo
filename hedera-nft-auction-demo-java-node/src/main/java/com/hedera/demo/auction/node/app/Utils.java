@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
@@ -57,7 +58,7 @@ public class Utils {
 
     public static String addToTimestamp(String timestamp, long secondstoAdd) {
         List<String> timeStampParts = Splitter.on('.').splitToList(timestamp);
-        Long seconds = Long.parseLong(timeStampParts.get(0)) + secondstoAdd;
+        long seconds = Long.parseLong(timeStampParts.get(0)) + secondstoAdd;
         return String.valueOf(seconds).concat(".").concat(timeStampParts.get(1));
     }
 
@@ -70,5 +71,38 @@ public class Utils {
         String consensusTimestamp = secondString.concat(".").concat(nanoString);
 
         return consensusTimestamp;
+    }
+
+    public static String timestampToDate(String timestamp) {
+        List<String> timeStampParts = Splitter.on('.').splitToList(timestamp);
+        long seconds = Long.parseLong(timeStampParts.get(0));
+        Instant instant = Instant.ofEpochSecond(seconds);
+        return instant.toString().concat(" (UTC)");
+    }
+
+    public static String getTimestampFromMirrorLink(String link) {
+        if (! StringUtils.isEmpty(link)) {
+            // extract the timestamp from the link
+            // e.g. api/v1/transactions?transactiontype=CRYPTOTRANSFER&order=asc&timestamp=gt:1598576703.187899009
+            // or api/v1/transactions?transactiontype=CRYPTOTRANSFER&order=asc&timestamp=lt:1598576703.187899009
+
+            List<String> linkData = Arrays.asList(link.split("&"));
+            for (String linkToInspect : linkData) {
+                if (linkToInspect.startsWith("timestamp=")) {
+                    String linkToReturn = linkToInspect.replace("timestamp=gt:", "");
+                    return  linkToReturn.replace("timestamp=lt:", "");
+                }
+            }
+        }
+        return "";
+    }
+
+    public static void sleep(int milliseconds) {
+        try {
+            Thread.sleep(milliseconds);
+        } catch (InterruptedException e) {
+            log.error(e);
+            Thread.currentThread().interrupt();
+        }
     }
 }

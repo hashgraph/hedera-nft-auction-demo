@@ -28,7 +28,7 @@ public class AuctionsRepository {
     @Nullable
     private Result<Record> getAuctions () throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        Result<Record> rows = cx.fetch("SELECT * FROM auctions ORDER BY id");
+        Result<Record> rows = cx.selectFrom(AUCTIONS).orderBy(AUCTIONS.ID).fetch();
         cx.close();
         return rows;
     }
@@ -81,6 +81,18 @@ public class AuctionsRepository {
             return new Auction(auctionData);
         } else {
             throw new Exception("No auction id " + auctionId);
+        }
+    }
+
+    @Nullable
+    public Auction getAuction(String accountId) throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+        Record auctionData = cx.selectFrom(AUCTIONS).where(AUCTIONS.AUCTIONACCOUNTID.eq(accountId)).fetchAny();
+        cx.close();
+        if (auctionData.size() == 0) {
+            return null;
+        } else {
+            return new Auction(auctionData);
         }
     }
 

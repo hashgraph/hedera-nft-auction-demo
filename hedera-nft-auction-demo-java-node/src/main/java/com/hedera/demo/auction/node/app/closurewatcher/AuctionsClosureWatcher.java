@@ -16,8 +16,9 @@ public class AuctionsClosureWatcher implements Runnable {
     private final String refundKey;
     private final HederaClient hederaClient;
     private AuctionClosureWatcherInterface auctionClosureWatcher = null;
+    private final boolean masterNode;
 
-    public AuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey) {
+    public AuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey, boolean masterNode) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
@@ -25,6 +26,7 @@ public class AuctionsClosureWatcher implements Runnable {
         this.refundKey = refundKey;
         this.hederaClient = hederaClient;
         this.mirrorProvider = hederaClient.mirrorProvider();
+        this.masterNode = masterNode;
     }
 
     @Override
@@ -32,7 +34,7 @@ public class AuctionsClosureWatcher implements Runnable {
 
         switch (mirrorProvider) {
             case "HEDERA":
-                auctionClosureWatcher = new HederaAuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
+                auctionClosureWatcher = new HederaAuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey, masterNode);
                 break;
             default:
                 log.error("Support for non Hedera mirrors not implemented.");

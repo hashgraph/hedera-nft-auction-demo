@@ -42,7 +42,6 @@ public final class App {
     private boolean adminAPI = Optional.ofNullable(env.get("ADMIN_API")).map(Boolean::parseBoolean).orElse(false);
     private int adminApiVerticleCount = Optional.ofNullable(env.get("ADMIN_API_VERTICLE_COUNT")).map(Integer::parseInt).orElse(2);
     private boolean auctionNode = Optional.ofNullable(env.get("AUCTION_NODE")).map(Boolean::parseBoolean).orElse(false);
-
     private String topicId = Optional.ofNullable(env.get("VUE_APP_TOPIC_ID")).orElse("");
     private int mirrorQueryFrequency = Integer.parseInt(Optional.ofNullable(env.get("MIRROR_QUERY_FREQUENCY")).orElse("5000"));
     private String refundKey = Optional.ofNullable(env.get("REFUND_KEY")).orElse("");
@@ -50,6 +49,7 @@ public final class App {
     private String postgresUser = Optional.ofNullable(env.get("DATABASE_USERNAME")).orElse("postgres");
     private String postgresPassword = Optional.ofNullable(env.get("DATABASE_PASSWORD")).orElse("password");
     private boolean transferOnWin = Optional.ofNullable(env.get("TRANSFER_ON_WIN")).map(Boolean::parseBoolean).orElse(true);
+    private final boolean masterNode = Optional.ofNullable(env.get("MASTER_NODE")).map(Boolean::parseBoolean).orElse(false);
 
     private HederaClient hederaClient = new HederaClient(env);
 
@@ -72,8 +72,6 @@ public final class App {
 
     public App() throws Exception {
     }
-
-    //    private final static String dgApiKey = Optional.ofNullable(env.get("DG_API_KEY")).orElse("");
 
     public static void main(String[] args) throws Exception {
         App app = new App();
@@ -141,7 +139,7 @@ public final class App {
             oneOffRefundChecker.runOnce();
 
             startAuctionReadinessWatchers(webClient, auctionsRepository, bidsRepository);
-            startAuctionsClosureWatcher(webClient, auctionsRepository, transferOnWin);
+            startAuctionsClosureWatcher(webClient, auctionsRepository);
             startBidWatchers(webClient, auctionsRepository, bidsRepository);
             if (! refundKey.isBlank()) {
                 // validator node, start the refunder thread
@@ -164,9 +162,9 @@ public final class App {
         scheduleExecutorThread.start();
     }
 
-    private void startAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository, boolean transferOnWin) {
+    private void startAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository) {
         // start a thread to monitor auction closures
-        auctionsClosureWatcher = new AuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
+        auctionsClosureWatcher = new AuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey, masterNode);
         Thread auctionsClosureWatcherThread = new Thread(auctionsClosureWatcher);
         auctionsClosureWatcherThread.start();
     }
@@ -174,7 +172,7 @@ public final class App {
         if (StringUtils.isEmpty(topicId)) {
             log.warn("No topic Id found in environment variables, not subscribing");
         } else {
-            topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository, scheduledOperationsRepository, webClient, TopicId.fromString(topicId), refundKey, mirrorQueryFrequency);
+            topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository, webClient, TopicId.fromString(topicId), refundKey, mirrorQueryFrequency, masterNode);
             // start the thread to monitor bids
             Thread topicSubscriberThread = new Thread(topicSubscriber);
             topicSubscriberThread.start();

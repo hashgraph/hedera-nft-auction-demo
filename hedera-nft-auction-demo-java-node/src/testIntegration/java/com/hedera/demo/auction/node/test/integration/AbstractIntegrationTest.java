@@ -109,6 +109,8 @@ public class AbstractIntegrationTest {
     String timestampforrefund() { return stringPlusIndex("timestampforrefund"); }
     String refundStatus() { return Bid.REFUND_ISSUED; }
 
+    protected boolean masterNode = true; //TODO: Handle tests where masterNode = false
+
     protected Auction testAuctionObject(int index) {
         this.index = index;
         Auction auction = new Auction();

@@ -89,7 +89,7 @@ public class AuctionsRepository {
         DSLContext cx = connectionManager.dsl();
         Record auctionData = cx.selectFrom(AUCTIONS).where(AUCTIONS.AUCTIONACCOUNTID.eq(accountId)).fetchAny();
         cx.close();
-        if (auctionData.size() == 0) {
+        if ((auctionData == null) || (auctionData.size() == 0)) {
             return null;
         } else {
             return new Auction(auctionData);

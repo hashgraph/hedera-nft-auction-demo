@@ -82,11 +82,14 @@ public class PostAuctionHandler implements Handler<RoutingContext> {
             routingContext.response()
                     .putHeader("content-type", "application/json")
                     .end(Json.encodeToBuffer(response));
-        } catch (InterruptedException | TimeoutException | PrecheckStatusException | ReceiptStatusException | IOException e) {
+        } catch (InterruptedException e) {
+            routingContext.fail(400, e);
+            Thread.currentThread().interrupt();
+        } catch (TimeoutException | PrecheckStatusException | ReceiptStatusException | IOException e) {
             routingContext.fail(400, e);
             return;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e);
             routingContext.fail(400, e);
         }
     }

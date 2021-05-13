@@ -1,6 +1,7 @@
 package com.hedera.demo.auction.node.app.readinesswatcher;
 
 import com.hedera.demo.auction.node.app.HederaClient;
+import com.hedera.demo.auction.node.app.Utils;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
@@ -75,12 +76,7 @@ public class HederaAuctionReadinessWatcher extends AbstractAuctionReadinessWatch
             if (testing) {
                 return;
             } else {
-                try {
-                    Thread.sleep(this.mirrorQueryFrequency);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    log.error(e);
-                }
+                Utils.sleep(this.mirrorQueryFrequency);
             }
         }
     }

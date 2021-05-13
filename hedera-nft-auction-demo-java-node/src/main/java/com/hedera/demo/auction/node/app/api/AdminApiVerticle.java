@@ -82,7 +82,6 @@ public class AdminApiVerticle extends AbstractVerticle {
         var cause = routingContext.failure();
         if (cause != null) {
             log.error(cause);
-            cause.printStackTrace();
             response.setStatusCode(500);
         }
 

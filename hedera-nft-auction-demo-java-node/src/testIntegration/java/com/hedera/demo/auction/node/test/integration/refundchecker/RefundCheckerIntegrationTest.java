@@ -5,6 +5,7 @@ import com.hedera.demo.auction.node.app.SqlConnectionManager;
 import com.hedera.demo.auction.node.app.Utils;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.domain.Bid;
+import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.node.app.refundChecker.AbstractRefundChecker;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
@@ -12,7 +13,12 @@ import com.hedera.demo.auction.node.test.integration.AbstractIntegrationTest;
 import com.hedera.demo.auction.node.test.integration.HederaJson;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -92,8 +98,8 @@ public class RefundCheckerIntegrationTest extends AbstractIntegrationTest {
     public void testRefundSuccess() throws Exception {
 
         bidsRepository.setRefunded(bid.getTransactionid(), bid.getTransactionid(), bid.getTransactionhash());
-
-        refundTester.handleResponse(bidTransactions);
+        MirrorTransactions mirrorTransactions = bidTransactions.mapTo(MirrorTransactions.class);
+        refundTester.handleResponse(mirrorTransactions);
 
         List<Bid> updateBids = bidsRepository.getBidsList();
         assertTrue(updateBids.get(0).isRefunded());
@@ -111,7 +117,8 @@ public class RefundCheckerIntegrationTest extends AbstractIntegrationTest {
         bidTransactions = HederaJson.mirrorTransactions(bidTransaction);
         bidsRepository.setRefundIssued(bid.getTimestamp());
 
-        refundTester.handleResponse(bidTransactions);
+        MirrorTransactions mirrorTransactions = bidTransactions.mapTo(MirrorTransactions.class);
+        refundTester.handleResponse(mirrorTransactions);
 
         List<Bid> updateBids = bidsRepository.getBidsList();
         assertTrue(updateBids.get(0).isRefundPending());

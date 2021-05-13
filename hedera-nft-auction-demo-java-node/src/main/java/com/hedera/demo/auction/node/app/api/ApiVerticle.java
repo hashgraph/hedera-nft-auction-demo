@@ -103,7 +103,6 @@ public class ApiVerticle extends AbstractVerticle {
         var cause = routingContext.failure();
         if (cause != null) {
             log.error(cause);
-            cause.printStackTrace();
             response.setStatusCode(500);
         }
 

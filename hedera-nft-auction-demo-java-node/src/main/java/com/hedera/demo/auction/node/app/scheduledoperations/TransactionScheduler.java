@@ -1,6 +1,19 @@
 package com.hedera.demo.auction.node.app.scheduledoperations;
 
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.Client;
+import com.hedera.hashgraph.sdk.PrecheckStatusException;
+import com.hedera.hashgraph.sdk.PrivateKey;
+import com.hedera.hashgraph.sdk.ReceiptStatusException;
+import com.hedera.hashgraph.sdk.ScheduleCreateTransaction;
+import com.hedera.hashgraph.sdk.ScheduleId;
+import com.hedera.hashgraph.sdk.ScheduleSignTransaction;
+import com.hedera.hashgraph.sdk.Status;
+import com.hedera.hashgraph.sdk.Transaction;
+import com.hedera.hashgraph.sdk.TransactionId;
+import com.hedera.hashgraph.sdk.TransactionReceipt;
+import com.hedera.hashgraph.sdk.TransactionReceiptQuery;
+import com.hedera.hashgraph.sdk.TransactionResponse;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.List;
@@ -14,10 +27,10 @@ public class TransactionScheduler {
     private final TransactionId transactionId;
     private final Transaction transaction;
 
-    public TransactionScheduler(Client client, AccountId accountId, PrivateKey privateKey, TransactionId transactionId, Transaction transaction) {
+    public TransactionScheduler(Client client, AccountId accountId, PrivateKey refundKey, TransactionId transactionId, Transaction transaction) {
         this.client = client;
         this.accountId = accountId;
-        this.privateKey = privateKey;
+        this.privateKey = refundKey;
         this.transactionId = transactionId;
         this.transaction = transaction;
     }
@@ -88,14 +101,14 @@ public class TransactionScheduler {
     private TransactionSchedulerResult handleResponse(Status status) throws TimeoutException {
         //INVALID_TRANSACTION_START
         //
-        if (status == Status.SUCCESS) {
-            return new TransactionSchedulerResult(true, Status.SUCCESS);
-        } else if (status == Status.IDENTICAL_SCHEDULE_ALREADY_CREATED) {
-            return scheduleSignTransaction();
-        } else if (status == Status.SCHEDULE_ALREADY_EXECUTED) {
-            return new TransactionSchedulerResult(true, Status.SUCCESS);
-        } else {
-            return new TransactionSchedulerResult(false, status);
+        switch (status) {
+            case SUCCESS:
+            case SCHEDULE_ALREADY_EXECUTED:
+                return new TransactionSchedulerResult(/* success= */true, Status.SUCCESS);
+            case IDENTICAL_SCHEDULE_ALREADY_CREATED:
+                return scheduleSignTransaction();
+            default:
+                return new TransactionSchedulerResult(/* success= */false, status);
         }
     }
 

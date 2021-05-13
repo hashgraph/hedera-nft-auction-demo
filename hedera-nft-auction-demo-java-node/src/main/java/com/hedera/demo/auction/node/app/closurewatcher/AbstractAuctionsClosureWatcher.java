@@ -30,8 +30,9 @@ public abstract class AbstractAuctionsClosureWatcher {
     private final String refundKey;
     private final HederaClient hederaClient;
     protected boolean runThread = true;
+    private final boolean masterNode;
 
-    protected AbstractAuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey) {
+    protected AbstractAuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey, boolean masterNode) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
@@ -39,6 +40,7 @@ public abstract class AbstractAuctionsClosureWatcher {
         this.mirrorURL = hederaClient.mirrorUrl();
         this.transferOnWin = transferOnWin;
         this.refundKey = refundKey;
+        this.masterNode = masterNode;
     }
 
     void handleResponse(JsonObject response) throws Exception {
@@ -73,7 +75,9 @@ public abstract class AbstractAuctionsClosureWatcher {
                         // if the auction does not transfer the token on winning, set the auction to ended
                         auctionsRepository.setEnded(auctionId, "");
                     }
-                    if ( ! this.refundKey.isBlank()) {
+                    //TODO: Enable scheduled transaction here when the ACCOUNT_UPDATE transaction type is
+                    //supported by scheduled transactions, in the mean time, only the master node is able to do this.
+                    if ( ! this.refundKey.isBlank() && masterNode) {
                         setSignatureRequiredOnAuctionAccount(auctionId);
                     }
 
@@ -91,18 +95,6 @@ public abstract class AbstractAuctionsClosureWatcher {
         PrivateKey refundKeyPrivate = PrivateKey.fromString(this.refundKey);
         client.setOperator(AccountId.fromString(auction.getAuctionaccountid()), refundKeyPrivate);
         log.info("Setting signature required key on account " + auction.getAuctionaccountid());
-
-//            //TODO: Scheduled transaction here
-//            // create a deterministic transaction id from the consensus timestamp of the payment transaction
-//            // note: this assumes the scheduled transaction occurs quickly after the payment
-//            String deterministicTxId = this.auctionAccountId.concat("@").concat(this.consensusTimestamp);
-//            TransactionId transactionId = TransactionId.fromString(deterministicTxId);
-//            // Schedule the transaction
-//            ScheduleCreateTransaction scheduleCreateTransaction = transferTransaction.schedule();
-//
-//            TransactionResponse response = scheduleCreateTransaction.execute(client);
-//            TransactionReceipt receipt = response.getReceipt(client);
-//
 
         TransactionId transactionId = TransactionId.generate(AccountId.fromString(auction.getAuctionaccountid()));
 

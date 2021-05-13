@@ -7,7 +7,13 @@ import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.domain.ScheduledOperation;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.ScheduledOperationsRepository;
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.Hbar;
+import com.hedera.hashgraph.sdk.PrivateKey;
+import com.hedera.hashgraph.sdk.Status;
+import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
+import com.hedera.hashgraph.sdk.TokenId;
+import com.hedera.hashgraph.sdk.TransactionId;
 import lombok.extern.log4j.Log4j2;
 
 import java.sql.SQLException;
@@ -67,7 +73,7 @@ public class ScheduleExecutor implements Runnable {
                                         String newTimeStamp = Utils.addToTimestamp(scheduledOperation.getTransactiontimestamp(), 30);
                                         scheduledOperationsRepository.setTimestamp(scheduledOperation.getTransactiontimestamp(), newTimeStamp);
                                         queryFrequency = 1 * 1000;
-                                        log.info("token associate transaction re-scheduled for timestamp " + newTimeStamp);
+                                        log.info("token associate transaction re-scheduled for timestamp " + newTimeStamp + " " + Utils.timestampToDate(newTimeStamp));
                                     } else {
                                         log.error("error scheduling token associate transaction (timestamp " + scheduledOperation.getTransactiontimestamp() + ")");
                                         scheduledOperationsRepository.setStatus(scheduledOperation.getTransactiontimestamp(), ScheduledOperation.PENDING, transactionSchedulerResult.status.toString());
@@ -75,14 +81,14 @@ public class ScheduleExecutor implements Runnable {
                                     }
 
                                 } catch (TimeoutException timeoutException) {
-                                    timeoutException.printStackTrace();
+                                    log.error(timeoutException);
                                 }
                             }
                         } catch (SQLException e) {
                             log.error("error fetching auction for pending operations");
                             log.error(e);
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            log.error(e);
                         }
                     }
                 }
@@ -91,11 +97,7 @@ public class ScheduleExecutor implements Runnable {
                 log.error(sqlException);
             }
 
-            try {
-                Thread.sleep(queryFrequency);
-            } catch (InterruptedException e) {
-                log.error(e);
-            }
+            Utils.sleep(queryFrequency);
         }
     }
 

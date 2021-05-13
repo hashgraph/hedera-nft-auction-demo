@@ -13,7 +13,7 @@ buildscript {
 		classpath "org.glassfish.jaxb:jaxb-runtime:2.3.2"
 		classpath "org.postgresql:postgresql:42.2.14"
 		classpath "io.github.jklingsporn:vertx-jooq-generate:5.2.0"
-		classpath "io.vertx:vertx-core:3.9.2"
+		classpath "io.vertx:vertx-core:4.0.3"
 	}
 }
 
@@ -128,7 +128,6 @@ allprojects {
 			allDisabledChecksAsWarnings = true
 			disable("Java7ApiChecker")
 			disable("AndroidJdkLibsChecker")
-//			disable("FieldMissingNullable")
 			disable("CatchAndPrintStackTrace")
 			disable("ThrowSpecificExceptions")
 
@@ -149,36 +148,33 @@ description = "Hedera™ Hashgraph NFT Auction Appnet Demo"
 
 dependencies {
 	implementation "io.github.cdimascio:java-dotenv:5.2.1"
-//	implementation 'com.hedera.hashgraph:sdk:2.0.4'
-// https://mvnrepository.com/artifact/com.hedera.hashgraph/sdk
-	implementation group: 'com.hedera.hashgraph', name: 'sdk', version: '2.0.5'
+	implementation "com.fasterxml.jackson.core:jackson-annotations:2.12.3"
+	runtimeOnly "com.fasterxml.jackson.core:jackson-databind:2.12.3"
+	implementation "com.hedera.hashgraph:sdk:2.0.5"
 
-	implementation 'io.grpc:grpc-netty-shaded:1.35.0'
+	runtimeOnly 'io.grpc:grpc-netty-shaded:1.35.0'
 
-	implementation "io.vertx:vertx-web:3.9.2"
-	implementation "io.vertx:vertx-pg-client:3.9.2"
-	implementation "io.vertx:vertx-web-client:3.9.2"
+	def vertxVersion = "4.0.3"
+
+	implementation "io.vertx:vertx-web:$vertxVersion"
+	implementation "io.vertx:vertx-pg-client:$vertxVersion"
+	implementation "io.vertx:vertx-web-client:$vertxVersion"
 	implementation "io.github.jklingsporn:vertx-jooq-classic-reactive:5.2.0"
 	implementation 'commons-codec:commons-codec:1.9'
-	// http
-	implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
-	implementation group: 'org.apache.httpcomponents', name: 'httpcore', version: '4.4.14'
-	implementation group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.5.13'
 	// jOOQ
 	implementation 'org.jooq:jooq:3.13.4'
-	implementation 'org.jooq:jooq-meta:3.13.4'
+	runtimeOnly 'org.jooq:jooq-meta:3.13.4'
 	runtimeOnly 'org.postgresql:postgresql:42.2.14'
 
 	// jOOQ database driver
 	jooqGenerator 'org.postgresql:postgresql:42.2.14'
 
 	// logging
-	compile 'org.apache.logging.log4j:log4j-core:2.13.2'
+	implementation 'org.apache.logging.log4j:log4j-core:2.13.2'
 
 	// lombok
 	implementation 'org.projectlombok:lombok:1.18.16'
 	annotationProcessor 'org.projectlombok:lombok:1.18.16'
-//	testCompileOnly 'org.projectlombok:lombok:1.18.16'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
 	testSystemAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
 
@@ -190,7 +186,6 @@ dependencies {
 	testImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
 
-	def vertxVersion = "3.9.6"
 	testImplementation "io.vertx:vertx-junit5:$vertxVersion"
 	testImplementation "io.vertx:vertx-unit:$vertxVersion"
 

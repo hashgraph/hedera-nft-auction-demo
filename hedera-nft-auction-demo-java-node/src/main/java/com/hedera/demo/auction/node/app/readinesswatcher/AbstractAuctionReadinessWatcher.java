@@ -9,9 +9,7 @@ import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransaction;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
-import kotlin.Pair;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
@@ -55,51 +53,45 @@ public abstract class AbstractAuctionReadinessWatcher {
         runThread = false;
     }
 
-    public Pair<Boolean, String> handleResponse(JsonObject response) {
+    public boolean handleResponse(MirrorTransactions mirrorTransactions) {
         try {
-            if (response != null) {
-                MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
-
-                if (mirrorTransactions.transactions != null) {
-                    for (MirrorTransaction transaction : mirrorTransactions.transactions) {
-                        if (transaction.isSuccessful()) {
-                            @Var String tokenOwnerAccount = "";
-                            @Var boolean auctionAccountFound = false;
-                            for (MirrorTokenTransfer tokenTransfer : transaction.tokenTransfers) {
-                                if (tokenTransfer.tokenId.equals(this.auction.getTokenid())) {
-                                    if (tokenTransfer.amount == -1) {
-                                        // token owner
-                                        tokenOwnerAccount = tokenTransfer.account;
-                                    } else if (tokenTransfer.amount == 1 && tokenTransfer.account.equals(auction.getAuctionaccountid())) {
-                                        // auction account
-                                        auctionAccountFound = true;
-                                    }
+            if (mirrorTransactions.transactions != null) {
+                for (MirrorTransaction transaction : mirrorTransactions.transactions) {
+                    if (transaction.isSuccessful()) {
+                        @Var String tokenOwnerAccount = "";
+                        @Var boolean auctionAccountFound = false;
+                        for (MirrorTokenTransfer tokenTransfer : transaction.tokenTransfers) {
+                            if (tokenTransfer.tokenId.equals(this.auction.getTokenid())) {
+                                if (tokenTransfer.amount == -1) {
+                                    // token owner
+                                    tokenOwnerAccount = tokenTransfer.account;
+                                } else if (tokenTransfer.amount == 1 && tokenTransfer.account.equals(auction.getAuctionaccountid())) {
+                                    // auction account
+                                    auctionAccountFound = true;
                                 }
-                            }
-
-                            if (auctionAccountFound && ! StringUtils.isEmpty(tokenOwnerAccount)) {
-                                // we have a transfer from the token owner to the auction account
-                                // token is associated
-                                log.info("Account " + auction.getAuctionaccountid() + " owns token " + auction.getTokenid() + ", starting auction");
-                                auctionsRepository.setActive(auction, tokenOwnerAccount, transaction.consensusTimestamp);
-                                // start the thread to monitor bids
-                                if (!this.testing) {
-                                    bidsWatcher = new BidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency);
-                                    Thread t = new Thread(bidsWatcher);
-                                    t.start();
-                                }
-
-                                return new Pair<Boolean, String>(true, "");
                             }
                         }
+
+                        if (auctionAccountFound && ! StringUtils.isEmpty(tokenOwnerAccount)) {
+                            // we have a transfer from the token owner to the auction account
+                            // token is associated
+                            log.info("Account " + auction.getAuctionaccountid() + " owns token " + auction.getTokenid() + ", starting auction");
+                            auctionsRepository.setActive(auction, tokenOwnerAccount, transaction.consensusTimestamp);
+                            // start the thread to monitor bids
+                            if (!this.testing) {
+                                bidsWatcher = new BidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency);
+                                Thread t = new Thread(bidsWatcher);
+                                t.start();
+                            }
+                            return true;
+                        }
                     }
-                    return new Pair<Boolean, String>(false, mirrorTransactions.links.next);
                 }
+                return false;
             }
-            return new Pair<Boolean, String>(false, "");
         } catch (RuntimeException | SQLException e) {
             log.error(e);
-            return new Pair<Boolean, String>(false, "");
         }
+        return false;
     }
 }

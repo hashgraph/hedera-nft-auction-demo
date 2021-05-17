@@ -3,19 +3,14 @@ package com.hedera.demo.auction.node.test.integration.winnertokentransfer;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.SqlConnectionManager;
 import com.hedera.demo.auction.node.app.Utils;
+import com.hedera.demo.auction.node.app.auctionendtransferwatcher.AbstractAuctionEndTransferWatcher;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.node.app.auctionendtransferwatcher.AbstractAuctionEndTransferWatcher;
 import com.hedera.demo.auction.node.test.integration.AbstractIntegrationTest;
 import com.hedera.demo.auction.node.test.integration.HederaJson;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -74,7 +69,7 @@ public class AuctionEndTransferWatcherIntegrationTest extends AbstractIntegratio
         auction.setAuctionaccountid(auctionAccountId);
         auction = auctionsRepository.add(auction);
         auction.setTransfertxid(transactionId);
-        auctionsRepository.setTransferTransaction(auction.getId(), transactionId, "");
+        auctionsRepository.setTransferTransactionByTokenId(auction.getTokenid(), transactionId, "");
 
         winnerTokenTransferWatcher = new AuctionEndTransferWatcher(hederaClient, webClient, auctionsRepository, auction);
     }
@@ -103,9 +98,9 @@ public class AuctionEndTransferWatcherIntegrationTest extends AbstractIntegratio
         winnerTokenTransferWatcher.handleResponse(response, auction);
 
         Auction updatedAuction = auctionsRepository.getAuction(auction.getId());
-        assertEquals(transactionId, updatedAuction.getTransfertxid());
+        assertEquals(auction.getTransfertxid(), updatedAuction.getTransfertxid());
         assertEquals("", updatedAuction.getTransfertxhash());
-        assertTrue(updatedAuction.isPending());
+        assertTrue(updatedAuction.isEnded());
     }
 
     @Test
@@ -116,8 +111,8 @@ public class AuctionEndTransferWatcherIntegrationTest extends AbstractIntegratio
         winnerTokenTransferWatcher.handleResponse(response, auction);
 
         Auction updatedAuction = auctionsRepository.getAuction(auction.getId());
-        assertEquals(transactionId, updatedAuction.getTransfertxid());
+        assertEquals(auction.getTransfertxid(), updatedAuction.getTransfertxid());
         assertEquals("", updatedAuction.getTransfertxhash());
-        assertTrue(updatedAuction.isPending());
+        assertTrue(updatedAuction.isEnded());
     }
 }

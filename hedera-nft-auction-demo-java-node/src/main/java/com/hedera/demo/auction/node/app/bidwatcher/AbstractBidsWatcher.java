@@ -4,13 +4,11 @@ import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.domain.Bid;
-import com.hedera.demo.auction.node.app.refunder.Refunder;
-import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorHbarTransfer;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransaction;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
-import io.vertx.core.json.JsonObject;
+import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
+import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
@@ -33,7 +31,7 @@ public abstract class AbstractBidsWatcher {
     protected boolean testing = false;
     protected boolean runThread = true;
 
-    protected AbstractBidsWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, String refundKey, int mirrorQueryFrequency) throws Exception {
+    protected AbstractBidsWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.bidsRepository = bidsRepository;
         this.auctionsRepository = auctionsRepository;
@@ -42,7 +40,12 @@ public abstract class AbstractBidsWatcher {
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.hederaClient = hederaClient;
         this.mirrorURL = hederaClient.mirrorUrl();
-        this.auction = auctionsRepository.getAuction(auctionId);
+        try {
+            this.auction = auctionsRepository.getAuction(auctionId);
+        } catch (Exception e) {
+            log.error("failed to fetch auction id " + auctionId + " from database.");
+            log.error(e);
+        }
     }
 
     public void setTesting() {
@@ -53,18 +56,14 @@ public abstract class AbstractBidsWatcher {
         runThread = false;
     }
 
-    public void handleResponse(JsonObject response) {
+    public void handleResponse(MirrorTransactions mirrorTransactions) {
         try {
-            if (response != null) {
-                MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
-
-                for (MirrorTransaction transaction : mirrorTransactions.transactions) {
-                    if (transaction.isSuccessful()) {
-                        handleTransaction(transaction);
-                    }
-                    this.auction.setLastconsensustimestamp(transaction.consensusTimestamp);
-                    auctionsRepository.save(this.auction);
+            for (MirrorTransaction transaction : mirrorTransactions.transactions) {
+                if (transaction.isSuccessful()) {
+                    handleTransaction(transaction);
                 }
+                this.auction.setLastconsensustimestamp(transaction.consensusTimestamp);
+                auctionsRepository.save(this.auction);
             }
         } catch (Exception e) {
             log.error(e);
@@ -75,10 +74,10 @@ public abstract class AbstractBidsWatcher {
     public void handleTransaction(MirrorTransaction transaction) throws SQLException {
         @Var String rejectReason = "";
         @Var boolean refund = false;
-        String auctionAccountId = auction.getAuctionaccountid();
+        String auctionAccountId = this.auction.getAuctionaccountid();
         @Var long bidAmount = 0;
 
-        if (transaction.payer().equals(this.auction.getAuctionaccountid())) {
+        if (transaction.payer().equals(auctionAccountId)) {
             log.debug("Skipping auction account refund transaction");
             return;
         }
@@ -145,16 +144,20 @@ public abstract class AbstractBidsWatcher {
             //TODO: update auction and bid in a single tx
             if (StringUtils.isEmpty(rejectReason)) {
                 // we have a winner
-                // refund previous bid
-                if ( ! StringUtils.isEmpty(this.auction.getWinningaccount())) {
-                    // do not refund the very first bid !!!
-                    startRefundThread(this.auction.getWinningbid(), this.auction.getWinningaccount(), this.auction.getWinningtimestamp(), this.auction.getWinningtxid());
-                    refund = false;
-                }
                 // update prior winning bid
                 Bid priorBid = new Bid();
+                // setting the timestamp for refund to match the winning timestamp
+                // will accelerate the refund (avoids repeated EXPIRED_TRANSACTIONS when refunding)
+                priorBid.setTimestampforrefund(transaction.consensusTimestamp);
                 priorBid.setTimestamp(this.auction.getWinningtimestamp());
                 priorBid.setStatus(Bid.HIGHER_BID);
+                if ( StringUtils.isEmpty(this.auction.getWinningaccount())) {
+                    // do not refund the very first bid !!!
+                    priorBid.setRefundstatus("");
+                    refund = false;
+                } else {
+                    priorBid.setRefundstatus(Bid.REFUND_PENDING);
+                }
                 bidsRepository.setStatus(priorBid);
 
                 // update the auction
@@ -163,6 +166,7 @@ public abstract class AbstractBidsWatcher {
                 this.auction.setWinningbid(bidAmount);
                 this.auction.setWinningtxid(transaction.transactionId);
                 this.auction.setWinningtxhash(transaction.getTransactionHashString());
+                auctionsRepository.save(this.auction);
             }
 
             // store the bid
@@ -174,13 +178,10 @@ public abstract class AbstractBidsWatcher {
             currentBid.setStatus(rejectReason);
             currentBid.setTransactionid(transaction.transactionId);
             currentBid.setTransactionhash(transaction.getTransactionHashString());
-            bidsRepository.add(currentBid);
-
             if (refund) {
-                // refund this transaction
-                startRefundThread (bidAmount, transaction.payer(), transaction.consensusTimestamp, transaction.transactionId);
+                currentBid.setRefundstatus(Bid.REFUND_PENDING);
             }
-
+            bidsRepository.add(currentBid);
         } else {
             log.debug("Transaction Id " + transaction.transactionId + " status not SUCCESS.");
         }
@@ -191,14 +192,6 @@ public abstract class AbstractBidsWatcher {
             return false;
         }
         String[] memos = new String[]{"CREATEAUCTION", "FUNDACCOUNT", "TRANSFERTOAUCTION", "ASSOCIATE", "AUCTION REFUND"};
-        return Arrays.stream(memos).anyMatch(memo.toUpperCase()::equals);
-    }
-
-    void startRefundThread(long refundAmound, String refundToAccount, String timestamp, String transactionId) {
-        if (testing) {
-            return;
-        }
-        Thread t = new Thread(new Refunder(hederaClient, bidsRepository, auction.getAuctionaccountid(), refundAmound, refundToAccount, timestamp, transactionId, refundKey));
-        t.start();
+        return Arrays.stream(memos).anyMatch(memo.toUpperCase()::startsWith);
     }
 }

@@ -3,6 +3,8 @@ package com.hedera.demo.auction.node.app;
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
+import com.hedera.demo.auction.node.app.repository.ScheduledOperationsLogRepository;
+import com.hedera.demo.auction.node.app.repository.ScheduledOperationsRepository;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.Status;
@@ -36,9 +38,12 @@ public class EasySetup extends AbstractCreate {
     final static SqlConnectionManager connectionManager = new SqlConnectionManager(url, username, password);
     final static AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
     final static BidsRepository bidsRepository = new BidsRepository(connectionManager);
+    final static ScheduledOperationsRepository scheduledOperationsRepository = new ScheduledOperationsRepository(connectionManager);
+    final static ScheduledOperationsLogRepository scheduledOperationsLogRepository = new ScheduledOperationsLogRepository(connectionManager);
+
     static String topicId = Optional.ofNullable(env.get("VUE_APP_TOPIC_ID")).orElse("");
 
-    public void setup(String[] args) throws Exception {
+    public String setup(String[] args) throws Exception {
         Client client = hederaClient.client();
 
         @Var String symbol = "TT";
@@ -60,6 +65,8 @@ public class EasySetup extends AbstractCreate {
             log.info("Deleting existing auctions and bids and creating new topic");
             bidsRepository.deleteAllBids();
             auctionsRepository.deleteAllAuctions();
+            scheduledOperationsRepository.deleteAllScheduledOperations();
+            scheduledOperationsLogRepository.deleteAllScheduledLogOperations();
             CreateTopic createTopic = new CreateTopic();
             topicId = createTopic.create().toString();
         }
@@ -105,6 +112,7 @@ public class EasySetup extends AbstractCreate {
             log.error(e);
             throw e;
         }
+        return topicId;
     }
     public static void main(String[] args) throws Exception {
         EasySetup easySetup = new EasySetup();

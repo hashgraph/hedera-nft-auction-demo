@@ -4,8 +4,9 @@ import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.vertx.ext.web.client.WebClient;
-import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public class BidsWatcher implements Runnable {
 
     private final int auctionId;
@@ -30,7 +31,6 @@ public class BidsWatcher implements Runnable {
         this.mirrorProvider = hederaClient.mirrorProvider();
     }
 
-    @SneakyThrows
     @Override
     public void run() {
         switch (mirrorProvider) {
@@ -38,7 +38,7 @@ public class BidsWatcher implements Runnable {
                 bidsWatcher = new HederaBidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auctionId, refundKey, mirrorQueryFrequency);
                 break;
             default:
-                throw new Exception("Support for non Hedera mirrors not implemented.");
+                log.error("Support for non Hedera mirrors not implemented.");
         }
         bidsWatcher.watch();
     }

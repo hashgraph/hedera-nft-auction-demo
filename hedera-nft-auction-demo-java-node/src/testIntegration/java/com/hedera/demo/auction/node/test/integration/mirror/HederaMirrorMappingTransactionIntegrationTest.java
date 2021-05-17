@@ -53,7 +53,6 @@ public class HederaMirrorMappingTransactionIntegrationTest extends AbstractMirro
 
         String consensusTimestamp = transaction.getString("consensus_timestamp");
         String result = transaction.getString("result");
-        boolean scheduled = transaction.getBoolean("scheduled");
         String transactionId = transaction.getString("transaction_id");
         String memo = transaction.getString("memo_base64");
         String transactionHash = transaction.getString("transaction_hash");
@@ -63,7 +62,6 @@ public class HederaMirrorMappingTransactionIntegrationTest extends AbstractMirro
         assertEquals(consensusTimestamp, mirrorTransaction.consensusTimestamp);
         assertEquals(memo, mirrorTransaction.memo);
         assertEquals(result, mirrorTransaction.result);
-        assertEquals(scheduled, mirrorTransaction.scheduled);
         assertEquals(transactionHash, mirrorTransaction.transactionHash);
         assertEquals(transactionId, mirrorTransaction.transactionId);
 

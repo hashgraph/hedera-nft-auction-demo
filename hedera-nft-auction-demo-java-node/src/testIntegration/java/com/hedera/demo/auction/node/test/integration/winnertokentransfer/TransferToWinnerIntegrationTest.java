@@ -3,23 +3,17 @@ package com.hedera.demo.auction.node.test.integration.winnertokentransfer;
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.SqlConnectionManager;
+import com.hedera.demo.auction.node.app.auctionendtransfer.AuctionEndTransfer;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.node.app.auctionendtransfer.AuctionEndTransfer;
 import com.hedera.demo.auction.node.test.integration.AbstractIntegrationTest;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -46,6 +40,7 @@ public class TransferToWinnerIntegrationTest extends AbstractIntegrationTest {
         SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
         auctionEndTransfer = new AuctionEndTransfer(hederaClient, webClient, auctionsRepository, "", 5000);
+        auctionEndTransfer.setTesting();
     }
 
     @AfterAll
@@ -72,7 +67,6 @@ public class TransferToWinnerIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testTokenTransfer() throws Exception {
 
-
         @Var Auction updatedAuction = auctionsRepository.getAuction(auction.getId());
         assertEquals("", updatedAuction.getTransfertxid());
         assertEquals("", updatedAuction.getTransfertxhash());
@@ -80,7 +74,7 @@ public class TransferToWinnerIntegrationTest extends AbstractIntegrationTest {
         auctionEndTransfer.transferToken(auction);
 
         updatedAuction = auctionsRepository.getAuction(auction.getId());
-        assertNotEquals("", updatedAuction.getTransfertxid());
-        assertEquals("", updatedAuction.getTransfertxhash());
+
+        assertEquals(Auction.TRANSFER_STATUS_IN_PROGRESS, updatedAuction.getTransferstatus());
     }
 }

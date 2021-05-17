@@ -29,7 +29,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Bids extends TableImpl<Record> {
 
-    private static final long serialVersionUID = 1402640350;
+    private static final long serialVersionUID = 309494280;
 
     /**
      * The reference instance of <code>public.bids</code>
@@ -70,11 +70,6 @@ public class Bids extends TableImpl<Record> {
     public final TableField<Record, String> STATUS = createField(DSL.name("status"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
 
     /**
-     * The column <code>public.bids.refunded</code>.
-     */
-    public final TableField<Record, Boolean> REFUNDED = createField(DSL.name("refunded"), org.jooq.impl.SQLDataType.BOOLEAN.defaultValue(org.jooq.impl.DSL.field("false", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
-
-    /**
      * The column <code>public.bids.refundtxid</code>.
      */
     public final TableField<Record, String> REFUNDTXID = createField(DSL.name("refundtxid"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
@@ -93,6 +88,16 @@ public class Bids extends TableImpl<Record> {
      * The column <code>public.bids.transactionhash</code>.
      */
     public final TableField<Record, String> TRANSACTIONHASH = createField(DSL.name("transactionhash"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+
+    /**
+     * The column <code>public.bids.timestampforrefund</code>.
+     */
+    public final TableField<Record, String> TIMESTAMPFORREFUND = createField(DSL.name("timestampforrefund"), org.jooq.impl.SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>public.bids.refundstatus</code>.
+     */
+    public final TableField<Record, String> REFUNDSTATUS = createField(DSL.name("refundstatus"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
 
     /**
      * Create a <code>public.bids</code> table reference

@@ -16,9 +16,10 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -101,9 +102,33 @@ class BidDatabaseIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void setRefundInProgressTest() throws SQLException {
 
-        String transactionId = "refundTransactionId";
+        bidsRepository.setRefundIssued(bid.getTimestamp());
+
+        List<Bid> bids = bidsRepository.getBidsList();
+        assertNotNull(bids);
+        assertEquals(1, bids.size());
+        assertTrue(bids.get(0).isRefundIssued());
+    }
+
+    @Test
+    public void setRefundPendingTest() throws SQLException {
+
+        bidsRepository.setRefundPending(bid.getTransactionid());
+
+        List<Bid> bids = bidsRepository.getBidsList();
+        assertNotNull(bids);
+        assertEquals(1, bids.size());
+        assertTrue(bids.get(0).isRefundPending());
+        assertEquals("", bids.get(0).getRefundtxid());
+        assertEquals("", bids.get(0).getRefundtxhash());
+    }
+
+    @Test
+    public void setRefunded() throws SQLException {
+
         String transactionHash = "refundTransactionHash";
-        bidsRepository.setRefundInProgress(bid.getTimestamp(), transactionId, transactionHash);
+        String transactionId = "refundTransactionId";
+        bidsRepository.setRefunded(bid.getTransactionid(), transactionId, transactionHash);
 
         List<Bid> bids = bidsRepository.getBidsList();
         assertNotNull(bids);
@@ -114,34 +139,21 @@ class BidDatabaseIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void setRefunded() throws SQLException {
-
-        String transactionHash = "refundTransactionHash";
-        bidsRepository.setRefunded(bid.getTimestamp(), transactionHash);
-
-        List<Bid> bids = bidsRepository.getBidsList();
-        assertNotNull(bids);
-        assertEquals(1, bids.size());
-        assertEquals(transactionHash, bids.get(0).getRefundtxhash());
-
-    }
-
-    @Test
-    public void bidsRefundToConfirmTest() throws SQLException {
+    public void firstBidToRefundTest() throws SQLException {
         int numBids = 3;
         bidsRepository.deleteAllBids();
+        List<Bid> bids = new ArrayList<>();
 
         for (int i=0; i < numBids; i++) {
             Bid bid = testBidObject(i, auctionId);
+            bids.add(bid);
             bidsRepository.add(bid);
-            String transactionId = "refundTransactionId";
-            String transactionHash = "refundTransactionHash";
-            bidsRepository.setRefundInProgress(bid.getTimestamp(), transactionId, transactionHash);
+            bidsRepository.setRefundIssued(bid.getTimestamp());
         }
 
-        Map<String, String> bids = bidsRepository.bidsRefundToConfirm();
-        assertNotNull(bids);
-        assertEquals(numBids, bids.size());
+        String firstBidToRefund = bidsRepository.getFirstBidToRefund(auctionId);
+        assertNotNull(firstBidToRefund);
+        assertEquals(bids.get(0).getTimestamp(), firstBidToRefund);
 
     }
 

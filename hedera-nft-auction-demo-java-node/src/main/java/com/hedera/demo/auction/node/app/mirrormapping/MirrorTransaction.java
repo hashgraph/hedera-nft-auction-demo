@@ -23,11 +23,11 @@ public class MirrorTransaction {
         return new String(transactionMemoBytes, StandardCharsets.UTF_8);
     }
 
+    @JsonProperty("name")
+    public String name = "";
+
     @JsonProperty("result")
     public String result = "";
-
-    @JsonProperty("scheduled")
-    public boolean scheduled = false;
 
     @JsonProperty("transaction_hash")
     public String transactionHash = "";

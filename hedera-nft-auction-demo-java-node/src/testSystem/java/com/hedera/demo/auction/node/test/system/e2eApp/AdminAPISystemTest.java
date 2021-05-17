@@ -10,7 +10,12 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.PostgreSQLContainer;
 
@@ -49,10 +54,11 @@ public class AdminAPISystemTest extends AbstractAPITester {
         auctionsRepository.deleteAllAuctions();
         TopicId topicId = createTopic.create();
         hederaClient.setMirrorProvider("hedera");
-        hederaClient.setClientMirror(dotenv);
+        hederaClient.setClientMirror();
 
-        app.overrideEnv(hederaClient, true, true, true, topicId.toString(), hederaClient.operatorPrivateKey().toString(), postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), true);
+        app.overrideEnv(hederaClient, /*restAPI= */ true, /*adminAPI= */true, /*auctionNode= */ true, topicId.toString(), hederaClient.operatorPrivateKey().toString(), postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /*transferOnWin= */true);
         app.runApp();
+        Thread.sleep(5000);
     }
 
     @AfterEach

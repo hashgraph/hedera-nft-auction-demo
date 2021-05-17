@@ -94,9 +94,6 @@ public class AbstractIntegrationTest {
     Long bidamount() {
         return 30L + this.index;
     }
-    boolean refunded() {
-        return (this.index == 1);
-    }
     String refundtxid() {
         return stringPlusIndex("refundtxid");
     }
@@ -109,6 +106,10 @@ public class AbstractIntegrationTest {
     String transactionhash() {
         return stringPlusIndex("transactionhash");
     }
+    String timestampforrefund() { return stringPlusIndex("timestampforrefund"); }
+    String refundStatus() { return Bid.REFUND_ISSUED; }
+
+    protected boolean masterNode = true; //TODO: Handle tests where masterNode = false
 
     protected Auction testAuctionObject(int index) {
         this.index = index;
@@ -157,11 +158,12 @@ public class AbstractIntegrationTest {
         bid.setBidderaccountid(bidderaccountid());
         bid.setBidamount(bidamount());
         bid.setStatus(status());
-        bid.setRefunded(refunded());
         bid.setRefundtxid(refundtxid());
         bid.setRefundtxhash(refundtxhash());
         bid.setTransactionid(transactionid());
         bid.setTransactionhash(transactionhash());
+        bid.setRefundstatus(refundStatus());
+        bid.setTimestampforrefund(timestampforrefund());
 
         return bid;
     }
@@ -175,21 +177,24 @@ public class AbstractIntegrationTest {
         assertEquals(bid.getBidderaccountid(),newBid.getBidderaccountid());
         assertEquals(bid.getTransactionid(),newBid.getTransactionid());
         assertEquals(bid.getTransactionhash(),newBid.getTransactionhash());
+        assertEquals(bid.getRefundstatus(), newBid.getRefundstatus());
+        assertEquals(bid.getTimestamp(), newBid.getTimestampforrefund());
     }
 
-    public void verifyBidContents(Bid bid, int auctionId) {
-        assertEquals(timestamp(), bid.getTimestamp());
-        assertEquals(auctionId, bid.getAuctionid());
-        assertEquals(bidderaccountid(), bid.getBidderaccountid());
-        assertEquals(bidamount(), bid.getBidamount());
-        assertEquals(status(), bid.getStatus());
-        assertEquals(refunded(), bid.getRefunded());
-        assertEquals(refundtxid(), bid.getRefundtxid());
-        assertEquals(refundtxhash(), bid.getRefundtxhash());
-        assertEquals(transactionid(), bid.getTransactionid());
-        assertEquals(transactionhash(), bid.getTransactionhash());
-    }
-
+//    public void verifyBidContents(Bid bid, int auctionId) {
+//        assertEquals(timestamp(), bid.getTimestamp());
+//        assertEquals(auctionId, bid.getAuctionid());
+//        assertEquals(bidderaccountid(), bid.getBidderaccountid());
+//        assertEquals(bidamount(), bid.getBidamount());
+//        assertEquals(status(), bid.getStatus());
+//        assertEquals(refundtxid(), bid.getRefundtxid());
+//        assertEquals(refundtxhash(), bid.getRefundtxhash());
+//        assertEquals(transactionid(), bid.getTransactionid());
+//        assertEquals(transactionhash(), bid.getTransactionhash());
+//        assertEquals(refundStatus(), bid.getRefundstatus());
+//        assertEquals(timestampforrefund(), bid.getTimestampforrefund());
+//    }
+//
     protected void migrate(PostgreSQLContainer postgres) {
         String postgresUrl = postgres.getJdbcUrl();
         String postgresUser = postgres.getUsername();
@@ -226,11 +231,12 @@ public class AbstractIntegrationTest {
         assertEquals(bid.getBidderaccountid(), body.getString("bidderaccountid"));
         assertEquals(bid.getBidamount(), body.getLong("bidamount"));
         assertEquals(bid.getStatus(), body.getString("status"));
-        assertEquals(true, body.getBoolean("refunded"));
         assertEquals(bid.getRefundtxid(), body.getString("refundtxid"));
         assertEquals(bid.getRefundtxhash(), body.getString("refundtxhash"));
         assertEquals(bid.getTransactionid(), body.getString("transactionid"));
         assertEquals(bid.getTransactionhash(), body.getString("transactionhash"));
+        assertEquals(bid.getTimestamp(), body.getString("timestampforrefund"));
+        assertEquals(bid.getRefundstatus(), body.getString("refundstatus"));
     }
 
     protected void verifyAuction(Auction auction, JsonObject body) {
@@ -255,7 +261,7 @@ public class AbstractIntegrationTest {
         assertEquals(auction.isPending(), body.getBoolean("pending"));
         assertEquals(auction.isClosed(), body.getBoolean("closed"));
         assertEquals(auction.getWinnerCanBid(), body.getBoolean("winnerCanBid"));
-        assertEquals(auction.isTransferring(), body.getBoolean("transferring"));
+        assertEquals(auction.isTransferPending(), body.getBoolean("transferPending"));
         assertEquals(auction.isEnded(), body.getBoolean("ended"));
         assertEquals(auction.getTokenowneraccount(), body.getString("tokenowneraccount"));
     }

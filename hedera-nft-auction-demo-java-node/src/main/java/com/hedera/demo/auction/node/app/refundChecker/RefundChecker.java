@@ -1,33 +1,50 @@
 package com.hedera.demo.auction.node.app.refundChecker;
 
+import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
+import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.vertx.ext.web.client.WebClient;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+
+import javax.annotation.Nullable;
 
 @Log4j2
 public class RefundChecker extends AbstractRefundChecker implements Runnable {
 
-    public RefundChecker(HederaClient hederaClient, WebClient webClient, BidsRepository bidsRepository, int mirrorQueryFrequency) {
-        super(hederaClient, webClient, bidsRepository, mirrorQueryFrequency);
+    public RefundChecker(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int mirrorQueryFrequency) {
+        super(hederaClient, webClient, auctionsRepository, bidsRepository, mirrorQueryFrequency);
     }
 
-    @SneakyThrows
     @Override
     public void run() {
 
         log.info("Checking for bid refunds");
+        RefundCheckerInterface refundChecker = getRefundChecker();
+        if (refundChecker != null) {
+            refundChecker.watch();
+        }
+    }
 
-        RefundCheckerInterface refundChecker;
+    public void runOnce() {
+        log.info("Checking for bid refunds");
+        RefundCheckerInterface refundChecker = getRefundChecker();
+        if (refundChecker != null) {
+            refundChecker.watchOnce();
+        }
+    }
+
+    @Nullable
+    private RefundCheckerInterface getRefundChecker() {
+        @Var RefundCheckerInterface refundChecker = null;
 
         switch (mirrorProvider) {
             case "HEDERA":
-                refundChecker = new HederaRefundChecker(hederaClient, webClient, bidsRepository, mirrorQueryFrequency);
+                refundChecker = new HederaRefundChecker(hederaClient, webClient, auctionsRepository, bidsRepository, mirrorQueryFrequency);
                 break;
             default:
-                throw new Exception("Support for non Hedera mirrors not implemented.");
+                log.error("Support for non Hedera mirrors not implemented.");
         }
-        refundChecker.watch();
+        return refundChecker;
     }
 }

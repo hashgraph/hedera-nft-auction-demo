@@ -8,9 +8,20 @@ import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.test.system.AbstractSystemTest;
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.AccountBalance;
+import com.hedera.hashgraph.sdk.AccountBalanceQuery;
+import com.hedera.hashgraph.sdk.AccountCreateTransaction;
+import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.Hbar;
+import com.hedera.hashgraph.sdk.PrecheckStatusException;
+import com.hedera.hashgraph.sdk.ReceiptStatusException;
+import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
+import com.hedera.hashgraph.sdk.TransactionReceipt;
+import com.hedera.hashgraph.sdk.TransactionResponse;
+import com.hedera.hashgraph.sdk.TransferTransaction;
 import lombok.extern.log4j.Log4j2;
 import net.joshka.junit.json.params.JsonFileSource;
+import org.jooq.tools.StringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +46,6 @@ import static org.awaitility.Awaitility.await;
 public class E2EAppTest extends AbstractSystemTest {
 
     App app = new App();
-    long auctionReserve;
     long auctionMinimumBid;
     boolean auctionWinnerCanBid;
     Hbar startBalance;
@@ -109,7 +119,7 @@ public class E2EAppTest extends AbstractSystemTest {
         createTokenAndGetInfo(tokenSymbolFromJson);
 
         hederaClient.setMirrorProvider(mirror);
-        hederaClient.setClientMirror(dotenv);
+        hederaClient.setClientMirror();
         hederaClient.setOperator(auctionAccountId, auctionAccountKey);
 
         app.overrideEnv(hederaClient, /* restAPI= */true, /* adminAPI= */true, /* auctionNode= */true, topicId.toString(), auctionAccountKey.toString(), postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /* transferOnWin= */transferOnWin);
@@ -159,12 +169,15 @@ public class E2EAppTest extends AbstractSystemTest {
         response.getReceipt(bidderClient);
     }
 
-    private void runTestTasks(JsonValue mirrorValue, JsonObject test, JsonArray tasks) throws Exception {
+    private void runTestTasks(JsonObject test, JsonArray tasks) throws Exception {
         for (JsonValue taskJson : tasks) {
+
             JsonObject task = taskJson.asJsonObject();
+
             String taskName = task.getString("name", "");
             String taskDescription = task.getString("description", "");
             String account = task.getString("account", "");
+
 
             log.info("  running task " + taskName + " - " + taskDescription);
 
@@ -236,6 +249,10 @@ public class E2EAppTest extends AbstractSystemTest {
     public void e2eTest(JsonObject test) throws Exception {
         log.info("Starting e2e test : " + test.getString("testName"));
 
+        if (test.getBoolean("skip", false)) {
+            return;
+        }
+
         JsonArray mirrors = test.getJsonArray("mirrors");
 
         for (JsonValue mirrorValue : mirrors) {
@@ -256,7 +273,7 @@ public class E2EAppTest extends AbstractSystemTest {
 
             JsonArray tasks = test.getJsonArray("tasks");
 
-            runTestTasks(mirrorValue, test, tasks);
+            runTestTasks(test, tasks);
 
             app.stop();
 
@@ -276,7 +293,7 @@ public class E2EAppTest extends AbstractSystemTest {
     }
 
     private void getBalanceForAccount(String account) throws TimeoutException, PrecheckStatusException {
-        @Var AccountId accountId;
+        AccountId accountId;
         switch (account) {
             case "tokenOwner":
                 accountId = tokenOwnerAccountId;
@@ -312,7 +329,7 @@ public class E2EAppTest extends AbstractSystemTest {
         @Var String bidAccount = "";
         @Var long bidAmount = 0;
 
-        if (value.isEmpty()) {
+        if (StringUtils.isEmpty(value)) {
             if (parameter.equals("winningAccount") && condition.equals("equals")) {
                 value = maxBidAccount.toString();
             } else if (parameter.equals("winningBid") && condition.equals("equals")) {
@@ -327,7 +344,7 @@ public class E2EAppTest extends AbstractSystemTest {
         }
 
         if (object.equals("bid")) {
-            if (! from.isEmpty()) {
+            if (! StringUtils.isEmpty(from)) {
                 bidAccount = biddingAccounts.get(from).toString();
             }
             if (assertion.containsKey("amount")) {
@@ -344,7 +361,13 @@ public class E2EAppTest extends AbstractSystemTest {
                             .await()
                             .atMost(Duration.ofSeconds(20))
                             .until(auctionsCountMatches(Integer.parseInt(value)));
-
+                } else if (parameter.equals("associated")) {
+                    await()
+                            .with()
+                            .pollInterval(Duration.ofSeconds(1))
+                            .await()
+                            .atMost(Duration.ofSeconds(20))
+                            .until(tokenAssociated());
                 } else {
                     await()
                             .with()

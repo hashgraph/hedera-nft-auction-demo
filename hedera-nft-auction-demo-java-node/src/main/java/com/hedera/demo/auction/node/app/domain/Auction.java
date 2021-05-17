@@ -34,7 +34,9 @@ public class Auction implements VertxPojo, Serializable {
     private String starttimestamp = "";
     private String transfertxid = "";
     private String transfertxhash = "";
-    private String tokenOwnerAccount = "";
+    private String tokenowneraccount = "";
+    private String transfertimestamp = "";
+    private String transferstatus = "";
 
     public Auction() {}
 
@@ -57,7 +59,9 @@ public class Auction implements VertxPojo, Serializable {
         this.starttimestamp = record.get(AUCTIONS.STARTTIMESTAMP);
         this.transfertxid = record.get(AUCTIONS.TRANSFERTXID);
         this.transfertxhash = record.get(AUCTIONS.TRANSFERTXHASH);
-        this.tokenOwnerAccount = record.get(AUCTIONS.TOKENOWNER);
+        this.tokenowneraccount = record.get(AUCTIONS.TOKENOWNER);
+        this.transfertimestamp = record.get(AUCTIONS.TRANSFERTIMESTAMP);
+        this.transferstatus = record.get(AUCTIONS.TRANSFERSTATUS);
     }
 
     public Auction (Row row) {
@@ -79,7 +83,9 @@ public class Auction implements VertxPojo, Serializable {
         this.starttimestamp = row.getString(AUCTIONS.STARTTIMESTAMP.getName());
         this.transfertxid = row.getString(AUCTIONS.TRANSFERTXID.getName());
         this.transfertxhash = row.getString(AUCTIONS.TRANSFERTXHASH.getName());
-        this.tokenOwnerAccount = row.getString(AUCTIONS.TOKENOWNER.getName());
+        this.tokenowneraccount = row.getString(AUCTIONS.TOKENOWNER.getName());
+        this.transfertimestamp = row.getString(AUCTIONS.TRANSFERTIMESTAMP.getName());
+        this.transferstatus = row.getString(AUCTIONS.TRANSFERSTATUS.getName());
     }
 
     public Auction(io.vertx.core.json.JsonObject json) {
@@ -87,11 +93,14 @@ public class Auction implements VertxPojo, Serializable {
         fromJson(json);
     }
 
-    public static final String CLOSED = "CLOSED";
     public static final String PENDING = "PENDING";
     public static final String ACTIVE = "ACTIVE";
-    public static final String TRANSFER = "TRANSFER";
+    public static final String CLOSED = "CLOSED"; // auction is closed, bids can no longer be accepted
     public static final String ENDED = "ENDED";
+
+    public static final String TRANSFER_STATUS_PENDING = "PENDING";
+    public static final String TRANSFER_STATUS_IN_PROGRESS = "IN_PROGRESS";
+    public static final String TRANSFER_STATUS_COMPLETE = "COMPLETE";
 
     public boolean isPending() {
         return this.status.equals(Auction.PENDING);
@@ -99,8 +108,14 @@ public class Auction implements VertxPojo, Serializable {
     public boolean isActive() {
         return this.status.equals(Auction.ACTIVE);
     }
-    public boolean isTransferring() {
-        return this.status.equals(Auction.TRANSFER);
+    public boolean isTransferPending() {
+        return this.transferstatus.equals(Auction.TRANSFER_STATUS_PENDING);
+    }
+    public boolean isTransferInProgress() {
+        return this.transferstatus.equals(Auction.TRANSFER_STATUS_IN_PROGRESS);
+    }
+    public boolean isTransferComplete() {
+        return this.transferstatus.equals(Auction.TRANSFER_STATUS_COMPLETE);
     }
     public boolean isEnded() {
         return this.status.equals(Auction.ENDED);
@@ -253,9 +268,25 @@ public class Auction implements VertxPojo, Serializable {
         this.transfertxhash = transfertxhash;
     }
 
-    public String getTokenowneraccount() { return this.tokenOwnerAccount; }
+    public String getTokenowneraccount() { return this.tokenowneraccount; }
 
-    public void setTokenowneraccount(String tokenOwnerAccount) { this.tokenOwnerAccount = tokenOwnerAccount; }
+    public void setTokenowneraccount(String tokenOwnerAccount) { this.tokenowneraccount = tokenOwnerAccount; }
+
+    public String getTransfertimestamp() {
+        return this.transfertimestamp;
+    }
+
+    public void setTransfertimestamp(String transfertimestamp) {
+        this.transfertimestamp = transfertimestamp;
+    }
+
+    public String getTransferstatus() {
+        return transferstatus;
+    }
+
+    public void setTransferstatus(String transferstatus) {
+        this.transferstatus = transferstatus;
+    }
 
     @Override
     public String toString() {
@@ -279,7 +310,9 @@ public class Auction implements VertxPojo, Serializable {
         sb.append(", ").append(starttimestamp);
         sb.append(", ").append(transfertxid);
         sb.append(", ").append(transfertxhash);
-        sb.append(", ").append(tokenOwnerAccount);
+        sb.append(", ").append(tokenowneraccount);
+        sb.append(", ").append(transfertimestamp);
+        sb.append(", ").append(getTransferstatus());
 
         sb.append(")");
         return sb.toString();
@@ -306,6 +339,8 @@ public class Auction implements VertxPojo, Serializable {
         this.setTransfertxid(json.getString("transfertxid", ""));
         this.setTransfertxhash(json.getString("transfertxhash", ""));
         this.setTokenowneraccount(json.getString("tokenowneraccount", ""));
+        this.setTransfertimestamp(json.getString("transfertimestamp", ""));
+        this.setTransferstatus(json.getString("transferstatus", ""));
         return this;
     }
 
@@ -332,6 +367,8 @@ public class Auction implements VertxPojo, Serializable {
         json.put("transfertxid", getTransfertxid());
         json.put("transfertxhash", getTransfertxhash());
         json.put("tokenowneraccount", getTokenowneraccount());
+        json.put("transfertimestamp", getTransfertimestamp());
+        json.put("transferstatus", getTransferstatus());
 
         return json;
     }

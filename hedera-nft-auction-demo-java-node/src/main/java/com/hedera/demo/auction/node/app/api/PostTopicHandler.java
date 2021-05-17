@@ -35,14 +35,14 @@ public class PostTopicHandler implements Handler<RoutingContext> {
             routingContext.response()
                     .putHeader("content-type", "application/json")
                     .end(Json.encodeToBuffer(response));
-
-        } catch (IOException | TimeoutException | InterruptedException | PrecheckStatusException | ReceiptStatusException e) {
+        } catch (InterruptedException e) {
             routingContext.fail(400, e);
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
+        } catch (IOException | TimeoutException |PrecheckStatusException | ReceiptStatusException e) {
+            routingContext.fail(400, e);
             log.error(e);
         } catch (Exception e) {
             routingContext.fail(400, e);
-            e.printStackTrace();
             log.error(e);
         }
     }

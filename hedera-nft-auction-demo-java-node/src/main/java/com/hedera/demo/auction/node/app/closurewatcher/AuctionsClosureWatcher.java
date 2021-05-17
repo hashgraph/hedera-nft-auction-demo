@@ -3,8 +3,9 @@ package com.hedera.demo.auction.node.app.closurewatcher;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import io.vertx.ext.web.client.WebClient;
-import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 public class AuctionsClosureWatcher implements Runnable {
 
     private final WebClient webClient;
@@ -15,8 +16,9 @@ public class AuctionsClosureWatcher implements Runnable {
     private final String refundKey;
     private final HederaClient hederaClient;
     private AuctionClosureWatcherInterface auctionClosureWatcher = null;
+    private final boolean masterNode;
 
-    public AuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey) {
+    public AuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey, boolean masterNode) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
@@ -24,18 +26,19 @@ public class AuctionsClosureWatcher implements Runnable {
         this.refundKey = refundKey;
         this.hederaClient = hederaClient;
         this.mirrorProvider = hederaClient.mirrorProvider();
+        this.masterNode = masterNode;
     }
 
-    @SneakyThrows
     @Override
     public void run() {
 
         switch (mirrorProvider) {
             case "HEDERA":
-                auctionClosureWatcher = new HederaAuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
+                auctionClosureWatcher = new HederaAuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey, masterNode);
                 break;
             default:
-                throw new Exception("Support for non Hedera mirrors not implemented.");
+                log.error("Support for non Hedera mirrors not implemented.");
+                return;
         }
         auctionClosureWatcher.watch();
     }

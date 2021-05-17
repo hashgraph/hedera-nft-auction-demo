@@ -63,6 +63,7 @@ setup the `.env` properties as follows
 * OPERATOR_ID= (input your account id for the Hedera network)
 * OPERATOR_KEY= (input your private key associated with the Hedera account above - 302xxxx)
 * REFUND_KEY= (Same as operator key for testing purposes)
+* MASTER_NODE=false (set this to true only for one node which has a REFUND_KEY which has full authority over the auction accounts)
 
 you may leave the other properties as is for now
 

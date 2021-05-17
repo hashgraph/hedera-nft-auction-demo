@@ -19,20 +19,20 @@ public class HederaMirrorMappingTransactionTest extends AbstractMirrorMapping {
 
         String consensusTimestamp = transaction.getString("consensus_timestamp");
         String result = transaction.getString("result");
-        boolean scheduled = transaction.getBoolean("scheduled");
         String transactionId = transaction.getString("transaction_id");
 
         String memo = transaction.getString("memo_base64");
         String transactionHash = transaction.getString("transaction_hash");
+        String name = transaction.getString("name");
 
         MirrorTransaction mirrorTransaction = transaction.mapTo(MirrorTransaction.class);
 
         assertEquals(consensusTimestamp, mirrorTransaction.consensusTimestamp);
         assertEquals(memo, mirrorTransaction.memo);
         assertEquals(result, mirrorTransaction.result);
-        assertEquals(scheduled, mirrorTransaction.scheduled);
         assertEquals(transactionHash, mirrorTransaction.transactionHash);
         assertEquals(transactionId, mirrorTransaction.transactionId);
+        assertEquals(name, mirrorTransaction.name);
 
         JsonArray hbarTransfers = transaction.getJsonArray("transfers");
         assertEquals(hbarTransfers.size(), mirrorTransaction.hbarTransfers.size());
@@ -55,20 +55,6 @@ public class HederaMirrorMappingTransactionTest extends AbstractMirrorMapping {
 
         boolean success = result.equals("SUCCESS");
         assertEquals(success, mirrorTransaction.isSuccessful());
-    }
-
-    @Test
-    public void testMirrorMappingTransactionScheduledHedera() throws IOException {
-
-        JsonObject transaction = loadJsonFile("hedera-mirror/hedera-mirror-transaction.json");
-
-        transaction.put("scheduled", false);
-        @Var MirrorTransaction mirrorTransaction = transaction.mapTo(MirrorTransaction.class);
-        assertEquals(false, mirrorTransaction.scheduled);
-
-        transaction.put("scheduled", true);
-        mirrorTransaction = transaction.mapTo(MirrorTransaction.class);
-        assertEquals(true, mirrorTransaction.scheduled);
     }
 
     @Test

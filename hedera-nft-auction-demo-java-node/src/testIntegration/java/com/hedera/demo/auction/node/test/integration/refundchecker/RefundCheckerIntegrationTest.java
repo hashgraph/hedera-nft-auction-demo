@@ -5,6 +5,7 @@ import com.hedera.demo.auction.node.app.SqlConnectionManager;
 import com.hedera.demo.auction.node.app.Utils;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.domain.Bid;
+import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.node.app.refundChecker.AbstractRefundChecker;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
@@ -26,7 +27,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -49,8 +49,8 @@ public class RefundCheckerIntegrationTest extends AbstractIntegrationTest {
 
     static class RefundTester extends AbstractRefundChecker {
 
-        protected RefundTester(HederaClient hederaClient, WebClient webClient, BidsRepository bidsRepository, int mirrorQueryFrequency) {
-            super(hederaClient, webClient, bidsRepository, mirrorQueryFrequency);
+        protected RefundTester(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int mirrorQueryFrequency) {
+            super(hederaClient, webClient, auctionsRepository, bidsRepository, mirrorQueryFrequency);
         }
     }
 
@@ -63,7 +63,7 @@ public class RefundCheckerIntegrationTest extends AbstractIntegrationTest {
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
 
-        refundTester = new RefundTester(hederaClient, webClient, bidsRepository, 5000);
+        refundTester = new RefundTester(hederaClient, webClient, auctionsRepository, bidsRepository, 5000);
     }
 
     @AfterAll
@@ -97,54 +97,32 @@ public class RefundCheckerIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testRefundSuccess() throws Exception {
 
-        bidsRepository.setRefundInProgress(bid.getTimestamp(), transactionId, transactionHash);
-
-        refundTester.handleResponse(bidTransactions, bid.getTimestamp(), transactionId);
-
-        List<Bid> updateBids = bidsRepository.getBidsList();
-        assertTrue(updateBids.get(0).getRefunded());
-        assertEquals(transactionHash, updateBids.get(0).getRefundtxhash());
-        assertEquals(transactionId, updateBids.get(0).getRefundtxid());
-    }
-
-    @Test
-    public void testRefundSuccessReadonly() throws Exception {
-
-        bidsRepository.setRefundInProgress(bid.getTimestamp(), transactionId, "");
-
-        refundTester.handleResponse(bidTransactions, bid.getTimestamp(), transactionId);
+        bidsRepository.setRefunded(bid.getTransactionid(), bid.getTransactionid(), bid.getTransactionhash());
+        MirrorTransactions mirrorTransactions = bidTransactions.mapTo(MirrorTransactions.class);
+        refundTester.handleResponse(mirrorTransactions);
 
         List<Bid> updateBids = bidsRepository.getBidsList();
-        assertTrue(updateBids.get(0).getRefunded());
-        assertEquals(transactionHash, updateBids.get(0).getRefundtxhash());
-        assertEquals(transactionId, updateBids.get(0).getRefundtxid());
+        assertTrue(updateBids.get(0).isRefunded());
+        assertEquals(bid.getTransactionid(), updateBids.get(0).getRefundtxid());
+        assertEquals(bid.getTransactionhash(), updateBids.get(0).getRefundtxhash());
     }
 
     @Test
     public void testRefundFailedTx() throws Exception {
 
+        String memo = Bid.REFUND_MEMO_PREFIX.concat(bid.getTransactionid());
+        String memoBase64 = Utils.stringToBase64(memo);
+        bidTransaction.put("memo_base64", memoBase64);
         bidTransaction.put("result","failed");
-        bidsRepository.setRefundInProgress(bid.getTimestamp(), transactionId, transactionHash);
+        bidTransactions = HederaJson.mirrorTransactions(bidTransaction);
+        bidsRepository.setRefundIssued(bid.getTimestamp());
 
-        refundTester.handleResponse(bidTransactions, bid.getTimestamp(), transactionId);
+        MirrorTransactions mirrorTransactions = bidTransactions.mapTo(MirrorTransactions.class);
+        refundTester.handleResponse(mirrorTransactions);
 
         List<Bid> updateBids = bidsRepository.getBidsList();
-        assertFalse(updateBids.get(0).getRefunded());
-        assertEquals(transactionHash, updateBids.get(0).getRefundtxhash());
-        assertEquals(transactionId, updateBids.get(0).getRefundtxid());
-    }
-
-    @Test
-    public void testRefundFailedTxReadonly() throws Exception {
-
-        bidTransaction.put("result","failed");
-        bidsRepository.setRefundInProgress(bid.getTimestamp(), transactionId, "");
-
-        refundTester.handleResponse(bidTransactions, bid.getTimestamp(), transactionId);
-
-        List<Bid> updateBids = bidsRepository.getBidsList();
-        assertFalse(updateBids.get(0).getRefunded());
+        assertTrue(updateBids.get(0).isRefundPending());
         assertEquals("", updateBids.get(0).getRefundtxhash());
-        assertEquals(transactionId, updateBids.get(0).getRefundtxid());
+        assertEquals("", updateBids.get(0).getRefundtxid());
     }
 }

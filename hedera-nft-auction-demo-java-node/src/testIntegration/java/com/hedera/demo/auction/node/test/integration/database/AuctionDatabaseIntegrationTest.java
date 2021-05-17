@@ -18,9 +18,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -83,29 +81,24 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void setAuctionTransferringTest() throws Exception {
 
-        auctionsRepository.setTransferring(auction.getTokenid());
+        auctionsRepository.setTransferPending(auction.getTokenid());
         Auction getAuction = auctionsRepository.getAuction(auction.getId());
 
-        assertEquals(Auction.TRANSFER, getAuction.getStatus());
+        assertEquals(Auction.TRANSFER_STATUS_PENDING, getAuction.getTransferstatus());
+        assertTrue(getAuction.isTransferPending());
     }
 
     @Test
     public void setTransferTransactionTest() throws Exception {
-        auctionsRepository.setTransferTransaction(auction.getId(), auction.getTransfertxid(), auction.getTransfertxhash());
+        auctionsRepository.setTransferTransactionByTokenId(auction.getTokenid(), auction.getTransfertxid(), auction.getTransfertxhash());
         Auction getAuction = auctionsRepository.getAuction(auction.getId());
 
         assertEquals(auction.getTransfertxid(), getAuction.getTransfertxid());
         assertEquals(auction.getTransfertxhash(), getAuction.getTransfertxhash());
+        assertTrue(getAuction.isEnded());
+        assertTrue(getAuction.isTransferComplete());
     }
 
-    @Test
-    public void setEndedTest() throws Exception {
-
-        auctionsRepository.setEnded(auction.getId(), auction.getTransfertxhash());
-        Auction getAuction = auctionsRepository.getAuction(auction.getId());
-
-        assertEquals(auction.getTransfertxhash(), getAuction.getTransfertxhash());
-    }
     @Test
     public void setClosedByAuctionTest() throws Exception {
 
@@ -151,9 +144,6 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
     public void openAndPendingAuctionsTest() throws SQLException {
 
         auctionsRepository.deleteAllAuctions();
-
-        auction.setStatus(Auction.TRANSFER);
-        auctionsRepository.createComplete(auction);
 
         auction = testAuctionObject(2);
         auction.setStatus(Auction.PENDING);

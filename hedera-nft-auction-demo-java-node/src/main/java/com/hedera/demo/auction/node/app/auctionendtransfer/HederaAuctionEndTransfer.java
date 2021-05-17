@@ -1,14 +1,22 @@
 package com.hedera.demo.auction.node.app.auctionendtransfer;
 
+import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
+import com.hedera.demo.auction.node.app.Utils;
+import com.hedera.demo.auction.node.app.domain.Auction;
+import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.codec.BodyCodec;
 import lombok.extern.log4j.Log4j2;
+import org.jooq.tools.StringUtils;
 
-import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 @Log4j2
 public class HederaAuctionEndTransfer extends AbstractAuctionEndTransfer implements AuctionEndTransferInterface {
@@ -17,42 +25,45 @@ public class HederaAuctionEndTransfer extends AbstractAuctionEndTransfer impleme
         super(hederaClient, webClient, auctionsRepository, tokenId, winningAccountId);
     }
 
-    /**
-     * check association of token with winner
-     */
     @Override
-    public void checkAssociation() {
-
+    public TransferResult checkTransferInProgress(Auction auction) {
         String uri = "/api/v1/transactions";
 
-        var webQuery  = webClient
-                .get(mirrorURL, uri)
-                .as(BodyCodec.jsonObject())
-                .addQueryParam("account.id", winningAccountId)
-                .addQueryParam("transactiontype", "TOKENASSOCIATE")
-                .addQueryParam("result", "SUCCESS");
-
-        webQuery.send(response -> {
-            if (response.succeeded()) {
-                JsonObject body = response.result().body();
-                try {
-                    checkForAssociation(body);
-                } catch (Exception e) {
-                    log.error(e);
-                }
+        @Var TransferResult result = TransferResult.NOT_FOUND;
+        @Var String nextTimestamp = auction.getEndtimestamp();
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        while (!StringUtils.isEmpty(nextTimestamp)) {
+            Map<String, String> queryParameters = new HashMap<>();
+            if (StringUtils.isEmpty(auction.getWinningaccount())) {
+                queryParameters.put("account.id", auction.getTokenowneraccount());
             } else {
-                log.error(response.cause().getMessage());
+                queryParameters.put("account.id", auction.getWinningaccount());
             }
-        });
-    }
+            queryParameters.put("transactiontype", "CRYPTOTRANSFER");
+            queryParameters.put("order", "asc");
+            queryParameters.put("timestamp", "gt:".concat(nextTimestamp));
 
-    public void checkForAssociation(JsonObject body) throws SQLException {
-        if (body.containsKey("transactions")) {
-            JsonArray transactions = body.getJsonArray("transactions");
-
-            if (transactions.size() != 0) {
-                auctionsRepository.setTransferring(tokenId);
+            log.debug("querying mirror for successful transaction for account " + queryParameters.get("account.id"));
+            Future<JsonObject> future = executor.submit(Utils.queryMirror(webClient, mirrorURL, mirrorPort, uri, queryParameters));
+            try {
+                JsonObject response = future.get();
+                if (response != null) {
+                    MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
+                    result = transferOccurredAlready(mirrorTransactions, tokenId);
+                    log.info(result);
+                    nextTimestamp = Utils.getTimestampFromMirrorLink(mirrorTransactions.links.next);
+                }
+            } catch (InterruptedException interruptedException) {
+                log.error(interruptedException);
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException executionException) {
+                log.error(executionException);
             }
+
         }
+        executor.shutdown();
+        return result;
     }
+
+
 }

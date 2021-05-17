@@ -27,7 +27,7 @@ public class AuctionTest extends AbstractAuction {
         assertFalse(auction.isClosed());
         assertFalse(auction.isPending());
         assertTrue(auction.isActive());
-        assertFalse(auction.isTransferring());
+        assertFalse(auction.isTransferPending());
 
         // closed
         auction.setStatus(Auction.CLOSED);
@@ -35,7 +35,7 @@ public class AuctionTest extends AbstractAuction {
         assertTrue(auction.isClosed());
         assertFalse(auction.isPending());
         assertFalse(auction.isActive());
-        assertFalse(auction.isTransferring());
+        assertFalse(auction.isTransferPending());
 
         // ended
         auction.setStatus(Auction.ENDED);
@@ -43,7 +43,7 @@ public class AuctionTest extends AbstractAuction {
         assertFalse(auction.isClosed());
         assertFalse(auction.isPending());
         assertFalse(auction.isActive());
-        assertFalse(auction.isTransferring());
+        assertFalse(auction.isTransferPending());
 
         // pending
         auction.setStatus(Auction.PENDING);
@@ -51,15 +51,22 @@ public class AuctionTest extends AbstractAuction {
         assertFalse(auction.isClosed());
         assertTrue(auction.isPending());
         assertFalse(auction.isActive());
-        assertFalse(auction.isTransferring());
 
         // transfer
-        auction.setStatus(Auction.TRANSFER);
-        assertFalse(auction.isEnded());
-        assertFalse(auction.isClosed());
-        assertFalse(auction.isPending());
-        assertFalse(auction.isActive());
-        assertTrue(auction.isTransferring());
+        auction.setTransferstatus(Auction.TRANSFER_STATUS_PENDING);
+        assertTrue(auction.isTransferPending());
+        assertFalse(auction.isTransferInProgress());
+        assertFalse(auction.isTransferComplete());
+
+        auction.setTransferstatus(Auction.TRANSFER_STATUS_IN_PROGRESS);
+        assertFalse(auction.isTransferPending());
+        assertTrue(auction.isTransferInProgress());
+        assertFalse(auction.isTransferComplete());
+
+        auction.setTransferstatus(Auction.TRANSFER_STATUS_COMPLETE);
+        assertFalse(auction.isTransferPending());
+        assertFalse(auction.isTransferInProgress());
+        assertTrue(auction.isTransferComplete());
     }
 
     @Test

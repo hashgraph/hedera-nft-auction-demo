@@ -6,13 +6,22 @@ package com.hedera.demo.auction.node.app.db.tables;
 
 import com.hedera.demo.auction.node.app.db.Keys;
 import com.hedera.demo.auction.node.app.db.Public;
-import org.jooq.Record;
-import org.jooq.*;
-import org.jooq.impl.DSL;
-import org.jooq.impl.TableImpl;
 
 import java.util.Arrays;
 import java.util.List;
+
+import org.jooq.Field;
+import org.jooq.ForeignKey;
+import org.jooq.Identity;
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Schema;
+import org.jooq.Table;
+import org.jooq.TableField;
+import org.jooq.TableOptions;
+import org.jooq.UniqueKey;
+import org.jooq.impl.DSL;
+import org.jooq.impl.TableImpl;
 
 
 /**
@@ -21,7 +30,7 @@ import java.util.List;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Auctions extends TableImpl<Record> {
 
-    private static final long serialVersionUID = 1552498190;
+    private static final long serialVersionUID = -644706732;
 
     /**
      * The reference instance of <code>public.auctions</code>
@@ -130,6 +139,16 @@ public class Auctions extends TableImpl<Record> {
      * The column <code>public.auctions.tokenowner</code>.
      */
     public final TableField<Record, String> TOKENOWNER = createField(DSL.name("tokenowner"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+
+    /**
+     * The column <code>public.auctions.transfertimestamp</code>.
+     */
+    public final TableField<Record, String> TRANSFERTIMESTAMP = createField(DSL.name("transfertimestamp"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+
+    /**
+     * The column <code>public.auctions.transferstatus</code>.
+     */
+    public final TableField<Record, String> TRANSFERSTATUS = createField(DSL.name("transferstatus"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
 
     /**
      * Create a <code>public.auctions</code> table reference

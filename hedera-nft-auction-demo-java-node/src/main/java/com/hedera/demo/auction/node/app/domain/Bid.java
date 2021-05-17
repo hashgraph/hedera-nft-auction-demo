@@ -22,6 +22,11 @@ public class Bid implements VertxPojo, Serializable {
     public static final String BELOW_RESERVE = "Bid below reserve";
     public static final String UNDER_BID = "Under bid";
 
+    public static final String REFUND_PENDING = "PENDING";
+    public static final String REFUND_ISSUED = "ISSUED";
+    public static final String REFUND_REFUNDED = "REFUNDED";
+    public static final String REFUND_MEMO_PREFIX = "Auction refund for tx ";
+
     private static final long serialVersionUID = -286838882;
 
     private String timestamp = "";
@@ -29,11 +34,12 @@ public class Bid implements VertxPojo, Serializable {
     private String bidderaccountid = "";
     private Long bidamount = 0L;
     private String status = "";
-    public Boolean refunded = false;
     private String refundtxid = "";
     private String refundtxhash = "";
     private String transactionid = "";
     private String transactionhash = "";
+    private String timestampforrefund = "";
+    private String refundstatus = "";
 
     public Bid() {}
 
@@ -41,26 +47,28 @@ public class Bid implements VertxPojo, Serializable {
         this.auctionid = row.getInteger(BIDS.AUCTIONID.getName());
         this.bidamount = row.getLong(BIDS.BIDAMOUNT.getName());
         this.bidderaccountid = row.getString(BIDS.BIDDERACCOUNTID.getName());
-        this.refunded = row.getBoolean(BIDS.REFUNDED.getName());
         this.refundtxid = row.getString(BIDS.REFUNDTXID.getName());
         this.refundtxhash = row.getString(BIDS.REFUNDTXHASH.getName());
         this.transactionid = row.getString(BIDS.TRANSACTIONID.getName());
         this.status = row.getString(BIDS.STATUS.getName());
         this.timestamp = row.getString(BIDS.TIMESTAMP.getName());
         this.transactionhash = row.getString(BIDS.TRANSACTIONHASH.getName());
+        this.refundstatus = row.getString(BIDS.REFUNDSTATUS.getName());
+        this.timestampforrefund = row.getString(BIDS.TIMESTAMPFORREFUND.getName());
     }
 
     public Bid(Record record) {
         this.auctionid = record.get(BIDS.AUCTIONID);
         this.bidamount = record.get(BIDS.BIDAMOUNT);
         this.bidderaccountid = record.get(BIDS.BIDDERACCOUNTID);
-        this.refunded = record.get(BIDS.REFUNDED);
         this.refundtxid = record.get(BIDS.REFUNDTXID);
         this.refundtxhash = record.get(BIDS.REFUNDTXHASH);
         this.transactionid = record.get(BIDS.TRANSACTIONID);
         this.status = record.get(BIDS.STATUS);
         this.timestamp = record.get(BIDS.TIMESTAMP);
         this.transactionhash = record.get(BIDS.TRANSACTIONHASH);
+        this.refundstatus = record.get(BIDS.REFUNDSTATUS);
+        this.timestampforrefund = record.get(BIDS.TIMESTAMPFORREFUND);
     }
 
     public Bid(io.vertx.core.json.JsonObject json) {
@@ -108,14 +116,6 @@ public class Bid implements VertxPojo, Serializable {
         this.status = status;
     }
 
-    public Boolean getRefunded() {
-        return this.refunded;
-    }
-
-    public void setRefunded(Boolean refunded) {
-        this.refunded = refunded;
-    }
-
     public String getRefundtxid() {
         return this.refundtxid;
     }
@@ -148,24 +148,29 @@ public class Bid implements VertxPojo, Serializable {
         this.transactionhash = transactionhash;
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("Bids (");
-
-        sb.append(timestamp);
-        sb.append(", ").append(auctionid);
-        sb.append(", ").append(bidderaccountid);
-        sb.append(", ").append(bidamount);
-        sb.append(", ").append(status);
-        sb.append(", ").append(refunded);
-        sb.append(", ").append(refundtxid);
-        sb.append(", ").append(refundtxhash);
-        sb.append(", ").append(transactionid);
-        sb.append(", ").append(transactionhash);
-
-        sb.append(")");
-        return sb.toString();
+    public String getRefundstatus() {
+        return this.refundstatus;
     }
+
+    public boolean isRefunded() {
+        return this.refundstatus.equals(Bid.REFUND_REFUNDED);
+    }
+
+    public boolean isRefundIssued() {
+        return this.refundstatus.equals(Bid.REFUND_ISSUED);
+    }
+
+    public boolean isRefundPending() {
+        return this.refundstatus.equals(Bid.REFUND_PENDING);
+    }
+
+    public void setRefundstatus(String refundstatus) {
+        this.refundstatus = refundstatus;
+    }
+
+    public String getTimestampforrefund() { return this.timestampforrefund; }
+
+    public void setTimestampforrefund(String timestampforrefund) { this.timestampforrefund = timestampforrefund; }
 
     @Override
     public Bid fromJson(io.vertx.core.json.JsonObject json) {
@@ -174,11 +179,12 @@ public class Bid implements VertxPojo, Serializable {
         this.setBidderaccountid(json.getString("bidderaccountid"));
         this.setBidamount(json.getLong("bidamount"));
         this.setStatus(json.getString("status"));
-        this.setRefunded(json.getBoolean("refunded"));
         this.setRefundtxid(json.getString("refundtxid"));
         this.setRefundtxhash(json.getString("refundtxhash"));
         this.setTransactionid(json.getString("transactionid"));
         this.setTransactionhash(json.getString("transactionhash"));
+        this.setRefundstatus(json.getString("refundstatus"));
+        this.setTimestampforrefund(json.getString("timestampforrefund"));
         return this;
     }
 
@@ -190,11 +196,12 @@ public class Bid implements VertxPojo, Serializable {
         json.put("bidderaccountid",getBidderaccountid());
         json.put("bidamount",getBidamount());
         json.put("status",getStatus());
-        json.put("refunded",getRefunded());
         json.put("refundtxid",getRefundtxid());
         json.put("refundtxhash", getRefundtxhash());
         json.put("transactionid", getTransactionid());
         json.put("transactionhash", getTransactionhash());
+        json.put("refundstatus", getRefundstatus());
+        json.put("timestampforrefund", getTimestampforrefund());
         return json;
     }
 }

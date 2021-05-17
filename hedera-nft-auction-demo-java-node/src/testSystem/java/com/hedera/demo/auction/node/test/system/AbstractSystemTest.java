@@ -1,11 +1,11 @@
 package com.hedera.demo.auction.node.test.system;
 
-import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.*;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.domain.Bid;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
+import com.hedera.demo.auction.node.app.repository.ScheduledOperationsRepository;
 import com.hedera.hashgraph.sdk.*;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.json.JsonArray;
@@ -38,6 +38,7 @@ public abstract class AbstractSystemTest {
     protected PostgreSQLContainer postgres;
     protected AuctionsRepository auctionsRepository;
     protected BidsRepository bidsRepository;
+    protected ScheduledOperationsRepository scheduledOperationsRepository;
     protected Auction auction;
 
     protected CreateTopic createTopic;
@@ -65,7 +66,7 @@ public abstract class AbstractSystemTest {
 
     protected static final long minimumBid = 0;
     protected static final boolean winnerCanBid = true;
-    protected final long auctionReserve = 1000;
+    protected long auctionReserve = 1000;
     protected final String endTimeStamp = "0000.12313";
 
     protected boolean transferOnWin = true;
@@ -76,6 +77,8 @@ public abstract class AbstractSystemTest {
 
     protected Map<String, AccountId> biddingAccounts = new HashMap<>();
     protected final PrivateKey bidAccountKey = PrivateKey.generate();
+
+    protected boolean masterNode = true; // TODO: Enable test for non master nodes
 
     // test token owner
     PrivateKey tokenOwnerPrivateKey;
@@ -248,6 +251,16 @@ public abstract class AbstractSystemTest {
         };
     }
 
+    protected Callable<Boolean> tokenAssociated() {
+        return () -> {
+            AccountBalance accountBalance = new AccountBalanceQuery()
+                    .setAccountId(auctionAccountId)
+                    .execute(hederaClient.client());
+
+            return accountBalance.token.containsKey(tokenId);
+        };
+    }
+
     protected Callable<Boolean> alwaysTrueForDelay() {
         return () -> {
             return true;
@@ -337,7 +350,7 @@ public abstract class AbstractSystemTest {
 
     protected Callable<Boolean> checkBalance(String account, String condition) {
         return () -> {
-            @Var AccountId accountId;
+            AccountId accountId;
             switch (account) {
                 case "tokenOwner":
                     accountId = tokenOwnerAccountId;
@@ -408,8 +421,10 @@ public abstract class AbstractSystemTest {
                 return bidSource.getRefundtxid();
             case "bidAmount":
                 return String.valueOf(bidSource.getBidamount());
+            case "refundstatus":
+                return bidSource.getRefundstatus();
             case "refunded":
-                return bidSource.getRefunded().toString();
+                return bidSource.isRefunded() ? "true" : "false";
             default:
                 return "";
         }

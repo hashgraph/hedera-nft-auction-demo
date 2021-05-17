@@ -24,7 +24,7 @@ import java.util.Map;
 public abstract class AbstractE2ETest extends AbstractSystemTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractE2ETest.class);
     private static final Map<String, String> environment = new HashMap<>();
-    protected static int adminPort;
+    protected int adminPort;
 
     private final WebClientOptions webClientOptions = new WebClientOptions()
             .setUserAgent("HederaAuction/1.0")

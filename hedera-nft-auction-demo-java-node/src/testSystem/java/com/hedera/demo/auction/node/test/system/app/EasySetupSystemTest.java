@@ -4,9 +4,15 @@ import com.hedera.demo.auction.node.app.SqlConnectionManager;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
+import com.hedera.demo.auction.node.app.repository.ScheduledOperationsRepository;
 import com.hedera.demo.auction.node.app.subscriber.TopicSubscriber;
 import com.hedera.demo.auction.node.test.system.AbstractSystemTest;
-import org.junit.jupiter.api.*;
+import com.hedera.hashgraph.sdk.TopicId;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.time.Duration;
@@ -30,6 +36,7 @@ public class EasySetupSystemTest extends AbstractSystemTest {
         SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
+        scheduledOperationsRepository = new ScheduledOperationsRepository(connectionManager);
     }
 
     @AfterAll
@@ -42,14 +49,16 @@ public class EasySetupSystemTest extends AbstractSystemTest {
         bidsRepository.deleteAllBids();
         auctionsRepository.deleteAllAuctions();
         String[] args = new String[0];
-        easySetup.setup(args);
+        String topic = easySetup.setup(args);
+        topicId = TopicId.fromString(topic);
     }
     @Test
     public void testCreateAuctionHederaMirror() throws Exception {
 
         hederaClient.setMirrorProvider("hedera");
-        hederaClient.setClientMirror(dotenv);
-        TopicSubscriber topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository, null, topicId, hederaClient.operatorPrivateKey().toString(), 5000);
+        hederaClient.setClientMirror();
+        TopicSubscriber topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository,  null, topicId, hederaClient.operatorPrivateKey().toString(), 5000, masterNode);
+
         topicSubscriber.setSkipReadinessWatcher();
         // start the thread to monitor bids
         Thread t = new Thread(topicSubscriber);

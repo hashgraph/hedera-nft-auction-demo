@@ -5,6 +5,7 @@ import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class BidTest extends AbstractBid {
@@ -13,25 +14,6 @@ public class BidTest extends AbstractBid {
 
         Bid bid = testBidObject();
         verifyBidContents(bid);
-    }
-
-    @Test
-    public void testBidToString() {
-        Bid bid = testBidObject();
-
-        String bidString = bid.toString();
-
-        assertTrue(bidString.contains(timestamp.concat(", ")));
-        assertTrue(bidString.contains(", ".concat(String.valueOf(auctionid))));
-        assertTrue(bidString.contains(", ".concat(bidderaccountid)));
-        assertTrue(bidString.contains(", ".concat(String.valueOf(bidamount))));
-        assertTrue(bidString.contains(", ".concat(status)));
-        assertTrue(bidString.contains(", false"));
-        assertTrue(bidString.contains(", ".concat(refundtxid)));
-        assertTrue(bidString.contains(", ".concat(refundtxhash)));
-        assertTrue(bidString.contains(", ".concat(status)));
-        assertTrue(bidString.contains(", ".concat(transactionid)));
-        assertTrue(bidString.contains(", ".concat(transactionhash)));
     }
 
     @Test
@@ -45,11 +27,12 @@ public class BidTest extends AbstractBid {
         assertEquals(bidderaccountid, bidJson.getString("bidderaccountid"));
         assertEquals(bidamount, bidJson.getLong("bidamount"));
         assertEquals(status, bidJson.getString("status"));
-        assertEquals(refunded, bidJson.getBoolean("refunded"));
         assertEquals(refundtxid, bidJson.getString("refundtxid"));
         assertEquals(refundtxhash, bidJson.getString("refundtxhash"));
         assertEquals(transactionid, bidJson.getString("transactionid"));
         assertEquals(transactionhash, bidJson.getString("transactionhash"));
+        assertEquals(refundStatus, bidJson.getString("refundstatus"));
+        assertEquals(timestampforrefund, bidJson.getString("timestampforrefund"));
     }
 
     @Test
@@ -57,5 +40,30 @@ public class BidTest extends AbstractBid {
         JsonObject bidJson = testBidObject().toJson();
         Bid bid = new Bid(bidJson);
         verifyBidContents(bid);
+    }
+
+    @Test
+    public void testBidRefundStatus() {
+        Bid bid = new Bid();
+
+        assertFalse(bid.isRefunded());
+        assertFalse(bid.isRefundPending());
+        assertFalse(bid.isRefundIssued());
+        assertEquals("", bid.getRefundstatus());
+
+        bid.setRefundstatus(Bid.REFUND_REFUNDED);
+        assertTrue(bid.isRefunded());
+        assertFalse(bid.isRefundPending());
+        assertFalse(bid.isRefundIssued());
+
+        bid.setRefundstatus(Bid.REFUND_ISSUED);
+        assertFalse(bid.isRefunded());
+        assertFalse(bid.isRefundPending());
+        assertTrue(bid.isRefundIssued());
+
+        bid.setRefundstatus(Bid.REFUND_PENDING);
+        assertFalse(bid.isRefunded());
+        assertTrue(bid.isRefundPending());
+        assertFalse(bid.isRefundIssued());
     }
 }

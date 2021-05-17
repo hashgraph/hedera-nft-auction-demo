@@ -2,16 +2,20 @@ package com.hedera.demo.auction.node.app;
 
 import com.hedera.demo.auction.node.app.api.AdminApiVerticle;
 import com.hedera.demo.auction.node.app.api.ApiVerticle;
+import com.hedera.demo.auction.node.app.auctionendtransfer.AuctionEndTransfer;
+import com.hedera.demo.auction.node.app.auctionendtransferwatcher.AuctionEndTransferWatcher;
 import com.hedera.demo.auction.node.app.bidwatcher.BidsWatcher;
 import com.hedera.demo.auction.node.app.closurewatcher.AuctionsClosureWatcher;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.readinesswatcher.AuctionReadinessWatcher;
 import com.hedera.demo.auction.node.app.refundChecker.RefundChecker;
+import com.hedera.demo.auction.node.app.refunder.Refunder;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
+import com.hedera.demo.auction.node.app.repository.ScheduledOperationsRepository;
+import com.hedera.demo.auction.node.app.scheduledoperations.ScheduleExecutor;
 import com.hedera.demo.auction.node.app.subscriber.TopicSubscriber;
-import com.hedera.demo.auction.node.app.auctionendtransfer.AuctionEndTransfer;
-import com.hedera.demo.auction.node.app.auctionendtransferwatcher.AuctionEndTransferWatcher;
+import com.hedera.hashgraph.sdk.PrivateKey;
 import com.hedera.hashgraph.sdk.TopicId;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.DeploymentOptions;
@@ -38,7 +42,6 @@ public final class App {
     private boolean adminAPI = Optional.ofNullable(env.get("ADMIN_API")).map(Boolean::parseBoolean).orElse(false);
     private int adminApiVerticleCount = Optional.ofNullable(env.get("ADMIN_API_VERTICLE_COUNT")).map(Integer::parseInt).orElse(2);
     private boolean auctionNode = Optional.ofNullable(env.get("AUCTION_NODE")).map(Boolean::parseBoolean).orElse(false);
-
     private String topicId = Optional.ofNullable(env.get("VUE_APP_TOPIC_ID")).orElse("");
     private int mirrorQueryFrequency = Integer.parseInt(Optional.ofNullable(env.get("MIRROR_QUERY_FREQUENCY")).orElse("5000"));
     private String refundKey = Optional.ofNullable(env.get("REFUND_KEY")).orElse("");
@@ -46,6 +49,7 @@ public final class App {
     private String postgresUser = Optional.ofNullable(env.get("DATABASE_USERNAME")).orElse("postgres");
     private String postgresPassword = Optional.ofNullable(env.get("DATABASE_PASSWORD")).orElse("password");
     private boolean transferOnWin = Optional.ofNullable(env.get("TRANSFER_ON_WIN")).map(Boolean::parseBoolean).orElse(true);
+    private final boolean masterNode = Optional.ofNullable(env.get("MASTER_NODE")).map(Boolean::parseBoolean).orElse(false);
 
     private HederaClient hederaClient = new HederaClient(env);
 
@@ -61,11 +65,13 @@ public final class App {
     private AuctionEndTransfer auctionEndTransfer = null;
     @Nullable
     private AuctionEndTransferWatcher auctionEndTransferWatcher = null;
+    @Nullable
+    private ScheduleExecutor scheduleExecutor = null;
+    @Nullable
+    private Refunder refunder = null;
 
     public App() throws Exception {
     }
-
-    //    private final static String dgApiKey = Optional.ofNullable(env.get("DG_API_KEY")).orElse("");
 
     public static void main(String[] args) throws Exception {
         App app = new App();
@@ -119,6 +125,7 @@ public final class App {
             SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgresUrl, this.postgresUser, this.postgresPassword);
             AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
             BidsRepository bidsRepository = new BidsRepository(connectionManager);
+            ScheduledOperationsRepository scheduledOperationsRepository = new ScheduledOperationsRepository(connectionManager);
 
             WebClientOptions webClientOptions = new WebClientOptions()
                     .setUserAgent("HederaAuction/1.0")
@@ -126,35 +133,52 @@ public final class App {
             WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
 
             // subscribe to topic to get new auction notifications
-            startSubscription(webClient, auctionsRepository, bidsRepository);
-            startAuctionReadinessWatchers(hederaClient, webClient, auctionsRepository, bidsRepository);
-            startAuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, transferOnWin);
-            startBidWatchers(hederaClient, webClient, auctionsRepository, bidsRepository);
-            startRefundChecker(hederaClient, webClient, bidsRepository);
+            startSubscription(webClient, auctionsRepository, bidsRepository, scheduledOperationsRepository);
+
+            RefundChecker oneOffRefundChecker = new RefundChecker(hederaClient, webClient, auctionsRepository, bidsRepository, mirrorQueryFrequency);
+            oneOffRefundChecker.runOnce();
+
+            startAuctionReadinessWatchers(webClient, auctionsRepository, bidsRepository);
+            startAuctionsClosureWatcher(webClient, auctionsRepository);
+            startBidWatchers(webClient, auctionsRepository, bidsRepository);
+            if (! refundKey.isBlank()) {
+                // validator node, start the refunder thread
+                startRefunder(auctionsRepository, bidsRepository);
+            }
+            startRefundChecker(webClient, auctionsRepository, bidsRepository);
             if (transferOnWin) {
-                startAuctionEndTransfers(hederaClient, webClient, auctionsRepository);
-                startAuctionEndTransferWatcher(hederaClient, webClient, auctionsRepository);
+                startAuctionEndTransfers(webClient, auctionsRepository);
+                startAuctionEndTransferWatcher(webClient, auctionsRepository);
+            }
+            if (! refundKey.isBlank()) {
+                startScheduledExecutor(auctionsRepository, scheduledOperationsRepository);
             }
         }
     }
 
-    private void startAuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, boolean transferOnWin) {
+    private void startScheduledExecutor(AuctionsRepository auctionsRepository, ScheduledOperationsRepository scheduledOperationsRepository) {
+        scheduleExecutor = new ScheduleExecutor(hederaClient, auctionsRepository, scheduledOperationsRepository, PrivateKey.fromString(refundKey));
+        Thread scheduleExecutorThread = new Thread(scheduleExecutor);
+        scheduleExecutorThread.start();
+    }
+
+    private void startAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository) {
         // start a thread to monitor auction closures
-        auctionsClosureWatcher = new AuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
+        auctionsClosureWatcher = new AuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey, masterNode);
         Thread auctionsClosureWatcherThread = new Thread(auctionsClosureWatcher);
         auctionsClosureWatcherThread.start();
     }
-    private void startSubscription(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
+    private void startSubscription(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, ScheduledOperationsRepository scheduledOperationsRepository) {
         if (StringUtils.isEmpty(topicId)) {
             log.warn("No topic Id found in environment variables, not subscribing");
         } else {
-            topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository, webClient, TopicId.fromString(topicId), refundKey, mirrorQueryFrequency);
+            topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository, webClient, TopicId.fromString(topicId), refundKey, mirrorQueryFrequency, masterNode);
             // start the thread to monitor bids
             Thread topicSubscriberThread = new Thread(topicSubscriber);
             topicSubscriberThread.start();
         }
     }
-    private void startBidWatchers(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) throws SQLException {
+    private void startBidWatchers(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) throws SQLException {
         for (Auction auction : auctionsRepository.getAuctionsList()) {
             if (! auction.isPending()) {
                 // auction is not pending
@@ -167,14 +191,14 @@ public final class App {
         }
     }
 
-    private void startRefundChecker(HederaClient hederaClient, WebClient webClient, BidsRepository bidsRepository) {
+    private void startRefundChecker(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
         // start the thread to monitor bids
-        refundChecker = new RefundChecker(hederaClient, webClient, bidsRepository, mirrorQueryFrequency);
+        refundChecker = new RefundChecker(hederaClient, webClient, auctionsRepository, bidsRepository, mirrorQueryFrequency);
         Thread refundCheckerThread = new Thread(refundChecker);
         refundCheckerThread.start();
     }
 
-    private void startAuctionReadinessWatchers(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) throws SQLException {
+    private void startAuctionReadinessWatchers(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) throws SQLException {
         for (Auction auction : auctionsRepository.getAuctionsList()) {
             if (auction.isPending()) {
                 // start the thread to monitor token transfers to the auction account
@@ -186,26 +210,40 @@ public final class App {
         }
     }
 
-    private void startAuctionEndTransfers(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository) {
+    private void startAuctionEndTransfers(WebClient webClient, AuctionsRepository auctionsRepository) {
         // start the thread to monitor winning account association with token
         auctionEndTransfer = new AuctionEndTransfer(hederaClient, webClient, auctionsRepository, refundKey, mirrorQueryFrequency);
         Thread auctionEndTransferThread = new Thread(auctionEndTransfer);
         auctionEndTransferThread.start();
     }
 
-    private void startAuctionEndTransferWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository) {
+    private void startAuctionEndTransferWatcher(WebClient webClient, AuctionsRepository auctionsRepository) {
         // start the thread to monitor winning account association with token
         auctionEndTransferWatcher = new AuctionEndTransferWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency);
         Thread auctionEndTransferWatcherThread = new Thread(auctionEndTransferWatcher);
         auctionEndTransferWatcherThread.start();
     }
 
+    private void startRefunder(AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
+        // start the thread to monitor winning account association with token
+        refunder = new Refunder(hederaClient, auctionsRepository, bidsRepository, refundKey, mirrorQueryFrequency);
+        Thread refunderThread = new Thread(refunder);
+        refunderThread.start();
+    }
+
     public void stop() {
+        for (String verticle : vertx.deploymentIDs()) {
+            vertx.undeploy(verticle);
+        }
+
         if (topicSubscriber != null) {
             topicSubscriber.stop();
         }
         if (auctionsClosureWatcher != null) {
             auctionsClosureWatcher.stop();
+        }
+        if (scheduleExecutor != null) {
+            scheduleExecutor.stop();
         }
         if (refundChecker != null) {
             refundChecker.stop();
@@ -227,8 +265,8 @@ public final class App {
             auctionReadinessWatcher.stop();
         }
 
-        for (String verticle : vertx.deploymentIDs()) {
-            vertx.undeploy(verticle);
+        if (refunder != null) {
+            refunder.stop();
         }
     }
 }

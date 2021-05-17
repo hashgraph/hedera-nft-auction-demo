@@ -1,6 +1,7 @@
 package com.hedera.demo.auction.node.app.closurewatcher;
 
 import com.hedera.demo.auction.node.app.HederaClient;
+import com.hedera.demo.auction.node.app.Utils;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
@@ -10,8 +11,8 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class HederaAuctionsClosureWatcher extends AbstractAuctionsClosureWatcher implements AuctionClosureWatcherInterface {
 
-    public HederaAuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey) {
-        super(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey);
+    public HederaAuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey, boolean masterNode) {
+        super(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey, masterNode);
     }
 
     @Override
@@ -26,22 +27,13 @@ public class HederaAuctionsClosureWatcher extends AbstractAuctionsClosureWatcher
                 if (response.succeeded()) {
 
                     JsonObject body = response.result().body();
-                    try {
-                        handleResponse(body);
-                    } catch (Exception e) {
-                        log.error(e);
-                    }
+                    handleResponse(body);
                 } else {
                     log.error(response.cause().getMessage());
                 }
             });
 
-            try {
-                Thread.sleep(this.mirrorQueryFrequency);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                log.error(e);
-            }
+            Utils.sleep(this.mirrorQueryFrequency);
         }
     }
 }

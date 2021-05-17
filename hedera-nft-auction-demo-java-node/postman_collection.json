@@ -58,7 +58,9 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							""
+							"pm.test(\"keep\", function() {",
+							"    pm.globals.set(\"topicId\", pm.response.json().topicId);",
+							"});"
 						],
 						"type": "text/javascript"
 					}
@@ -101,7 +103,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\": \"Demo\",\n    \"symbol\":\"TT\",\n    \"initialSupply\": 1,\n    \"decimals\": 0\n}",
+					"raw": "{\n    \"name\": \"DemoToken\",\n    \"symbol\":\"DemoNFT\",\n    \"initialSupply\": 1,\n    \"decimals\": 0\n}",
 					"options": {
 						"raw": {
 							"language": "json"

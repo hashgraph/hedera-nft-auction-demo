@@ -73,15 +73,18 @@ public class GetBidsIntegrationTest extends AbstractIntegrationTest {
 
         Bid bid1 = testBidObject(1, newAuction1.getId());
         bidsRepository.add(bid1);
-        bidsRepository.setRefundInProgress(bid1.getTimestamp(), bid1.getRefundtxid(), bid1.getRefundtxhash());
-        bidsRepository.setRefunded(bid1.getTimestamp(), bid1.getRefundtxhash());
+        bidsRepository.setRefundIssued(bid1.getTimestamp());
+        bidsRepository.setRefunded(bid1.getTransactionid(), bid1.getRefundtxid(), bid1.getRefundtxhash());
+        bid1.setRefundstatus(Bid.REFUND_REFUNDED);
 
         Bid bid2 = testBidObject(2, newAuction1.getId());
         bidsRepository.add(bid2);
-        bidsRepository.setRefundInProgress(bid2.getTimestamp(), bid2.getRefundtxid(), bid2.getRefundtxhash());
-        bidsRepository.setRefunded(bid2.getTimestamp(), bid2.getRefundtxhash());
+        bidsRepository.setRefundIssued(bid2.getTimestamp());
+        bidsRepository.setRefunded(bid2.getTransactionid(), bid2.getRefundtxid(), bid2.getRefundtxhash());
+        bid2.setRefundstatus(Bid.REFUND_REFUNDED);
 
         Bid bid0 = testBidObject(0, newAuction1.getId());
+        bid0.setRefundstatus(Bid.REFUND_PENDING);
         bidsRepository.add(bid0);
 
         webClient.get(9005, "localhost", "/v1/bids/".concat(String.valueOf(bid1.getAuctionid())))
@@ -94,7 +97,7 @@ public class GetBidsIntegrationTest extends AbstractIntegrationTest {
                     verifyBid(bid1, body.getJsonObject(1));
                     verifyBid(bid2, body.getJsonObject(0));
                     // test for bid that has not been refunded yet
-                    assertEquals(bid0.getRefunded(), body.getJsonObject(2).getBoolean("refunded"));
+                    assertEquals(bid0.getRefundstatus(), body.getJsonObject(2).getString("refundstatus"));
 
                     bidsRepository.deleteAllBids();
                     auctionsRepository.deleteAllAuctions();

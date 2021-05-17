@@ -1,7 +1,84 @@
 [
   {
+    "testName": "Transfer on win false",
+    "mirrors": ["hedera"],
+    "skip": false,
+    "symbol": "tokenSymbol",
+    "transferOnWin": false,
+    "tasks": [
+      {
+        "name": "createAuction", "reserve": 0, "minimumBid": 0, "winnerCanBid": true
+      },
+      {
+        "name": "startApp",
+        "description": "start the node application",
+        "assertions": [
+          {
+            "object": "auction", "parameter": "count", "value": "1"
+          },          {
+            "object": "auction", "parameter": "associated"
+          }
+
+        ]
+      },
+      {
+        "name": "getAuction", "index": 0
+      },
+      {
+        "name": "assertions", "description": "assertions",
+        "assertions": [
+          {
+            "object": "auction", "parameter": "status", "value": "PENDING", "condition": "equals"
+          }
+        ]
+      },
+      {
+        "name": "transferToken", "description": "transfer token to auction account",
+        "assertions": [
+          { "object": "auction", "parameter": "status", "value": "ACTIVE", "condition": "equals" },
+          { "object": "auction", "parameter": "tokenOwnerAccountId" }
+        ]
+      },
+      {
+        "name": "bid", "description": "First bid", "from": "1", "amount": 3,
+        "assertions": [
+          { "object": "auction", "parameter": "winningAccount", "condition": "equals" },
+          { "object": "auction", "parameter": "winningBid", "condition": "equals" },
+          { "object": "bid", "parameter": "bidderAccountId", "condition": "equals", "from": "1", "amount": 3},
+          { "object": "bid", "parameter": "timestamp", "condition": "notnull", "from": "1", "amount": 3},
+          { "object": "bid", "parameter": "transactionHash", "condition": "notnull", "from": "1", "amount": 3},
+          { "object": "bid", "parameter": "transactionId", "condition": "notnull", "from": "1", "amount": 3},
+          { "object": "bid", "parameter": "refunded", "condition": "false" ,"from": "1", "amount": 3},
+          { "object": "bid", "parameter": "status", "condition": "isnull", "from": "1", "amount": 3}
+        ]
+      },
+      {
+        "name": "winnerAssociate", "description": "Winner Associates with token"
+      },
+      {
+        "name": "endAuction", "description": "End Auction",
+        "assertions": [
+          { "object": "auction", "parameter": "status", "condition": "equals", "value": "ENDED" },
+          { "object": "auction", "parameter": "transferTxId", "condition": "isnull" },
+          { "object": "auction", "parameter": "transferTxHash", "condition": "isnull" }
+        ]
+      },
+      {
+        "name": "assertions", "description": "assertions",
+        "assertions": [
+          { "object": "winnerDoesNotOwnToken" }
+        ]
+      },
+      {
+        "name": "stopApp",
+        "description": "stop the node application"
+      }
+    ]
+  },
+  {
     "testName": "End to end auction test",
     "mirrors": ["hedera"],
+    "skip": false,
     "symbol": "tokenSymbol",
     "transferOnWin": true,
     "tasks": [
@@ -14,7 +91,10 @@
         "assertions": [
           {
             "object": "auction", "parameter": "count", "value": "1"
+          },          {
+            "object": "auction", "parameter": "associated"
           }
+
         ]
       },
       {
@@ -125,6 +205,7 @@
   },
   {
     "testName": "End to end auction test (no bids)",
+    "skip": false,
     "mirrors": ["hedera"],
     "symbol": "tokenSymbol",
     "transferOnWin": true,
@@ -183,6 +264,7 @@
   },
   {
     "testName": "Start the app with bids awaiting processing",
+    "skip": false,
     "mirrors": ["hedera"],
     "symbol": "tokenSymbol",
     "transferOnWin": true,
@@ -195,7 +277,10 @@
         "assertions": [
           {
             "object": "auction", "parameter": "count", "value": "1"
+          },          {
+            "object": "auction", "parameter": "associated"
           }
+
         ]
       },
       {
@@ -239,6 +324,7 @@
   },
   {
     "testName": "Start the app with a pending auction",
+    "skip": false,
     "mirrors": ["hedera"],
     "symbol": "tokenSymbol",
     "transferOnWin": true,
@@ -251,7 +337,10 @@
         "assertions": [
           {
             "object": "auction", "parameter": "count", "value": "1"
+          },          {
+            "object": "auction", "parameter": "associated"
           }
+
         ]
       },
       {
@@ -287,200 +376,8 @@
     ]
   },
   {
-    "testName": "End to end auction test",
-    "mirrors": ["hedera"],
-    "symbol": "tokenSymbol",
-    "transferOnWin": true,
-    "tasks": [
-      {
-        "name": "createAuction", "reserve": 0, "minimumBid": 0, "winnerCanBid": true
-      },
-      {
-        "name": "startApp", "description": "start the node application",
-        "assertions": [
-          {
-            "object": "auction", "parameter": "count", "value": "1"
-          }
-        ]
-      },
-      {
-        "name": "getAuction", "index": 0
-      },
-      {
-        "name": "assertions", "description": "assertions",
-        "assertions": [
-          {
-            "object": "auction", "parameter": "status", "value": "PENDING", "condition": "equals"
-          }
-        ]
-      },
-      {
-        "name": "bid", "description": "Bid before auction start", "from": "1", "amount": 1,
-        "assertions": [
-          { "object": "auction", "parameter": "winningAccount", "condition": "isnull" },
-          { "object": "auction", "parameter": "winningBid", "condition": "equals", "value": "0" }
-        ]
-      },
-      {
-        "name": "transferToken", "description": "transfer token to auction account",
-        "assertions": [
-          { "object": "auction", "parameter": "status", "value": "ACTIVE", "condition": "equals" },
-          { "object": "auction", "parameter": "tokenOwnerAccountId" }
-        ]
-      },
-      {
-        "name": "bid", "description": "First bid", "from": "1", "amount": 3,
-        "assertions": [
-          { "object": "auction", "parameter": "winningAccount", "condition": "equals" },
-          { "object": "auction", "parameter": "winningBid", "condition": "equals" },
-          { "object": "bid", "parameter": "bidderAccountId", "condition": "equals", "from": "1", "amount": 3},
-          { "object": "bid", "parameter": "timestamp", "condition": "notnull", "from": "1", "amount": 3},
-          { "object": "bid", "parameter": "transactionHash", "condition": "notnull", "from": "1", "amount": 3},
-          { "object": "bid", "parameter": "transactionId", "condition": "notnull", "from": "1", "amount": 3},
-          { "object": "bid", "parameter": "refunded", "condition": "false" ,"from": "1", "amount": 3},
-          { "object": "bid", "parameter": "status", "condition": "isnull", "from": "1", "amount": 3}
-        ]
-      },
-      {
-        "name": "bid", "description": "Second bid", "from": "2", "amount": 4,
-        "assertions": [
-          { "object": "auction", "parameter": "winningAccount", "condition": "equals" },
-          { "object": "auction", "parameter": "winningBid", "condition": "equals" },
-          { "object": "bid", "parameter": "bidderAccountId", "condition": "equals", "from": "2", "amount": 4},
-          { "object": "bid", "parameter": "timestamp", "condition": "notnull", "from": "2", "amount": 4},
-          { "object": "bid", "parameter": "transactionHash", "condition": "notnull", "from": "2", "amount": 4},
-          { "object": "bid", "parameter": "transactionId", "condition": "notnull", "from": "2", "amount": 4},
-          { "object": "bid", "parameter": "refunded", "condition": "false" ,"from": "2", "amount": 4},
-          { "object": "bid", "parameter": "status", "condition": "isnull", "from": "2", "amount": 4},
-
-          { "object": "bid", "parameter": "refunded", "condition": "true", "from":  "1", "amount": 3},
-          { "object": "bid", "parameter": "status", "condition": "equals", "value": "Higher bid received", "from": "1", "amount": 3}
-        ]
-      },
-      {
-        "name": "bid", "description": "Third bid (underbid)", "from": "1", "amount": 2,
-        "assertions": [
-          { "object": "auction", "parameter": "winningAccount", "condition": "equals" },
-          { "object": "auction", "parameter": "winningBid", "condition": "equals" },
-          { "object": "bid", "parameter": "bidderAccountId", "condition": "equals", "from": "1", "amount":  2},
-          { "object": "bid", "parameter": "timestamp", "condition": "notnull", "from": "1", "amount":  2},
-          { "object": "bid", "parameter": "transactionHash", "condition": "notnull", "from": "1", "amount":  2},
-          { "object": "bid", "parameter": "transactionId", "condition": "notnull", "from": "1", "amount":  2},
-          { "object": "bid", "parameter": "status", "condition": "equals", "value": "Under bid", "from": "1", "amount":  2},
-
-          { "object": "bid", "parameter": "refunded", "condition": "true", "from": "1", "amount":  2},
-          { "object": "bid", "parameter": "refunded", "condition": "false", "from": "2", "amount":  4}
-        ]
-      },
-      {
-        "name": "endAuction", "description": "End Auction",
-        "assertions": [
-          { "object": "auction", "parameter": "status", "condition": "equals", "value": "CLOSED" }
-        ]
-      },
-      {
-        "name": "winnerAssociate", "description": "Winner Associates with token",
-        "assertions": [
-          { "object": "auction", "parameter": "status", "condition": "equals", "value": "TRANSFER" },
-          { "object": "auction", "parameter": "transferTxId", "condition": "notnull" }
-        ]
-      },
-      {
-        "name": "assertions", "description": "assertions",
-        "assertions": [
-          { "object": "bid", "parameter": "bidderAccountId", "condition": "equals", "from": "1", "amount":  1},
-          { "object": "bid", "parameter": "timestamp", "condition": "notnull", "from": "1", "amount":  1},
-          { "object": "bid", "parameter": "transactionHash", "condition": "notnull", "from": "1", "amount":  1},
-          { "object": "bid", "parameter": "transactionId", "condition": "notnull", "from": "1", "amount":  1},
-          { "object": "bid", "parameter": "refunded", "condition": "true" ,"from": "1", "amount":  1},
-          { "object": "bid", "parameter": "status", "condition": "equals", "value": "Auction has not started yet", "from": "1", "amount":  1},
-
-          { "object": "auction", "parameter": "status", "condition": "equals", "value": "ENDED" },
-          { "object": "auction", "parameter": "transferTxHash", "condition": "notnull" },
-          { "object": "winnerOwnsToken" },
-          { "object": "issuerDoesNotOwnToken" }
-        ]
-      },
-      {
-        "name": "stopApp",
-        "description": "stop the node application"
-      }
-    ]
-  },
-  {
-    "testName": "Transfer on win false",
-    "mirrors": ["hedera"],
-    "symbol": "tokenSymbol",
-    "transferOnWin": false,
-    "tasks": [
-      {
-        "name": "createAuction", "reserve": 0, "minimumBid": 0, "winnerCanBid": true
-      },
-      {
-        "name": "startApp",
-        "description": "start the node application",
-        "assertions": [
-          {
-            "object": "auction", "parameter": "count", "value": "1"
-          }
-        ]
-      },
-      {
-        "name": "getAuction", "index": 0
-      },
-      {
-        "name": "assertions", "description": "assertions",
-        "assertions": [
-          {
-            "object": "auction", "parameter": "status", "value": "PENDING", "condition": "equals"
-          }
-        ]
-      },
-      {
-        "name": "transferToken", "description": "transfer token to auction account",
-        "assertions": [
-          { "object": "auction", "parameter": "status", "value": "ACTIVE", "condition": "equals" },
-          { "object": "auction", "parameter": "tokenOwnerAccountId" }
-        ]
-      },
-      {
-        "name": "bid", "description": "First bid", "from": "1", "amount": 3,
-        "assertions": [
-          { "object": "auction", "parameter": "winningAccount", "condition": "equals" },
-          { "object": "auction", "parameter": "winningBid", "condition": "equals" },
-          { "object": "bid", "parameter": "bidderAccountId", "condition": "equals", "from": "1", "amount": 3},
-          { "object": "bid", "parameter": "timestamp", "condition": "notnull", "from": "1", "amount": 3},
-          { "object": "bid", "parameter": "transactionHash", "condition": "notnull", "from": "1", "amount": 3},
-          { "object": "bid", "parameter": "transactionId", "condition": "notnull", "from": "1", "amount": 3},
-          { "object": "bid", "parameter": "refunded", "condition": "false" ,"from": "1", "amount": 3},
-          { "object": "bid", "parameter": "status", "condition": "isnull", "from": "1", "amount": 3}
-        ]
-      },
-      {
-        "name": "winnerAssociate", "description": "Winner Associates with token"
-      },
-      {
-        "name": "endAuction", "description": "End Auction",
-        "assertions": [
-          { "object": "auction", "parameter": "status", "condition": "equals", "value": "ENDED" },
-          { "object": "auction", "parameter": "transferTxId", "condition": "isnull" },
-          { "object": "auction", "parameter": "transferTxHash", "condition": "isnull" }
-        ]
-      },
-      {
-        "name": "assertions", "description": "assertions",
-        "assertions": [
-          { "object": "winnerDoesNotOwnToken" }
-        ]
-      },
-      {
-        "name": "stopApp",
-        "description": "stop the node application"
-      }
-    ]
-  },
-  {
     "testName": "Winner can't bid",
+    "skip": false,
     "mirrors": ["hedera"],
     "symbol": "tokenSymbol",
     "transferOnWin": true,
@@ -494,7 +391,10 @@
         "assertions": [
           {
             "object": "auction", "parameter": "count", "value": "1"
+          },          {
+            "object": "auction", "parameter": "associated"
           }
+
         ]
       },
       {
@@ -539,6 +439,7 @@
   },
   {
     "testName": "Insufficient Bid (Below minimum)",
+    "skip": false,
     "mirrors": ["hedera"],
     "symbol": "tokenSymbol",
     "transferOnWin": true,
@@ -552,6 +453,8 @@
         "assertions": [
           {
             "object": "auction", "parameter": "count", "value": "1"
+          },          {
+            "object": "auction", "parameter": "associated"
           }
         ]
       },
@@ -597,6 +500,7 @@
   },
   {
     "testName": "Bid below reserve",
+    "skip": false,
     "mirrors": ["hedera"],
     "symbol": "tokenSymbol",
     "transferOnWin": true,
@@ -610,6 +514,9 @@
         "assertions": [
           {
             "object": "auction", "parameter": "count", "value": "1"
+          },
+          {
+            "object": "auction", "parameter": "associated"
           }
         ]
       },

@@ -1,71 +1,105 @@
 package com.hedera.demo.auction.node.app.bidwatcher;
 
+import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
+import com.hedera.demo.auction.node.app.Utils;
+import com.hedera.demo.auction.node.app.domain.Auction;
+import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
 import lombok.extern.log4j.Log4j2;
+import org.jooq.tools.StringUtils;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 @Log4j2
 public class HederaBidsWatcher extends AbstractBidsWatcher implements BidsWatcherInterface {
 
-    public HederaBidsWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, String refundKey, int mirrorQueryFrequency) throws Exception {
+    // private auction object so that we don't interfere with the abstract instance
+    private Auction watchedAuction;
+
+    public HederaBidsWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, String refundKey, int mirrorQueryFrequency) {
         super(hederaClient, webClient, auctionsRepository, bidsRepository, auctionId, refundKey, mirrorQueryFrequency);
     }
 
-    @Override
-    public void watch() throws Exception {
+    private Callable<JsonObject> queryMirror(String auctionAccountId, String timestampFrom) {
+        return () -> {
+            var webQuery = webClient
+                    .get(mirrorURL, "/api/v1/transactions")
+                    .addQueryParam("account.id", auctionAccountId)
+                    .addQueryParam("transactiontype", "CRYPTOTRANSFER")
+                    .addQueryParam("order", "asc")
+                    .addQueryParam("timestamp", "gt:".concat(timestampFrom));
 
-        AtomicBoolean querying = new AtomicBoolean(false);
+            CompletableFuture<JsonObject> future = new CompletableFuture<>();
 
-        log.info("Watching auction account Id " + auction.getAuctionaccountid() + ", token Id " + auction.getTokenid());
-
-        var webQuery = webClient
-                .get(mirrorURL, "/api/v1/transactions")
-                .addQueryParam("account.id", auction.getAuctionaccountid())
-                .addQueryParam("transactiontype", "CRYPTOTRANSFER")
-                .addQueryParam("order", "asc")
-                .addQueryParam("timestamp","gt:0");
-
-        while (runThread) {
-            if (!querying.get()) {
-                querying.set(true);
-
-                log.debug("Checking for bids on account " + auction.getAuctionaccountid() + " and token " + auction.getTokenid());
-
-                if (auction.getLastconsensustimestamp() != null) {
-                    webQuery.setQueryParam("timestamp", "gt:".concat(auction.getLastconsensustimestamp()));
-                }
-
-                webQuery.as(BodyCodec.jsonObject())
-                .send(response -> {
-                    if (response.succeeded()) {
-                        JsonObject body = response.result().body();
+            webQuery.as(BodyCodec.jsonObject())
+                    .send()
+                    .onSuccess(response -> {
                         try {
-                            handleResponse(body);
+                            future.complete(response.body());
                         } catch (RuntimeException e) {
                             log.error(e);
-                        } finally {
-                            querying.set(false);
+                            future.complete(new JsonObject());
                         }
-                    } else {
-                        log.error(response.cause().getMessage());
-                        querying.set(false);
-                    }
-                });
-            }
+                    })
+                    .onFailure(err -> {
+                        log.error(err.getMessage());
+                        future.complete(new JsonObject());
+                    });
+
+
+            return future.get();
+        };
+    }
+
+    @Override
+    public void watch() {
+
+        @Var String nextLink = "";
+
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        while (runThread ) {
             try {
-                Thread.sleep(this.mirrorQueryFrequency);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                // reload auction from database
+                watchedAuction = auctionsRepository.getAuction(auctionId);
+
+                log.debug("Checking for bids on account " + watchedAuction.getAuctionaccountid() + " and token " + watchedAuction.getTokenid());
+
+                String consensusTimeStampFrom = StringUtils.isEmpty(nextLink) ? watchedAuction.getLastconsensustimestamp() : nextLink;
+                nextLink = "";
+
+                Future<JsonObject> future = executor.submit(queryMirror(auction.getAuctionaccountid(), consensusTimeStampFrom));
+
+                try {
+                    JsonObject response = future.get();
+                    if (response != null) {
+                        MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
+                        nextLink = Utils.getTimestampFromMirrorLink(mirrorTransactions.links.next);
+                        handleResponse(mirrorTransactions);
+                    }
+                } catch (InterruptedException interruptedException) {
+                    log.error(interruptedException);
+                    Thread.currentThread().interrupt();
+                } catch (ExecutionException executionException) {
+                    log.error(executionException);
+                }
+
+                if (StringUtils.isEmpty(nextLink)) {
+                    Utils.sleep(this.mirrorQueryFrequency);
+                }
+            } catch (Exception e) {
                 log.error(e);
             }
-            // reload auction from database
-            this.auction = auctionsRepository.getAuction(auctionId);
         }
+        executor.shutdown();
     }
 }

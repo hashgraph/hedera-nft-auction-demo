@@ -2,6 +2,9 @@ package com.hedera.demo.auction.node.app;
 
 import com.google.common.base.Splitter;
 import com.google.errorprone.annotations.Var;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.codec.BodyCodec;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.binary.Hex;
 import org.jooq.tools.StringUtils;
@@ -13,6 +16,9 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -105,4 +111,34 @@ public class Utils {
             Thread.currentThread().interrupt();
         }
     }
+
+    public static Callable<JsonObject> queryMirror(WebClient webClient, String mirrorURL, int mirrorPort, String url, Map<String, String> queryParameters) {
+        return () -> {
+            var webQuery = webClient
+                    .get(mirrorPort, mirrorURL, url);
+
+            for (Map.Entry<String, String> entry : queryParameters.entrySet()) {
+                webQuery.addQueryParam(entry.getKey(), entry.getValue());
+            }
+
+            CompletableFuture<JsonObject> future = new CompletableFuture<>();
+
+            webQuery.as(BodyCodec.jsonObject())
+                    .send()
+                    .onSuccess(response -> {
+                        try {
+                            future.complete(response.body());
+                        } catch (RuntimeException e) {
+                            log.error(e);
+                            future.complete(new JsonObject());
+                        }
+                    })
+                    .onFailure(err -> {
+                        log.error(err.getMessage());
+                        future.complete(new JsonObject());
+                    });
+            return future.get();
+        };
+    }
+
 }

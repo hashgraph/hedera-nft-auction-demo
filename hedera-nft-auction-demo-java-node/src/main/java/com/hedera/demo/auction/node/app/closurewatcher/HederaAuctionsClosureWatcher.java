@@ -27,11 +27,7 @@ public class HederaAuctionsClosureWatcher extends AbstractAuctionsClosureWatcher
                 if (response.succeeded()) {
 
                     JsonObject body = response.result().body();
-                    try {
-                        handleResponse(body);
-                    } catch (Exception e) {
-                        log.error(e);
-                    }
+                    handleResponse(body);
                 } else {
                     log.error(response.cause().getMessage());
                 }

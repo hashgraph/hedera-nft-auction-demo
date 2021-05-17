@@ -171,10 +171,13 @@ public class E2EAppTest extends AbstractSystemTest {
 
     private void runTestTasks(JsonObject test, JsonArray tasks) throws Exception {
         for (JsonValue taskJson : tasks) {
+
             JsonObject task = taskJson.asJsonObject();
+
             String taskName = task.getString("name", "");
             String taskDescription = task.getString("description", "");
             String account = task.getString("account", "");
+
 
             log.info("  running task " + taskName + " - " + taskDescription);
 
@@ -245,6 +248,10 @@ public class E2EAppTest extends AbstractSystemTest {
     @JsonFileSource(resources = "/e2eSystemTests.json")
     public void e2eTest(JsonObject test) throws Exception {
         log.info("Starting e2e test : " + test.getString("testName"));
+
+        if (test.getBoolean("skip", false)) {
+            return;
+        }
 
         JsonArray mirrors = test.getJsonArray("mirrors");
 
@@ -354,7 +361,13 @@ public class E2EAppTest extends AbstractSystemTest {
                             .await()
                             .atMost(Duration.ofSeconds(20))
                             .until(auctionsCountMatches(Integer.parseInt(value)));
-
+                } else if (parameter.equals("associated")) {
+                    await()
+                            .with()
+                            .pollInterval(Duration.ofSeconds(1))
+                            .await()
+                            .atMost(Duration.ofSeconds(20))
+                            .until(tokenAssociated());
                 } else {
                     await()
                             .with()

@@ -34,7 +34,7 @@ public abstract class AbstractAuctionEndTransferWatcher {
                     if (transaction.isSuccessful()) {
                         // token transfer was successful
                         log.debug("Found successful token transfer transaction");
-                        auctionsRepository.setEnded(auction.getId(), transaction.getTransactionHashString());
+                        auctionsRepository.setTransferTransactionByAuctionId(auction.getId(), transaction.transactionId, transaction.getTransactionHashString());
                     } else {
                         log.debug("Token transfer transaction id " + auction.getTransfertxid() + " failed: " + transaction.result);
                     }

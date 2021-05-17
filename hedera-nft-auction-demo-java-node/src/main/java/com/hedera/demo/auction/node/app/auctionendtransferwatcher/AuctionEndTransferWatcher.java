@@ -34,7 +34,7 @@ public class AuctionEndTransferWatcher implements Runnable {
         while (runThread) {
             try {
                 for (Auction auction : auctionsRepository.getAuctionsList()) {
-                    if (auction.isTransferring()) {
+                    if (auction.isTransferPending()) {
                         if (!StringUtils.isEmpty(auction.getTransfertxid())) {
                             // find if transaction is complete and successful
                             switch (mirrorProvider) {

@@ -194,7 +194,9 @@ public class AuctionsRepository {
 
     public Auction setClosed(Auction auction) throws SQLException {
         setClosed(auction.getId());
+
         updateStatus(auction.getAuctionaccountid(), Auction.CLOSED);
+        auction.setStatus(Auction.CLOSED);
         return auction;
     }
 

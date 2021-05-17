@@ -261,7 +261,7 @@ public class AbstractIntegrationTest {
         assertEquals(auction.isPending(), body.getBoolean("pending"));
         assertEquals(auction.isClosed(), body.getBoolean("closed"));
         assertEquals(auction.getWinnerCanBid(), body.getBoolean("winnerCanBid"));
-        assertEquals(auction.isTransferring(), body.getBoolean("transferring"));
+        assertEquals(auction.isTransferPending(), body.getBoolean("transferPending"));
         assertEquals(auction.isEnded(), body.getBoolean("ended"));
         assertEquals(auction.getTokenowneraccount(), body.getString("tokenowneraccount"));
     }

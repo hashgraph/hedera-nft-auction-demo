@@ -3,6 +3,7 @@ package com.hedera.demo.auction.node.test.integration.auctionreadiness;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.SqlConnectionManager;
 import com.hedera.demo.auction.node.app.domain.Auction;
+import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.node.app.readinesswatcher.AbstractAuctionReadinessWatcher;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
@@ -10,22 +11,13 @@ import com.hedera.demo.auction.node.test.integration.AbstractIntegrationTest;
 import com.hedera.demo.auction.node.test.integration.HederaJson;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
-import kotlin.Pair;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.sql.SQLException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -123,9 +115,9 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
 
         // create an empty response
         JsonObject jsonResponse = HederaJson.mirrorTransactions(new JsonObject());
-
-        Pair<Boolean, String> response = readinessTester.handleResponse(jsonResponse);
-        assertFalse (response.getFirst());
+        MirrorTransactions mirrorTransactions = jsonResponse.mapTo(MirrorTransactions.class);
+        boolean response = readinessTester.handleResponse(mirrorTransactions);
+        assertFalse (response);
         auctionsRepository.deleteAllAuctions();
     }
 
@@ -138,9 +130,9 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
         JsonObject jsonResponse = HederaJson.mirrorTransactions(HederaJson.tokenTransferTransaction(badTokenOwnerAccount, badAccount, tokenId, goodAmount));
 
         jsonResponse.put("links",new JsonObject().put("next","nextlink"));
-        Pair<Boolean, String> response = readinessTester.handleResponse(jsonResponse);
-        assertFalse (response.getFirst());
-        assertEquals("nextlink", response.getSecond());
+        MirrorTransactions mirrorTransactions = jsonResponse.mapTo(MirrorTransactions.class);
+        boolean response = readinessTester.handleResponse(mirrorTransactions);
+        assertFalse (response);
         auctionsRepository.deleteAllAuctions();
     }
 
@@ -150,9 +142,9 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
         JsonObject jsonResponse = HederaJson.mirrorTransactions(HederaJson.tokenTransferTransaction(tokenOwnerAccountId, accountId, tokenId, goodAmount));
 
         jsonResponse.put("links",new JsonObject().put("next","nextlink"));
-        Pair<Boolean, String> response = readinessTester.handleResponse(jsonResponse);
-        assertTrue (response.getFirst());
-        assertEquals("", response.getSecond());
+        MirrorTransactions mirrorTransactions = jsonResponse.mapTo(MirrorTransactions.class);
+        boolean response = readinessTester.handleResponse(mirrorTransactions);
+        assertTrue (response);
         auctionsRepository.deleteAllAuctions();
     }
 
@@ -160,7 +152,8 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
 
         JsonObject jsonResponse = HederaJson.mirrorTransactions(HederaJson.tokenTransferTransaction(fromAccount, toAccount, token, amount));
 
-        Pair<Boolean, String> response = readinessTester.handleResponse(jsonResponse);
-        return response.getFirst();
+        MirrorTransactions mirrorTransactions = jsonResponse.mapTo(MirrorTransactions.class);
+        boolean response = readinessTester.handleResponse(mirrorTransactions);
+        return response;
     }
 }

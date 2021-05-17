@@ -251,6 +251,16 @@ public abstract class AbstractSystemTest {
         };
     }
 
+    protected Callable<Boolean> tokenAssociated() {
+        return () -> {
+            AccountBalance accountBalance = new AccountBalanceQuery()
+                    .setAccountId(auctionAccountId)
+                    .execute(hederaClient.client());
+
+            return accountBalance.token.containsKey(tokenId);
+        };
+    }
+
     protected Callable<Boolean> alwaysTrueForDelay() {
         return () -> {
             return true;

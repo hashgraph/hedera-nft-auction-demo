@@ -4,11 +4,7 @@
 package com.hedera.demo.auction.node.app.db.tables;
 
 
-import com.hedera.demo.auction.node.app.db.Keys;
 import com.hedera.demo.auction.node.app.db.Public;
-
-import java.util.Arrays;
-import java.util.List;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
@@ -18,7 +14,6 @@ import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
-import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.TableImpl;
 
@@ -29,7 +24,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Scheduledoperationslog extends TableImpl<Record> {
 
-    private static final long serialVersionUID = 1008858165;
+    private static final long serialVersionUID = -1605730842;
 
     /**
      * The reference instance of <code>public.scheduledoperationslog</code>
@@ -105,11 +100,6 @@ public class Scheduledoperationslog extends TableImpl<Record> {
     @Override
     public Schema getSchema() {
         return Public.PUBLIC;
-    }
-
-    @Override
-    public List<UniqueKey<Record>> getKeys() {
-        return Arrays.<UniqueKey<Record>>asList(Keys.SCHEDULEDOPERATIONSLOG_TRANSACTIONTIMESTAMP_KEY, Keys.SCHEDULEDOPERATIONSLOG_TRANSACTIONID_KEY);
     }
 
     @Override

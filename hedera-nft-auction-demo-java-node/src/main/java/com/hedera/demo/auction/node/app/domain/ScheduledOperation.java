@@ -17,8 +17,8 @@ public class ScheduledOperation implements VertxPojo, Serializable {
 
     private static final long serialVersionUID = -495816041;
 
-    public static String TYPE_TOKENASSOCIATE = "TOKENASSOCIATE";
-    public static String TYPE_CRYPTOTRANSFER = "CRYPTOTRANSFER";
+    public static final String TYPE_TOKENASSOCIATE = "TOKENASSOCIATE";
+    public static final String TYPE_CRYPTOTRANSFER = "CRYPTOTRANSFER";
 
     public static final String PENDING = "PENDING";
     public static final String EXECUTING = "EXECUTING";
@@ -39,16 +39,6 @@ public class ScheduledOperation implements VertxPojo, Serializable {
         fromJson(json);
     }
 
-    public boolean isPending() {
-        return this.status.equals(ScheduledOperation.PENDING);
-    }
-    public boolean isExecuting() {
-        return this.status.equals(ScheduledOperation.EXECUTING);
-    }
-    public boolean isSuccessful() {
-        return this.status.equals(ScheduledOperation.SUCCESSFUL);
-    }
-
     public ScheduledOperation(Record record) {
         this.transactiontype = record.get(SCHEDULEDOPERATIONS.TRANSACTIONTYPE);
         this.transactiontimestamp = record.get(SCHEDULEDOPERATIONS.TRANSACTIONTIMESTAMP);
@@ -67,6 +57,16 @@ public class ScheduledOperation implements VertxPojo, Serializable {
         this.memo = row.getString(SCHEDULEDOPERATIONS.MEMO.getName());
         this.result = row.getString(SCHEDULEDOPERATIONS.RESULT.getName());
         this.status = row.getString(SCHEDULEDOPERATIONS.STATUS.getName());
+    }
+
+    public boolean isPending() {
+        return this.status.equals(ScheduledOperation.PENDING);
+    }
+    public boolean isExecuting() {
+        return this.status.equals(ScheduledOperation.EXECUTING);
+    }
+    public boolean isSuccessful() {
+        return this.status.equals(ScheduledOperation.SUCCESSFUL);
     }
 
     public void setTransactiontype(String transactiontype) {

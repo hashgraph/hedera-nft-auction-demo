@@ -29,6 +29,8 @@ public class HederaAuctionEndTransfer extends AbstractAuctionEndTransfer impleme
     public TransferResult checkTransferInProgress(Auction auction) {
         String uri = "/api/v1/transactions";
 
+        log.debug("checkTransferInProgress");
+
         @Var TransferResult result = TransferResult.NOT_FOUND;
         @Var String nextTimestamp = auction.getEndtimestamp();
         ExecutorService executor = Executors.newFixedThreadPool(1);
@@ -43,7 +45,7 @@ public class HederaAuctionEndTransfer extends AbstractAuctionEndTransfer impleme
             queryParameters.put("order", "asc");
             queryParameters.put("timestamp", "gt:".concat(nextTimestamp));
 
-            log.debug("querying mirror for successful transaction for account " + queryParameters.get("account.id"));
+            log.debug("querying mirror for successful transaction for account " + queryParameters.get("account.id") + ", timestamp:gt:".concat(nextTimestamp));
             Future<JsonObject> future = executor.submit(Utils.queryMirror(webClient, mirrorURL, mirrorPort, uri, queryParameters));
             try {
                 JsonObject response = future.get();

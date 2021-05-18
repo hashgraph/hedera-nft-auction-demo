@@ -30,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Auctions extends TableImpl<Record> {
 
-    private static final long serialVersionUID = -644706732;
+    private static final long serialVersionUID = 1491191112;
 
     /**
      * The reference instance of <code>public.auctions</code>
@@ -149,6 +149,16 @@ public class Auctions extends TableImpl<Record> {
      * The column <code>public.auctions.transferstatus</code>.
      */
     public final TableField<Record, String> TRANSFERSTATUS = createField(DSL.name("transferstatus"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+
+    /**
+     * The column <code>public.auctions.title</code>.
+     */
+    public final TableField<Record, String> TITLE = createField(DSL.name("title"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+
+    /**
+     * The column <code>public.auctions.description</code>.
+     */
+    public final TableField<Record, String> DESCRIPTION = createField(DSL.name("description"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
 
     /**
      * Create a <code>public.auctions</code> table reference

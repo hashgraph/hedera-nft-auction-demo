@@ -10,11 +10,11 @@ services:
       - POSTGRES_PASSWORD=password
   #  networks:
   #    - hcs_heal
-#    expose:
-#      - "5432"
-#    ports:
-#      - "5432:5432"
-#    command: -p 5432
+    expose:
+      - "5433"
+    ports:
+      - "5433:5433"
+    command: -p 5433
     volumes:
       - ./docker-files/postgres-data:/var/lib/postgresql/data
 
@@ -25,7 +25,7 @@ services:
     restart: unless-stopped
     environment:
       # Database connection
-      - DATABASE_URL=postgresql://postgres:5432/postgres
+      - DATABASE_URL=postgresql://postgres:5433/postgres
       - DATABASE_USERNAME=postgres
       - DATABASE_PASSWORD=password
       - POOL_SIZE=10
@@ -54,7 +54,7 @@ services:
       - ADMIN_API=true
       - AUCTION_NODE=false
       # Database connection
-      - DATABASE_URL=postgresql://postgres:5432/postgres
+      - DATABASE_URL=postgresql://postgres:5433/postgres
       - DATABASE_USERNAME=postgres
       - DATABASE_PASSWORD=password
       - POOL_SIZE=10

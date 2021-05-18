@@ -240,7 +240,7 @@ curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8082/v
 or
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -d '{"symbol":"./sample-files/gold-base64.txt","name":"Test Token","clean":false}' http://localhost:8082/v1/admin/easysetup
+curl -H "Content-Type: application/json" -X POST -d '{"symbol":"./sample-files/gold-base64.txt","name":"Test Token","clean":false, "title": "Auction Title", "description": "Auction description" }' http://localhost:8082/v1/admin/easysetup
 ```
 
 #### Step by step via command line
@@ -291,7 +291,9 @@ You can change some of the attribute values if you wish
   "auctionaccountid": "0.0.yyyyyy",
   "endtimestamp": "",
   "reserve": 0,
-  "minimumbid": 0
+  "minimumbid": 0,
+  "title": "Auction title",
+  "description": "Auction description"
 }
 ```
 
@@ -426,7 +428,9 @@ curl -H "Content-Type: application/json" -X POST -d '
   "reserve": "", 
   "minimumbid": "1000000", 
   "endtimestamp": "", 
-  "winnercanbid": true
+  "winnercanbid": true,
+  "title": "Auction title",
+  "description": "Auction description"
 }' http://localhost:8082/v1/admin/auction
 ```
 

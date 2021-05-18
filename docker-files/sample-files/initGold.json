@@ -4,6 +4,8 @@
   "endtimestamp": "",
   "reserve": 0,
   "minimumbid": 0,
-  "winnercanbid": true
+  "winnercanbid": true,
+  "title": "An auction for a gold coin",
+  "description": "This auction is for a gold coin"
 }
 

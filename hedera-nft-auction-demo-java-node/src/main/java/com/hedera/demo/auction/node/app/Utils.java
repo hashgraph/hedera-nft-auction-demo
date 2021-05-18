@@ -68,17 +68,6 @@ public class Utils {
         return String.valueOf(seconds).concat(".").concat(timeStampParts.get(1));
     }
 
-    public static String instantToTimestamp(Instant timestamp) {
-        long seconds = timestamp.getEpochSecond();
-        long nanos = timestamp.getNano();
-
-        String secondString = String.valueOf(seconds);
-        String nanoString = StringUtils.leftPad(String.valueOf(nanos), 9, "0");
-        String consensusTimestamp = secondString.concat(".").concat(nanoString);
-
-        return consensusTimestamp;
-    }
-
     public static String timestampToDate(String timestamp) {
         List<String> timeStampParts = Splitter.on('.').splitToList(timestamp);
         long seconds = Long.parseLong(timeStampParts.get(0));

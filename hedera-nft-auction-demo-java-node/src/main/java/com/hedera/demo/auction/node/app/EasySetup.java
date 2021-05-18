@@ -46,7 +46,7 @@ public class EasySetup extends AbstractCreate {
     public String setup(String[] args) throws Exception {
         Client client = hederaClient.client();
 
-        @Var String symbol = "TT";
+        @Var String symbol = "./sample-files/hedera-logo-base64.txt";
         @Var boolean clean = true;
         @Var String name = "Test Token";
 
@@ -97,6 +97,8 @@ public class EasySetup extends AbstractCreate {
             auction.put("reserve", 0);
             auction.put("minimumbid", 1000000);
             auction.put("winnercanbid", true);
+            auction.put("title", "auction title");
+            auction.put("description", "auction description");
 
             // store auction data in initDemo.json file
             FileWriter myWriter = new FileWriter("./sample-files/initDemo.json", UTF_8);

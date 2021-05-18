@@ -3,7 +3,6 @@ package com.hedera.demo.auction.node.app;
 import com.hedera.demo.auction.node.app.api.AdminApiVerticle;
 import com.hedera.demo.auction.node.app.api.ApiVerticle;
 import com.hedera.demo.auction.node.app.auctionendtransfer.AuctionEndTransfer;
-import com.hedera.demo.auction.node.app.auctionendtransferwatcher.AuctionEndTransferWatcher;
 import com.hedera.demo.auction.node.app.bidwatcher.BidsWatcher;
 import com.hedera.demo.auction.node.app.closurewatcher.AuctionsClosureWatcher;
 import com.hedera.demo.auction.node.app.domain.Auction;
@@ -63,8 +62,6 @@ public final class App {
     private final List<AuctionReadinessWatcher> auctionReadinessWatchers = new ArrayList<>(0);
     @Nullable
     private AuctionEndTransfer auctionEndTransfer = null;
-    @Nullable
-    private AuctionEndTransferWatcher auctionEndTransferWatcher = null;
     @Nullable
     private ScheduleExecutor scheduleExecutor = null;
     @Nullable
@@ -148,7 +145,6 @@ public final class App {
             startRefundChecker(webClient, auctionsRepository, bidsRepository);
             if (transferOnWin) {
                 startAuctionEndTransfers(webClient, auctionsRepository);
-                startAuctionEndTransferWatcher(webClient, auctionsRepository);
             }
             if (! refundKey.isBlank()) {
                 startScheduledExecutor(auctionsRepository, scheduledOperationsRepository);
@@ -217,13 +213,6 @@ public final class App {
         auctionEndTransferThread.start();
     }
 
-    private void startAuctionEndTransferWatcher(WebClient webClient, AuctionsRepository auctionsRepository) {
-        // start the thread to monitor winning account association with token
-        auctionEndTransferWatcher = new AuctionEndTransferWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency);
-        Thread auctionEndTransferWatcherThread = new Thread(auctionEndTransferWatcher);
-        auctionEndTransferWatcherThread.start();
-    }
-
     private void startRefunder(AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
         // start the thread to monitor winning account association with token
         refunder = new Refunder(hederaClient, auctionsRepository, bidsRepository, refundKey, mirrorQueryFrequency);
@@ -251,10 +240,6 @@ public final class App {
 
         if (auctionEndTransfer != null) {
             auctionEndTransfer.stop();
-        }
-
-        if (auctionEndTransferWatcher != null) {
-            auctionEndTransferWatcher.stop();
         }
 
         for (BidsWatcher bidsWatcher : bidsWatchers) {

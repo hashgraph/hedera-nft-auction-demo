@@ -105,7 +105,8 @@ public final class App {
         if (restAPI) {
             JsonObject config = new JsonObject()
                     .put("envFile",".env")
-                    .put("envPath",".");
+                    .put("envPath",".")
+                    .put("topicId", this.topicId);
             DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(restApiVerticleCount);
             vertx.deployVerticle(ApiVerticle.class.getName(), options);
         }

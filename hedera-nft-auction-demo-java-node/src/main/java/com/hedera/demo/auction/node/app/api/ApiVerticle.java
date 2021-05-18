@@ -67,6 +67,7 @@ public class ApiVerticle extends AbstractVerticle {
         GetEndedAuctionsHandler getEndedAuctionsHandler = new GetEndedAuctionsHandler(pgPool);
         GetActiveAuctionsHandler getActiveAuctionsHandler = new GetActiveAuctionsHandler(pgPool);
         GetPendingAuctionsHandler getPendingAuctionsHandler = new GetPendingAuctionsHandler(pgPool);
+        GetEnvironmentHandler getEnvironmentHandler = new GetEnvironmentHandler(env.get("VUE_APP_NETWORK"), config().getString("topicId"), env.get("VUE_APP_NODE_OWNER", ""));
         RootHandler rootHandler = new RootHandler();
 
         Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.GET));
@@ -78,6 +79,7 @@ public class ApiVerticle extends AbstractVerticle {
                         .allowedHeaders(allowedHeaders))
                 .failureHandler(ApiVerticle::failureHandler);
 
+        router.get("/v1/environment").handler(getEnvironmentHandler);
         router.get("/v1/reservenotmetauctions").handler(getAuctionsReserveNotMetHandler);
         router.get("/v1/closedauctions").handler(getClosedAuctionsHandler);
         router.get("/v1/endedauctions").handler(getEndedAuctionsHandler);

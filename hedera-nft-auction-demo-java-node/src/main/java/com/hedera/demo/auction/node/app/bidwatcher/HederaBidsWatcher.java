@@ -93,11 +93,11 @@ public class HederaBidsWatcher extends AbstractBidsWatcher implements BidsWatche
                     log.error(executionException);
                 }
 
-                if (StringUtils.isEmpty(nextLink)) {
-                    Utils.sleep(this.mirrorQueryFrequency);
-                }
             } catch (Exception e) {
                 log.error(e);
+            }
+            if (StringUtils.isEmpty(nextLink)) {
+                Utils.sleep(this.mirrorQueryFrequency);
             }
         }
         executor.shutdown();

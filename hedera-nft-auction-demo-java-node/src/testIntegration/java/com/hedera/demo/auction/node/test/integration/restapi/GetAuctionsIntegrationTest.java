@@ -85,4 +85,72 @@ public class GetAuctionsIntegrationTest extends AbstractIntegrationTest {
                 })));
     }
 
+    @Test
+    public void getPendingAuctionsTest(VertxTestContext testContext) throws SQLException {
+        getAuction(testContext,  "/v1/pendingauctions/", Auction.PENDING);
+    }
+
+    @Test
+    public void getActiveAuctionsTest(VertxTestContext testContext) throws SQLException {
+        getAuction(testContext,  "/v1/activeauctions/", Auction.ACTIVE);
+    }
+
+    @Test
+    public void getClosedAuctionsTest(VertxTestContext testContext) throws SQLException {
+        getAuction(testContext,  "/v1/closedauctions/", Auction.CLOSED);
+    }
+
+    @Test
+    public void getEndedAuctionsTest(VertxTestContext testContext) throws SQLException {
+        getAuction(testContext,  "/v1/endedauctions/", Auction.ENDED);
+    }
+
+    @Test
+    public void getAuctionReserveNotMet(VertxTestContext testContext) throws SQLException {
+        // reserve not met auction
+        Auction auction = testAuctionObject(1);
+        auction.setWinningbid(2L);
+        auction.setReserve(5L);
+        auctionsRepository.createComplete(auction);
+        // reserve met auction
+        Auction newAuction = testAuctionObject(2);
+        newAuction.setWinningbid(2L);
+        newAuction.setReserve(0L);
+        auctionsRepository.createComplete(newAuction);
+
+        webClient.get(9005, "localhost", "/v1/reservenotmetauctions")
+                .as(BodyCodec.buffer())
+                .send(testContext.succeeding(response -> testContext.verify(() -> {
+                    assertNotNull(response);
+                    JsonArray body = new JsonArray(response.body());
+                    assertNotNull(body);
+                    assertEquals(1, body.size());
+                    verifyAuction(auction, body.getJsonObject(0));
+
+                    auctionsRepository.deleteAllAuctions();
+                    testContext.completeNow();
+                })));
+    }
+
+    public void getAuction(VertxTestContext testContext, String url, String status) throws SQLException {
+        Auction auction = testAuctionObject(1);
+        auctionsRepository.createComplete(auction);
+        @Var Auction newAuction = testAuctionObject(2);
+        newAuction.setStatus(status);
+        newAuction = auctionsRepository.createComplete(newAuction);
+
+        Auction finalNewAuction = newAuction;
+        webClient.get(9005, "localhost", url)
+                .as(BodyCodec.buffer())
+                .send(testContext.succeeding(response -> testContext.verify(() -> {
+                    assertNotNull(response);
+                    JsonArray body = new JsonArray(response.body());
+                    assertNotNull(body);
+                    assertEquals(1, body.size());
+                    verifyAuction(finalNewAuction, body.getJsonObject(0));
+
+                    auctionsRepository.deleteAllAuctions();
+                    testContext.completeNow();
+                })));
+    }
 }

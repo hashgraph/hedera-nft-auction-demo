@@ -62,6 +62,11 @@ public class ApiVerticle extends AbstractVerticle {
         GetAuctionHandler getAuctionHandler = new GetAuctionHandler(pgPool);
         GetLastBidderBidHandler getLastBidderBidHandler = new GetLastBidderBidHandler(pgPool);
         GetBidsHandler getBidsHandler = new GetBidsHandler(pgPool);
+        GetAuctionsReserveNotMetHandler getAuctionsReserveNotMetHandler = new GetAuctionsReserveNotMetHandler(pgPool);
+        GetClosedAuctionsHandler getClosedAuctionsHandler = new GetClosedAuctionsHandler(pgPool);
+        GetEndedAuctionsHandler getEndedAuctionsHandler = new GetEndedAuctionsHandler(pgPool);
+        GetActiveAuctionsHandler getActiveAuctionsHandler = new GetActiveAuctionsHandler(pgPool);
+        GetPendingAuctionsHandler getPendingAuctionsHandler = new GetPendingAuctionsHandler(pgPool);
         RootHandler rootHandler = new RootHandler();
 
         Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.GET));
@@ -73,6 +78,11 @@ public class ApiVerticle extends AbstractVerticle {
                         .allowedHeaders(allowedHeaders))
                 .failureHandler(ApiVerticle::failureHandler);
 
+        router.get("/v1/reservenotmetauctions").handler(getAuctionsReserveNotMetHandler);
+        router.get("/v1/closedauctions").handler(getClosedAuctionsHandler);
+        router.get("/v1/endedauctions").handler(getEndedAuctionsHandler);
+        router.get("/v1/activeauctions").handler(getActiveAuctionsHandler);
+        router.get("/v1/pendingauctions").handler(getPendingAuctionsHandler);
         router.get("/v1/auctions/:id").handler(getAuctionHandler);
         router.get("/v1/auctions").handler(getAuctionsHandler);
         router.get("/v1/lastbid/:auctionid/:bidderaccountid").handler(getLastBidderBidHandler);
@@ -104,6 +114,7 @@ public class ApiVerticle extends AbstractVerticle {
         if (cause != null) {
             log.error(cause);
             response.setStatusCode(500);
+            response.setStatusMessage(cause.getMessage());
         }
 
         response.end();

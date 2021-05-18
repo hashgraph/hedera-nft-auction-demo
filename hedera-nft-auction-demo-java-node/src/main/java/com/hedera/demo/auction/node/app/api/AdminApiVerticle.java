@@ -83,6 +83,7 @@ public class AdminApiVerticle extends AbstractVerticle {
         if (cause != null) {
             log.error(cause);
             response.setStatusCode(500);
+            response.setStatusMessage(cause.getMessage());
         }
 
         response.end();

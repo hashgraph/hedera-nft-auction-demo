@@ -23,6 +23,9 @@ public abstract class AbstractAuction {
     String transfertxid = "transfertxid";
     String transfertxhash = "transfertxhash";
     String lastConsensusTimestamp = "1.2";
+    String transferStatus = "transferstatus";
+    String title = "title";
+    String description = "description";
 
     Auction testAuctionObject() {
         Auction auction = new Auction();
@@ -45,6 +48,9 @@ public abstract class AbstractAuction {
         auction.setTransfertxid(transfertxid);
         auction.setTransfertxhash(transfertxhash);
         auction.setLastconsensustimestamp(lastConsensusTimestamp);
+        auction.setTransferstatus(transferStatus);
+        auction.setTitle(title);
+        auction.setDescription(description);
 
         return auction;
     }
@@ -69,5 +75,8 @@ public abstract class AbstractAuction {
         assertEquals(transfertxid, auction.getTransfertxid());
         assertEquals(transfertxhash, auction.getTransfertxhash());
         assertEquals(lastConsensusTimestamp, auction.getLastconsensustimestamp());
+        assertEquals(transferStatus, auction.getTransferstatus());
+        assertEquals(title, auction.getTitle());
+        assertEquals(description, auction.getDescription());
     }
 }

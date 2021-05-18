@@ -91,6 +91,9 @@ public class AuctionTest extends AbstractAuction {
         assertTrue(auctionString.contains(", ".concat(transfertxid)));
         assertTrue(auctionString.contains(", ".concat(transfertxhash)));
         assertTrue(auctionString.contains(", ".concat(lastConsensusTimestamp)));
+        assertTrue(auctionString.contains(", ".concat(transferStatus)));
+        assertTrue(auctionString.contains(", ".concat(title)));
+        assertTrue(auctionString.contains(", ".concat(description)));
     }
 
     @Test
@@ -117,6 +120,9 @@ public class AuctionTest extends AbstractAuction {
         assertEquals(transfertxid, auctionJson.getString("transfertxid"));
         assertEquals(transfertxhash, auctionJson.getString("transfertxhash"));
         assertEquals(lastConsensusTimestamp, auctionJson.getString("lastconsensustimestamp"));
+        assertEquals(transferStatus, auctionJson.getString("transferstatus"));
+        assertEquals(title, auctionJson.getString("title"));
+        assertEquals(description, auctionJson.getString("description"));
     }
 
     @Test

@@ -37,6 +37,8 @@ public class Auction implements VertxPojo, Serializable {
     private String tokenowneraccount = "";
     private String transfertimestamp = "";
     private String transferstatus = "";
+    private String title = "";
+    private String description = "";
 
     public Auction() {}
 
@@ -62,6 +64,8 @@ public class Auction implements VertxPojo, Serializable {
         this.tokenowneraccount = record.get(AUCTIONS.TOKENOWNER);
         this.transfertimestamp = record.get(AUCTIONS.TRANSFERTIMESTAMP);
         this.transferstatus = record.get(AUCTIONS.TRANSFERSTATUS);
+        this.title = record.get(AUCTIONS.TITLE);
+        this.description = record.get(AUCTIONS.DESCRIPTION);
     }
 
     public Auction (Row row) {
@@ -86,6 +90,8 @@ public class Auction implements VertxPojo, Serializable {
         this.tokenowneraccount = row.getString(AUCTIONS.TOKENOWNER.getName());
         this.transfertimestamp = row.getString(AUCTIONS.TRANSFERTIMESTAMP.getName());
         this.transferstatus = row.getString(AUCTIONS.TRANSFERSTATUS.getName());
+        this.title = row.getString(AUCTIONS.TITLE.getName());
+        this.description = row.getString(AUCTIONS.DESCRIPTION.getName());
     }
 
     public Auction(io.vertx.core.json.JsonObject json) {
@@ -288,6 +294,22 @@ public class Auction implements VertxPojo, Serializable {
         this.transferstatus = transferstatus;
     }
 
+    public String getTitle() {
+        return this.title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Auctions (");
@@ -313,6 +335,8 @@ public class Auction implements VertxPojo, Serializable {
         sb.append(", ").append(tokenowneraccount);
         sb.append(", ").append(transfertimestamp);
         sb.append(", ").append(getTransferstatus());
+        sb.append(", ").append(getTitle());
+        sb.append(", ").append(getDescription());
 
         sb.append(")");
         return sb.toString();
@@ -341,6 +365,8 @@ public class Auction implements VertxPojo, Serializable {
         this.setTokenowneraccount(json.getString("tokenowneraccount", ""));
         this.setTransfertimestamp(json.getString("transfertimestamp", ""));
         this.setTransferstatus(json.getString("transferstatus", ""));
+        this.setTitle(json.getString("title", ""));
+        this.setDescription(json.getString("description", ""));
         return this;
     }
 
@@ -369,6 +395,8 @@ public class Auction implements VertxPojo, Serializable {
         json.put("tokenowneraccount", getTokenowneraccount());
         json.put("transfertimestamp", getTransfertimestamp());
         json.put("transferstatus", getTransferstatus());
+        json.put("title", getTitle());
+        json.put("description", getDescription());
 
         return json;
     }

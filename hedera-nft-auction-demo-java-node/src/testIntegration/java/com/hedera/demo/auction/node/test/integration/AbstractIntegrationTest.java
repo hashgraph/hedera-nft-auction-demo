@@ -109,6 +109,10 @@ public class AbstractIntegrationTest {
     String timestampforrefund() { return stringPlusIndex("timestampforrefund"); }
     String refundStatus() { return Bid.REFUND_ISSUED; }
 
+    String transferStatus() { return stringPlusIndex("transferstatus"); }
+    String title() { return stringPlusIndex("title");}
+    String description() { return stringPlusIndex("description");}
+
     protected boolean masterNode = true; //TODO: Handle tests where masterNode = false
 
     protected Auction testAuctionObject(int index) {
@@ -133,6 +137,9 @@ public class AbstractIntegrationTest {
         auction.setTransfertxhash(transfertxhash());
         auction.setLastconsensustimestamp(lastConsensusTimestamp());
         auction.setTokenowneraccount(tokenOwnerAccount());
+        auction.setTransferstatus(transferStatus());
+        auction.setTitle(title());
+        auction.setDescription(description());
 
         return auction;
     }
@@ -147,6 +154,8 @@ public class AbstractIntegrationTest {
         assertEquals(auction.getTokenimage(),getAuction.getTokenimage());
         assertEquals(auction.getWinningbid(),getAuction.getWinningbid());
         assertEquals(auction.getMinimumbid(),getAuction.getMinimumbid());
+        assertEquals(auction.getTitle(), getAuction.getTitle());
+        assertEquals(auction.getDescription(), getAuction.getDescription());
     }
 
     protected Bid testBidObject(int index, int auctionId) {
@@ -181,20 +190,6 @@ public class AbstractIntegrationTest {
         assertEquals(bid.getTimestamp(), newBid.getTimestampforrefund());
     }
 
-//    public void verifyBidContents(Bid bid, int auctionId) {
-//        assertEquals(timestamp(), bid.getTimestamp());
-//        assertEquals(auctionId, bid.getAuctionid());
-//        assertEquals(bidderaccountid(), bid.getBidderaccountid());
-//        assertEquals(bidamount(), bid.getBidamount());
-//        assertEquals(status(), bid.getStatus());
-//        assertEquals(refundtxid(), bid.getRefundtxid());
-//        assertEquals(refundtxhash(), bid.getRefundtxhash());
-//        assertEquals(transactionid(), bid.getTransactionid());
-//        assertEquals(transactionhash(), bid.getTransactionhash());
-//        assertEquals(refundStatus(), bid.getRefundstatus());
-//        assertEquals(timestampforrefund(), bid.getTimestampforrefund());
-//    }
-//
     protected void migrate(PostgreSQLContainer postgres) {
         String postgresUrl = postgres.getJdbcUrl();
         String postgresUser = postgres.getUsername();
@@ -264,5 +259,8 @@ public class AbstractIntegrationTest {
         assertEquals(auction.isTransferPending(), body.getBoolean("transferPending"));
         assertEquals(auction.isEnded(), body.getBoolean("ended"));
         assertEquals(auction.getTokenowneraccount(), body.getString("tokenowneraccount"));
+        assertEquals(auction.getTransferstatus(), body.getString("transferstatus"));
+        assertEquals(auction.getTitle(), body.getString("title"));
+        assertEquals(auction.getDescription(), body.getString("description"));
     }
 }

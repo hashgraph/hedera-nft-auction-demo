@@ -77,6 +77,8 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         auctionJson.put("auctionaccountid", auctionAccountId);
         auctionJson.put("reserve", 100);
         auctionJson.put("winnercanbid", true);
+        auctionJson.put("title", "auction title");
+        auctionJson.put("description", "auction description");
     }
 
     @AfterEach
@@ -101,6 +103,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         assertEquals(auctionAccountId, auctions.get(0).getAuctionaccountid());
         assertEquals(100, auctions.get(0).getReserve());
         assertTrue(auctions.get(0).getWinnerCanBid());
+        assertEquals("auction title", auctions.get(0).getTitle());
+        assertEquals("auction description", auctions.get(0).getDescription());
+
     }
 
     @Test

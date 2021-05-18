@@ -236,7 +236,9 @@ public class AuctionsRepository {
                     AUCTIONS.WINNERCANBID,
                     AUCTIONS.TOKENIMAGE,
                     AUCTIONS.WINNINGBID,
-                    AUCTIONS.MINIMUMBID
+                    AUCTIONS.MINIMUMBID,
+                    AUCTIONS.TITLE,
+                    AUCTIONS.DESCRIPTION
             ).values(auction.getTokenid(),
                     auction.getAuctionaccountid(),
                     auction.getEndtimestamp(),
@@ -245,7 +247,9 @@ public class AuctionsRepository {
                     auction.getWinnerCanBid(),
                     auction.getTokenimage(),
                     auction.getWinningbid(),
-                    auction.getMinimumbid()
+                    auction.getMinimumbid(),
+                    auction.getTitle(),
+                    auction.getDescription()
             ).returning(AUCTIONS.ID).execute();
             int id = cx.lastID().intValue();
             auction.setId(id);
@@ -293,7 +297,10 @@ public class AuctionsRepository {
                     AUCTIONS.STARTTIMESTAMP,
                     AUCTIONS.TRANSFERTXID,
                     AUCTIONS.TRANSFERTXHASH,
-                    AUCTIONS.TOKENOWNER
+                    AUCTIONS.TOKENOWNER,
+                    AUCTIONS.TITLE,
+                    AUCTIONS.DESCRIPTION,
+                    AUCTIONS.TRANSFERSTATUS
             ).values(auction.getTokenid(),
                     auction.getAuctionaccountid(),
                     auction.getEndtimestamp(),
@@ -311,7 +318,10 @@ public class AuctionsRepository {
                     auction.getStarttimestamp(),
                     auction.getTransfertxid(),
                     auction.getTransfertxhash(),
-                    auction.getTokenowneraccount()
+                    auction.getTokenowneraccount(),
+                    auction.getTitle(),
+                    auction.getDescription(),
+                    auction.getTransferstatus()
             ).returning(AUCTIONS.ID).execute();
             int id = cx.lastID().intValue();
             auction.setId(id);

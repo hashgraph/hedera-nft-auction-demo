@@ -5,12 +5,7 @@ import com.hedera.demo.auction.node.app.SqlConnectionManager;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.test.integration.AbstractIntegrationTest;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -205,6 +200,9 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
             assertEquals(testAuction.getTransfertxid(), auctionToTest.getTransfertxid());
             assertEquals(testAuction.getTransfertxhash(), auctionToTest.getTransfertxhash());
             assertEquals(testAuction.getLastconsensustimestamp(), auctionToTest.getLastconsensustimestamp());
+            assertEquals(testAuction.getTransferstatus(), auctionToTest.getTransferstatus());
+            assertEquals(testAuction.getTitle(), auctionToTest.getTitle());
+            assertEquals(testAuction.getDescription(), auctionToTest.getDescription());
         }
     }
     @Test
@@ -239,4 +237,50 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
             auctionsRepository.getAuction(0);
         });
     }
+
+    @Test
+    public void setTransferTimestampTest() throws Exception {
+        int auctionId = auction.getId();
+        String timestamp = "123.345";
+        String timestamp2 = "123123.345";
+        auctionsRepository.setTransferTimestamp(auctionId, timestamp);
+        @Var Auction checkAuction = auctionsRepository.getAuction(auctionId);
+        assertEquals(timestamp, checkAuction.getTransfertimestamp());
+
+        // negative test, should not update
+        auctionsRepository.setTransferTimestamp(0, timestamp2);
+        checkAuction = auctionsRepository.getAuction(auctionId);
+        assertEquals(timestamp, checkAuction.getTransfertimestamp());
+    }
+
+    @Test
+    public void getAuctionByAccountIdTest() throws Exception {
+        Auction testAuction = auctionsRepository.getAuction(auction.getAuctionaccountid());
+        assertEquals(auction.getAuctionaccountid(), testAuction.getAuctionaccountid());
+    }
+
+    @Test
+    public void setTransferInProgressTest() throws Exception {
+        auctionsRepository.setTransferInProgress(auction.getTokenid());
+        Auction testAuction = auctionsRepository.getAuction(auction.getId());
+        assertEquals(Auction.TRANSFER_STATUS_IN_PROGRESS, testAuction.getTransferstatus());
+    }
+
+    @Test
+    public void setTransferTransactionByAuctionIdTest() throws Exception {
+        auctionsRepository.setTransferTransactionByAuctionId(auction.getId(), "transactionId", "transactionHash");
+        Auction testAuction = auctionsRepository.getAuction(auction.getId());
+        assertEquals(Auction.TRANSFER_STATUS_COMPLETE, testAuction.getTransferstatus());
+        assertEquals("transactionId", testAuction.getTransfertxid());
+        assertEquals("transactionHash", testAuction.getTransfertxhash());
+        assertEquals(Auction.ENDED, testAuction.getStatus());
+    }
+
+    @Test
+    public void setEndedTest() throws Exception {
+        auctionsRepository.setEnded(auction.getId());
+        Auction testAuction = auctionsRepository.getAuction(auction.getId());
+        assertEquals(Auction.ENDED, testAuction.getStatus());
+    }
+
 }

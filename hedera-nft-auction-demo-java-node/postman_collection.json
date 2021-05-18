@@ -30,7 +30,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"symbol\":\"./sample-files/gold-base64.txt\",\n    \"name\":\"Test Token\",\n    \"clean\":false\n}",
+					"raw": "{\n    \"symbol\":\"./sample-files/hedera-logo-base64.txt\",\n    \"name\":\"Test Token\",\n    \"clean\":true\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -103,7 +103,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\": \"DemoToken\",\n    \"symbol\":\"DemoNFT\",\n    \"initialSupply\": 1,\n    \"decimals\": 0\n}",
+					"raw": "{\n    \"name\": \"DemoToken\",\n    \"symbol\":\"./sample-files/hedera-logo-base64.txt\",\n    \"initialSupply\": 1,\n    \"decimals\": 0\n}",
 					"options": {
 						"raw": {
 							"language": "json"

@@ -260,7 +260,7 @@ __Create a simple token__
 This command will create a token named `test` with a symbol of `tst`, an initial supply of `1` and `0` decimals.
 
 ```shell
-./gradlew createToken --args="test tst 1 0 TokenMemo"
+./gradlew createToken --args="test tst 1 0 TokenMemoHere"
 ```
 
 set the resulting `Token Id` to the `tokenId` attribute in your `./sample-files/initDemo.json` file.

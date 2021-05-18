@@ -55,6 +55,7 @@ public class AuctionEndTransfer implements Runnable {
             try {
                 List<Auction> auctionsList = auctionsRepository.getAuctionsList();
                 for (Auction auction: auctionsList) {
+                    @Var boolean delay = false;
                     switch (mirrorProvider) {
                         case "HEDERA":
                             auctionEndTransferInterface = new HederaAuctionEndTransfer(hederaClient, webClient, auctionsRepository, auction.getTokenid(), auction.getWinningaccount());
@@ -85,26 +86,33 @@ public class AuctionEndTransfer implements Runnable {
                     }
                     if (auction.isTransferPending() || auction.isTransferInProgress()) {
                         // has a scheduled TX completed already, if so, just update the DB with it
+                        log.debug("calling auctionEndTransferInterface.checkTransferInProgress");
                         AbstractAuctionEndTransfer.TransferResult result = auctionEndTransferInterface.checkTransferInProgress(auction);
                         switch (result) {
                             case FAILED, NOT_FOUND:
+                                log.debug("result FAILED, NOT_FOUND");
                                 // transfer the token
                                 if (! StringUtils.isEmpty(this.refundKey)) {
-                                    transferToken(auction);
+                                    log.debug("Transferring token");
+                                    delay = transferToken(auction);
+                                    log.debug("Token transfer started");
                                 }
                                 break;
                             case SUCCESS:
                                 // transfer already occurred and the checkTransferInProgress should have updated the auction
                                 // status accordingly
+                                log.debug("result SUCCESS");
                                 break;
                         }
+                    }
+                    if (! delay) {
+                        Utils.sleep(this.mirrorQueryFrequency);
                     }
                 }
             } catch (SQLException sqlException) {
                 log.error("Failed to fetch auctions");
                 log.error(sqlException);
             }
-            Utils.sleep(this.mirrorQueryFrequency);
         }
     }
 
@@ -133,7 +141,7 @@ public class AuctionEndTransfer implements Runnable {
         }
     }
 
-    public void transferToken(Auction auction) {
+    public boolean transferToken(Auction auction) {
         @Var boolean transferInProgress = false;
         @Var boolean delayTransfer = false;
 
@@ -217,5 +225,6 @@ public class AuctionEndTransfer implements Runnable {
         } else {
             log.error("Token owner for auction id " + auction.getId() + " is not set.");
         }
+        return delayTransfer;
     }
 }

@@ -260,7 +260,7 @@ __Create a simple token__
 This command will create a token named `test` with a symbol of `tst`, an initial supply of `1` and `0` decimals.
 
 ```shell
-./gradlew createToken --args="test tst 1 0"
+./gradlew createToken --args="test tst 1 0 TokenMemo"
 ```
 
 set the resulting `Token Id` to the `tokenId` attribute in your `./sample-files/initDemo.json` file.
@@ -339,7 +339,7 @@ returns a topic id
 
 __Create a simple token__
 
-This command will create a token named `test` with a symbol of `tst`, an initial supply of `1` and `0` decimals.
+This command will create a token named `test` with a symbol of `tst`, an initial supply of `1`, `0` decimals and add a memo to the token.
 
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '
@@ -347,7 +347,8 @@ curl -H "Content-Type: application/json" -X POST -d '
   "name": "test", 
   "symbol":"tst", 
   "initialSupply": 1, 
-  "decimals": 0
+  "decimals": 0,
+  "memo": "memo for the token"
 }
 ' http://localhost:8082/v1/admin/token
 ```

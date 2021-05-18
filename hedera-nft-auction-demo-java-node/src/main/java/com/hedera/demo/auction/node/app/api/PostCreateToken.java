@@ -27,7 +27,7 @@ public class PostCreateToken implements Handler<RoutingContext> {
         try {
             CreateToken createToken = new CreateToken();
             createToken.setEnv(env);
-            TokenId tokenId = createToken.create(data.name, data.symbol, data.initialSupply, data.decimals);
+            TokenId tokenId = createToken.create(data.name, data.symbol, data.initialSupply, data.decimals, data.memo);
             JsonObject response = new JsonObject();
             response.put("tokenId", tokenId.toString());
 

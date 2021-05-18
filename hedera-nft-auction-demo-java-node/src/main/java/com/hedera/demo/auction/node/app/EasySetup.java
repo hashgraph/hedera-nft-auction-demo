@@ -72,7 +72,7 @@ public class EasySetup extends AbstractCreate {
         }
 
         CreateToken createToken = new CreateToken();
-        TokenId tokenId = createToken.create(name, symbol, 1L, 0);
+        TokenId tokenId = createToken.create(name, symbol, 1L, 0, "");
 //        String key = client.getOperatorPublicKey().toString();
         CreateAuctionAccount createAuctionAccount = new CreateAuctionAccount();
         AccountId auctionAccount = createAuctionAccount.create(100, "");

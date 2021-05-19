@@ -15,6 +15,7 @@ import com.hedera.hashgraph.sdk.TransactionResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
+import org.jooq.tools.StringUtils;
 
 import java.sql.SQLException;
 import java.util.Map;
@@ -31,9 +32,9 @@ public abstract class AbstractAuctionsClosureWatcher {
     private final String refundKey;
     private final HederaClient hederaClient;
     protected boolean runThread = true;
-    private final boolean masterNode;
+    private final String masterKey;
 
-    protected AbstractAuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey, boolean masterNode) {
+    protected AbstractAuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey, String masterKey) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
@@ -41,7 +42,7 @@ public abstract class AbstractAuctionsClosureWatcher {
         this.mirrorURL = hederaClient.mirrorUrl();
         this.transferOnWin = transferOnWin;
         this.refundKey = refundKey;
-        this.masterNode = masterNode;
+        this.masterKey = masterKey;
     }
 
     void handleResponse(JsonObject response) {
@@ -81,7 +82,7 @@ public abstract class AbstractAuctionsClosureWatcher {
                         }
                         //TODO: Enable scheduled transaction here when the ACCOUNT_UPDATE transaction type is
                         // supported by scheduled transactions, in the mean time, only the master node is able to do this.
-                        if ( ! this.refundKey.isBlank() && masterNode) {
+                        if ( !StringUtils.isEmpty(this.refundKey) && !StringUtils.isEmpty(masterKey)) {
                             setSignatureRequiredOnAuctionAccount(auctionId);
                         }
 
@@ -108,10 +109,10 @@ public abstract class AbstractAuctionsClosureWatcher {
 
         if (auction != null) {
             try {
-                Client auctionClient = hederaClient.auctionClient(auction, PrivateKey.fromString(refundKey));
+                Client auctionClient = hederaClient.auctionClient(auction, PrivateKey.fromString(masterKey));
 
-                PrivateKey refundKeyPrivate = PrivateKey.fromString(this.refundKey);
-                auctionClient.setOperator(AccountId.fromString(auction.getAuctionaccountid()), refundKeyPrivate);
+                PrivateKey masterKeyPrivate = PrivateKey.fromString(this.masterKey);
+                auctionClient.setOperator(AccountId.fromString(auction.getAuctionaccountid()), masterKeyPrivate);
                 log.info("Setting signature required key on account " + auction.getAuctionaccountid());
 
                 AccountUpdateTransaction accountUpdateTransaction = new AccountUpdateTransaction();

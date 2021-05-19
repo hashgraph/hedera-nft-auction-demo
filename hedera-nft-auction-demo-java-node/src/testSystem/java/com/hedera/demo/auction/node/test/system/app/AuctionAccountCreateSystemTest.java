@@ -1,24 +1,24 @@
 package com.hedera.demo.auction.node.test.system.app;
 
-import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.test.system.AbstractSystemTest;
 import com.hedera.hashgraph.sdk.Key;
 import com.hedera.hashgraph.sdk.KeyList;
 import com.hedera.hashgraph.sdk.PrivateKey;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import java.util.Arrays;
 
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AuctionAccountCreateSystemTest extends AbstractSystemTest {
+
+    String pk01 = PrivateKey.generate().getPublicKey().toString();
+    String pk02 = PrivateKey.generate().getPublicKey().toString();
+    String pk03 = PrivateKey.generate().getPublicKey().toString();
 
     AuctionAccountCreateSystemTest() throws Exception {
         super();
@@ -29,120 +29,56 @@ public class AuctionAccountCreateSystemTest extends AbstractSystemTest {
 
         createAccountAndGetInfo("");
 
-        KeyList accountKeyList = (KeyList) accountInfo.key;
-
-        assertEquals(1, accountKeyList.size());
-        assertNull(accountKeyList.threshold);
-
-        Object[] keyListArray = accountKeyList.toArray();
-
-        Key accountKey = (Key)keyListArray[0];
-        assertEquals(hederaClient.operatorPublicKey().toString(), accountKey.toString());
+        assertEquals(hederaClient.operatorPublicKey().toString(), accountInfo.key.toString());
 
         assertEquals(initialBalance * 100000000, accountInfo.balance.toTinybars());
         assertFalse(accountInfo.isReceiverSignatureRequired);
     }
 
     @Test
-    public void testCreateAccountTwoLists() throws Exception {
+    public void testCreateAccountList() throws Exception {
 
-        PrivateKey pk01 = PrivateKey.generate();
-        PrivateKey pk02 = PrivateKey.generate();
-
-        JsonObject thresholdKey1 = jsonThresholdKey(1, pk01, pk02);
-
-        PrivateKey pk11 = PrivateKey.generate();
-        PrivateKey pk12 = PrivateKey.generate();
-
-        JsonObject thresholdKey2 = jsonThresholdKey(0, pk11, pk12);
-
-        JsonObject keysCreate = new JsonObject().put("keylist", new JsonArray().add(thresholdKey1).add(thresholdKey2));
+        JsonObject keysCreate = jsonThresholdKey(1, pk01, pk02);
 
         createAccountAndGetInfo(keysCreate.toString());
 
         KeyList accountKeyList = (KeyList) accountInfo.key;
 
         assertEquals(2, accountKeyList.size());
-        assertNull(accountKeyList.threshold);
+        assertEquals(1, accountKeyList.threshold);
 
-        Object[] keyListArray = accountKeyList.toArray();
-
-        @Var KeyList accountKeys = (KeyList)keyListArray[0];
-        assertEquals(2, accountKeys.size());
-        assertEquals(1, accountKeys.threshold);
-
-        @Var String[] pubKeys = keylistToStringArray(accountKeys);
-        assertTrue(Arrays.asList(pubKeys).contains(pk01.getPublicKey().toString()));
-        assertTrue(Arrays.asList(pubKeys).contains(pk02.getPublicKey().toString()));
-
-        accountKeys = (KeyList)keyListArray[1];
-        assertEquals(2, accountKeys.size());
-        assertNull(accountKeys.threshold);
-
-        pubKeys = keylistToStringArray(accountKeys);
-        assertTrue(Arrays.asList(pubKeys).contains(pk11.getPublicKey().toString()));
-        assertTrue(Arrays.asList(pubKeys).contains(pk12.getPublicKey().toString()));
+        String[] pubKeys = keylistToStringArray(accountKeyList);
+        assertTrue(Arrays.asList(pubKeys).contains(pk01));
+        assertTrue(Arrays.asList(pubKeys).contains(pk02));
 
         assertEquals(initialBalance * 100000000, accountInfo.balance.toTinybars());
         assertFalse(accountInfo.isReceiverSignatureRequired);
     }
 
     @Test
-    public void testCreateAccountOneThresholdList() throws Exception {
+    public void testCreateAccountTwoThresholdLists() throws Exception {
 
-        PrivateKey pk01 = PrivateKey.generate();
-        PrivateKey pk02 = PrivateKey.generate();
-
-        JsonObject thresholdKey1 = jsonThresholdKey(1, pk01, pk02);
-
-        JsonObject keysCreate = new JsonObject().put("keylist", new JsonArray().add(thresholdKey1));
+        JsonObject keysCreate = jsonThresholdKey(1, 2, pk01, pk02, pk03);
 
         createAccountAndGetInfo(keysCreate.toString());
 
         KeyList accountKeyList = (KeyList) accountInfo.key;
 
-        assertEquals(1, accountKeyList.size());
-        assertNull(accountKeyList.threshold);
+        assertEquals(2, accountKeyList.size());
+        assertEquals(2, accountKeyList.threshold);
 
         Object[] keyListArray = accountKeyList.toArray();
 
-        KeyList accountKeys = (KeyList)keyListArray[0];
+        Key accountKey = (Key)keyListArray[0];
+        assertEquals(pk01, accountKey.toString());
+
+        KeyList accountKeys = (KeyList)keyListArray[1];
         assertEquals(2, accountKeys.size());
         assertEquals(1, accountKeys.threshold);
 
         String[] pubKeys = keylistToStringArray(accountKeys);
-        assertTrue(Arrays.asList(pubKeys).contains(pk01.getPublicKey().toString()));
-        assertTrue(Arrays.asList(pubKeys).contains(pk02.getPublicKey().toString()));
-
-        assertEquals(initialBalance * 100000000, accountInfo.balance.toTinybars());
-        assertFalse(accountInfo.isReceiverSignatureRequired);
-    }
-    @Test
-    public void testCreateAccountOneList() throws Exception {
-
-        PrivateKey pk01 = PrivateKey.generate();
-        PrivateKey pk02 = PrivateKey.generate();
-
-        JsonObject thresholdKey1 = jsonThresholdKey(0, pk01, pk02);
-
-        JsonObject keysCreate = new JsonObject().put("keylist", new JsonArray().add(thresholdKey1));
-
-        createAccountAndGetInfo(keysCreate.toString());
-
-        KeyList accountKeyList = (KeyList) accountInfo.key;
-
-        assertEquals(1, accountKeyList.size());
-        assertNull(accountKeyList.threshold);
-
-        Object[] keyListArray = accountKeyList.toArray();
-
-        KeyList accountKeys = (KeyList)keyListArray[0];
-        assertEquals(2, accountKeys.size());
-        assertNull(accountKeys.threshold);
-
-        String[] pubKeys = keylistToStringArray(accountKeys);
-        assertTrue(Arrays.asList(pubKeys).contains(pk01.getPublicKey().toString()));
-        assertTrue(Arrays.asList(pubKeys).contains(pk02.getPublicKey().toString()));
+        assertTrue(Arrays.asList(pubKeys).contains(pk02));
+        assertTrue(Arrays.asList(pubKeys).contains(pk03));
 
         assertEquals(initialBalance * 100000000, accountInfo.balance.toTinybars());
         assertFalse(accountInfo.isReceiverSignatureRequired);

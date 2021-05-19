@@ -31,8 +31,6 @@ services:
       - POOL_SIZE=10
       # Run auction node only
       - AUCTION_NODE=true
-      # Master nodes can sign transactions to associate a token and set auction accounts to signature required
-      - MASTER_NODE=true
       - REST_API=false
       - ADMIN_API=false
 

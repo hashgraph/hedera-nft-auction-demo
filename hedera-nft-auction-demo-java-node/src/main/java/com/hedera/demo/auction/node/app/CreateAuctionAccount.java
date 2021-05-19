@@ -1,16 +1,7 @@
 package com.hedera.demo.auction.node.app;
 
 import com.google.errorprone.annotations.Var;
-import com.hedera.hashgraph.sdk.AccountCreateTransaction;
-import com.hedera.hashgraph.sdk.AccountId;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.Hbar;
-import com.hedera.hashgraph.sdk.KeyList;
-import com.hedera.hashgraph.sdk.PublicKey;
-import com.hedera.hashgraph.sdk.Status;
-import com.hedera.hashgraph.sdk.TransactionReceipt;
-import com.hedera.hashgraph.sdk.TransactionResponse;
-import io.vertx.core.json.JsonArray;
+import com.hedera.hashgraph.sdk.*;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
@@ -32,30 +23,24 @@ public class CreateAuctionAccount extends AbstractCreate {
 
         Client client = hederaClient.client();
         AccountCreateTransaction accountCreateTransaction = new AccountCreateTransaction();
-        KeyList keyList = new KeyList();
+
+        @Var Key keyList;
         if (StringUtils.isEmpty(keys)) {
             log.info("No public key provided, defaulting to operator public key");
-            keyList.add(client.getOperatorPublicKey());
+            keyList = client.getOperatorPublicKey();
         } else {
-            JsonObject jsonKeys = new JsonObject(keys);
-            JsonArray keysJson = jsonKeys.getJsonArray("keylist");
-            if ((keysJson == null) || (keysJson.size() == 0)) {
-                log.info("No public key provided, defaulting to operator public key");
-                keyList.add(client.getOperatorPublicKey());
-            } else {
-                for (Object keyJsonItem : keysJson) {
-                    JsonObject keyJson = JsonObject.mapFrom(keyJsonItem);
-                    @Var KeyList thresholdKey = new KeyList();
-                    if (keyJson.containsKey("threshold")) {
-                        thresholdKey = KeyList.withThreshold(keyJson.getInteger("threshold"));
-                    }
-                    JsonArray keysInList = keyJson.getJsonArray("keys");
-                    for (Object keyInList : keysInList) {
-                        JsonObject oneKey = JsonObject.mapFrom(keyInList);
-                        thresholdKey.add(PublicKey.fromString(oneKey.getString("key")));
-                    }
-                    keyList.add(thresholdKey);
+            JsonObject jsonObject = new JsonObject(keys);
+            if (jsonObject.containsKey("keyList")) {
+                AuctionKey auctionKey = jsonObject.mapTo(AuctionKey.class);
+                if (auctionKey.isValid()) {
+                    keyList = auctionKey.toKeyList();
+                } else {
+                    log.info("No public key provided, defaulting to operator public key");
+                    keyList = client.getOperatorPublicKey();
                 }
+            } else {
+                log.info("No public key provided, defaulting to operator public key");
+                keyList = client.getOperatorPublicKey();
             }
         }
 

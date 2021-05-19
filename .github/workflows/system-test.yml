@@ -7,7 +7,7 @@ on:
   release:
     branches: [ master ]
   workflow_dispatch:
-    
+
 jobs:
   build:
 
@@ -35,8 +35,7 @@ jobs:
           OPERATOR_ID: ${{ secrets.OPERATOR_ID }}
           OPERATOR_KEY: ${{ secrets.OPERATOR_KEY }}
           REFUND_KEY: ${{ secrets.OPERATOR_KEY }}
-          #       Dragonglass only
-          #        DG_API_KEY= // from secrets
+          MASTER_KEY: ${{ secrets.OPERATOR_KEY }}
           VUE_APP_NETWORK: testnet
           #       Run the REST API true/false
           REST_API: true

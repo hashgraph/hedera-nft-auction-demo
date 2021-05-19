@@ -8,11 +8,7 @@ import com.hedera.demo.auction.node.app.repository.ScheduledOperationsRepository
 import com.hedera.demo.auction.node.app.subscriber.TopicSubscriber;
 import com.hedera.demo.auction.node.test.system.AbstractSystemTest;
 import com.hedera.hashgraph.sdk.TopicId;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.time.Duration;
@@ -57,7 +53,7 @@ public class EasySetupSystemTest extends AbstractSystemTest {
 
         hederaClient.setMirrorProvider("hedera");
         hederaClient.setClientMirror();
-        TopicSubscriber topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository,  null, topicId, hederaClient.operatorPrivateKey().toString(), 5000, masterNode);
+        TopicSubscriber topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository,  null, topicId, hederaClient.operatorPrivateKey().toString(), 5000, masterKey);
 
         topicSubscriber.setSkipReadinessWatcher();
         // start the thread to monitor bids
@@ -86,7 +82,7 @@ public class EasySetupSystemTest extends AbstractSystemTest {
         assertEquals(0, auction.getReserve());
         assertEquals("0.0", auction.getLastconsensustimestamp());
         assertTrue(auction.getWinnerCanBid());
-        assertNull(auction.getTokenimage());
+        assertNotNull(auction.getTokenimage());
         assertEquals(0, auction.getWinningbid());
         assertEquals(1000000, auction.getMinimumbid());
 

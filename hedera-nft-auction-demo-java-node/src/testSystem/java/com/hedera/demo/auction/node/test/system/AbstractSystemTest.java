@@ -61,6 +61,7 @@ public abstract class AbstractSystemTest {
     protected static final String symbol = "TestSymbol";
     protected static final long initialSupply = 1;
     protected static final int decimals = 0;
+    protected static final String tokenMemo = "token Memo";
     protected static TokenId tokenId;
     protected static TokenInfo tokenInfo;
 
@@ -78,7 +79,7 @@ public abstract class AbstractSystemTest {
     protected Map<String, AccountId> biddingAccounts = new HashMap<>();
     protected final PrivateKey bidAccountKey = PrivateKey.generate();
 
-    protected boolean masterNode = true; // TODO: Enable test for non master nodes
+    protected String masterKey = auctionAccountKey.toString();
 
     // test token owner
     PrivateKey tokenOwnerPrivateKey;
@@ -112,29 +113,61 @@ public abstract class AbstractSystemTest {
         }
     }
 
-    protected static JsonObject jsonThresholdKey(int threshold, PrivateKey pk1) {
-        JsonObject thresholdKey = new JsonObject();
-        if (threshold != 0) {
-            thresholdKey.put("threshold", threshold);
-        }
-        JsonArray keyList = new JsonArray();
-        keyList.add(new JsonObject().put("key", pk1.getPublicKey().toString()));
-        thresholdKey.put("keys", keyList);
+    protected static JsonObject jsonThresholdKey(int threshold, String pubKey1) {
+        JsonArray keys = new JsonArray();
+        JsonObject key1 = new JsonObject().put("key", pubKey1);
+        keys.add(key1);
 
-        return thresholdKey;
+        JsonObject keyList = new JsonObject();
+        keyList.put("keys", keys);
+        keyList.put("threshold", threshold);
+
+        JsonObject key = new JsonObject();
+        key.put("keyList", keyList);
+        return key;
     }
 
-    protected static JsonObject jsonThresholdKey(int threshold, PrivateKey pk1, PrivateKey pk2) {
-        JsonObject thresholdKey = new JsonObject();
-        if (threshold != 0) {
-            thresholdKey.put("threshold", threshold);
-        }
-        JsonArray keyList = new JsonArray();
-        keyList.add(new JsonObject().put("key", pk1.getPublicKey().toString()));
-        keyList.add(new JsonObject().put("key", pk2.getPublicKey().toString()));
-        thresholdKey.put("keys", keyList);
+    protected static JsonObject jsonThresholdKey(int threshold, String pubKey1, String pubKey2) {
+        JsonArray keys = new JsonArray();
+        JsonObject key1 = new JsonObject().put("key", pubKey1);
+        JsonObject key2 = new JsonObject().put("key", pubKey2);
+        keys.add(key1).add(key2);
 
-        return thresholdKey;
+        JsonObject keyList = new JsonObject();
+        keyList.put("keys", keys);
+        keyList.put("threshold", threshold);
+
+        JsonObject key = new JsonObject();
+        key.put("keyList", keyList);
+
+        return key;
+    }
+
+    protected static JsonObject jsonThresholdKey(int threshold1, int threshold2, String pubKey1, String pubKey2, String pubKey3) {
+        JsonObject masterKey = new JsonObject().put("key", pubKey1);
+
+        JsonArray otherKeys = new JsonArray();
+        JsonObject key1 = new JsonObject().put("key", pubKey2);
+        JsonObject key2 = new JsonObject().put("key", pubKey3);
+        otherKeys.add(key1).add(key2);
+
+        JsonObject otherKeyList = new JsonObject();
+        otherKeyList.put("keys", otherKeys);
+        otherKeyList.put("threshold", threshold1);
+        JsonObject otherKeysObject = new JsonObject();
+        otherKeysObject.put("keyList", otherKeyList);
+
+        JsonArray keys = new JsonArray();
+        keys.add(masterKey);
+        keys.add(otherKeysObject);
+
+        JsonObject key = new JsonObject();
+        JsonObject keyList = new JsonObject();
+        keyList.put("keys", keys);
+        keyList.put("threshold", threshold2);
+        key.put("keyList", keyList);
+
+        return key;
     }
 
     protected void createAccountAndGetInfo(String keys) throws Exception {

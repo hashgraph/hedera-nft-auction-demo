@@ -13,6 +13,8 @@ import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(VertxExtension.class)
@@ -111,7 +113,7 @@ public class AbstractIntegrationTest {
     String title() { return stringPlusIndex("title");}
     String description() { return stringPlusIndex("description");}
 
-    protected boolean masterNode = true; //TODO: Handle tests where masterNode = false
+    protected String masterKey = Optional.ofNullable(env.get("MASTER_KEY")).orElse(""); //TODO: Handle tests where masterNode = false
 
     protected Auction testAuctionObject(int index) {
         this.index = index;

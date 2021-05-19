@@ -55,9 +55,9 @@ public class TopicSubscriber implements Runnable{
     private SubscriptionHandle subscriptionHandle;
     private boolean runThread = true;
     private AuctionReadinessWatcher auctionReadinessWatcher;
-    private final boolean masterNode;
+    private final String masterKey;
 
-    public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, WebClient webClient, TopicId topicId, String refundKey, int mirrorQueryFrequency, boolean masterNode) {
+    public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, WebClient webClient, TopicId topicId, String refundKey, int mirrorQueryFrequency, String masterKey) {
         this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
         this.topicId = topicId;
@@ -65,7 +65,7 @@ public class TopicSubscriber implements Runnable{
         this.refundKey = refundKey;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.hederaClient = hederaClient;
-        this.masterNode = masterNode;
+        this.masterKey = masterKey;
     }
 
     public void stop() {
@@ -180,9 +180,9 @@ public class TopicSubscriber implements Runnable{
                 // If refund key and master node, associate with the token
                 //TODO: Currently only available to the master node, this feature should eventually
                 // transition to use scheduled transactions
-                if (!StringUtils.isEmpty(refundKey) && masterNode) {
+                if (!StringUtils.isEmpty(refundKey) && !StringUtils.isEmpty(masterKey)) {
 
-                    Client client = hederaClient.auctionClient(auction, PrivateKey.fromString(refundKey));
+                    Client client = hederaClient.auctionClient(auction, PrivateKey.fromString(masterKey));
 
                     AccountBalance accountBalance = new AccountBalanceQuery()
                             .setAccountId(AccountId.fromString(auction.getAuctionaccountid()))

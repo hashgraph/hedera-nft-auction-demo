@@ -6,6 +6,8 @@ import com.hedera.demo.auction.node.app.domain.Bid;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.app.repository.ScheduledOperationsRepository;
+import com.hedera.hashgraph.sdk.Key;
+import com.hedera.hashgraph.sdk.KeyList;
 import com.hedera.hashgraph.sdk.*;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.json.JsonArray;

@@ -58,7 +58,7 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
 
-        topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, null, null, topicId, "", 5000, masterNode);
+        topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, null, null, topicId, "", 5000, masterKey);
         topicSubscriber.setTesting();
 
         consensusTimestamp = Instant.now();

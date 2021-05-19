@@ -11,8 +11,8 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class HederaAuctionsClosureWatcher extends AbstractAuctionsClosureWatcher implements AuctionClosureWatcherInterface {
 
-    public HederaAuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey, boolean masterNode) {
-        super(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey, masterNode);
+    public HederaAuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey, String masterKey) {
+        super(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey, masterKey);
     }
 
     @Override

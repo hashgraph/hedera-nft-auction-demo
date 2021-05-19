@@ -63,7 +63,7 @@ setup the `.env` properties as follows
 * OPERATOR_ID= (input your account id for the Hedera network)
 * OPERATOR_KEY= (input your private key associated with the Hedera account above - 302xxxx)
 * REFUND_KEY= (Same as operator key for testing purposes)
-* MASTER_NODE=false (set this to true only for one node which has a REFUND_KEY which has full authority over the auction accounts)
+* MASTER_KEY= (set only for one node which has full authority over the auction accounts, can be the same as operator key / refund key for testing purposes only, else must be different)
 
 you may leave the other properties as is for now
 
@@ -385,26 +385,35 @@ __Create an auction account with a key list__
 
 This command will create an auction account with an initial balance of `100` hbar and a key list for scheduled transactions.
 
+_Note: the first key should be the "master key" which can sign transactions on behalf of the auction account for transaction types that can't be scheduled for now such as TokenAssociate and CryptoUpdate.
+In the example below, we have a key list with a threshold of 1. The key list contains the master key and another list of keys with its own threshold.
+_
+
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '
 {
- "keylist": [
-     {
-         "keys": [
-             {"key": "302a300506032b657003210090ec5045925d37b358ee0c60f858dc79c3b4370cbf7e0c5dad882f1171265cb3"},
-            {"key": "302a300506032b657003210076045799d169c6b6fc2bf45f779171a1cb10fd239b4f758bc556cb0de6799105"},
-            {"key": "302a300506032b65700321001481572a21874fb9da18b49f0265aca8d94f435a879c0d6631b8ce54d96dc58c"}
-         ],
-         "threshold": 2
-     },
-     {
-         "keys": [
-             {"key": "302a300506032b6570032100977755b19ba16e152326ea921973aeca57907757e9ad528c34c971b63eab9e31"},
-            {"key": "302a300506032b65700321002d140a12f637b7a29a97034a552a7d228f93f1c941480fcb2411af1763b18c67"}
-         ]
-     }
- ],
- "initialBalance": 100
+  "keyList" : {
+    "keys": [
+      {
+        "key" : "302a300506032b65700321001481572a21874fb9da18b49f0265aca8d94f435a879c0d6631b8ce54d96dc58c"
+      },
+      {
+        "keyList": {
+          "keys": [
+            {
+              "key": "302a300506032b657003210090ec5045925d37b358ee0c60f858dc79c3b4370cbf7e0c5dad882f1171265cb3"
+            },
+            {
+              "key": "302a300506032b657003210076045799d169c6b6fc2bf45f779171a1cb10fd239b4f758bc556cb0de6799105"
+            }
+          ],
+          "threshold": 1
+        }
+      }
+    ],
+    "threshold" : 1
+  },
+  "initialBalance": 100
 }' http://localhost:8082/v1/admin/auctionaccount
 ```
 

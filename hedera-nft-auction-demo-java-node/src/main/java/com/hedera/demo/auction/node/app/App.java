@@ -48,7 +48,7 @@ public final class App {
     private String postgresUser = Optional.ofNullable(env.get("DATABASE_USERNAME")).orElse("postgres");
     private String postgresPassword = Optional.ofNullable(env.get("DATABASE_PASSWORD")).orElse("password");
     private boolean transferOnWin = Optional.ofNullable(env.get("TRANSFER_ON_WIN")).map(Boolean::parseBoolean).orElse(true);
-    private final boolean masterNode = Optional.ofNullable(env.get("MASTER_NODE")).map(Boolean::parseBoolean).orElse(false);
+    private final String masterKey = Optional.ofNullable(env.get("MASTER_KEY")).orElse("");
 
     private HederaClient hederaClient = new HederaClient(env);
 
@@ -131,7 +131,7 @@ public final class App {
             WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
 
             // subscribe to topic to get new auction notifications
-            startSubscription(webClient, auctionsRepository, bidsRepository, scheduledOperationsRepository);
+            startSubscription(webClient, auctionsRepository, bidsRepository);
 
             RefundChecker oneOffRefundChecker = new RefundChecker(hederaClient, webClient, auctionsRepository, bidsRepository, mirrorQueryFrequency);
             oneOffRefundChecker.runOnce();
@@ -161,15 +161,15 @@ public final class App {
 
     private void startAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository) {
         // start a thread to monitor auction closures
-        auctionsClosureWatcher = new AuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey, masterNode);
+        auctionsClosureWatcher = new AuctionsClosureWatcher(hederaClient, webClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, refundKey, masterKey);
         Thread auctionsClosureWatcherThread = new Thread(auctionsClosureWatcher);
         auctionsClosureWatcherThread.start();
     }
-    private void startSubscription(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, ScheduledOperationsRepository scheduledOperationsRepository) {
+    private void startSubscription(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
         if (StringUtils.isEmpty(topicId)) {
             log.warn("No topic Id found in environment variables, not subscribing");
         } else {
-            topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository, webClient, TopicId.fromString(topicId), refundKey, mirrorQueryFrequency, masterNode);
+            topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository, webClient, TopicId.fromString(topicId), refundKey, mirrorQueryFrequency, masterKey);
             // start the thread to monitor bids
             Thread topicSubscriberThread = new Thread(topicSubscriber);
             topicSubscriberThread.start();

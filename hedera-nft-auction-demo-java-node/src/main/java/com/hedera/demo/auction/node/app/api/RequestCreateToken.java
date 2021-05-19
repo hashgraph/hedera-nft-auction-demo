@@ -6,4 +6,5 @@ public class RequestCreateToken {
     public String symbol = "TT";
     public long initialSupply = 1;
     public int decimals = 0;
+    public String memo = "";
 }

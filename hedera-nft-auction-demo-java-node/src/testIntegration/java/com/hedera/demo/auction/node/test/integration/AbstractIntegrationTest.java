@@ -13,8 +13,6 @@ import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-import java.io.IOException;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(VertxExtension.class)
@@ -24,7 +22,7 @@ public class AbstractIntegrationTest {
             .setUserAgent("HederaAuction/1.0")
             .setKeepAlive(false);
     protected WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
-    protected final static Dotenv env = Dotenv.configure().filename(".env.integration").ignoreIfMissing().load();
+    protected final static Dotenv env = Dotenv.configure().filename(".env.integration.sample").ignoreIfMissing().load();
 
     private int index;
 
@@ -203,13 +201,10 @@ public class AbstractIntegrationTest {
 
     }
 
-    protected DeploymentOptions getVerticleDeploymentOptions(String databaseUrl, String username, String password) throws IOException {
-//        ServerSocket socket = new ServerSocket(0);
-//        int port = socket.getLocalPort();
-//        socket.close();
+    protected DeploymentOptions getVerticleDeploymentOptions(String databaseUrl, String username, String password) {
 
         JsonObject config = new JsonObject()
-                .put("envFile",".env")
+                .put("envFile",".env.integration.sample")
                 .put("envPath",".")
                 .put("DATABASE_URL",databaseUrl.replace("jdbc:",""))
                 .put("DATABASE_USERNAME", username)

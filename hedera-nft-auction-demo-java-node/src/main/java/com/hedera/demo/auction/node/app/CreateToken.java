@@ -31,9 +31,10 @@ public class CreateToken extends AbstractCreate {
      * @param symbol the symbol for the token
      * @param initialSupply the initial supply for the token (defaults to 1)
      * @param decimals the number of decimals for the token (defaults to 0)
+     * @param tokenMemo the memo (string) to associate with the token
      * @throws Exception in the event of an exception
      */
-    public TokenId create(String name, String symbol, long initialSupply, int decimals) throws Exception {
+    public TokenId create(String name, String symbol, long initialSupply, int decimals, String tokenMemo) throws Exception {
 
         Client client = hederaClient.client();
         client.setMaxTransactionFee(Hbar.from(100));
@@ -96,6 +97,7 @@ public class CreateToken extends AbstractCreate {
             tokenCreateTransaction.setInitialSupply(initialSupply);
             tokenCreateTransaction.setDecimals(decimals);
             tokenCreateTransaction.setTreasuryAccountId(hederaClient.operatorId());
+            tokenCreateTransaction.setTokenMemo(tokenMemo);
 
             TransactionResponse response = tokenCreateTransaction.execute(client);
 
@@ -120,14 +122,18 @@ public class CreateToken extends AbstractCreate {
             log.error("Creating token");
             @Var long initialSupply = 1;
             @Var int decimals = 0;
+            @Var String memo = "";
             if (args.length >= 3) {
                 initialSupply = Long.parseLong(args[2]);
             }
             if (args.length >= 4) {
-                decimals = Integer.parseInt(args[2]);
+                decimals = Integer.parseInt(args[3]);
+            }
+            if (args.length >= 5) {
+                memo = args[4];
             }
             CreateToken createToken = new CreateToken();
-            createToken.create(args[0], args[1], initialSupply, decimals);
+            createToken.create(args[0], args[1], initialSupply, decimals, memo);
         }
     }
 }

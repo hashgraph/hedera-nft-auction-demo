@@ -40,7 +40,7 @@ public class GetEnvironmentIntegrationTest extends AbstractIntegrationTest {
 
         DeploymentOptions options = getVerticleDeploymentOptions(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         JsonObject config = options.getConfig();
-        config.put("envFile",".env");
+        config.put("envFile",".env.integration.sample");
         config.put("envPath",".");
         config.put("topicId", "ATopicId");
 

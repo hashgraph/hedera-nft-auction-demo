@@ -24,14 +24,24 @@ public class CreateAuctionAccount extends AbstractCreate {
         Client client = hederaClient.client();
         AccountCreateTransaction accountCreateTransaction = new AccountCreateTransaction();
 
-        @Var KeyList keyList = new KeyList();
+        @Var Key keyList;
         if (StringUtils.isEmpty(keys)) {
             log.info("No public key provided, defaulting to operator public key");
-            keyList.add(client.getOperatorPublicKey());
+            keyList = client.getOperatorPublicKey();
         } else {
             JsonObject jsonObject = new JsonObject(keys);
-            AuctionKey auctionKey = jsonObject.mapTo(AuctionKey.class);
-            keyList = auctionKey.toKeyList();
+            if (jsonObject.containsKey("keyList")) {
+                AuctionKey auctionKey = jsonObject.mapTo(AuctionKey.class);
+                if (auctionKey.isValid()) {
+                    keyList = auctionKey.toKeyList();
+                } else {
+                    log.info("No public key provided, defaulting to operator public key");
+                    keyList = client.getOperatorPublicKey();
+                }
+            } else {
+                log.info("No public key provided, defaulting to operator public key");
+                keyList = client.getOperatorPublicKey();
+            }
         }
 
         try {

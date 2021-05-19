@@ -108,8 +108,7 @@ public class E2EAppTest extends AbstractSystemTest {
         createTopicAndGetInfo();
 
         // create an auction account
-        io.vertx.core.json.JsonObject jsonThresholdKey = jsonThresholdKey(1, auctionAccountKey);
-        io.vertx.core.json.JsonObject keysCreate = new io.vertx.core.json.JsonObject().put("keylist", new io.vertx.core.json.JsonArray().add(jsonThresholdKey));
+        io.vertx.core.json.JsonObject keysCreate = jsonThresholdKey(1, auctionAccountKey.getPublicKey().toString());
 
         createAccountAndGetInfo(keysCreate.toString());
         log.info("Auction account " + auctionAccountId.toString());
@@ -122,7 +121,7 @@ public class E2EAppTest extends AbstractSystemTest {
         hederaClient.setClientMirror();
         hederaClient.setOperator(auctionAccountId, auctionAccountKey);
 
-        app.overrideEnv(hederaClient, /* restAPI= */true, /* adminAPI= */true, /* auctionNode= */true, topicId.toString(), auctionAccountKey.toString(), postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /* transferOnWin= */transferOnWin);
+        app.overrideEnv(hederaClient, /* restAPI= */true, /* adminAPI= */true, /* auctionNode= */true, topicId.toString(), auctionAccountKey.toString(), postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /* transferOnWin= */transferOnWin, masterKey);
     }
 
     private void bidOnBehalfOf(String from, long amount, boolean expectFail) throws TimeoutException, PrecheckStatusException, ReceiptStatusException {

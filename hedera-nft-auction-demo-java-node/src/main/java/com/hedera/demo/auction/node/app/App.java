@@ -48,7 +48,7 @@ public final class App {
     private String postgresUser = Optional.ofNullable(env.get("DATABASE_USERNAME")).orElse("postgres");
     private String postgresPassword = Optional.ofNullable(env.get("DATABASE_PASSWORD")).orElse("password");
     private boolean transferOnWin = Optional.ofNullable(env.get("TRANSFER_ON_WIN")).map(Boolean::parseBoolean).orElse(true);
-    private final String masterKey = Optional.ofNullable(env.get("MASTER_KEY")).orElse("");
+    private String masterKey = Optional.ofNullable(env.get("MASTER_KEY")).orElse("");
 
     private HederaClient hederaClient = new HederaClient(env);
 
@@ -75,7 +75,7 @@ public final class App {
         app.runApp();
     }
 
-    public void overrideEnv(HederaClient hederaClient, boolean restAPI, boolean adminAPI, boolean auctionNode, String topicId, String refundKey, String postgresUrl, String postgresUser, String postgresPassword, boolean transferOnWin) {
+    public void overrideEnv(HederaClient hederaClient, boolean restAPI, boolean adminAPI, boolean auctionNode, String topicId, String refundKey, String postgresUrl, String postgresUser, String postgresPassword, boolean transferOnWin, String masterKey) {
         this.hederaClient = hederaClient;
 
         this.restAPI = restAPI;
@@ -91,6 +91,7 @@ public final class App {
         this.postgresUser = postgresUser;
         this.postgresPassword = postgresPassword;
         this.transferOnWin = transferOnWin;
+        this.masterKey = masterKey;
     }
 
     public void runApp() throws Exception {

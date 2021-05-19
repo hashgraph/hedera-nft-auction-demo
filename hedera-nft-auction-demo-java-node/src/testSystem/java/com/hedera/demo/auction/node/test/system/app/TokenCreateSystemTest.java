@@ -30,7 +30,7 @@ public class TokenCreateSystemTest extends AbstractSystemTest {
     @Test
     public void testCreateTokenNoFile() throws Exception {
         CreateToken createToken = new CreateToken();
-        tokenId = createToken.create(tokenName, symbol, initialSupply, decimals);
+        tokenId = createToken.create(tokenName, symbol, initialSupply, decimals, tokenMemo);
         getTokenInfo();
 
         assertEquals(tokenName, tokenInfo.name);
@@ -39,6 +39,7 @@ public class TokenCreateSystemTest extends AbstractSystemTest {
         assertEquals(tokenId.toString(), tokenInfo.tokenId.toString());
         assertEquals(initialSupply, tokenInfo.totalSupply);
         assertEquals(decimals, tokenInfo.decimals);
+        assertEquals(tokenMemo, tokenInfo.tokenMemo);
         assertEquals(hederaClient.operatorId().toString(), tokenInfo.treasuryAccountId.toString());
         assertNull(tokenInfo.freezeKey);
         assertNull(tokenInfo.kycKey);
@@ -57,7 +58,7 @@ public class TokenCreateSystemTest extends AbstractSystemTest {
         printWriter.close();
 
         CreateToken createToken = new CreateToken();
-        tokenId = createToken.create(tokenName, tempFile.getAbsolutePath(), initialSupply, decimals);
+        tokenId = createToken.create(tokenName, tempFile.getAbsolutePath(), initialSupply, decimals, tokenMemo);
         getTokenInfo();
 
         assertEquals(tokenName, tokenInfo.name);
@@ -65,6 +66,7 @@ public class TokenCreateSystemTest extends AbstractSystemTest {
         assertEquals(tokenId.toString(), tokenInfo.tokenId.toString());
         assertEquals(initialSupply, tokenInfo.totalSupply);
         assertEquals(decimals, tokenInfo.decimals);
+        assertEquals(tokenMemo, tokenInfo.tokenMemo);
         assertEquals(hederaClient.operatorId().toString(), tokenInfo.treasuryAccountId.toString());
         assertNull(tokenInfo.freezeKey);
         assertNull(tokenInfo.kycKey);
@@ -103,7 +105,7 @@ public class TokenCreateSystemTest extends AbstractSystemTest {
         printWriter.close();
 
         CreateToken createToken = new CreateToken();
-        tokenId = createToken.create(tokenName, tempFile.getAbsolutePath(), initialSupply, decimals);
+        tokenId = createToken.create(tokenName, tempFile.getAbsolutePath(), initialSupply, decimals, tokenMemo);
         getTokenInfo();
 
         assertEquals(tokenName, tokenInfo.name);
@@ -111,6 +113,7 @@ public class TokenCreateSystemTest extends AbstractSystemTest {
         assertEquals(tokenId.toString(), tokenInfo.tokenId.toString());
         assertEquals(initialSupply, tokenInfo.totalSupply);
         assertEquals(decimals, tokenInfo.decimals);
+        assertEquals(tokenMemo, tokenInfo.tokenMemo);
         assertEquals(hederaClient.operatorId().toString(), tokenInfo.treasuryAccountId.toString());
         assertNull(tokenInfo.freezeKey);
         assertNull(tokenInfo.kycKey);

@@ -6,6 +6,7 @@ import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.app.subscriber.TopicSubscriber;
 import com.hedera.demo.auction.node.test.system.AbstractSystemTest;
+import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +49,8 @@ public class AuctionCreateSystemTest extends AbstractSystemTest {
         bidsRepository.deleteAllBids();
         auctionsRepository.deleteAllAuctions();
         createTopicAndGetInfo();
-        createAccountAndGetInfo("");
+        JsonObject key = jsonThresholdKey(1, auctionAccountKey.getPublicKey().toString());
+        createAccountAndGetInfo(key.toString());
         createTokenAndGetInfo(symbol);
         createAuction(auctionReserve, minimumBid, winnerCanBid);
     }
@@ -57,7 +59,7 @@ public class AuctionCreateSystemTest extends AbstractSystemTest {
 
         hederaClient.setMirrorProvider("hedera");
         hederaClient.setClientMirror();
-        TopicSubscriber topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository, null, topicId, hederaClient.operatorPrivateKey().toString(), 5000, masterNode);
+        TopicSubscriber topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository, null, topicId, hederaClient.operatorPrivateKey().toString(), 5000, masterKey);
         topicSubscriber.setSkipReadinessWatcher();
         // start the thread to monitor bids
         Thread t = new Thread(topicSubscriber);
@@ -94,7 +96,7 @@ public class AuctionCreateSystemTest extends AbstractSystemTest {
                 .with()
                 .pollInterval(Duration.ofSeconds(1))
                 .await()
-                .atMost(Duration.ofSeconds(10))
+                .atMost(Duration.ofSeconds(20))
                 .until(tokenAssociatedNotTransferred());
     }
 }

@@ -24,7 +24,6 @@ public class AuctionKeyList {
         for (AuctionKey auctionKey : auctionKeys) {
             keyList.add(auctionKey.toKeyList());
         }
-        System.out.println(keyList.getThreshold());
 
         return keyList;
     }

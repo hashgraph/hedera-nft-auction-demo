@@ -3,13 +3,7 @@ package com.hedera.demo.auction.node.test.system;
 import com.hedera.demo.auction.node.app.CreateAuctionAccount;
 import com.hedera.demo.auction.node.app.CreateToken;
 import com.hedera.demo.auction.node.app.CreateTopic;
-import com.hedera.hashgraph.sdk.AccountId;
-import com.hedera.hashgraph.sdk.Key;
-import com.hedera.hashgraph.sdk.KeyList;
-import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
-import com.hedera.hashgraph.sdk.TokenId;
-import com.hedera.hashgraph.sdk.TopicId;
-import com.hedera.hashgraph.sdk.TransactionResponse;
+import com.hedera.hashgraph.sdk.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.junit5.VertxTestContext;
@@ -90,14 +84,6 @@ public class AbstractAPITester extends AbstractE2ETest {
                     getAccountInfo();
 
                     assertEquals(auctionAccountId, accountInfo.accountId);
-                    KeyList keylist = (KeyList) accountInfo.key;
-                    assertNull(keylist.threshold);
-                    assertEquals(1, keylist.size());
-                    Object[] keyListArray = keylist.toArray();
-
-                    Key accountKey = (Key)keyListArray[0];
-
-                    assertEquals(hederaClient.operatorPublicKey().toString(), accountKey.toString());
                     assertEquals(initialBalance, accountInfo.balance.getValue().longValue());
 
                     testContext.completeNow();
@@ -143,7 +129,7 @@ public class AbstractAPITester extends AbstractE2ETest {
         topicId = createTopic.create();
 
         CreateToken createToken = new CreateToken();
-        tokenId = createToken.create(tokenName, symbol, initialSupply, decimals);
+        tokenId = createToken.create(tokenName, symbol, initialSupply, decimals, tokenMemo);
 
         CreateAuctionAccount createAuctionAccount = new CreateAuctionAccount();
         auctionAccountId = createAuctionAccount.create(initialBalance, "");

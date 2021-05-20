@@ -50,7 +50,7 @@ public final class App {
     private boolean transferOnWin = Optional.ofNullable(env.get("TRANSFER_ON_WIN")).map(Boolean::parseBoolean).orElse(true);
     private String masterKey = Optional.ofNullable(env.get("MASTER_KEY")).orElse("");
 
-    private HederaClient hederaClient = new HederaClient(env);
+    private HederaClient hederaClient;
 
     @Nullable
     private TopicSubscriber topicSubscriber = null;
@@ -68,6 +68,7 @@ public final class App {
     private Refunder refunder = null;
 
     public App() throws Exception {
+        hederaClient = new HederaClient(env);
     }
 
     public static void main(String[] args) throws Exception {

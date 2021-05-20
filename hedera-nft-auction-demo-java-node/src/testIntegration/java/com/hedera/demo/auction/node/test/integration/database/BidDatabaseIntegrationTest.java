@@ -171,4 +171,14 @@ class BidDatabaseIntegrationTest extends AbstractIntegrationTest {
         assertNotNull(bids);
         assertEquals(0, bids.size());
     }
+    @Test
+    public void bidRefundTimestampTest() throws SQLException {
+
+        bidsRepository.setBidRefundTimestamp(bid.getTimestamp(), "testTimestampHere");
+
+        List<Bid> bids = bidsRepository.getBidsList();
+        assertNotNull(bids);
+        assertEquals(1, bids.size());
+        assertEquals("testTimestampHere", bids.get(0).getTimestampforrefund());
+    }
 }

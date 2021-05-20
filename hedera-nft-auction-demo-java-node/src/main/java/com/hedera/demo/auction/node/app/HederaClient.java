@@ -10,6 +10,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -22,6 +23,7 @@ public class HederaClient {
     private String mirrorUrl = "";
     private final Client client;
     private String network;
+    @Nullable
     private Dotenv env;
 
     public HederaClient(AccountId operatorId, PrivateKey operatorKey, String network, String mirrorProvider, String mirrorUrl, String mirrorAddress) throws Exception {
@@ -85,7 +87,10 @@ public class HederaClient {
     public void setClientMirror(Client clientToSet) throws Exception {
         @Var String envVariable = "GRPC_".concat(this.mirrorProvider).concat("_")
                 .concat(this.network);
-        String url = this.env.get(envVariable);
+        @Var String url = "";
+        if (this.env != null) {
+            url = this.env.get(envVariable);
+        }
         if (StringUtils.isBlank(url)) {
             throw new Exception("VUE_APP_NETWORK and/or MIRROR_PROVIDER environment variables not set");
         }
@@ -94,7 +99,10 @@ public class HederaClient {
 
         envVariable = "REST_".concat(this.mirrorProvider).concat("_")
                 .concat(this.network);
-        this.mirrorUrl = this.env.get(envVariable);
+        this.mirrorUrl = "";
+        if (this.env != null) {
+            this.mirrorUrl = this.env.get(envVariable);
+        }
         if (StringUtils.isBlank(this.mirrorUrl)) {
             throw new Exception("VUE_APP_NETWORK and/or MIRROR_PROVIDER environment variables not set");
         }

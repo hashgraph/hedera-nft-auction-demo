@@ -101,10 +101,12 @@ public class Utils {
         }
     }
 
-    public static Callable<JsonObject> queryMirror(WebClient webClient, String mirrorURL, int mirrorPort, String url, Map<String, String> queryParameters) {
+    public static Callable<JsonObject> queryMirror(WebClient webClient, HederaClient hederaClient, String url, Map<String, String> queryParameters) {
+        String mirrorURL = hederaClient.mirrorUrl();
+
         return () -> {
             var webQuery = webClient
-                    .get(mirrorPort, mirrorURL, url);
+                    .get(80, mirrorURL, url);
 
             for (Map.Entry<String, String> entry : queryParameters.entrySet()) {
                 webQuery.addQueryParam(entry.getKey(), entry.getValue());

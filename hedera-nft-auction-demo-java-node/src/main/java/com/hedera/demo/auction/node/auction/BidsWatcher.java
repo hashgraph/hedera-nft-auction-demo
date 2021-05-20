@@ -1,7 +1,8 @@
-package com.hedera.demo.auction.node.app.bidwatcher;
+package com.hedera.demo.auction.node.auction;
 
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
+import com.hedera.demo.auction.node.app.Utils;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.domain.Bid;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorHbarTransfer;
@@ -9,41 +10,45 @@ import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransaction;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 @Log4j2
-public abstract class AbstractBidsWatcher {
+public class BidsWatcher implements Runnable {
 
-    protected Auction auction;
-    protected final WebClient webClient;
-    protected final BidsRepository bidsRepository;
-    protected final AuctionsRepository auctionsRepository;
-    protected final String refundKey;
-    protected final int mirrorQueryFrequency;
-    protected String mirrorURL;
-    protected final int auctionId;
-    protected final HederaClient hederaClient;
-    protected boolean testing = false;
+    private final int auctionId;
+    private Auction auction;
+    private final WebClient webClient;
+    private final BidsRepository bidsRepository;
+    private final AuctionsRepository auctionsRepository;
+    private final int mirrorQueryFrequency;
+    private final HederaClient hederaClient;
     protected boolean runThread = true;
+    protected boolean testing = false;
 
-    protected AbstractBidsWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, String refundKey, int mirrorQueryFrequency) {
+    public BidsWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.bidsRepository = bidsRepository;
         this.auctionsRepository = auctionsRepository;
         this.auctionId = auctionId;
-        this.refundKey = refundKey;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.hederaClient = hederaClient;
-        this.mirrorURL = hederaClient.mirrorUrl();
+
         try {
             this.auction = auctionsRepository.getAuction(auctionId);
         } catch (Exception e) {
-            log.error("failed to fetch auction id " + auctionId + " from database.");
+            log.error("unable to get auction id " + auctionId);
             log.error(e);
         }
     }
@@ -55,6 +60,55 @@ public abstract class AbstractBidsWatcher {
     public void stop() {
         runThread = false;
     }
+
+    @Override
+    public void run() {
+
+        @Var String nextLink = "";
+        String uri = "/api/v1/transactions";
+
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        while (runThread ) {
+            try {
+                // reload auction from database
+                Auction watchedAuction = auctionsRepository.getAuction(auctionId);
+
+                log.debug("Checking for bids on account " + watchedAuction.getAuctionaccountid() + " and token " + watchedAuction.getTokenid());
+
+                String consensusTimeStampFrom = StringUtils.isEmpty(nextLink) ? watchedAuction.getLastconsensustimestamp() : nextLink;
+                nextLink = "";
+                Map<String, String> queryParameters = new HashMap<>();
+                queryParameters.put("account.id", watchedAuction.getAuctionaccountid());
+                queryParameters.put("transactiontype", "CRYPTOTRANSFER");
+                queryParameters.put("order", "asc");
+                queryParameters.put("timestamp", "gt:".concat(consensusTimeStampFrom));
+
+                Future<JsonObject> future = executor.submit(Utils.queryMirror(webClient, hederaClient, uri, queryParameters));
+
+                try {
+                    JsonObject response = future.get();
+                    if (response != null) {
+                        MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
+                        nextLink = Utils.getTimestampFromMirrorLink(mirrorTransactions.links.next);
+                        handleResponse(mirrorTransactions);
+                    }
+                } catch (InterruptedException interruptedException) {
+                    log.error(interruptedException);
+                    Thread.currentThread().interrupt();
+                } catch (ExecutionException executionException) {
+                    log.error(executionException);
+                }
+
+            } catch (Exception e) {
+                log.error(e);
+            }
+            if (StringUtils.isEmpty(nextLink)) {
+                Utils.sleep(this.mirrorQueryFrequency);
+            }
+        }
+        executor.shutdown();
+    }
+
 
     public void handleResponse(MirrorTransactions mirrorTransactions) {
         try {

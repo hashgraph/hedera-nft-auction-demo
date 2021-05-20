@@ -6,13 +6,12 @@ import com.hedera.demo.auction.node.app.Utils;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.domain.Bid;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
-import com.hedera.demo.auction.node.app.refundChecker.AbstractRefundChecker;
+import com.hedera.demo.auction.node.auction.RefundChecker;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.test.integration.AbstractIntegrationTest;
 import com.hedera.demo.auction.node.test.integration.HederaJson;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.WebClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -41,17 +40,10 @@ public class RefundCheckerIntegrationTest extends AbstractIntegrationTest {
     JsonObject bidTransactions;
     String transactionId;
     String transactionHash;
-    RefundTester refundTester;
+    RefundChecker refundTester;
     Bid bid;
 
     public RefundCheckerIntegrationTest() throws Exception {
-    }
-
-    static class RefundTester extends AbstractRefundChecker {
-
-        protected RefundTester(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int mirrorQueryFrequency) {
-            super(hederaClient, webClient, auctionsRepository, bidsRepository, mirrorQueryFrequency);
-        }
     }
 
     @BeforeAll
@@ -63,7 +55,7 @@ public class RefundCheckerIntegrationTest extends AbstractIntegrationTest {
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
 
-        refundTester = new RefundTester(hederaClient, webClient, auctionsRepository, bidsRepository, 5000);
+        refundTester = new RefundChecker(hederaClient, webClient, auctionsRepository, bidsRepository, 5000);
     }
 
     @AfterAll

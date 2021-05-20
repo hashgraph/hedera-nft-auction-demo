@@ -5,7 +5,7 @@ import com.google.protobuf.ByteString;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.Utils;
 import com.hedera.demo.auction.node.app.domain.Auction;
-import com.hedera.demo.auction.node.app.readinesswatcher.AuctionReadinessWatcher;
+import com.hedera.demo.auction.node.auction.AuctionReadinessWatcher;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.hashgraph.sdk.AccountBalance;
@@ -52,9 +52,9 @@ public class TopicSubscriber implements Runnable{
     private final HederaClient hederaClient;
     private boolean testing = false;
     private boolean skipReadinessWatcher = false;
-    private SubscriptionHandle subscriptionHandle;
+    private SubscriptionHandle subscriptionHandle = null;
     private boolean runThread = true;
-    private AuctionReadinessWatcher auctionReadinessWatcher;
+    private AuctionReadinessWatcher auctionReadinessWatcher = null;
     private final String masterKey;
 
     public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, WebClient webClient, TopicId topicId, String refundKey, int mirrorQueryFrequency, String masterKey) {

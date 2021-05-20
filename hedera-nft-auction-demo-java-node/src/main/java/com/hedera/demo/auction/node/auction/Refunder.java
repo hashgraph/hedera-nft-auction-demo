@@ -1,4 +1,4 @@
-package com.hedera.demo.auction.node.app.refunder;
+package com.hedera.demo.auction.node.auction;
 
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;

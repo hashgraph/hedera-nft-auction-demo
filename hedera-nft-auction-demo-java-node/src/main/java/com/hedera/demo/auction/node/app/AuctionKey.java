@@ -11,7 +11,7 @@ public class AuctionKey {
     @JsonProperty("key")
     public String key = "";
     @JsonProperty("keyList")
-    public AuctionKeyList auctionKeyList;
+    public AuctionKeyList auctionKeyList = new AuctionKeyList();
 
     public Key toKeyList() {
         if (StringUtils.isEmpty(key)) {

@@ -2,13 +2,13 @@ package com.hedera.demo.auction.node.app;
 
 import com.hedera.demo.auction.node.app.api.AdminApiVerticle;
 import com.hedera.demo.auction.node.app.api.ApiVerticle;
-import com.hedera.demo.auction.node.app.auctionendtransfer.AuctionEndTransfer;
-import com.hedera.demo.auction.node.app.bidwatcher.BidsWatcher;
-import com.hedera.demo.auction.node.app.closurewatcher.AuctionsClosureWatcher;
+import com.hedera.demo.auction.node.auction.AuctionEndTransfer;
+import com.hedera.demo.auction.node.auction.BidsWatcher;
+import com.hedera.demo.auction.node.auction.AuctionsClosureWatcher;
 import com.hedera.demo.auction.node.app.domain.Auction;
-import com.hedera.demo.auction.node.app.readinesswatcher.AuctionReadinessWatcher;
-import com.hedera.demo.auction.node.app.refundChecker.RefundChecker;
-import com.hedera.demo.auction.node.app.refunder.Refunder;
+import com.hedera.demo.auction.node.auction.AuctionReadinessWatcher;
+import com.hedera.demo.auction.node.auction.RefundChecker;
+import com.hedera.demo.auction.node.auction.Refunder;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.app.repository.ScheduledOperationsRepository;
@@ -181,7 +181,7 @@ public final class App {
             if (! auction.isPending()) {
                 // auction is not pending
                 // start the thread to monitor bids
-                BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency);
+                BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction.getId(), mirrorQueryFrequency);
                 Thread t = new Thread(bidsWatcher);
                 t.start();
                 bidsWatchers.add(bidsWatcher);

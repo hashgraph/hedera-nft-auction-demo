@@ -1,7 +1,14 @@
 package com.hedera.demo.auction.node.app;
 
 import com.google.errorprone.annotations.Var;
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.AccountCreateTransaction;
+import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.Client;
+import com.hedera.hashgraph.sdk.Hbar;
+import com.hedera.hashgraph.sdk.Key;
+import com.hedera.hashgraph.sdk.Status;
+import com.hedera.hashgraph.sdk.TransactionReceipt;
+import com.hedera.hashgraph.sdk.TransactionResponse;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
@@ -24,7 +31,7 @@ public class CreateAuctionAccount extends AbstractCreate {
         Client client = hederaClient.client();
         AccountCreateTransaction accountCreateTransaction = new AccountCreateTransaction();
 
-        @Var Key keyList;
+        Key keyList;
         if (StringUtils.isEmpty(keys)) {
             log.info("No public key provided, defaulting to operator public key");
             keyList = client.getOperatorPublicKey();

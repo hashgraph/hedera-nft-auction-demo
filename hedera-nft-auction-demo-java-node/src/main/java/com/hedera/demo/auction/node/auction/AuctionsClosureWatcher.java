@@ -1,7 +1,8 @@
-package com.hedera.demo.auction.node.app.closurewatcher;
+package com.hedera.demo.auction.node.auction;
 
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
+import com.hedera.demo.auction.node.app.Utils;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
@@ -18,50 +19,77 @@ import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
 @Log4j2
-public abstract class AbstractAuctionsClosureWatcher {
+public class AuctionsClosureWatcher implements Runnable {
 
-    protected final WebClient webClient;
-    protected final AuctionsRepository auctionsRepository;
-    protected final int mirrorQueryFrequency;
-    protected String mirrorURL;
-    protected boolean transferOnWin;
+    private final WebClient webClient;
+    private final AuctionsRepository auctionsRepository;
+    private final int mirrorQueryFrequency;
+    private final boolean transferOnWin;
     private final String refundKey;
     private final HederaClient hederaClient;
-    protected boolean runThread = true;
     private final String masterKey;
+    protected boolean runThread = true;
 
-    protected AbstractAuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey, String masterKey) {
+    public AuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey, String masterKey) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
-        this.hederaClient = hederaClient;
-        this.mirrorURL = hederaClient.mirrorUrl();
         this.transferOnWin = transferOnWin;
         this.refundKey = refundKey;
+        this.hederaClient = hederaClient;
         this.masterKey = masterKey;
     }
 
-    void handleResponse(JsonObject response) {
-        if (response != null) {
-            MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
+    @Override
+    public void run() {
 
-            if (mirrorTransactions.transactions != null) {
-                if (mirrorTransactions.transactions.size() > 0) {
-                    closeAuctionIfPastEnd(mirrorTransactions.transactions.get(0).consensusTimestamp);
+        String uri = "/api/v1/transactions";
+
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        while (runThread) {
+
+            Map<String, String> queryParameters = new HashMap<>();
+            queryParameters.put("limit", "1");
+            Future<JsonObject> future = executor.submit(Utils.queryMirror(webClient, hederaClient, uri, queryParameters));
+            try {
+                JsonObject response = future.get();
+                if (response != null) {
+                    MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
+                    handleResponse(mirrorTransactions);
                 }
+            } catch (InterruptedException interruptedException) {
+                log.error(interruptedException);
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException executionException) {
+                log.error(executionException);
             }
+            Utils.sleep(this.mirrorQueryFrequency);
         }
+        executor.shutdown();
     }
 
     public void stop() {
         runThread = false;
     }
 
-    protected void closeAuctionIfPastEnd(String consensusTimestamp) {
+    private void handleResponse(MirrorTransactions mirrorTransactions) {
+        if (mirrorTransactions.transactions != null) {
+            if (mirrorTransactions.transactions.size() > 0) {
+                closeAuctionIfPastEnd(mirrorTransactions.transactions.get(0).consensusTimestamp);
+            }
+        }
+    }
+
+    private void closeAuctionIfPastEnd(String consensusTimestamp) {
         try {
             for (Map.Entry<String, Integer> auctions : auctionsRepository.openAndPendingAuctions().entrySet()) {
                 String endTimestamp = auctions.getKey();
@@ -98,7 +126,7 @@ public abstract class AbstractAuctionsClosureWatcher {
         }
     }
 
-    protected void setSignatureRequiredOnAuctionAccount(int auctionId) {
+    private void setSignatureRequiredOnAuctionAccount(int auctionId) {
         @Var Auction auction = null;
         try {
             auction = auctionsRepository.getAuction(auctionId);

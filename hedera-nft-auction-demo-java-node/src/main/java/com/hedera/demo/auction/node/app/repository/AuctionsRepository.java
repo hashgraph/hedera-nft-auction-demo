@@ -137,12 +137,11 @@ public class AuctionsRepository {
         DSLContext cx = connectionManager.dsl();
         log.debug("setTransferInProgress " + Auction.TRANSFER_STATUS_IN_PROGRESS + " for token id " + tokenId);
 
-        int rowsUpdated = cx.update(AUCTIONS)
+        cx.update(AUCTIONS)
                 .set(AUCTIONS.TRANSFERSTATUS, Auction.TRANSFER_STATUS_IN_PROGRESS)
                 .where(AUCTIONS.TOKENID.eq(tokenId))
                 .execute();
         cx.close();
-        System.out.println(rowsUpdated);
     }
 
     public void setTransferTransactionByTokenId(String tokenId, String transactionId, String transactionHash) throws SQLException {

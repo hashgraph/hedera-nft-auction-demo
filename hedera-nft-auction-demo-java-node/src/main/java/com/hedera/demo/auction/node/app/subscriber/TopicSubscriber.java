@@ -32,6 +32,7 @@ import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
+import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -52,8 +53,10 @@ public class TopicSubscriber implements Runnable{
     private final HederaClient hederaClient;
     private boolean testing = false;
     private boolean skipReadinessWatcher = false;
+    @Nullable
     private SubscriptionHandle subscriptionHandle = null;
     private boolean runThread = true;
+    @Nullable
     private AuctionReadinessWatcher auctionReadinessWatcher = null;
     private final String masterKey;
 

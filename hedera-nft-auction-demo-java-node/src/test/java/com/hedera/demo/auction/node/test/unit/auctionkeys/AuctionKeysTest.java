@@ -7,7 +7,6 @@ import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class AuctionKeysTest {
 
@@ -24,7 +23,8 @@ public class AuctionKeysTest {
         AuctionKey auctionKey = key.mapTo(AuctionKey.class);
 
         assertEquals("", auctionKey.key);
-        assertNull(auctionKey.auctionKeyList);
+        assertEquals(0, auctionKey.auctionKeyList.auctionKeys.size());
+        assertEquals(0, auctionKey.auctionKeyList.threshold);
     }
 
     @Test
@@ -36,7 +36,8 @@ public class AuctionKeysTest {
         AuctionKey auctionKey = key.mapTo(AuctionKey.class);
 
         assertEquals(publicKeyMaster, auctionKey.key);
-        assertNull(auctionKey.auctionKeyList);
+        assertEquals(0, auctionKey.auctionKeyList.auctionKeys.size());
+        assertEquals(0, auctionKey.auctionKeyList.threshold);
     }
 
     @Test

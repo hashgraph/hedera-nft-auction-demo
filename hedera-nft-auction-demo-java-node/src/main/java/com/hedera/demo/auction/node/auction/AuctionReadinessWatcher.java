@@ -1,37 +1,46 @@
-package com.hedera.demo.auction.node.app.readinesswatcher;
+package com.hedera.demo.auction.node.auction;
 
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.node.app.HederaClient;
-import com.hedera.demo.auction.node.app.bidwatcher.BidsWatcher;
+import com.hedera.demo.auction.node.app.Utils;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTokenTransfer;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransaction;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
+import javax.annotation.Nullable;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 @Log4j2
-public abstract class AbstractAuctionReadinessWatcher {
+public class AuctionReadinessWatcher implements Runnable {
 
     protected final Auction auction;
     protected final WebClient webClient;
     protected final AuctionsRepository auctionsRepository;
     protected final BidsRepository bidsRepository;
     protected final int mirrorQueryFrequency;
-    protected String mirrorURL;
+    protected final String mirrorProvider;
     protected final String refundKey;
     protected final HederaClient hederaClient;
+
     protected boolean testing = false;
-    protected int mirrorPort = 80;
     protected boolean runThread = true;
+    @Nullable
     protected BidsWatcher bidsWatcher = null;
 
-    protected AbstractAuctionReadinessWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
+    public AuctionReadinessWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
@@ -39,7 +48,7 @@ public abstract class AbstractAuctionReadinessWatcher {
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.refundKey = refundKey;
         this.hederaClient = hederaClient;
-        this.mirrorURL = hederaClient.mirrorUrl();
+        this.mirrorProvider = hederaClient.mirrorProvider();
     }
 
     public void setTesting() {
@@ -51,6 +60,64 @@ public abstract class AbstractAuctionReadinessWatcher {
             bidsWatcher.stop();
         }
         runThread = false;
+    }
+
+    /**
+     * check transaction history for token, if associated update auction status
+     * start new bidding monitor thread
+     * and close this thread
+     *
+     * Note: Considered simply checking balances for the account, but this doesn't give us
+     * a common consensus timestamp to indicate the start of the auction
+     */
+    @Override
+    public void run() {
+        log.info("Watching auction account Id " + auction.getAuctionaccountid() + ", token Id " + auction.getTokenid());
+        String uri = "/api/v1/transactions";
+
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        while (runThread) {
+            @Var String nextTimestamp = "0.0";
+            while (!StringUtils.isEmpty(nextTimestamp)) {
+                log.debug("Checking ownership of token " + auction.getTokenid() + " for account " + auction.getAuctionaccountid());
+                Map<String, String> queryParameters = new HashMap<>();
+                queryParameters.put("account.id", auction.getAuctionaccountid());
+                queryParameters.put("transactiontype", "CRYPTOTRANSFER");
+                queryParameters.put("order", "desc");
+                queryParameters.put("timestamp", "gt:".concat(nextTimestamp));
+
+                Future<JsonObject> future = executor.submit(Utils.queryMirror(webClient, hederaClient, uri, queryParameters));
+                try {
+                    JsonObject response = future.get();
+                    if (response != null) {
+                        MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
+
+                        if (handleResponse(mirrorTransactions)) {
+                            // token is owned by the auction account, exit this thread
+                            runThread = false;
+                            break;
+                        } else {
+                            if (testing) {
+                                runThread = false;
+                            }
+                        }
+                        nextTimestamp = Utils.getTimestampFromMirrorLink(mirrorTransactions.links.next);
+                    }
+                } catch (InterruptedException interruptedException) {
+                    log.error(interruptedException);
+                    Thread.currentThread().interrupt();
+                } catch (ExecutionException executionException) {
+                    log.error(executionException);
+                }
+            }
+
+            if (testing) {
+                runThread = false;
+            } else {
+                Utils.sleep(this.mirrorQueryFrequency);
+            }
+        }
+        executor.shutdown();
     }
 
     public boolean handleResponse(MirrorTransactions mirrorTransactions) {
@@ -79,7 +146,7 @@ public abstract class AbstractAuctionReadinessWatcher {
                             auctionsRepository.setActive(auction, tokenOwnerAccount, transaction.consensusTimestamp);
                             // start the thread to monitor bids
                             if (!this.testing) {
-                                bidsWatcher = new BidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction.getId(), refundKey, mirrorQueryFrequency);
+                                bidsWatcher = new BidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction.getId(), mirrorQueryFrequency);
                                 Thread t = new Thread(bidsWatcher);
                                 t.start();
                             }

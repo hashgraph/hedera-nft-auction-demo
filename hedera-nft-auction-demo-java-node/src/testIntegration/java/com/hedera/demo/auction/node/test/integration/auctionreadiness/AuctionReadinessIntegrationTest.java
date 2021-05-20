@@ -4,20 +4,26 @@ import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.SqlConnectionManager;
 import com.hedera.demo.auction.node.app.domain.Auction;
 import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
-import com.hedera.demo.auction.node.app.readinesswatcher.AbstractAuctionReadinessWatcher;
+import com.hedera.demo.auction.node.auction.AuctionReadinessWatcher;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.demo.auction.node.test.integration.AbstractIntegrationTest;
 import com.hedera.demo.auction.node.test.integration.HederaJson;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.WebClient;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.sql.SQLException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -37,16 +43,9 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
     private final static long badAmount = 0L;
 
     private HederaClient hederaClient = HederaClient.emptyTestClient();
-    private ReadinessTester readinessTester;
+    private AuctionReadinessWatcher auctionReadinessWatcher;
 
     public AuctionReadinessIntegrationTest() throws Exception {
-    }
-
-    static class ReadinessTester extends AbstractAuctionReadinessWatcher {
-
-        protected ReadinessTester(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
-            super(hederaClient, webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
-        }
     }
 
     @BeforeAll
@@ -71,8 +70,8 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
         auction.setTokenid(tokenId);
         auction = auctionsRepository.add(auction);
 
-        readinessTester = new ReadinessTester(hederaClient, null, auctionsRepository, null,auction, "", 5000);
-        readinessTester.setTesting();
+        auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, null, auctionsRepository, null,auction, "", 5000);
+        auctionReadinessWatcher.setTesting();
     }
 
     @AfterEach
@@ -83,26 +82,26 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testAuctionReadinessFromJsonData() throws Exception {
 
-        assertFalse(verifyResponse(readinessTester, badTokenOwnerAccount, badAccount, badToken, badAmount));
-        assertFalse(verifyResponse(readinessTester, tokenOwnerAccountId, badAccount, badToken, badAmount));
-        assertFalse(verifyResponse(readinessTester, badTokenOwnerAccount, accountId, badToken, badAmount));
-        assertFalse(verifyResponse(readinessTester, tokenOwnerAccountId, accountId, badToken, badAmount));
-        assertFalse(verifyResponse(readinessTester, badTokenOwnerAccount, badAccount, tokenId, badAmount));
-        assertFalse(verifyResponse(readinessTester, tokenOwnerAccountId, badAccount, tokenId, badAmount));
-        assertFalse(verifyResponse(readinessTester, tokenOwnerAccountId, accountId, tokenId, badAmount));
+        assertFalse(verifyResponse(auctionReadinessWatcher, badTokenOwnerAccount, badAccount, badToken, badAmount));
+        assertFalse(verifyResponse(auctionReadinessWatcher, tokenOwnerAccountId, badAccount, badToken, badAmount));
+        assertFalse(verifyResponse(auctionReadinessWatcher, badTokenOwnerAccount, accountId, badToken, badAmount));
+        assertFalse(verifyResponse(auctionReadinessWatcher, tokenOwnerAccountId, accountId, badToken, badAmount));
+        assertFalse(verifyResponse(auctionReadinessWatcher, badTokenOwnerAccount, badAccount, tokenId, badAmount));
+        assertFalse(verifyResponse(auctionReadinessWatcher, tokenOwnerAccountId, badAccount, tokenId, badAmount));
+        assertFalse(verifyResponse(auctionReadinessWatcher, tokenOwnerAccountId, accountId, tokenId, badAmount));
 
-        assertFalse(verifyResponse(readinessTester, badTokenOwnerAccount, badAccount, badToken, goodAmount));
-        assertFalse(verifyResponse(readinessTester, tokenOwnerAccountId, badAccount, badToken, goodAmount));
-        assertFalse(verifyResponse(readinessTester, badTokenOwnerAccount, accountId, badToken, goodAmount));
-        assertFalse(verifyResponse(readinessTester, tokenOwnerAccountId, accountId, badToken, goodAmount));
-        assertFalse(verifyResponse(readinessTester, badTokenOwnerAccount, badAccount, tokenId, goodAmount));
-        assertFalse(verifyResponse(readinessTester, tokenOwnerAccountId, badAccount, tokenId, goodAmount));
+        assertFalse(verifyResponse(auctionReadinessWatcher, badTokenOwnerAccount, badAccount, badToken, goodAmount));
+        assertFalse(verifyResponse(auctionReadinessWatcher, tokenOwnerAccountId, badAccount, badToken, goodAmount));
+        assertFalse(verifyResponse(auctionReadinessWatcher, badTokenOwnerAccount, accountId, badToken, goodAmount));
+        assertFalse(verifyResponse(auctionReadinessWatcher, tokenOwnerAccountId, accountId, badToken, goodAmount));
+        assertFalse(verifyResponse(auctionReadinessWatcher, badTokenOwnerAccount, badAccount, tokenId, goodAmount));
+        assertFalse(verifyResponse(auctionReadinessWatcher, tokenOwnerAccountId, badAccount, tokenId, goodAmount));
 
         Auction notStartedAuction = auctionsRepository.getAuction(auction.getId());
         assertEquals("", notStartedAuction.getStarttimestamp());
         assertEquals(Auction.PENDING, notStartedAuction.getStatus());
 
-        assertTrue(verifyResponse(readinessTester, tokenOwnerAccountId, accountId, tokenId, goodAmount));
+        assertTrue(verifyResponse(auctionReadinessWatcher, tokenOwnerAccountId, accountId, tokenId, goodAmount));
         Auction startedAuction = auctionsRepository.getAuction(auction.getId());
         assertNotEquals("", startedAuction.getStarttimestamp());
         assertEquals(Auction.ACTIVE, startedAuction.getStatus());
@@ -116,7 +115,7 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
         // create an empty response
         JsonObject jsonResponse = HederaJson.mirrorTransactions(new JsonObject());
         MirrorTransactions mirrorTransactions = jsonResponse.mapTo(MirrorTransactions.class);
-        boolean response = readinessTester.handleResponse(mirrorTransactions);
+        boolean response = auctionReadinessWatcher.handleResponse(mirrorTransactions);
         assertFalse (response);
         auctionsRepository.deleteAllAuctions();
     }
@@ -124,7 +123,7 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testAuctionReadinessFromJsonDataNotReadyLink() throws Exception {
 
-        ReadinessTester readinessTester = new ReadinessTester(hederaClient, null, auctionsRepository, null,auction, "", 5000);
+        AuctionReadinessWatcher readinessTester = new AuctionReadinessWatcher(hederaClient, null, auctionsRepository, null,auction, "",5000);
         readinessTester.setTesting();
 
         JsonObject jsonResponse = HederaJson.mirrorTransactions(HederaJson.tokenTransferTransaction(badTokenOwnerAccount, badAccount, tokenId, goodAmount));
@@ -143,12 +142,12 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
 
         jsonResponse.put("links",new JsonObject().put("next","nextlink"));
         MirrorTransactions mirrorTransactions = jsonResponse.mapTo(MirrorTransactions.class);
-        boolean response = readinessTester.handleResponse(mirrorTransactions);
+        boolean response = auctionReadinessWatcher.handleResponse(mirrorTransactions);
         assertTrue (response);
         auctionsRepository.deleteAllAuctions();
     }
 
-    private static boolean verifyResponse(ReadinessTester readinessTester, String fromAccount, String toAccount, String token, long amount) {
+    private static boolean verifyResponse(AuctionReadinessWatcher readinessTester, String fromAccount, String toAccount, String token, long amount) {
 
         JsonObject jsonResponse = HederaJson.mirrorTransactions(HederaJson.tokenTransferTransaction(fromAccount, toAccount, token, amount));
 

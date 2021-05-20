@@ -276,7 +276,7 @@ public class Auction implements VertxPojo, Serializable {
 
     public String getTokenowneraccount() { return this.tokenowneraccount; }
 
-    public void setTokenowneraccount(String tokenOwnerAccount) { this.tokenowneraccount = tokenOwnerAccount; }
+    public void setTokenowneraccount(String tokenowneraccount) { this.tokenowneraccount = tokenowneraccount; }
 
     public String getTransfertimestamp() {
         return this.transfertimestamp;

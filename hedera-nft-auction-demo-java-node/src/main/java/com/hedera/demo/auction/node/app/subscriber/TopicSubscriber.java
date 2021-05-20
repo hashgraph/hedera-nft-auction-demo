@@ -5,7 +5,7 @@ import com.google.protobuf.ByteString;
 import com.hedera.demo.auction.node.app.HederaClient;
 import com.hedera.demo.auction.node.app.Utils;
 import com.hedera.demo.auction.node.app.domain.Auction;
-import com.hedera.demo.auction.node.app.readinesswatcher.AuctionReadinessWatcher;
+import com.hedera.demo.auction.node.auction.AuctionReadinessWatcher;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.repository.BidsRepository;
 import com.hedera.hashgraph.sdk.AccountBalance;
@@ -32,6 +32,7 @@ import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
+import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -52,9 +53,11 @@ public class TopicSubscriber implements Runnable{
     private final HederaClient hederaClient;
     private boolean testing = false;
     private boolean skipReadinessWatcher = false;
-    private SubscriptionHandle subscriptionHandle;
+    @Nullable
+    private SubscriptionHandle subscriptionHandle = null;
     private boolean runThread = true;
-    private AuctionReadinessWatcher auctionReadinessWatcher;
+    @Nullable
+    private AuctionReadinessWatcher auctionReadinessWatcher = null;
     private final String masterKey;
 
     public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, WebClient webClient, TopicId topicId, String refundKey, int mirrorQueryFrequency, String masterKey) {

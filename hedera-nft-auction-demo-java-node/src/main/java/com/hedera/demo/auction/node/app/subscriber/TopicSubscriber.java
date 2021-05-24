@@ -104,6 +104,7 @@ public class TopicSubscriber implements Runnable{
     private void startSubscription() {
         try {
             Client client = hederaClient.client();
+            log.debug("subscribing to topic id " + topicId + " from " + startTime);
             subscriptionHandle = new TopicMessageQuery()
                     .setTopicId(topicId)
                     .setStartTime(startTime)
@@ -122,6 +123,7 @@ public class TopicSubscriber implements Runnable{
 
     public void handle(TopicMessageWrapper topicMessageWrapper) {
         try {
+            log.debug("Got HCS Message");
             String auctionData = new String(topicMessageWrapper.contents, StandardCharsets.UTF_8);
             JsonObject auctionJson = new JsonObject(auctionData);
             Auction newAuction = new Auction().fromJson(auctionJson);
@@ -136,12 +138,14 @@ public class TopicSubscriber implements Runnable{
 
             @Var Auction auction;
             try {
+                log.debug("Adding auction to database");
                 auction = auctionsRepository.getAuction(newAuction.getAuctionaccountid());
                 // auction doesn't exist, create it
                 if (auction == null) {
                     if (!testing) {
                         // get token info
                         try {
+                            log.debug("Getting token info");
                             Client client = hederaClient.client();
                             TokenInfo tokenInfo = new TokenInfoQuery()
                                     .setTokenId(TokenId.fromString(newAuction.getTokenid()))

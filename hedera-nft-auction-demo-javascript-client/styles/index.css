@@ -1,0 +1,148 @@
+@layer base {
+  @font-face {
+    font-family: 'Styerna';
+    src: url('/fonts/Styrena/StyreneA-Medium-Web.woff') format('woff');
+  }
+  @font-face {
+    font-family: 'Styerna';
+    font-weight: 100;
+    src: url('/fonts/Styrena/StyreneA-Light-Web.woff') format('woff');
+  }
+  @font-face {
+    font-family: 'Styerna';
+    font-weight: 400;
+    src: url('/fonts/Styrena/StyreneA-Medium-Web.woff') format('woff');
+  }
+  @font-face {
+    font-family: 'Styerna';
+    font-weight: 600;
+    src: url('/fonts/Styrena/StyreneA-Regular-Web.woff') format('woff');
+  }
+  @font-face {
+    font-family: 'Styerna';
+    font-weight: 700;
+    src: url('/fonts/Styrena/StyreneA-Bold-Web.woff') format('woff');
+  }
+  @font-face {
+    font-family: 'Styerna';
+    font-weight: 800;
+    src: url('/fonts/Styrena/StyreneA-Black-Web.woff') format('woff');
+  }
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: 'Styerna', BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: black;
+  min-height: 100vh;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+button {
+  outline: none !important;
+}
+
+p,
+h1,
+h2,
+h3,
+span,
+button {
+  color: white;
+}
+
+.bg-purple-gradient {
+  background: -moz-linear-gradient(
+    0% 50% 0deg,
+    rgba(46, 113, 239, 1) 0%,
+    rgba(58, 109, 240, 1) 21.7%,
+    rgba(90, 99, 243, 1) 60.86%,
+    rgba(128, 87, 246, 1) 100%
+  );
+  background: -webkit-linear-gradient(
+    0deg,
+    rgba(46, 113, 239, 1) 0%,
+    rgba(58, 109, 240, 1) 21.7%,
+    rgba(90, 99, 243, 1) 60.86%,
+    rgba(128, 87, 246, 1) 100%
+  );
+  background: -webkit-gradient(
+    linear,
+    0% 50%,
+    100% 50%,
+    color-stop(0, rgba(46, 113, 239, 1)),
+    color-stop(0.217, rgba(58, 109, 240, 1)),
+    color-stop(0.6086, rgba(90, 99, 243, 1)),
+    color-stop(1, rgba(128, 87, 246, 1))
+  );
+  background: -o-linear-gradient(
+    0deg,
+    rgba(46, 113, 239, 1) 0%,
+    rgba(58, 109, 240, 1) 21.7%,
+    rgba(90, 99, 243, 1) 60.86%,
+    rgba(128, 87, 246, 1) 100%
+  );
+  background: -ms-linear-gradient(
+    0deg,
+    rgba(46, 113, 239, 1) 0%,
+    rgba(58, 109, 240, 1) 21.7%,
+    rgba(90, 99, 243, 1) 60.86%,
+    rgba(128, 87, 246, 1) 100%
+  );
+  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#2E71EF', endColorstr='#8057F6' ,GradientType=0)";
+  background: linear-gradient(
+    90deg,
+    rgba(46, 113, 239, 1) 0%,
+    rgba(58, 109, 240, 1) 21.7%,
+    rgba(90, 99, 243, 1) 60.86%,
+    rgba(128, 87, 246, 1) 100%
+  );
+}
+
+.border-gradient {
+  border: 10px solid;
+  border-image-slice: 1;
+  border-width: 2px;
+}
+
+.border-gradient-purple {
+  border-image-source: linear-gradient(
+    to left,
+    rgba(128, 87, 246, 1),
+    rgba(46, 113, 239, 1)
+  );
+}
+
+.purple-gradient-border {
+  background: -moz-linear-gradient(
+    rgba(46, 113, 239, 1) 0%,
+    rgba(58, 109, 240, 1) 21.7%,
+    rgba(90, 99, 243, 1) 60.86%,
+    rgba(128, 87, 246, 1) 100%
+  );
+  background: -webkit-linear-gradient(
+    0deg,
+    rgba(46, 113, 239, 1) 0%,
+    rgba(58, 109, 240, 1) 21.7%,
+    rgba(90, 99, 243, 1) 60.86%,
+    rgba(128, 87, 246, 1) 100%
+  );
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

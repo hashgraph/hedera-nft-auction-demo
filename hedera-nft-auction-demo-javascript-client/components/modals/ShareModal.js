@@ -26,19 +26,39 @@ const ShareIcons = ({ url }) => {
 
   return (
     <div className='flex justify-between px-2'>
-      <FacebookShareButton url={url} title={TITLE}>
+      <FacebookShareButton
+        style={{ paddingLeft: '.5rem', paddingRight: '.5rem' }}
+        url={url}
+        title={TITLE}
+      >
         <FacebookIcon round size={ICON_SIZE} bgStyle={iconBgStyle} />
       </FacebookShareButton>
-      <LinkedinShareButton url={url} title={TITLE}>
+      <LinkedinShareButton
+        style={{ paddingLeft: '.5rem', paddingRight: '.5rem' }}
+        url={url}
+        title={TITLE}
+      >
         <LinkedinIcon round size={ICON_SIZE} bgStyle={iconBgStyle} />
       </LinkedinShareButton>
-      <TelegramShareButton url={url} title={TITLE}>
+      <TelegramShareButton
+        style={{ paddingLeft: '.5rem', paddingRight: '.5rem' }}
+        url={url}
+        title={TITLE}
+      >
         <TelegramIcon round size={ICON_SIZE} bgStyle={iconBgStyle} />
       </TelegramShareButton>
-      <TwitterShareButton url={url} title={TITLE}>
+      <TwitterShareButton
+        style={{ paddingLeft: '.5rem', paddingRight: '.5rem' }}
+        url={url}
+        title={TITLE}
+      >
         <TwitterIcon round size={ICON_SIZE} bgStyle={iconBgStyle} />
       </TwitterShareButton>
-      <RedditShareButton url={url} title={TITLE}>
+      <RedditShareButton
+        style={{ paddingLeft: '.5rem', paddingRight: '.5rem' }}
+        url={url}
+        title={TITLE}
+      >
         <RedditIcon round size={ICON_SIZE} bgStyle={iconBgStyle} />
       </RedditShareButton>
     </div>
@@ -70,32 +90,32 @@ const Modal = ({ isOpen, close, auction }) => {
           <div className='absolute inset-0 bg-black opacity-75'></div>
         </div>
         <div
-          className='inline-block align-bottom bg-white text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full'
+          className='inline-block align-bottom text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full'
           role='dialog'
           aria-modal='true'
           aria-labelledby='modal-headline'
         >
           <div
-            className='bg-black font-thin px-4 mx-4 pt-5 pb-4 sm:pb-4 border-l-8'
+            className='bg-black font-thin px-4 pt-5 pb-4 sm:pb-4 border-l-8 min-w-full'
             style={{
               borderColor: '#4B68F1',
             }}
           >
             <div className='pt-5 pb-4 sm:p-6 sm:pb-4'>
-            {hasCopiedText && (
-              <p className='text-white mb-2 absolute left-2 top-2'>Copied!</p>
-            )}
-            <div className='text-center'>
-              <CopyToClipboard onCopy={handleCopy} text={shareUrl}>
-                <FaCopy
-                  className='absolute right-2 top-2 cursor-pointer'
-                  style={{ color: '#4B68F1' }}
-                />
-              </CopyToClipboard>
-              <p className='text-white m-3 py-3'>{shareUrl}</p>
+              {hasCopiedText && (
+                <p className='text-white mb-2 absolute left-2 top-2'>Copied!</p>
+              )}
+              <div className='text-center'>
+                <CopyToClipboard onCopy={handleCopy} text={shareUrl}>
+                  <FaCopy
+                    className='absolute right-2 top-2 cursor-pointer'
+                    style={{ color: '#4B68F1' }}
+                  />
+                </CopyToClipboard>
+                <p className='text-white m-3 py-3'>{shareUrl}</p>
+              </div>
+              <ShareIcons url={shareUrl} />
             </div>
-            <ShareIcons url={shareUrl} />
-          </div>
           </div>
         </div>
       </div>

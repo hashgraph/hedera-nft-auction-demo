@@ -40,7 +40,7 @@ const LeftColumn = ({ auction }) => {
       </div>
       <div className='flex justify-between sm:flex-row flex-col'>
         <img
-          className='sm:w-full pr-3 py-3'
+          className='pr-3 py-3 object-cover'
           src={sidebarImage}
           alt='bid-item'
         />

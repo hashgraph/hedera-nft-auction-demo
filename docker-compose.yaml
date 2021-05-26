@@ -79,6 +79,6 @@ services:
     env_file:
       - docker-files/.env
     ports:
-      - "3000:3000"
+      - "8080:3000"
     depends_on:
       - rest

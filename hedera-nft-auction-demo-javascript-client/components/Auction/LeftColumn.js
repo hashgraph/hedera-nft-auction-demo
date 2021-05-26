@@ -40,9 +40,8 @@ const LeftColumn = ({ auction }) => {
       </div>
       <div className='flex justify-between sm:flex-row flex-col'>
         <img
-          className='pr-3 py-3 object-cover'
+          className='w-full object-cover'
           src={sidebarImage}
-          alt='bid-item'
         />
         <div className='sm:hidden visible'>
           <BidMetaData auction={auction} />

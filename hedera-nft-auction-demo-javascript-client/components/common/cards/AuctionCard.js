@@ -26,7 +26,7 @@ const LiveAuctionCard = ({ auction, showStatus }) => {
   const goToAuctionPage = () => router.push(`/auction/${auctionId}`)
 
   const isSold = !active
-  const auctionImage = tokenimage || 'assets/default-token-image.jpg'
+  const auctionImage = tokenimage || '/assets/default-token-image.jpg'
 
   const getEndTime = () => {
     if (days > 0) return `${days}D ${hours}H ${minutes}M ${seconds}S`

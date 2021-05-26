@@ -1,6 +1,10 @@
 /* This example requires Tailwind CSS v2.0+ */
 import React from 'react'
 import { useRouter } from 'next/router'
+import CloseIcon from './assets/close_icon.svg'
+import ConnectWalletIcon from './assets/connect_wallet_logo.svg'
+import MobileMenuIcon from './assets/mobile_menu_icon.svg'
+import NFTLogo from './assets/nft_logo.svg'
 
 const Link = ({ item, isMobile, closeMenu }) => {
   const isActive = item.isActive
@@ -58,24 +62,15 @@ export default function Example() {
               className='cursor-pointer inline-flex items-center justify-center p-2 rounded-md text-gray-400 focus:outline-none focus:ring-none sm:hidden'
             >
               {isOpen ? (
-                <img
-                  src='/assets/close_icon.svg'
-                  className='block h-6 w-6'
-                  aria-hidden='true'
-                />
+                <CloseIcon className='block h-6 w-6' />
               ) : (
-                <img
-                  src='/assets/mobile_menu_icon.svg'
-                  className='block h-6 w-6'
-                  aria-hidden='true'
-                />
+                <MobileMenuIcon className='block h-6 w-6' />
               )}
             </div>
             <div className='flex'>
-              <img
+              <NFTLogo
                 style={{ top: '2px' }}
                 className=' w-28 sm:w-36 relative'
-                src='/assets/nft_logo.svg'
               />
               {/* Desktop Nav */}
               <div className='hidden sm:flex items-center sm:ml-10'>
@@ -84,10 +79,7 @@ export default function Example() {
                 ))}
               </div>
             </div>
-            <img
-              className=' w-28 sm:w-36'
-              src='/assets/connect_wallet_logo.svg'
-            />
+            <ConnectWalletIcon className=' w-28 sm:w-36' />
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ import useWallet from 'hooks/useWallet'
 import sendBid from 'utils/sendBid'
 import getUsdValue from 'utils/getUsdValue'
 import useHederaPrice from 'hooks/useHederaPrice'
+import CloseIcon from './assets/close_icon.svg'
 
 const Modal = ({ isOpen, close, auction }) => {
   const [bidAmount, setBidAmount] = React.useState(0)
@@ -130,8 +131,7 @@ const Modal = ({ isOpen, close, auction }) => {
               borderColor: '#4B68F1',
             }}
           >
-            <img
-              src='/assets/close_icon.svg'
+            <CloseIcon
               className='h-8 w-8 text-white absolute cursor-pointer'
               onClick={handleClose}
               style={{

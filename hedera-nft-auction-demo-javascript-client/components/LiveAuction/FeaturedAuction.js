@@ -23,7 +23,7 @@ const FeaturedAuction = ({ featuredAuction }) => {
   const closeBidModal = () => setBidStatus(false)
 
   const usdValue = getUsdValue(featuredReserve, currentPrice)
-  const featuredAuctionImage = tokenimage || 'assets/default-token-image.jpg'
+  const featuredAuctionImage = tokenimage || '/assets/default-token-image.jpg'
 
   const titleToRender = title || 'A Doge Moment'
 

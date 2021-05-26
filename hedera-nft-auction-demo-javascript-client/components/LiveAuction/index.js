@@ -55,7 +55,7 @@ const LiveAuction = () => {
 
   if (isViewingAllAuctions) {
     return (
-      <div>
+      <div className='sm:p-section-desktop p-section-mobile'>
         <div className='text-right'>
           <button
             onClick={handleBackToAuctionClick}

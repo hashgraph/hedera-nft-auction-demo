@@ -26,7 +26,7 @@ const RightColumn = ({ auction }) => {
         {active && <BidButton openBidModal={openBidModal} />}
       </div>
       <div
-        className='sm:visible invisible flex flex-col items-end justify-center cursor-pointer'
+        className='hidden md:flex flex-col items-end justify-center cursor-pointer'
         onClick={openShareModal}
       >
         <img

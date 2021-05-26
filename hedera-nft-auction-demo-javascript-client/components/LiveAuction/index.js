@@ -91,10 +91,10 @@ const LiveAuction = () => {
   const noSoldAuctionsToShow = mostRecentSoldAuctions.length === 0
 
   return (
-    <div>
+    <div className='sm:p-section-desktop p-section-mobile'>
       <FeaturedAuction featuredAuction={featuredAuction} />
       <div className='pb-12'>
-        <div className='flex justify-between border-b-1 border-indigo-500 px-4 py-4'>
+        <div className='flex justify-between border-b-1 border-indigo-500 py-4'>
           <h1 className='text-lg'>Live Auctions</h1>
           <ViewAllButton onClick={hanldeViewAllLiveAuctionsClick} />
         </div>
@@ -109,8 +109,8 @@ const LiveAuction = () => {
         </div>
       </div>
       <div>
-        <div className='flex justify-between border-b-1 border-indigo-500 px-4 py-4'>
-          <h1 className='font-bold text-2xl'>Sold</h1>
+        <div className='flex justify-between border-b-1 border-indigo-500 py-4'>
+          <h1 className='text-lg'>Sold</h1>
           <ViewAllButton onClick={handleViewAllSoldClick} />
         </div>
         <div className='flex justify-start flex-wrap'>

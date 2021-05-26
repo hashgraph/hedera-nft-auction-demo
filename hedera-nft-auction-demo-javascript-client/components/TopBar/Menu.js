@@ -5,7 +5,7 @@ import { useRouter } from 'next/router'
 const Link = ({ item, isMobile, closeMenu }) => {
   const isActive = item.isActive
   const router = useRouter()
-  
+
   const goToPage = () => {
     router.push(item.to)
     closeMenu()
@@ -48,7 +48,7 @@ export default function Example() {
   return (
     <div
       as='nav'
-      className='sm:px-3 py-10 bg-black text-white border-b border-indigo-500 mb-10'
+      className='sm:px-3 sm:py-5 py-10 bg-black text-white border-b border-indigo-500'
     >
       <div className='mx-auto px-2 sm:px-6 lg:px-8'>
         <div className='relative flex items-center justify-between h-16'>
@@ -92,7 +92,7 @@ export default function Example() {
         </div>
       </div>
       {/* Mobile Nav */}
-      <div className='sm:hidden'>
+      <div className='sm:hidden flex mt-3'>
         {isOpen &&
           navigation.map(item => (
             <Link isMobile key={item.name} item={item} closeMenu={closeMenu} />

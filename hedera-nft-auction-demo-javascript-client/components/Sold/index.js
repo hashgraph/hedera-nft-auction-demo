@@ -33,7 +33,7 @@ const Sold = () => {
     )
 
   return (
-    <div className='flex flex-wrap justify-start'>
+    <div className='flex flex-wrap justify-start sm:p-section-desktop p-section-mobile'>
       {soldAuctions.map(auction => (
         <LiveAuctionCard key={auction.id} auction={auction} showStatus />
       ))}

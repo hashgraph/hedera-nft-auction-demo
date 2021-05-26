@@ -20,15 +20,14 @@ const AuctionView = () => {
     if (auctionId) asyncFetchAution()
   }, [auctionId])
 
-
   if (!auction) return null
 
   return (
-    <div className='flex sm:flex-row flex-col'>
+    <div className='flex sm:flex-row flex-col sm:p-section-desktop p-section-mobile'>
       <div className='sm:mr-10 mr-0' style={{ flexBasis: LEFT_COLUMN_WIDTH }}>
         <LeftColumn auction={auction} />
       </div>
-      <div style={{ flexBasis: RIGHT_COLUMN_WIDTH }}>
+      <div className='' style={{ flexBasis: RIGHT_COLUMN_WIDTH }}>
         <RightColumn auction={auction} />
       </div>
     </div>

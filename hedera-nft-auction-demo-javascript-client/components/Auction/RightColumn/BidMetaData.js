@@ -25,12 +25,14 @@ const BidMetaData = ({ auction }) => {
 
   if (isOver)
     return (
-      <div className='flex justify-between sm:flex-row flex-col'>
-        <p className='font-bold text-md'>Sold For</p>
-        <p className='font-bold sm:text-3xl text-md'>
-          {Hbar.from(bidToShow).toString()}
-        </p>
-        <p className='text-gray-400 font-thin text-sm'>${usdValue}</p>
+      <div className='flex justify-between flex-row items-center'>
+        <div>
+          <p className='font-bold text-md'>Sold For</p>
+          <p className='font-bold sm:text-3xl text-md'>
+            {Hbar.from(bidToShow).toString()}
+          </p>
+          <p className='text-gray-400 font-thin text-sm'>${usdValue}</p>
+        </div>
         <p
           className='border-gradient border-gradient-purple font-thin text-sm p-1 mt-3'
           style={{ fontSize: '12px' }}

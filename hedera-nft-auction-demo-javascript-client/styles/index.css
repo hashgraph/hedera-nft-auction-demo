@@ -101,7 +101,6 @@ button {
     rgba(90, 99, 243, 1) 60.86%,
     rgba(128, 87, 246, 1) 100%
   );
-  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#2E71EF', endColorstr='#8057F6' ,GradientType=0)";
   background: linear-gradient(
     90deg,
     rgba(46, 113, 239, 1) 0%,
@@ -112,7 +111,6 @@ button {
 }
 
 .border-gradient {
-  border: 10px solid;
   border-image-slice: 1;
   border-width: 2px;
 }

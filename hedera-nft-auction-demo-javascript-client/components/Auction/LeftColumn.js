@@ -38,9 +38,9 @@ const LeftColumn = ({ auction }) => {
           <p className='font-light'>Share</p>
         </div>
       </div>
-      <div className='flex justify-between'>
+      <div className='flex justify-between sm:flex-row flex-col'>
         <img
-          className='sm:w-full w-1/2 pr-3 py-3'
+          className='sm:w-full pr-3 py-3'
           src={sidebarImage}
           alt='bid-item'
         />

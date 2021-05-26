@@ -107,10 +107,10 @@ const BidHistory = ({ auction }) => {
   if (hasNoBids) return <p>No Bids To Show</p>
 
   return (
-    <div>
+    <div className='relative'>
       <PurpleGradientBorder />
       <h1 className='font-bold text-lg p-2'>History</h1>
-      <div className='p-2'>
+      <div className='p-2 '>
         {bidHistory.map(bid => (
           <BidItem bid={bid} key={bid.timestamp} currentPrice={currentPrice} />
         ))}

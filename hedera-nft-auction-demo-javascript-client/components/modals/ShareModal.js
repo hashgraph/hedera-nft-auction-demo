@@ -25,7 +25,7 @@ const ShareIcons = ({ url }) => {
   const TITLE = 'Check out this NFT Auction! '
 
   return (
-    <div className='flex justify-between'>
+    <div className='flex justify-between px-2'>
       <FacebookShareButton url={url} title={TITLE}>
         <FacebookIcon round size={ICON_SIZE} bgStyle={iconBgStyle} />
       </FacebookShareButton>
@@ -60,24 +60,30 @@ const Modal = ({ isOpen, close, auction }) => {
 
   return (
     <div className='fixed z-50 inset-0 overflow-y-none flex justify-center items-center'>
-      <div className='pb-alot flex items-end justify-center pt-4 px-4 text-center'>
+      <div className='pb-alot flex items-end justify-center pt-4 text-center'>
         <div
           className='fixed inset-0 transition-opacity'
           aria-hidden='true'
           style={{ touchAction: 'none' }}
           onClick={close}
         >
-          <div className='absolute inset-0 bg-gray-500 opacity-75'></div>
+          <div className='absolute inset-0 bg-black opacity-75'></div>
         </div>
         <div
-          className='w-full inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full'
+          className='inline-block align-bottom bg-white text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full'
           role='dialog'
           aria-modal='true'
           aria-labelledby='modal-headline'
         >
-          <div className='bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 w-full'>
+          <div
+            className='bg-black font-thin px-4 mx-4 pt-5 pb-4 sm:pb-4 border-l-8'
+            style={{
+              borderColor: '#4B68F1',
+            }}
+          >
+            <div className='pt-5 pb-4 sm:p-6 sm:pb-4'>
             {hasCopiedText && (
-              <p className='text-black mb-2 absolute left-2 top-2'>Copied!</p>
+              <p className='text-white mb-2 absolute left-2 top-2'>Copied!</p>
             )}
             <div className='text-center'>
               <CopyToClipboard onCopy={handleCopy} text={shareUrl}>
@@ -86,9 +92,10 @@ const Modal = ({ isOpen, close, auction }) => {
                   style={{ color: '#4B68F1' }}
                 />
               </CopyToClipboard>
-              <p className='text-black m-3 py-3'>{shareUrl}</p>
+              <p className='text-white m-3 py-3'>{shareUrl}</p>
             </div>
             <ShareIcons url={shareUrl} />
+          </div>
           </div>
         </div>
       </div>

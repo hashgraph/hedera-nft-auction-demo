@@ -14,7 +14,7 @@ module.exports = {
       '3xl': '0 35px 60px -15px rgba(255, 255, 255, 0.3)',
       inner: 'inset 0 2px 4px 0 rgba(255, 255, 255, 0.06)',
       card: '2px 5px 27px -6px rgba(255,255,255,0.75)',
-      'bid-item': '10px 21px 55px -21px rgba(255,255,255.75)',
+      'bid-item': '10px 21px 55px -27px rgba(255,255,255.75)',
       'bid-modal': '10px 21px 55px -21px rgba(255,255,255.75)',
     },
     extend: {
@@ -33,6 +33,10 @@ module.exports = {
       height: {
         card: '30rem',
       },
+      padding: {
+        'section-mobile': '12.5%',
+        'section-desktop': '6.5%'
+      }
     },
   },
   variants: {

@@ -42,7 +42,7 @@ const LiveAuctionCard = ({ auction, showStatus }) => {
   const CardFooter = () => {
     if (isSold)
       return (
-        <div className='px-5'>
+        <div className='p-2'>
           <p className='text-card-subtitle'>Winning Bid</p>
           <p className='text-card-units'>
             {Hbar.fromTinybars(winningbid).toString()}
@@ -51,13 +51,13 @@ const LiveAuctionCard = ({ auction, showStatus }) => {
       )
     return (
       <>
-        <div className='px-5'>
+        <div className='p-2'>
           <p className='text-card-subtitle'>Current Bid</p>
           <p className='text-card-units'>
             {Hbar.fromTinybars(winningbid).toString()}
           </p>
         </div>
-        <div className='px-5'>
+        <div className='p-2'>
           <p className='text-card-subtitle'>Auction ends</p>
           <p className='text-card-units'>{endTimeToDisplay}</p>
         </div>
@@ -67,23 +67,23 @@ const LiveAuctionCard = ({ auction, showStatus }) => {
 
   return (
     <div
-      className='mx-5 mb-4 cursor-pointer h-card sm:w-card-small w-full'
+      className='sm:mr-10 mr-0 mb-4 cursor-pointer sm:h-card h-full sm:w-card-small w-full'
       onClick={goToAuctionPage}
     >
       <div className='flex flex-col h-full shadow-card'>
         {showStatus && (
-          <p className='bg-purple-gradient absolute px-4 uppercase font-bold'>
+          <p className='p-1 bg-purple-gradient absolute uppercase font-bold'>
             {status}
           </p>
         )}
-        <div className='px-4 flex flex-col h-full justify-between'>
+        <div className='flex flex-col h-full justify-between'>
           <div
             className='flex justify-center items-center'
             style={{ flexBasis: '75%' }}
           >
-            <img src={auctionImage} alt='live-auction-card' />
+            <img src={auctionImage} alt='live-auction-card' className='sm:py-0 py-3' />
           </div>
-          <div className='flex flex-col'>
+          <div className='flex flex-col p-2'>
             <p className='font-bold text-card-title mb-4'>{titleToRender}</p>
             <p className='font-light mb-2 text-card-tokenid'>
               Token I.D.: <span className='font-normal'>{tokenid}</span>

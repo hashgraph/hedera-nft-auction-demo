@@ -28,13 +28,13 @@ const FeaturedAuction = ({ featuredAuction }) => {
   const titleToRender = title || 'A Doge Moment'
 
   return (
-    <div className='flex justify-center bg-black text-white pb-12 px-5'>
+    <div className='flex sm:flex-row flex-col justify-center bg-black text-white pb-12'>
       <img
-        className='sm:w-4/12 w-1/2 object-cover'
+        className='sm:w-4/12 w-full object-cover'
         src={featuredAuctionImage}
         alt='current-live-auction-item'
       />
-      <div className='ml-10'>
+      <div className='sm:ml-10'>
         <p className='mb-8 font-light'>Featured Auction</p>
         <p className='mb-4 font-light'>
           Token Id: <span className='font-normal'>{featuredTokenId}</span>

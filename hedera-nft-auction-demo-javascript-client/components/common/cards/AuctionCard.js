@@ -1,12 +1,6 @@
 import calculateTimeLeft from 'utils/calculateTimeLeft'
 import { Hbar } from '@hashgraph/sdk'
 import { useRouter } from 'next/router'
-import {
-  BrowserView,
-  MobileView,
-  isBrowser,
-  isMobile,
-} from 'react-device-detect'
 
 const LiveAuctionCard = ({ auction, showStatus }) => {
   const router = useRouter()

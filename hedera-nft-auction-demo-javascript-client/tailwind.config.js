@@ -22,16 +22,16 @@ module.exports = {
         styrena: ['Styerna'],
       },
       fontSize: {
-        'card-tokenid': '12px',
-        'card-title': '1.25rem',
-        'card-subtitle': '12px',
-        'card-units': '13px',
+        'card-tokenid': '10px',
+        'card-title': '1rem',
+        'card-subtitle': '10px',
+        'card-units': '11px',
       },
       width: {
         'card-small': '22%',
       },
       height: {
-        card: '30rem',
+        card: '20rem',
       },
       padding: {
         'section-mobile': '12.5%',

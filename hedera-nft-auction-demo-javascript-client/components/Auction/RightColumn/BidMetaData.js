@@ -45,16 +45,18 @@ const BidMetaData = ({ auction }) => {
   return (
     <div className='flex justify-between sm:flex-row flex-col p-3'>
       <div className='sm:mb-0 mb-8'>
-        <p className='sm:font-semibold font-bold sm:mb-4 mb-0'>Current Bid</p>
+        <p className='sm:font-semibold font-semibold sm:mb-2 mb-0'>
+          Current Bid
+        </p>
         <p className='font-semibold sm:text-3xl text-lg'>
           {Hbar.from(bidToShow).toString()}
         </p>
-        <p className='text-gray-400 sm:font-bold font-regular sm:text-md text-sm'>
+        <p className='text-gray-400 sm:font-semibold sm:text-md text-sm'>
           ${usdValue}
         </p>
       </div>
       <div className='sm:mb-0 mb-8'>
-        <p className='font-bold sm:mb-2 mb-0'>Auction Ends</p>
+        <p className='font-semibold sm:mb-2 mb-0'>Auction Ends</p>
         <div className='flex'>
           {!timeLeft ? (
             <p>Calculating...</p>
@@ -76,21 +78,22 @@ const BidMetaData = ({ auction }) => {
           )}
         </div>
       </div>
-      <div className='flex sm:items-start items-end sm:mt-0 mt-5'>
-        <div>
-          <p className='font-bold mb-4'>Reserve</p>
-          <p className='font-bold sm:text-3xl text-md'>
-            {Hbar.from(reserve || 1).toString()}
-          </p>
-        </div>
-        <div className='ml-5'>
-          <p className='font-bold mb-4'>Minimum Bid Increase</p>
-          <p className='font-bold sm:text-3xl text-md'>
-            {Hbar.from(minimumbid).toString()}
-          </p>
-        </div>
+      <div>
+        <p className='font-semibold mb-2'>Reserve</p>
+        <p className='font-bold sm:text-3xl text-md'>
+          {Hbar.from(reserve || 1).toString()}
+        </p>
       </div>
-      <div className='sm:invisible visible'>
+      <div className='sm:ml-5 ml-0 sm:mt-0 mt-5 relative sm:bottom-6 bottom-0'>
+        <div className='font-semibold mb-2'>
+          <p>Minimum</p>
+          <p>Bid Increase</p>
+        </div>
+        <p className='font-bold sm:text-3xl text-sm'>
+          {Hbar.from(minimumbid).toString()}
+        </p>
+      </div>
+      <div className='block sm:hidden'>
         <BidButton openBidModal={openBidModal} />
       </div>
       <BidModal isOpen={isPlacingBid} close={closeBidModal} auction={auction} />

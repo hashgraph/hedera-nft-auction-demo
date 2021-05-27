@@ -52,7 +52,7 @@ export default function Example() {
   return (
     <div
       as='nav'
-      className='sm:px-3 sm:py-5 py-10 bg-black text-white border-b border-indigo-500'
+      className='sm:px-3 sm:py-2 py-4 bg-black text-white border-b border-indigo-500'
     >
       <div className='mx-auto px-2 sm:px-6 lg:px-8'>
         <div className='relative flex items-center justify-between h-16'>
@@ -70,7 +70,7 @@ export default function Example() {
             <div className='flex'>
               <NFTLogo
                 style={{ top: '2px' }}
-                className=' w-28 sm:w-36 relative'
+                className=' w-28 sm:w-28 relative'
               />
               {/* Desktop Nav */}
               <div className='hidden sm:flex items-center sm:ml-10'>
@@ -79,7 +79,7 @@ export default function Example() {
                 ))}
               </div>
             </div>
-            <ConnectWalletIcon className=' w-28 sm:w-36' />
+            <ConnectWalletIcon className=' w-28 sm:w-28' />
           </div>
         </div>
       </div>

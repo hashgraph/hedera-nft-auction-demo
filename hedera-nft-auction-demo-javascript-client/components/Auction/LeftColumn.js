@@ -19,8 +19,8 @@ const LeftColumn = ({ auction }) => {
   return (
     <div className='p-2'>
       <div className='flex justify-between'>
-        <p className='hidden sm:block font-light mb-5'>
-          Token ID: <span className='font-bold'>{tokenid}</span>
+        <p className='hidden sm:flex font-light mb-5 text-sm whitespace-nowrap'>
+          Token ID: <span className='ml-1 font-bold'>{tokenid}</span>
         </p>
         <p className='visible sm:invisible font-light mb-5'>
           Acct ID: <span className='font-bold'>{auctionaccountid}</span>
@@ -40,8 +40,9 @@ const LeftColumn = ({ auction }) => {
       </div>
       <div className='flex justify-between sm:flex-row flex-col'>
         <img
-          className='w-full object-cover'
+          className='sm:w-full pr-3 py-3'
           src={sidebarImage}
+          alt='bid-item'
         />
         <div className='sm:hidden visible'>
           <BidMetaData auction={auction} />

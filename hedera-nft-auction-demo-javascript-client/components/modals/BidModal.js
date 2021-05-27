@@ -1,5 +1,4 @@
 import React from 'react'
-import useWallet from 'hooks/useWallet'
 import sendBid from 'utils/sendBid'
 import getUsdValue from 'utils/getUsdValue'
 import useHederaPrice from 'hooks/useHederaPrice'
@@ -9,7 +8,6 @@ const Modal = ({ isOpen, close, auction }) => {
   const [bidAmount, setBidAmount] = React.useState(0)
   const [bidStatus, setBidStatus] = React.useState(null)
   const { currentPrice } = useHederaPrice()
-  const { wallet } = useWallet()
 
   if (!isOpen) return null
   const { auctionaccountid: auctionAccountId } = auction
@@ -28,7 +26,7 @@ const Modal = ({ isOpen, close, auction }) => {
   const handleBidSend = async () => {
     setBidStatus('submitting')
     try {
-      const result = await sendBid({ wallet, auctionAccountId, bid: bidAmount })
+      const result = await sendBid({ auctionAccountId, bid: bidAmount })
       setBidStatus('success')
     } catch (error) {
       setBidStatus('error')
@@ -87,7 +85,7 @@ const Modal = ({ isOpen, close, auction }) => {
               style={{ paddingTop: '2px', paddingBottom: '2px' }}
               disabled={isSendingBid}
             >
-              {isSendingBid ? '...' : 'Bid'}
+              {isSendingBid ? '...' : 'Bid23'}
             </button>
           </div>
           <div>

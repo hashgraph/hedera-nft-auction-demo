@@ -35,17 +35,17 @@ const FeaturedAuction = ({ featuredAuction }) => {
         alt='current-live-auction-item'
       />
       <div className='sm:ml-10'>
-        <p className='mb-8 font-light'>Featured Auction</p>
-        <p className='mb-4 font-light'>
-          Token Id: <span className='font-normal'>{featuredTokenId}</span>
+        <p className='mb-12 font-light text-sm'>Featured Auction</p>
+        <p className='mb-4 font-light text-xs'>
+          Token I.D.: <span className='font-normal'>{featuredTokenId}</span>
         </p>
-        <p className='font-bold sm:text-5xl text-4xl mb-10'>{titleToRender}</p>
+        <p className='font-bold sm:text-4xl text-4xl mb-10'>{titleToRender}</p>
         <div>
-          <p className='mb-2'>Reserve Price</p>
-          <p className='text-2xl mb-2'>
+          <p className='mb-2 text-xs'>Reserve Price</p>
+          <p className='text-2xl mb-1'>
             {Hbar.fromTinybars(featuredReserve).toString()}
           </p>
-          <p className='text-gray-400 font-semibold'>${usdValue}</p>
+          <p className='text-gray-400 font-semibold text-xs'>${usdValue}</p>
         </div>
         <div className='mt-12 flex'>
           <BidButton onClick={openBidModal} />

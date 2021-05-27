@@ -1,8 +1,9 @@
 import { Client, Status, TransferTransaction } from '@hashgraph/sdk'
+import getWallet from 'utils/getHederaWallet'
 
-const sendBid = ({ wallet, auctionAccountId, bid }) => {
-  if (!wallet) return
+const sendBid = ({ auctionAccountId, bid }) => {
   return new Promise(async (resolve, reject) => {
+    const wallet = await getWallet()
     const { account, provider } = wallet
     try {
       let message = 'Preparing Bid Transaction'

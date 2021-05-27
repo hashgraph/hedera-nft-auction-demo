@@ -59,17 +59,17 @@ const BidItem = ({ bid, currentPrice }) => {
       </div>
       <div className='flex items-center'>
         <div>
-          <p className='font-bold text-xl mx-0'>
-            {bidAmountToShow} <span className='font-light text-sm'>HBAR</span>
+          <p className='font-bold text-md mx-0'>
+            {bidAmountToShow} <span className='font-light text-md'>HBAR</span>
           </p>
-          <p className='font-semibold text-sm mx-0 text-gray-400'>
+          <p className='font-semibold text-xs mx-0 text-gray-400'>
             ${usdValue}
           </p>
         </div>
         <img
           src='/assets/view-transaction.svg'
           onClick={handleTransactoinViewClick}
-          className='h-7 w-7 sm:ml-12 ml-2 cursor-pointer'
+          className='h-6 w-6 sm:ml-12 ml-2 cursor-pointer'
         />
       </div>
     </div>

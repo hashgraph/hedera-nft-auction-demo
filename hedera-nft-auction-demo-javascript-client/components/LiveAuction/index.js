@@ -95,7 +95,7 @@ const LiveAuction = () => {
       <FeaturedAuction featuredAuction={featuredAuction} />
       <div className='pb-12'>
         <div className='flex justify-between border-b-1 border-indigo-500 py-4'>
-          <h1 className='text-lg'>Live Auctions</h1>
+          <h1 className='text-md'>Live Auctions</h1>
           <ViewAllButton onClick={hanldeViewAllLiveAuctionsClick} />
         </div>
         <div className='flex justify-start flex-wrap'>
@@ -110,7 +110,7 @@ const LiveAuction = () => {
       </div>
       <div>
         <div className='flex justify-between border-b-1 border-indigo-500 py-4'>
-          <h1 className='text-lg'>Sold</h1>
+          <h1 className='text-md'>Sold</h1>
           <ViewAllButton onClick={handleViewAllSoldClick} />
         </div>
         <div className='flex justify-start flex-wrap'>

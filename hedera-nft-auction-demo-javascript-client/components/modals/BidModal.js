@@ -85,7 +85,7 @@ const Modal = ({ isOpen, close, auction }) => {
               style={{ paddingTop: '2px', paddingBottom: '2px' }}
               disabled={isSendingBid}
             >
-              {isSendingBid ? '...' : 'Bid23'}
+              {isSendingBid ? '...' : 'Bid'}
             </button>
           </div>
           <div>

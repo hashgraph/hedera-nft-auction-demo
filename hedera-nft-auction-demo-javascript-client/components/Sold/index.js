@@ -27,7 +27,7 @@ const Sold = () => {
 
   if (noSoldAuctions)
     return (
-      <div className='text-center'>
+      <div className='text-center font-thin'>
         <p>No sold auctions</p>
       </div>
     )

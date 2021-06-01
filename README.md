@@ -18,13 +18,13 @@
 
 The java projects use Lombok, ensure that the plug is installed in your IDE and configured properly [Lombok Plugin](https://www.baeldung.com/lombok-ide)
 
-*Note that enabling annotation processing differs between versions of IntelliJ `Preferences > Compiler > Annotation Processors` before IntelliJ2017, starting with IntelliJ 2017, the "Enable Annotation Processing" checkbox has moved to: `Settings > Build, Execution, Deployment > Compiler > Annotation Processors`*
+_Note that enabling annotation processing differs between versions of IntelliJ `Preferences > Compiler > Annotation Processors` before IntelliJ2017, starting with IntelliJ 2017, the "Enable Annotation Processing" checkbox has moved to: `Settings > Build, Execution, Deployment > Compiler > Annotation Processors`_
 
 ## Description
 
-This project consists of two main modules, a Java back end and a Vue.js front end.
+This project consists of two main modules, a Java back-end and a front-end.
 
-The Vue.JS front end displays auctions and enables users to place bids (requires a browser plug in to sign transactions) and monitor the auction's progress.
+The front end displays auctions and enables users to place bids (optionally requires a browser plug in to sign transactions) and monitor the auction's progress.
 
 The back end fulfils 3 separate roles
 
@@ -34,8 +34,8 @@ The back end fulfils 3 separate roles
 
 The latter can be run in readonly mode, meaning the processing will validate bids but will not be able to participate in refunds or token transfers on auction completion.
 
-*Note: The three roles can be run within a single instance of the Java application or run in individual Java instances, for example, one instance could process bids, while one or more others could serve the UI REST API for scalability purposes. This is determined by environment variable parameters.
-The Docker deployment runs two instances, one for bid processing, the other for the UI and Admin REST APIs for example.*
+_Note: The three roles can be run within a single instance of the Java application or run in individual Java instances, for example, one instance could process bids, while one or more others could serve the UI REST API for scalability purposes. This is determined by environment variable parameters.
+The Docker deployment runs two instances, one for bid processing, the other for the UI and Admin REST APIs for example._
 
 The admin API runs on a separate port to the UI REST API to ensure it can be firewalled separately and protected from malicious execution.
 
@@ -60,10 +60,11 @@ nano .env
 
 setup the `.env` properties as follows
 
-* OPERATOR_ID= (input your account id for the Hedera network)
-* OPERATOR_KEY= (input your private key associated with the Hedera account above - 302xxxx)
-* REFUND_KEY= (Same as operator key for testing purposes)
-* MASTER_KEY= (set only for one node which has full authority over the auction accounts, can be the same as operator key / refund key for testing purposes only, else must be different)
+* `OPERATOR_ID=` (input your account id for the Hedera network)
+* `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
+* `VUE_APP_NETWORK=` (mainnet, testnet or previewnet)
+* `REFUND_KEY=` (Same as operator key for testing purposes)
+* `MASTER_KEY=` (set only for one node which has additional authority over the auction accounts, can be the same as operator key / refund key for testing purposes only, else must be different)
 
 you may leave the other properties as is for now
 
@@ -129,7 +130,7 @@ you may now navigate to [http://localhost:8080](http://localhost:8080) to verify
 
 All database objects will be created in the `public` database.
 
-*Note the installation below assumes the user is `postgres` and the password is `password`.*
+_Note the installation below assumes the user is `postgres` and the password is `password`._
 
 #### Java Appnet Node
 
@@ -150,16 +151,15 @@ nano .env
 
 set the following properties according to your Hedera account and refund key details
 
-*Note: 
+_Note: 
 The operator id/key is used to query the hedera network (free queries) 
 * It is also used to set the submit key for the auction topic and also for creating the auction account, submitting auction creation messages to the topic.
-* And optionally creating a token to auction, then transferring it to the auction account*
+* And optionally creating a token to auction, then transferring it to the auction account_
 
-
-* OPERATOR_ID= (input your account id for the Hedera network)
-* OPERATOR_KEY= (input your private key associated with the Hedera account above - 302xxxx)
-* REFUND_KEY= (Same as operator key for testing purposes)
-* TRANSFER_ON_WIN=true
+* `OPERATOR_ID=` (input your account id for the Hedera network)
+* `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
+* `REFUND_KEY=` (Same as operator key for testing purposes)
+* `TRANSFER_ON_WIN=`true
 
 You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish
 
@@ -247,7 +247,7 @@ curl -H "Content-Type: application/json" -X POST -d '{"symbol":"./sample-files/g
 
 These steps will enable you to create an `initDemo.json` file (located in `./sample-files`) which you can finally use to setup a new auction.
 
-*Note: the application wil need to be restarted to take the new topic into account*
+_Note: the application will need to be restarted to take the new topic into account_
 
 __Create a topic__
 
@@ -273,7 +273,7 @@ This command will create an auction account with an initial balance of `100` hba
 ./gradlew createAuctionAccount --args="100"
 ```
 
-*Note: For more complex key structures, use the REST admin api.*
+_Note: For more complex key structures, use the REST admin api._
 
 set the resulting `Account Id` to the `auctionaccountid` attribute in your `./sample-files/initDemo.json` file.
 
@@ -283,7 +283,7 @@ Your initDemo.json file should look like this (with your own values).
 
 You can change some of the attribute values if you wish
 
-*Note: if the `endtimestamp` (end of auction in seconds since Epoch) is left blank, the auction will run for 48 hours from now by default.*
+_Note: if the `endtimestamp` (end of auction in seconds since Epoch) is left blank, the auction will run for 48 hours from now by default._
 
 ```json
 {
@@ -297,7 +297,7 @@ You can change some of the attribute values if you wish
 }
 ```
 
-*Note: the minimum bid and reserve are expressed in `tinybars`*
+_Note: the minimum bid and reserve are expressed in `tinybars`_
 
 __Create the auction__
 ```shell
@@ -316,11 +316,11 @@ This transfer the token from the account that created it to the `auctionaccounti
 
 This requires that the REST api and database are up and running. 
 
-The examples below show curl commands, however the `hedera-nft-auction-demo-java-node` project includes a `postman_collection.json` file which you can import into Postman instead.
+The examples below show curl commands, however the `hedera-nft-auction-demo-java-node` project includes `postman` files for the admin and client APIS which you can import into Postman instead.
 
 __Create a topic__
 
-*Note: the application wil need to be restarted to take the new topic into account*
+_Note: the application wil need to be restarted to take the new topic into account_
 
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '
@@ -444,7 +444,7 @@ curl -H "Content-Type: application/json" -X POST -d '
 }' http://localhost:8082/v1/admin/auction
 ```
 
-*Note: the minimum bid and reserve are expressed in `tinybars`*
+_Note: the minimum bid and reserve are expressed in `tinybars`_
 
 __Transfer the token to the auction account__
 
@@ -462,7 +462,7 @@ curl -H "Content-Type: application/json" -X POST -d '
 
 #### Run the components
 
-*Note: Each of the steps below need to be run from a different command line window*
+_Note: Each of the steps below need to be run from a different command line window_
 
 ```shell
 cd hedera-nft-auction-demo
@@ -519,3 +519,167 @@ These tests include testing the outcome of various operations in the database.
 System testing is run with `./gradlew testSystem`.
 
 These tests include testing the outcome of various operations in the database and invoke Hedera APIs.
+
+# Full Application network setup
+
+The back-end can be considered a node within the application network, there may be several such nodes in operation to ensure full decentralisation of the auction process. Such nodes fall into three categories:
+
+* `Readonly Node`: This node type is not actively participating in the running of the auctions, but may be run by any third party to verify the correct running of the auctions.
+
+* `Validator Node`: This node type is actively participating in the running of the auctions, it holds a private key which is used to counter-sign transactions on behalf of the entire application network. Indeed, an auction account is created for each auction, and this account is multi-sig. Depending on the threshold set on the auction account's key, a minimum number of signatures from validator nodes is required in order to approve operations such as refunds, token transfers, etc...
+
+* `Master Node`: This node is functionally equivalent to the `Validator Node` above, except that it has the ability to associate the auction accounts with tokens and set the auction account's `signature required` option when an auction ends to prevent further bids from being placed.
+
+_Note: This `Master Node` will eventually become a `Validator Node` in its own right once the whitelisting of the `Token Associate` and `Account Update` transactions has occurred. It is a temporary solution in the mean time._
+
+## Determining the node type
+
+Depending on the type of node you're setting up, you may need different information or may need to submit some information to other node operators.
+
+### Readonly Node
+
+You must acquire the `Topic Id` for the application network from the entity that setup the application network in the first place. This `Topic Id` is used by the application network to share details of new auctions being created.
+
+### Validator Node
+
+You must acquire the `Topic Id` as described above for a `Readonly Node`.
+
+In addition, you'll need to generate an ED25519 private/public key and share the public key with whoever is setting up an auction for you to validate.
+
+### Master Node
+
+This node will be creating the `Topic Id` to share with the `Readonly` and `Validator` Nodes.
+
+Two ED25519 private/public keys will be required, one will be the `MASTER_KEY`, the other the `REFUND_KEY` for your node. Both public keys shared with whoever is setting up an auction.
+
+### Generating keys
+
+A helper function is available to generate keys as follows
+
+```shell
+./gradlew generateKey
+```
+
+or 
+
+```shell script
+curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8081/v1/generatekey
+```
+
+_Note: this runs on the client REST API port (8081), not the admin API port (8082)
+
+## Environment setup 
+
+### All node types
+
+* `OPERATOR_ID=` (input your account id for the Hedera network)
+* `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
+* `VUE_APP_NETWORK=` (mainnet, testnet or previewnet)
+* `VUE_APP_NODE_OWNER=` (an identifier, e.g. `ACMEAuctions` to be rendered in the UI to show which node the UI is connected to)
+* `VUE_APP_TOPIC_ID=` (the topic id provided by whoever is setting up the application network, leave blank if you're setting up a new application network)
+
+### Validator nodes
+
+in addition to all node types above
+
+* `REFUND_KEY=` The ED25519 private key you generated
+* `TRANSFER_ON_WIN=` true or false depending on whether you want the auction to transfer the tokens and winning bid automatically at the end.
+
+### Master node
+
+in addition to all node types above
+
+* `REFUND_KEY=` The ED25519 private key you generated
+* `MASTER_KEY=` The ED25519 private key you generated (set only for one node which has additional authority over the auction accounts, can be the same as operator key / refund key for testing purposes only, else must be different)
+* `TRANSFER_ON_WIN=` true or false depending on whether you want the auction to transfer the tokens and winning bid automatically at the end.
+
+## Creating the topic ID to share with the rest of the network
+
+From the command line of your node (assuming the admin API is enabled)
+
+```shell
+curl -H "Content-Type: application/json" -X POST -d '
+{
+}
+' http://localhost:8082/v1/admin/topic
+```
+
+This will create and output a topic id and will also update your `.env` file with its value. You may now share this topic Id with the rest of the application network participants.
+
+## Creating a token to auction
+
+You may now create a token to auction, see documentation above for helpers if you're not sure how to do this.
+
+## Creating an account for a token auction
+
+This action needs to be performed for every new token to be auctioned, the same account cannot be used for two different tokens, the application will reject the auction creation if this is the case.
+
+This command will create an auction account with an initial balance of `100` hbar, and a key list for scheduled transactions.
+
+_Note: the first key should be the "master key" which can sign transactions on behalf of the auction account for transaction types that can't be scheduled for now such as TokenAssociate and CryptoUpdate.
+In the example below, we have a key list with a threshold of 1. The key list contains the master key and another list of keys with its own threshold of 2._
+
+* Replace "public master key" with the appropriate value
+
+* Replace and add "validator n public key" as required
+
+* Set threshold on the inner key list as required (leave the last threshold before `initialBalance` to 1).
+
+```shell script
+curl -H "Content-Type: application/json" -X POST -d '
+{
+  "keyList" : {
+    "keys": [
+      {
+        "key" : "public master key"
+      },
+      {
+        "keyList": {
+          "keys": [
+            {
+              "key": "validator 1 public key"
+            },
+            {
+              "key": "validator 2 public key"
+            },
+            {
+              "key": "validator 3 public key"
+            }
+          ],
+          "threshold": 2
+        }
+      }
+    ],
+    "threshold" : 1
+  },
+  "initialBalance": 100
+}' http://localhost:8082/v1/admin/auctionaccount
+```
+
+## Creating an auction
+
+be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the values you obtained earlier, you may also set different values for:
+
+* `reserve` in tinybars
+* `minimumbid` in tinybars
+* `endtimestamp` will default to 2 days in the future if not set, otherwise specify the date and time you wish the auction to end in seconds since epoch
+* `winnercanbid` whether the highest bidder is allowed to place a higher bid
+* `title` and `description` for the auction (rendered in the UI)
+
+```shell script
+curl -H "Content-Type: application/json" -X POST -d '
+{
+  "tokenid": "{{tokenId}}", 
+  "auctionaccountid": "{{accountId}}", 
+  "reserve": "", 
+  "minimumbid": "1000000", 
+  "endtimestamp": "", 
+  "winnercanbid": true,
+  "title": "Auction title",
+  "description": "Auction description"
+}' http://localhost:8082/v1/admin/auction
+```
+
+_Note: the minimum bid and reserve are expressed in `tinybars`_
+
+This will submit a HCS message on the application network's topic id so that all participants are aware of the auction.

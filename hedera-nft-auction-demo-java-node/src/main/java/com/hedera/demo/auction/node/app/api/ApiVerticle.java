@@ -67,6 +67,8 @@ public class ApiVerticle extends AbstractVerticle {
         GetEndedAuctionsHandler getEndedAuctionsHandler = new GetEndedAuctionsHandler(pgPool);
         GetActiveAuctionsHandler getActiveAuctionsHandler = new GetActiveAuctionsHandler(pgPool);
         GetPendingAuctionsHandler getPendingAuctionsHandler = new GetPendingAuctionsHandler(pgPool);
+        GetGeneratedKeysHandler getGeneratedKeysHandler = new GetGeneratedKeysHandler();
+
         GetEnvironmentHandler getEnvironmentHandler = new GetEnvironmentHandler(env.get("VUE_APP_NETWORK"), config().getString("topicId"), env.get("VUE_APP_NODE_OWNER", ""));
         RootHandler rootHandler = new RootHandler();
 
@@ -89,6 +91,7 @@ public class ApiVerticle extends AbstractVerticle {
         router.get("/v1/auctions").handler(getAuctionsHandler);
         router.get("/v1/lastbid/:auctionid/:bidderaccountid").handler(getLastBidderBidHandler);
         router.get("/v1/bids/:auctionid").handler(getBidsHandler);
+        router.get("/v1/generatekey").handler(getGeneratedKeysHandler);
         router.get("/").handler(rootHandler);
 
         log.info("API Web Server Listening on port: " + httpPort);

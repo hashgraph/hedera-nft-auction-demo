@@ -10,4 +10,6 @@ public class RequestCreateAuction {
     public String endtimestamp = "";
     public boolean winnercanbid = false;
     public String topicId = "";
+    public String description = "";
+    public String title = "";
 }

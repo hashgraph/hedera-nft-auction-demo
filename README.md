@@ -89,6 +89,8 @@ docker-compose build
 docker-compose up
 ```
 
+_Note: you may need to `sudo` these commands depending on your environment`
+
 you may now navigate to [http://localhost:8080](http://localhost:8080) to verify the UI is up and running, it should indicate no auctions are currently setup.
 
 #### Create a sample auction
@@ -106,6 +108,8 @@ Restart the containers
 ```shell script
 docker-compose up
 ```
+
+_Note: you may need to `sudo` this command depending on your environment`
 
 You should see logs similar to
 
@@ -688,3 +692,8 @@ curl -H "Content-Type: application/json" -X POST -d '
 _Note: the minimum bid and reserve are expressed in `tinybars`_
 
 This will submit a HCS message on the application network's topic id so that all participants are aware of the auction.
+
+## Transfer the token to the auction account
+
+This has to be done by the token creator so that the auction for the token can start. At the end of the auction, the token will be transferred to the winner and the hbar proceeds transferred to the token owner. In the event there are no bids, the token is transferred back to the owner.
+

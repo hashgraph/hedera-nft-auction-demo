@@ -49,6 +49,11 @@ git clone https://github.com/hashgraph/hedera-nft-auction-demo.git
 
 ### With docker
 
+This section assumes you have `docker` and `docker-compose` installed, if not, please consult the following links to perform the installation.
+
+* `docker` [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/)
+* `docker-compose` [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/)
+
 #### Setup environment
 
 ```shell

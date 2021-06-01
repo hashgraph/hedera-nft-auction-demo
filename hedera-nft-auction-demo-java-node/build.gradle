@@ -402,7 +402,7 @@ task generateKey(type: JavaExec) {
 	group = "Execution"
 	description = "Generates a public / private key pair"
 	classpath = sourceSets.main.runtimeClasspath
-	main = "com.hedera.demo.auction.node.app.GenerateKeys"
+	main = "com.hedera.demo.auction.node.app.GenerateKey"
 	args cmdargs.split()
 }
 

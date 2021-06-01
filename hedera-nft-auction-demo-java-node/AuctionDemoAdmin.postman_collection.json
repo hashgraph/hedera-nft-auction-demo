@@ -1,28 +1,10 @@
 {
 	"info": {
 		"_postman_id": "00191e7d-7ed7-49f9-a9f9-750272e0247c",
-		"name": "AuctionDemo",
+		"name": "AuctionDemoAdmin",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
-		{
-			"name": "Get Auctions",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/v1/auctions",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"v1",
-						"auctions"
-					]
-				}
-			},
-			"response": []
-		},
 		{
 			"name": "0.Easy Setup",
 			"request": {
@@ -103,7 +85,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\": \"DemoToken\",\n    \"symbol\":\"./sample-files/hedera-logo-base64.txt\",\n    \"initialSupply\": 1,\n    \"decimals\": 0\n}",
+					"raw": "{\n    \"name\": \"DemoToken\",\n    \"symbol\":\"./sample-files/hedera-logo-base64.txt\",\n    \"initialSupply\": 1,\n    \"decimals\": 0,\n    \"memo\": \"Token Memo\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -245,7 +227,7 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost:8082"
+			"value": "http://104.198.67.87:8082"
 		}
 	]
 }

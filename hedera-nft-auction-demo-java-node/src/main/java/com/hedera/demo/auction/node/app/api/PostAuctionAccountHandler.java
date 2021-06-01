@@ -26,7 +26,7 @@ public class PostAuctionAccountHandler implements Handler<RoutingContext> {
         try {
             JsonObject keys = new JsonObject();
 
-            keys.put("keylist", body.getJsonArray("keylist"));
+            keys.put("keyList", body.getJsonObject("keyList"));
             CreateAuctionAccount createAuctionAccount = new CreateAuctionAccount();
             createAuctionAccount.setEnv(env);
             AccountId auctionAccount = createAuctionAccount.create(body.getLong("initialBalance"), keys.toString());

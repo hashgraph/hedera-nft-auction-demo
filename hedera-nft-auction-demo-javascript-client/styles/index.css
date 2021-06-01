@@ -42,7 +42,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: black;
-  min-height: 100vh;
+  height: 100vh;
 }
 
 code {
@@ -112,7 +112,7 @@ button {
 
 .border-gradient {
   border-image-slice: 1;
-  border-width: 2px;
+  border-width: 1px;
 }
 
 .border-gradient-purple {

@@ -94,7 +94,7 @@ const LiveAuction = () => {
     <div className='sm:p-section-desktop p-section-mobile'>
       <FeaturedAuction featuredAuction={featuredAuction} />
       <div className='pb-12'>
-        <div className='flex justify-between border-b-1 border-indigo-500 py-4'>
+        <div className='flex justify-between border-b border-indigo-500 py-2 mb-6'>
           <h1 className='text-md'>Live Auctions</h1>
           <ViewAllButton onClick={hanldeViewAllLiveAuctionsClick} />
         </div>
@@ -109,7 +109,7 @@ const LiveAuction = () => {
         </div>
       </div>
       <div>
-        <div className='flex justify-between border-b-1 border-indigo-500 py-4'>
+        <div className='flex justify-between border-b border-indigo-500 py-2 mb-6'>
           <h1 className='text-md'>Sold</h1>
           <ViewAllButton onClick={handleViewAllSoldClick} />
         </div>

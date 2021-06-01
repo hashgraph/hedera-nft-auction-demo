@@ -25,7 +25,7 @@ const LeftColumn = ({ auction }) => {
         <p className='visible sm:invisible font-light mb-5'>
           Acct ID: <span className='font-bold'>{auctionaccountid}</span>
         </p>
-        <img src='/assets/expand-icon.svg' className='w-5 h-5' />
+        {/* <img src='/assets/expand-icon.svg' className='w-5 h-5' /> */}
         <div
           className='sm:invisible visible flex flex-col items-end justify-center cursor-pointer'
           onClick={openShareModal}
@@ -48,9 +48,9 @@ const LeftColumn = ({ auction }) => {
           <BidMetaData auction={auction} />
         </div>
       </div>
-      <p className='font-bold text-3xl my-5'>{titleToRender}</p>
+      <p className='font-bold text-2xl my-5'>{titleToRender}</p>
       <div className='font-thin'>
-        <p className='mb-4'>{descriptionToRender}</p>
+        <p className='mb-4 text-sm'>{descriptionToRender}</p>
         <p className='mb-4'>
           The highest bigger on the HNFT will receive a signed print of the
           painting by the artist

@@ -42,8 +42,8 @@ const Modal = ({ isOpen, close, auction }) => {
   const Content = () => {
     if (successfullySentBid)
       return (
-        <div className='mt-6 flex'>
-          <div className=''>
+        <div className='flex'>
+          <div>
             <h3 className='font-thin leading-6 text-sm'>Your bid in HBAR:</h3>
             <div className='text-3xl'>
               <p>
@@ -63,37 +63,44 @@ const Modal = ({ isOpen, close, auction }) => {
         </div>
       )
     return (
-      <div className='mt-6'>
-        <div className='mt-3 text-left sm:mt-0 w-full'>
-          <h3 className='font-thin leading-6 text-sm'>Your bid in HBAR:</h3>
-          <div className='mt-2 flex items-end'>
+      <div>
+        <div className='mt-5 text-left sm:mt-0 w-full'>
+          <h3 className='font-thin leading-6 text-xs'>Your bid in HBAR:</h3>
+          <div className='flex items-end'>
             <input
               type='number'
-              className='border-b focus:outline-none px-3 py-1 text-3xl text-left text-white bg-transparent font-bold'
+              className='border-b focus:outline-none px-3 text-3xl text-left text-white bg-transparent font-bold'
               style={{
                 borderColor: '#4B68F1',
-                width: '75%',
+                width: '62%',
               }}
               value={bidAmount}
               onChange={handleBidAmountChange}
               autoFocus
             />
-            <span className='text-3xl relative top-1'>ℏ</span>
+            <span className='text-3xl relative top-1 italic'>ℏ</span>
             <button
               onClick={handleBidSend}
-              className='bg-purple-gradient px-6 uppercase ml-5'
-              style={{ paddingTop: '2px', paddingBottom: '2px' }}
+              className='bg-purple-gradient px-9 py-1 uppercase ml-10 text-lg'
+              // style={{ paddingTop: '2px', paddingBottom: '2px' }}
               disabled={isSendingBid}
             >
               {isSendingBid ? '...' : 'Bid'}
             </button>
           </div>
           <div>
-            <p className='mt-3 text-gray-400'>${usdValue}</p>
+            <p
+              className='text-gray-400 font-thin text-sm relative py-1'
+              style={{
+                top: '5px',
+              }}
+            >
+              ${usdValue}
+            </p>
             <p
               className='font-thin my-3'
               style={{
-                fontSize: '10px',
+                fontSize: '9px',
               }}
             >
               The specified amount of HBAR will be transferred to the auction
@@ -108,32 +115,44 @@ const Modal = ({ isOpen, close, auction }) => {
 
   return (
     <div className='fixed z-50 inset-0 overflow-y-none flex justify-center items-center'>
-      <div className='pb-alot flex items-end justify-center pt-4 px-4 text-center'>
+      <div
+        className='flex items-end justify-center pt-4 px-4 text-center absolute'
+        style={{
+          top: '14.5rem',
+        }}
+      >
         <div
           className='fixed inset-0 transition-opacity'
           aria-hidden='true'
           style={{ touchAction: 'none' }}
           onClick={handleClose}
         >
-          <div className='absolute inset-0 bg-black opacity-75'></div>
+          <div className='absolute inset-0 opacity-75 bg-black'></div>
         </div>
+        {/* Modal Content */}
         <div
-          className='w-full inline-block align-bottom bg-white text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full'
+          className=' border-l-4 w-full inline-block align-bottom bg-black text-left overflow-hidden shadow-2xl transform transition-all sm:align-middle sm:max-w-md sm:w-full'
           role='dialog'
           aria-modal='true'
           aria-labelledby='modal-headline'
+          style={{
+            borderColor: '#4B68F1',
+          }}
         >
           <div
-            className='bg-black px-4 pt-5 pb-4 sm:pb-4 w-full border-l-8'
+            className='pl-8 pr-10 w-full'
             style={{
-              borderColor: '#4B68F1',
+              position: 'relative',
+              paddingTop: '3.5rem',
+              bottom: '7px',
+              paddingBottom: '1rem',
             }}
           >
             <CloseIcon
               className='h-8 w-8 text-white absolute cursor-pointer'
               onClick={handleClose}
               style={{
-                top: '.25rem',
+                top: '.75rem',
                 right: '.25rem',
               }}
             />

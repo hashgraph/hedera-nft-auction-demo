@@ -16,10 +16,10 @@ const Link = ({ item, isMobile, closeMenu }) => {
   }
 
   const ActiveBorder = () => (
-    <div style={{ width: '75%', border: '2px solid #5266F1' }} />
+    <div style={{ width: '75%', border: '1px solid #5266F1' }} />
   )
   const TransparentBorder = () => (
-    <div style={{ width: '75%', border: '2px solid transparent' }} />
+    <div style={{ width: '75%', border: '1px solid transparent' }} />
   )
 
   return (
@@ -52,9 +52,9 @@ export default function Example() {
   return (
     <div
       as='nav'
-      className='sm:px-3 sm:py-2 py-4 bg-black text-white border-b border-indigo-500'
+      className='sm:py-2 py-4 mx-7 bg-black text-white border-b border-indigo-500'
     >
-      <div className='mx-auto px-2 sm:px-6 lg:px-8'>
+      <div className='mx-auto'>
         <div className='relative flex items-center justify-between h-16'>
           <div className='flex items-center justify-between sm:items-stretch sm:justify-between w-full'>
             <div
@@ -69,8 +69,8 @@ export default function Example() {
             </div>
             <div className='flex'>
               <NFTLogo
-                style={{ top: '2px' }}
-                className=' w-28 sm:w-28 relative'
+                style={{ top: '2px', width: '5.75rem' }}
+                className='relative'
               />
               {/* Desktop Nav */}
               <div className='hidden sm:flex items-center sm:ml-10'>
@@ -79,7 +79,7 @@ export default function Example() {
                 ))}
               </div>
             </div>
-            <ConnectWalletIcon className=' w-28 sm:w-28' />
+            <ConnectWalletIcon style={{ width: '6.5rem' }} />
           </div>
         </div>
       </div>

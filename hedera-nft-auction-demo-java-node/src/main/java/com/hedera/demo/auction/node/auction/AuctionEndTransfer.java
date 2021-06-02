@@ -10,17 +10,7 @@ import com.hedera.demo.auction.node.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.node.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.node.app.scheduledoperations.TransactionScheduler;
 import com.hedera.demo.auction.node.app.scheduledoperations.TransactionSchedulerResult;
-import com.hedera.hashgraph.sdk.AccountBalance;
-import com.hedera.hashgraph.sdk.AccountBalanceQuery;
-import com.hedera.hashgraph.sdk.AccountId;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.Hbar;
-import com.hedera.hashgraph.sdk.PrecheckStatusException;
-import com.hedera.hashgraph.sdk.PrivateKey;
-import com.hedera.hashgraph.sdk.Status;
-import com.hedera.hashgraph.sdk.TokenId;
-import com.hedera.hashgraph.sdk.TransactionId;
-import com.hedera.hashgraph.sdk.TransferTransaction;
+import com.hedera.hashgraph.sdk.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
@@ -30,11 +20,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 @Log4j2
 public class AuctionEndTransfer implements Runnable {
@@ -175,7 +161,8 @@ public class AuctionEndTransfer implements Runnable {
                     Client client = hederaClient.auctionClient(auctionAccountId, PrivateKey.fromString(refundKey));
                     String memo = "Token transfer from auction";
                     //TODO: Use transferTimestamp (which also needs to be set when TRANSFERRING earlier)
-                    String txId = auction.getAuctionaccountid().concat("@").concat(auction.getTransfertimestamp());
+//                    String txId = auction.getAuctionaccountid().concat("@").concat(auction.getTransfertimestamp());
+                    String txId = operatorId.toString().concat("@").concat(auction.getTransfertimestamp());
                     TransactionId transactionId = TransactionId.fromString(txId);
                     transactionId.setScheduled(true);
                     String shortTransactionId = transactionId.toString().replace("?scheduled", "");
@@ -199,6 +186,7 @@ public class AuctionEndTransfer implements Runnable {
                             transferInProgress = true;
                             log.info("token transfer scheduled (id " + shortTransactionId + ")");
                         } else if (transactionSchedulerResult.status == Status.TRANSACTION_EXPIRED) {
+                            log.warn("token transfer scheduled transaction expired, delaying re-submission");
                             delayTransfer = true;
                         } else {
                             log.error("error transferring token to winner auction: " + auction.getAuctionaccountid());
@@ -239,6 +227,12 @@ public class AuctionEndTransfer implements Runnable {
             }
         } else {
             log.error("Token owner for auction id " + auction.getId() + " is not set.");
+            try {
+                auctionsRepository.setTransferTransactionByAuctionId(auction.getId(), "Token not transferred by owner", "Token not transferred by owner");
+            } catch (SQLException sqlException) {
+                log.error("unable to end auction with token not transferred by owner");
+                log.error(sqlException);
+            }
         }
         return delayTransfer;
     }

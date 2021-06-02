@@ -161,16 +161,17 @@ nano .env
 set the following properties according to your Hedera account and refund key details
 
 _Note: 
-The operator id/key is used to query the hedera network (free queries) 
-* It is also used to set the submit key for the auction topic and also for creating the auction account, submitting auction creation messages to the topic.
-* And optionally creating a token to auction, then transferring it to the auction account_
+The operator id/key is used to query the hedera network for the token's metadata if present (FileId in memo) and issue or sign scheduled transactions._
+* _It is also used by the auction administrator to set the submit key for the auction topic and also for creating the auction account and submitting auction creation messages to the topic._
+* _And optionally creating a token to auction, then transferring it to the auction account_
+
 
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
 * `REFUND_KEY=` (Same as operator key for testing purposes)
 * `TRANSFER_ON_WIN=`true
 
-You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish
+You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish (although only the hedera mirror API is supported at this time).
 
 #### Javascript UI
 
@@ -232,7 +233,7 @@ __Command line__
 ./gradlew easySetup
 ```
 
-*Note: the application wil need to be restarted to take the new topic into account*
+*Note: the application will need to be restarted to take the new topic into account*
 
 ```shell
 ./gradlew easySetup --args="--name=myToken --symbol=MTT --no-clean"
@@ -256,13 +257,7 @@ curl -H "Content-Type: application/json" -X POST -d '{"symbol":"./sample-files/g
 
 These steps will enable you to create an `initDemo.json` file (located in `./sample-files`) which you can finally use to setup a new auction.
 
-_Note: the application will need to be restarted to take the new topic into account_
-
-__Create a topic__
-
-```shell
-./gradlew createTopic
-```
+When the application is first started and no `VUE_APP_TOPIC_ID` is set, it will create a new topic and update the .env file, then exit. You will need to restart the application in order for the new topic to be taken into account.
 
 __Create a simple token__
 
@@ -321,30 +316,24 @@ This transfer the token from the account that created it to the `auctionaccounti
 ./gradlew createTokenTransfer --args="tokenId accountId"
 ```
 
+__Create a topic__
+
+This is provided as a helper feature to create a new topic. Simply clearing the `VUE_APP_TOPIC_ID` environment variable and restarting the application will create a new topic id automatically and update the `.env` file.
+
+Once the application has created the topic id, it will exit and will need restarting for the change to take effect.
+
+```shell
+./gradlew createTopic
+```
+
+
 #### Step by step via REST API
 
 This requires that the REST api and database are up and running. 
 
 The examples below show curl commands, however the `hedera-nft-auction-demo-java-node` project includes `postman` files for the admin and client APIS which you can import into Postman instead.
 
-__Create a topic__
-
-_Note: the application wil need to be restarted to take the new topic into account_
-
-```shell script
-curl -H "Content-Type: application/json" -X POST -d '
-  {
-  }
-' http://localhost:8082/v1/admin/topic
-```
-
-returns a topic id
-
-```json
-{
-    "topicId": "0.0.57044"
-}
-```
+When the application is first started and no `VUE_APP_TOPIC_ID` is set, it will create a new topic and update the .env file, then exit. You will need to restart the application in order for the new topic to be taken into account.
 
 __Create a simple token__
 
@@ -467,6 +456,25 @@ curl -H "Content-Type: application/json" -X POST -d '
   "tokenid" : "{{tokenId}}", 
   "auctionaccountid" : "{{accountId}}"
 }' http://localhost:8082/v1/admin/transfer
+```
+
+__Create a topic__
+
+This is provided as a helper feature, clearing the `VUE_APP_TOPIC_ID` from the `.env` file and restarting the application will create a new topic Id. The application will need to be restarted for the changes to take effect.
+
+```shell script
+curl -H "Content-Type: application/json" -X POST -d '
+  {
+  }
+' http://localhost:8082/v1/admin/topic
+```
+
+returns a topic id
+
+```json
+{
+    "topicId": "0.0.57044"
+}
 ```
 
 #### Run the components

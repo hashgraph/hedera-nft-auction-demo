@@ -119,7 +119,7 @@ public class CreateToken extends AbstractCreate {
         if (args.length < 2) {
             log.error("Invalid number of arguments supplied - name and symbol are required at a minimum");
         } else {
-            log.error("Creating token");
+            log.info("Creating token");
             @Var long initialSupply = 1;
             @Var int decimals = 0;
             @Var String memo = "";

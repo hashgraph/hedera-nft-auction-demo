@@ -97,13 +97,6 @@ public final class App {
 
     public void runApp() throws Exception {
 
-        if (StringUtils.isEmpty(topicId)) {
-            CreateTopic createTopic = new CreateTopic();
-            TopicId topicId = createTopic.create();
-            log.info("Found no topic Id, create new one and updated .env file. TopicId = " + topicId.toString());
-            log.info("You should communicate this topic id to other application network participants and restart the app");
-            return;
-        }
         Flyway flyway = Flyway
                 .configure()
                 .dataSource("jdbc:".concat(postgresUrl), postgresUser, postgresPassword)

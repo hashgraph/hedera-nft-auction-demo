@@ -257,7 +257,13 @@ curl -H "Content-Type: application/json" -X POST -d '{"symbol":"./sample-files/g
 
 These steps will enable you to create an `initDemo.json` file (located in `./sample-files`) which you can finally use to setup a new auction.
 
-When the application is first started and no `VUE_APP_TOPIC_ID` is set, it will create a new topic and update the .env file, then exit. You will need to restart the application in order for the new topic to be taken into account.
+__Create a topic__
+
+This will create a new topic id and set the `VUE_APP_TOPIC_ID` environment variable.
+
+```shell
+./gradlew createTopic
+```
 
 __Create a simple token__
 
@@ -316,24 +322,32 @@ This transfer the token from the account that created it to the `auctionaccounti
 ./gradlew createTokenTransfer --args="tokenId accountId"
 ```
 
-__Create a topic__
-
-This is provided as a helper feature to create a new topic. Simply clearing the `VUE_APP_TOPIC_ID` environment variable and restarting the application will create a new topic id automatically and update the `.env` file.
-
-Once the application has created the topic id, it will exit and will need restarting for the change to take effect.
-
-```shell
-./gradlew createTopic
-```
-
-
 #### Step by step via REST API
 
 This requires that the REST api and database are up and running. 
 
 The examples below show curl commands, however the `hedera-nft-auction-demo-java-node` project includes `postman` files for the admin and client APIS which you can import into Postman instead.
 
-When the application is first started and no `VUE_APP_TOPIC_ID` is set, it will create a new topic and update the .env file, then exit. You will need to restart the application in order for the new topic to be taken into account.
+__Create a topic__
+
+This will create a new topic id and set the `VUE_APP_TOPIC_ID` in the `.env` file.
+
+It is now necessary to restart the application for the changes to take effect.
+
+```shell script
+curl -H "Content-Type: application/json" -X POST -d '
+  {
+  }
+' http://localhost:8082/v1/admin/topic
+```
+
+returns a topic id
+
+```json
+{
+    "topicId": "0.0.57044"
+}
+```
 
 __Create a simple token__
 
@@ -456,25 +470,6 @@ curl -H "Content-Type: application/json" -X POST -d '
   "tokenid" : "{{tokenId}}", 
   "auctionaccountid" : "{{accountId}}"
 }' http://localhost:8082/v1/admin/transfer
-```
-
-__Create a topic__
-
-This is provided as a helper feature, clearing the `VUE_APP_TOPIC_ID` from the `.env` file and restarting the application will create a new topic Id. The application will need to be restarted for the changes to take effect.
-
-```shell script
-curl -H "Content-Type: application/json" -X POST -d '
-  {
-  }
-' http://localhost:8082/v1/admin/topic
-```
-
-returns a topic id
-
-```json
-{
-    "topicId": "0.0.57044"
-}
 ```
 
 #### Run the components

@@ -46,6 +46,8 @@ public class AuctionEndTransfer implements Runnable {
     private boolean testing = false;
     private final String refundKey;
     private final int mirrorQueryFrequency;
+    private final AccountId operatorId;
+    private final PrivateKey operatorKey;
 
     public enum TransferResult {
         SUCCESS,
@@ -59,6 +61,8 @@ public class AuctionEndTransfer implements Runnable {
         this.hederaClient = hederaClient;
         this.refundKey = refundKey;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
+        this.operatorId = hederaClient.operatorId();
+        this.operatorKey = hederaClient.operatorPrivateKey();
     }
 
     public void setTesting() {
@@ -188,7 +192,7 @@ public class AuctionEndTransfer implements Runnable {
                     }
 
                     try {
-                        TransactionScheduler transactionScheduler = new TransactionScheduler(client, auctionAccountId, PrivateKey.fromString(refundKey), transactionId, transferTransaction);
+                        TransactionScheduler transactionScheduler = new TransactionScheduler(hederaClient, auctionAccountId, PrivateKey.fromString(refundKey), transactionId, transferTransaction);
                         TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction();
 
                         if (transactionSchedulerResult.success) {

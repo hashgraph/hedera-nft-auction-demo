@@ -58,22 +58,22 @@ public class TransactionScheduler {
         }
     }
 
-    private TransactionSchedulerResult scheduleSignTransaction(TransactionReceipt receipt) throws TimeoutException {
+    private TransactionSchedulerResult scheduleSignTransaction(TransactionReceipt existingReceipt) throws TimeoutException {
         // the same tx has already been submitted, submit just the signature
         // get the receipt for the transaction
         try {
             TransactionResponse response = new ScheduleSignTransaction()
-                    .setScheduleId(receipt.scheduleId)
+                    .setScheduleId(existingReceipt.scheduleId)
                     .setNodeAccountIds(List.of(AccountId.fromString("0.0.3")))
                     .freezeWith(hederaClient.client())
                     .sign(refundKey)
                     .execute(hederaClient.client());
 
             try {
-                response.getReceipt(hederaClient.client());
+                TransactionReceipt receipt = response.getReceipt(hederaClient.client());
                 return handleResponse(receipt);
             } catch (ReceiptStatusException receiptStatusException) {
-                return handleResponse(receipt);
+                return handleResponse(receiptStatusException.receipt);
             }
 
         } catch (TimeoutException timeoutException) {
@@ -88,6 +88,7 @@ public class TransactionScheduler {
     private TransactionSchedulerResult handleResponse(TransactionReceipt receipt) throws TimeoutException {
         //INVALID_TRANSACTION_START
         //
+        log.info(receipt.status);
         switch (receipt.status) {
             case SUCCESS:
             case SCHEDULE_ALREADY_EXECUTED:

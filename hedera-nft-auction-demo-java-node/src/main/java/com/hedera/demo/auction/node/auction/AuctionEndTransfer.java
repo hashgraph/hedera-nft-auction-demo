@@ -172,11 +172,8 @@ public class AuctionEndTransfer implements Runnable {
                     transferTransaction.setTransactionId(transactionId);
                     transferTransaction.addTokenTransfer(tokenId, auctionAccountId, -1L);
                     transferTransaction.addTokenTransfer(tokenId, transferToAccountId, 1L);
-                    if (!tokenOwnerAccount.equals(transferToAccountId)) {
-                        // we have a winner, add hbar transfer to the original token owner to the transaction
-                        transferTransaction.addHbarTransfer(auctionAccountId, Hbar.fromTinybars(-auction.getWinningbid()));
-                        transferTransaction.addHbarTransfer(tokenOwnerAccount, Hbar.fromTinybars(auction.getWinningbid()));
-                    }
+                    transferTransaction.addHbarTransfer(auctionAccountId, Hbar.fromTinybars(-auction.getWinningbid()));
+                    transferTransaction.addHbarTransfer(tokenOwnerAccount, Hbar.fromTinybars(auction.getWinningbid()));
 
                     try {
                         TransactionScheduler transactionScheduler = new TransactionScheduler(hederaClient, auctionAccountId, PrivateKey.fromString(refundKey), transactionId, transferTransaction);

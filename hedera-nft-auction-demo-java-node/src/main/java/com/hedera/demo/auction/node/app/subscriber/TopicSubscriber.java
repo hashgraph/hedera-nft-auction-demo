@@ -128,11 +128,22 @@ public class TopicSubscriber implements Runnable{
             JsonObject auctionJson = new JsonObject(auctionData);
             Auction newAuction = new Auction().fromJson(auctionJson);
             Instant consensusTime = topicMessageWrapper.consensusTimestamp;
-            @Var String endTimeStamp = newAuction.getEndtimestamp();
-            if (StringUtils.isEmpty(endTimeStamp)) {
+            @Var String endTimeStamp = newAuction.getEndtimestamp().toLowerCase();
+
+            if (endTimeStamp.contains("m")) {
+                int timeDelta = Integer.parseInt(endTimeStamp.replace("m", ""));
+                endTimeStamp = String.valueOf(consensusTime.plus(timeDelta, ChronoUnit.MINUTES).getEpochSecond());
+            } else if (endTimeStamp.contains("h")) {
+                int timeDelta = Integer.parseInt(endTimeStamp.replace("h", ""));
+                endTimeStamp = String.valueOf(consensusTime.plus(timeDelta, ChronoUnit.HOURS).getEpochSecond());
+            } else if (endTimeStamp.contains("d")) {
+                int timeDelta = Integer.parseInt(endTimeStamp.replace("d", ""));
+                endTimeStamp = String.valueOf(consensusTime.plus(timeDelta, ChronoUnit.DAYS).getEpochSecond());
+            } else if (StringUtils.isEmpty(endTimeStamp)) {
                 // no end timestamp, use consensus timestamp + 2 days
                 endTimeStamp = String.valueOf(consensusTime.plus(2, ChronoUnit.DAYS).getEpochSecond());
             }
+
             newAuction.setEndtimestamp(endTimeStamp.concat(".000000000")); // add nanoseconds
             newAuction.setWinningbid(0L);
 

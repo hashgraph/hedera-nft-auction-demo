@@ -295,6 +295,11 @@ You can change some of the attribute values if you wish
 
 _Note: if the `endtimestamp` (end of auction in seconds since Epoch) is left blank, the auction will run for 48 hours from now by default._
 
+You may also specify a time delta from the consensus time of the resulting HCS message such as:
+* `2d` for two days following the consensus time
+* `1h` for one hour
+* `10m` for ten minutes
+
 ```json
 {
   "tokenid": "0.0.xxxxxx",
@@ -674,7 +679,10 @@ be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the va
 
 * `reserve` in tinybars
 * `minimumbid` in tinybars
-* `endtimestamp` will default to 2 days in the future if not set, otherwise specify the date and time you wish the auction to end in seconds since epoch
+* `endtimestamp` will default to 2 days in the future if not set, otherwise specify the date and time you wish the auction to end in seconds since epoch or
+    * `2m` for two minutes after the consensus timestamp of the HCS message
+    * `4h` for four hours after the consensus timestamp of the HCS message
+    * `1d` for 1 day after the consensus timestamp of the HCS message
 * `winnercanbid` whether the highest bidder is allowed to place a higher bid
 * `title` and `description` for the auction (rendered in the UI)
 

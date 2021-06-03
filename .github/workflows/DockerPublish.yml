@@ -11,9 +11,6 @@ on:
       - v*
   workflow_dispatch:
 
-env:
-  JAVA_IMAGE_NAME: hedera-nft-auction-java-node
-
 jobs:
   # Push image to GitHub Packages.
   # See also https://docs.docker.com/docker-hub/builds/

@@ -13,7 +13,6 @@ on:
 
 env:
   JAVA_IMAGE_NAME: hedera_nft_auction_java_node
-  JAVA_IMAGE_ID: ghcr.io/${{ github.repository_owner }}/${{ JAVA_IMAGE_NAME }}
 
 jobs:
   # Push image to GitHub Packages.
@@ -38,8 +37,9 @@ jobs:
 
       - name: Push image
         run: |
+               IMAGE_ID=ghcr.io/${{ github.repository_owner }}/${{ JAVA_IMAGE_NAME }}
                # Change all uppercase to lowercase
-               IMAGE_ID=$(echo $JAVA_IMAGE_ID | tr '[A-Z]' '[a-z]')
+               IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
                VERSION=latest
                echo IMAGE_ID=$IMAGE_ID
                echo VERSION=$VERSION

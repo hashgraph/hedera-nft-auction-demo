@@ -1,0 +1,32 @@
+name: Docker Publish
+
+on:
+  release:
+    # Publish `master` as Docker `latest` image.
+    branches:
+      - master
+
+    # Publish `v1.2.3` tags as releases.
+    tags:
+      - v*
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - naem: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build Docker Image - Java
+        uses: docker/build-push-action@v2
+        with:
+          file: hedera-nft-auction-demo-java-node/Dockerfile
+          context: hedera-nft-auction-demo-java-node/
+          push: true
+          tags: hedera_nft_auction_java_node:latest

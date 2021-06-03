@@ -40,6 +40,5 @@ jobs:
           push: true
           tags: |
             docker.pkg.github.com/${{ github.repository }}/hedera-nft-auction-java-node:${{ github.sha }}
-            docker.pkg.github.com/${{ github.repository }}/hedera-nft-auction-java-node:${{ github.ref }}
             docker.pkg.github.com/${{ github.repository }}/hedera-nft-auction-java-node:latest
         working-directory: hedera-nft-auction-demo-java-node

@@ -11,9 +11,6 @@ on:
       - v*
   workflow_dispatch:
 
-env:
-  JAVA_IMAGE_NAME: hedera_nft_auction_java_node
-
 jobs:
   # Push image to GitHub Packages.
   # See also https://docs.docker.com/docker-hub/builds/
@@ -28,7 +25,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build java node image
-        run: docker build . --file Dockerfile --tag ${{ JAVA_IMAGE_NAME }} --label "runnumber=${GITHUB_RUN_ID}"
+        run: docker build . --file Dockerfile --tag hedera_nft_auction_java_node --label "runnumber=${GITHUB_RUN_ID}"
         working-directory: hedera-nft-auction-demo-java-node
 
       - name: Log into registry
@@ -37,7 +34,7 @@ jobs:
 
       - name: Push image
         run: |
-               IMAGE_ID=ghcr.io/${{ github.repository_owner }}/${{ JAVA_IMAGE_NAME }}
+               IMAGE_ID=ghcr.io/${{ github.repository_owner }}/hedera_nft_auction_java_node
                # Change all uppercase to lowercase
                IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
                VERSION=latest

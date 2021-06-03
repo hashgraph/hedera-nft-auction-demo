@@ -24,29 +24,22 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Log in to GitHub Docker Registry
+        uses: docker/login-action@v1
+        with:
+          registry: docker.pkg.github.com
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build java node image
-        run: docker build . --file Dockerfile --tag $JAVA_IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: |
+            docker.pkg.github.com/${{ github.repository }}/hedera-nft-auction-java-node:${{ github.sha }}
+            docker.pkg.github.com/${{ github.repository }}/hedera-nft-auction-java-node:${{ github.ref }}
+            docker.pkg.github.com/${{ github.repository }}/hedera-nft-auction-java-node:latest
         working-directory: hedera-nft-auction-demo-java-node
-
-      - name: Log into registry
-        # This is where you will update the PAT to GITHUB_TOKEN
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Push image
-        run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$JAVA_IMAGE_NAME
-
-          # Change all uppercase to lowercase
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "master" ] && VERSION=latest
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag $JAVA_IMAGE_NAME:latest $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION

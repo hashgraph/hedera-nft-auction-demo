@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 env:
-  JAVA_IMAGE_NAME: hedera-nft-auction-demo-java-node
+  JAVA_IMAGE_NAME: hedera-nft-auction-java-node
 
 jobs:
   # Push image to GitHub Packages.
@@ -42,11 +42,17 @@ jobs:
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
           # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "master" ] && VERSION=latest
+#          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+#          # Strip "v" prefix from tag name
+#          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+#          # Use Docker `latest` tag convention
+#          [ "$VERSION" == "master" ] && VERSION=latest
+#          echo IMAGE_ID=$IMAGE_ID
+#          echo VERSION=$VERSION
+#          docker tag $IMAGE_ID $IMAGE_ID:$VERSION
+#          docker push $IMAGE_ID:$VERSION
+
+          VERSION=latest
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           docker tag $IMAGE_ID $IMAGE_ID:$VERSION

@@ -223,19 +223,23 @@ public class BidsWatcher implements Runnable {
                 auctionsRepository.save(this.auction);
             }
 
-            // store the bid
-            Bid currentBid = new Bid();
-            currentBid.setBidamount(bidAmount);
-            currentBid.setAuctionid(this.auction.getId());
-            currentBid.setBidderaccountid(transaction.payer());
-            currentBid.setTimestamp(transaction.consensusTimestamp);
-            currentBid.setStatus(rejectReason);
-            currentBid.setTransactionid(transaction.transactionId);
-            currentBid.setTransactionhash(transaction.getTransactionHashString());
-            if (refund) {
-                currentBid.setRefundstatus(Bid.REFUND_PENDING);
+            if (bidAmount > 0) {
+                // store the bid
+                Bid currentBid = new Bid();
+                currentBid.setBidamount(bidAmount);
+                currentBid.setAuctionid(this.auction.getId());
+                currentBid.setBidderaccountid(transaction.payer());
+                currentBid.setTimestamp(transaction.consensusTimestamp);
+                currentBid.setStatus(rejectReason);
+                currentBid.setTransactionid(transaction.transactionId);
+                currentBid.setTransactionhash(transaction.getTransactionHashString());
+                if (refund) {
+                    currentBid.setRefundstatus(Bid.REFUND_PENDING);
+                }
+                bidsRepository.add(currentBid);
+            } else {
+                log.info("Bid amount " + bidAmount + " less than or equal to 0, not recording bid");
             }
-            bidsRepository.add(currentBid);
         } else {
             log.debug("Transaction Id " + transaction.transactionId + " status not SUCCESS.");
         }

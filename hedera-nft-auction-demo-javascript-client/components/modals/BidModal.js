@@ -20,7 +20,7 @@ const Modal = ({ isOpen, close, auction }) => {
 
   const handleBidAmountChange = e => {
     const { value: bidAmount } = e.target
-    setBidAmount(bidAmount)
+    if (bidAmount > 0) setBidAmount(bidAmount)
   }
 
   const handleBidSend = async () => {
@@ -76,6 +76,7 @@ const Modal = ({ isOpen, close, auction }) => {
               }}
               value={bidAmount}
               onChange={handleBidAmountChange}
+              min='1'
               autoFocus
             />
             <span className='text-3xl relative top-1 italic'>ℏ</span>
@@ -104,7 +105,7 @@ const Modal = ({ isOpen, close, auction }) => {
               }}
             >
               The specified amount of HBAR will be transferred to the auction
-              account and refunded if your bud is too low or does not meet the
+              account and refunded if your bid is too low or does not meet the
               bidding requirements
             </p>
           </div>

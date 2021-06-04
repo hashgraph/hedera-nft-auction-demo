@@ -18,6 +18,7 @@ const getFormattedTime = timestamp => {
 
 const BidItem = ({ bid, currentPrice, isFirstItem, isLastItem }) => {
   const { timestamp, bidamount, bidderaccountid, transactionid } = bid
+  console.log('BID', bid)
   const formattedTimestamp = getFormattedTime(timestamp)
 
   const bidAmountToShow = getBidValue(bidamount)
@@ -50,16 +51,16 @@ const BidItem = ({ bid, currentPrice, isFirstItem, isLastItem }) => {
       <div className='bg-purple-gradient w-2 h-full absolute' />
       <div className='flex sm:flex-row flex-col sm:items-center items-left w-full justify-between sm:ml-5 ml-7'>
         <div className='sm:pb-0 pb-4'>
-          <p className='font-light sm:text-base text-sm text-gray-400'>
+          <p className='font-light text-xs text-gray-400'>
             Bidder
           </p>
-          <p className='font-bold sm:text-sm text-xs'>{bidderaccountid}</p>
+          <p className='font-bold text-sm'>{bidderaccountid}</p>
         </div>
         <div className='sm:pb-0 pb-4'>
-          <p className='font-light sm:text-base text-sm text-gray-400'>
+          <p className='font-light text-xs text-gray-400'>
             Date placed
           </p>
-          <p className='font-bold sm:text-sm text-xs'>{formattedTimestamp}</p>
+          <p className='font-bold text-sm'>{formattedTimestamp}</p>
         </div>
         <div className='flex items-center sm:pb-0 pb-3'>
           <div>

@@ -19,15 +19,17 @@ const LeftColumn = ({ auction }) => {
   return (
     <div>
       <div className='flex justify-between'>
-        <p
-          className='hidden sm:flex font-light mb-5 text-sm whitespace-nowrap relative'
-          style={{ top: '1px' }}
-        >
-          Token I.D.: <span className='ml-1 font-bold'>{tokenid}</span>
-        </p>
-        <p className='visible sm:invisible font-light mb-5 text-sm'>
-          Acct I.D.: <span className='font-bold'>{auctionaccountid}</span>
-        </p>
+        <div>
+          <p
+            className='hidden sm:flex font-light text-sm whitespace-nowrap relative mb-2'
+            style={{ top: '1px' }}
+          >
+            Token I.D.: <span className='ml-1 font-bold'>{tokenid}</span>
+          </p>
+          <p className='font-light sm:mb-0 mb-5 text-sm'>
+            Acct I.D.: <span className='font-bold'>{auctionaccountid}</span>
+          </p>
+        </div>
         {/* <img src='/assets/expand-icon.svg' className='w-5 h-5' /> */}
         <div
           className='sm:invisible visible flex flex-col items-end justify-center cursor-pointer'
@@ -42,11 +44,7 @@ const LeftColumn = ({ auction }) => {
         </div>
       </div>
       <div className='flex justify-between sm:flex-row flex-col'>
-        <img
-          className='sm:w-full pr-3 py-3'
-          src={sidebarImage}
-          alt='bid-item'
-        />
+        <img className='sm:w-full py-3' src={sidebarImage} alt='bid-item' />
         <div className='sm:hidden visible'>
           <BidMetaData auction={auction} />
         </div>

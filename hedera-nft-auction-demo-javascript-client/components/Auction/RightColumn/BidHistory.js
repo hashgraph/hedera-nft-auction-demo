@@ -57,7 +57,7 @@ const BidItem = ({ bid, currentPrice, isFirstItem, isLastItem }) => {
         </div>
         <div className='sm:pb-0 pb-4'>
           <p className='font-light sm:text-base text-sm text-gray-400'>
-            Date Placed
+            Date placed
           </p>
           <p className='font-bold sm:text-sm text-xs'>{formattedTimestamp}</p>
         </div>

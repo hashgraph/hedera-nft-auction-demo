@@ -20,7 +20,7 @@ const Modal = ({ isOpen, close, auction }) => {
 
   const handleBidAmountChange = e => {
     const { value: bidAmount } = e.target
-    if (bidAmount > 0) setBidAmount(bidAmount)
+    setBidAmount(Math.abs(bidAmount))
   }
 
   const handleBidSend = async () => {

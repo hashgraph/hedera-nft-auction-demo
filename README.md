@@ -83,11 +83,21 @@ you may leave the properties as is for now
 
 #### Start docker images
 
+Using pre-built images
+
 ```shell
 cd ..
-docker-compose build
-docker-compose up
+docker-compose --profile prod up
 ```
+
+Building your own images from source code
+```shell
+cd ..
+docker-compose --profile dev build
+docker-compose --profile dev up
+```
+
+
 
 _Note: you may need to `sudo` these commands depending on your environment`
 

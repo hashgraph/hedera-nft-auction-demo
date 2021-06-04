@@ -43,7 +43,7 @@ const BidMetaData = ({ auction }) => {
     )
 
   return (
-    <div className='flex justify-between sm:flex-row flex-col p-3'>
+    <div className='flex justify-between sm:flex-row flex-col'>
       <div className='sm:mb-0 mb-8'>
         <p className='sm:font-semibold font-semibold sm:mb-2 mb-0'>
           Current Bid
@@ -86,7 +86,7 @@ const BidMetaData = ({ auction }) => {
       </div>
       <div className='sm:ml-5 ml-0 sm:mt-0 mt-5 relative sm:bottom-6 bottom-0'>
         <div className='font-semibold mb-2'>
-          <p>Minimum</p>
+          <p className='relative' style={{ top: '6px' }}>Minimum</p>
           <p>Bid Increase</p>
         </div>
         <p className='font-bold sm:text-3xl text-sm'>

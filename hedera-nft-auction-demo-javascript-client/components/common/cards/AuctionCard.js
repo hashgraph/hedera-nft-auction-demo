@@ -2,7 +2,7 @@ import calculateTimeLeft from 'utils/calculateTimeLeft'
 import { Hbar } from '@hashgraph/sdk'
 import { useRouter } from 'next/router'
 
-const LiveAuctionCard = ({ auction, showStatus }) => {
+const LiveAuctionCard = ({ auction, showStatus, isLastItem }) => {
   const router = useRouter()
   const {
     tokenid,
@@ -59,9 +59,11 @@ const LiveAuctionCard = ({ auction, showStatus }) => {
     )
   }
 
+  const marginRightClass = isLastItem ? 'mr-0' : 'mr-10'
+
   return (
     <div
-      className='sm:mr-10 mr-0 mb-4 cursor-pointer sm:h-card h-full sm:w-card-small w-full'
+      className={`sm:${marginRightClass} mr-0 mb-4 cursor-pointer sm:h-card h-full sm:w-card-small w-full`}
       onClick={goToAuctionPage}
     >
       <div className='flex flex-col h-full shadow-card'>
@@ -75,7 +77,11 @@ const LiveAuctionCard = ({ auction, showStatus }) => {
             className='flex justify-center items-center'
             style={{ flexBasis: '75%' }}
           >
-            <img src={auctionImage} alt='live-auction-card' className='sm:py-0 py-3' />
+            <img
+              src={auctionImage}
+              alt='live-auction-card'
+              className='sm:py-0 py-3'
+            />
           </div>
           <div className='flex flex-col p-2'>
             <p className='font-bold text-card-title mb-4'>{titleToRender}</p>

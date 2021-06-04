@@ -16,14 +16,8 @@ const getFormattedTime = timestamp => {
   return dayjs(new Date(seconds * 1000)).format('LLL')
 }
 
-const BidItem = ({ bid, currentPrice }) => {
-  const {
-    timestamp,
-    bidamount,
-    bidderaccountid,
-    transactionhash,
-    transactionid,
-  } = bid
+const BidItem = ({ bid, currentPrice, isFirstItem, isLastItem }) => {
+  const { timestamp, bidamount, bidderaccountid, transactionid } = bid
   const formattedTimestamp = getFormattedTime(timestamp)
 
   const bidAmountToShow = getBidValue(bidamount)
@@ -41,36 +35,47 @@ const BidItem = ({ bid, currentPrice }) => {
     window.open(dragonGlassBaseUrl + idForDragonGlass)
   }
 
+  const getMarginClass = () => {
+    if (isFirstItem) return 'mb-8'
+    if (isLastItem) return 'mt-8'
+    return 'my-8'
+  }
+
+  const marginClass = getMarginClass()
+
   return (
     <div
-      className='flex justify-between border-l-8 my-8 px-4 shadow-bid-item items-center'
-      style={{
-        height: '4rem',
-        borderColor: '#5266F1',
-      }}
+      className={`${marginClass} shadow-bid-item sm:h-16 h-full relative flex justify-between`}
     >
-      <div>
-        <p className='font-light text-sm text-gray-400'>Bidder</p>
-        <p className='font-bold sm:text-md text-xs'>{bidderaccountid}</p>
-      </div>
-      <div>
-        <p className='font-light text-sm text-gray-400'>Date Placed</p>
-        <p className='font-bold sm:text-md text-xs'>{formattedTimestamp}</p>
-      </div>
-      <div className='flex items-center'>
-        <div>
-          <p className='font-bold text-md mx-0'>
-            {bidAmountToShow} <span className='font-light text-md'>HBAR</span>
+      <div className='bg-purple-gradient w-2 h-full absolute' />
+      <div className='flex sm:flex-row flex-col sm:items-center items-left w-full justify-between sm:ml-5 ml-7'>
+        <div className='sm:pb-0 pb-4'>
+          <p className='font-light sm:text-base text-sm text-gray-400'>
+            Bidder
           </p>
-          <p className='font-semibold text-xs mx-0 text-gray-400'>
-            ${usdValue}
-          </p>
+          <p className='font-bold sm:text-sm text-xs'>{bidderaccountid}</p>
         </div>
-        <img
-          src='/assets/view-transaction.svg'
-          onClick={handleTransactoinViewClick}
-          className='h-6 w-6 sm:ml-12 ml-2 cursor-pointer'
-        />
+        <div className='sm:pb-0 pb-4'>
+          <p className='font-light sm:text-base text-sm text-gray-400'>
+            Date Placed
+          </p>
+          <p className='font-bold sm:text-sm text-xs'>{formattedTimestamp}</p>
+        </div>
+        <div className='flex items-center sm:pb-0 pb-3'>
+          <div>
+            <p className='font-bold text-md mx-0'>
+              {bidAmountToShow} <span className='font-light text-md'>HBAR</span>
+            </p>
+            <p className='font-semibold text-xs mx-0 text-gray-400'>
+              ${usdValue}
+            </p>
+          </div>
+          <img
+            src='/assets/view-transaction.svg'
+            onClick={handleTransactoinViewClick}
+            className='h-6 w-6 sm:ml-12 ml-2 cursor-pointer sm:relative absolute top-1 right-3'
+          />
+        </div>
       </div>
     </div>
   )
@@ -109,11 +114,21 @@ const BidHistory = ({ auction }) => {
   return (
     <div className='relative'>
       <PurpleGradientBorder />
-      <h1 className='font-bold text-lg p-2'>History</h1>
-      <div className='p-2 '>
-        {bidHistory.map(bid => (
-          <BidItem bid={bid} key={bid.timestamp} currentPrice={currentPrice} />
-        ))}
+      <h1 className='font-bold text-lg pt-2 pb-6'>History</h1>
+      <div className='p-1 '>
+        {bidHistory.map((bid, index) => {
+          const isFirstItem = index === 0
+          const isLastItem = index === bidHistory.length - 1
+          return (
+            <BidItem
+              bid={bid}
+              key={bid.timestamp}
+              currentPrice={currentPrice}
+              isFirstItem={isFirstItem}
+              isLastItem={isLastItem}
+            />
+          )
+        })}
       </div>
     </div>
   )

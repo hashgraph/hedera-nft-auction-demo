@@ -64,10 +64,17 @@ const LiveAuction = () => {
             Back To Live Auction
           </button>
         </div>
-        <div className='flex flex-wrap justify-between'>
-          {liveAuctions.map(auction => (
-            <AuctionCard key={auction.id} auction={auction} />
-          ))}
+        <div className='flex flex-wrap'>
+          {liveAuctions.map((auction, index) => {
+            const isLastItem = index === liveAuctions.length - 1
+            return (
+              <AuctionCard
+                key={auction.id}
+                auction={auction}
+                isLastItem={isLastItem}
+              />
+            )
+          })}
         </div>
       </div>
     )
@@ -98,13 +105,20 @@ const LiveAuction = () => {
           <h1 className='text-md'>Live Auctions</h1>
           <ViewAllButton onClick={hanldeViewAllLiveAuctionsClick} />
         </div>
-        <div className='flex justify-start flex-wrap'>
+        <div className='flex flex-wrap'>
           {noLiveAuctionsToShow ? (
             <p className='font-thin'>No Live Auctions</p>
           ) : (
-            mostRecentLiveAuctions.map(auction => (
-              <AuctionCard key={auction.id} auction={auction} />
-            ))
+            mostRecentLiveAuctions.map((auction, index) => {
+              const isLastItem = index === mostRecentLiveAuctions.length - 1
+              return (
+                <AuctionCard
+                  key={auction.id}
+                  auction={auction}
+                  isLastItem={isLastItem}
+                />
+              )
+            })
           )}
         </div>
       </div>
@@ -117,9 +131,17 @@ const LiveAuction = () => {
           {noSoldAuctionsToShow ? (
             <p className='font-thin'>No Sold Auctions</p>
           ) : (
-            mostRecentSoldAuctions.map(auction => (
-              <AuctionCard key={auction.id} auction={auction} showStatus />
-            ))
+            mostRecentSoldAuctions.map((auction, index) => {
+              const isLastItem = index === mostRecentSoldAuctions.length - 1
+              return (
+                <AuctionCard
+                  key={auction.id}
+                  auction={auction}
+                  showStatus
+                  isLastItem={isLastItem}
+                />
+              )
+            })
           )}
         </div>
       </div>

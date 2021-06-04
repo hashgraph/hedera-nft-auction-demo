@@ -10,7 +10,17 @@ import com.hedera.demo.auction.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.scheduledoperations.TransactionScheduler;
 import com.hedera.demo.auction.app.scheduledoperations.TransactionSchedulerResult;
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.AccountBalance;
+import com.hedera.hashgraph.sdk.AccountBalanceQuery;
+import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.Client;
+import com.hedera.hashgraph.sdk.Hbar;
+import com.hedera.hashgraph.sdk.PrecheckStatusException;
+import com.hedera.hashgraph.sdk.PrivateKey;
+import com.hedera.hashgraph.sdk.Status;
+import com.hedera.hashgraph.sdk.TokenId;
+import com.hedera.hashgraph.sdk.TransactionId;
+import com.hedera.hashgraph.sdk.TransferTransaction;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
@@ -20,7 +30,11 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
 
 @Log4j2
 public class AuctionEndTransfer implements Runnable {
@@ -33,7 +47,6 @@ public class AuctionEndTransfer implements Runnable {
     private final String refundKey;
     private final int mirrorQueryFrequency;
     private final AccountId operatorId;
-    private final PrivateKey operatorKey;
 
     public enum TransferResult {
         SUCCESS,
@@ -48,7 +61,6 @@ public class AuctionEndTransfer implements Runnable {
         this.refundKey = refundKey;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.operatorId = hederaClient.operatorId();
-        this.operatorKey = hederaClient.operatorPrivateKey();
     }
 
     public void setTesting() {

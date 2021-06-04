@@ -27,8 +27,6 @@ public class ScheduleExecutor implements Runnable {
     private final AuctionsRepository auctionsRepository;
     private final ScheduledOperationsRepository scheduledOperationsRepository;
     private final PrivateKey refundKey;
-    private final AccountId operatorId;
-    private final PrivateKey operatorKey;
 
     @Var private int queryFrequency = 10 * 1000;
     private boolean runThread = true;
@@ -38,8 +36,6 @@ public class ScheduleExecutor implements Runnable {
         this.auctionsRepository = auctionsRepository;
         this.scheduledOperationsRepository = scheduledOperationsRepository;
         this.refundKey = refundKey;
-        this.operatorKey = hederaClient.operatorPrivateKey();
-        this.operatorId = hederaClient.operatorId();
     }
 
     @Override

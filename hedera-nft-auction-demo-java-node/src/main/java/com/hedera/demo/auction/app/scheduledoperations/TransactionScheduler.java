@@ -1,7 +1,17 @@
 package com.hedera.demo.auction.app.scheduledoperations;
 
 import com.hedera.demo.auction.app.HederaClient;
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.PrecheckStatusException;
+import com.hedera.hashgraph.sdk.PrivateKey;
+import com.hedera.hashgraph.sdk.ReceiptStatusException;
+import com.hedera.hashgraph.sdk.ScheduleCreateTransaction;
+import com.hedera.hashgraph.sdk.ScheduleSignTransaction;
+import com.hedera.hashgraph.sdk.Status;
+import com.hedera.hashgraph.sdk.Transaction;
+import com.hedera.hashgraph.sdk.TransactionId;
+import com.hedera.hashgraph.sdk.TransactionReceipt;
+import com.hedera.hashgraph.sdk.TransactionResponse;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.List;
@@ -54,7 +64,7 @@ public class TransactionScheduler {
             }
 
         } catch (PrecheckStatusException e) {
-            return new TransactionSchedulerResult(/* success= */false, e.status, null);
+            return new TransactionSchedulerResult(/* success= */false, e.status);
         }
     }
 
@@ -81,7 +91,7 @@ public class TransactionScheduler {
             log.error(timeoutException);
             throw timeoutException;
         } catch (PrecheckStatusException precheckStatusException) {
-            return new TransactionSchedulerResult(/* success= */false, precheckStatusException.status, null);
+            return new TransactionSchedulerResult(/* success= */false, precheckStatusException.status);
         }
     }
 
@@ -96,7 +106,7 @@ public class TransactionScheduler {
             case IDENTICAL_SCHEDULE_ALREADY_CREATED:
                 return scheduleSignTransaction(receipt);
             default:
-                return new TransactionSchedulerResult(/* success= */false, receipt.status, null);
+                return new TransactionSchedulerResult(/* success= */false, receipt.status);
         }
     }
 }

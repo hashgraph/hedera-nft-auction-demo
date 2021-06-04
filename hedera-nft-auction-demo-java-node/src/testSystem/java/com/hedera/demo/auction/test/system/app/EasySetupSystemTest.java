@@ -8,14 +8,20 @@ import com.hedera.demo.auction.app.repository.ScheduledOperationsRepository;
 import com.hedera.demo.auction.app.subscriber.TopicSubscriber;
 import com.hedera.demo.auction.test.system.AbstractSystemTest;
 import com.hedera.hashgraph.sdk.TopicId;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.time.Duration;
 import java.util.List;
 
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class EasySetupSystemTest extends AbstractSystemTest {

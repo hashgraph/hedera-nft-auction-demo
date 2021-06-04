@@ -11,19 +11,6 @@ on:
       - v*
   workflow_dispatch:
 
-name: Docker Publish short
-
-on:
-  release:
-    # Publish `master` as Docker `latest` image.
-    branches:
-      - master
-
-    # Publish `v1.2.3` tags as releases.
-    tags:
-      - v*
-  workflow_dispatch:
-
 jobs:
   # Push image to GitHub Packages.
   # See also https://docs.docker.com/docker-hub/builds/

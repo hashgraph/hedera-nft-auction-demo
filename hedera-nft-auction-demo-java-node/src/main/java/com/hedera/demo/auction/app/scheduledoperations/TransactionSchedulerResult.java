@@ -13,4 +13,8 @@ public class TransactionSchedulerResult {
         this.status = status;
         this.scheduleId = scheduleId;
     }
+    public TransactionSchedulerResult(boolean success, Status status) {
+        this.success = success;
+        this.status = status;
+    }
 }

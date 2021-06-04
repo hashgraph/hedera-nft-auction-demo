@@ -3,7 +3,11 @@ package com.hedera.demo.auction.test.system;
 import com.hedera.demo.auction.app.CreateAuctionAccount;
 import com.hedera.demo.auction.app.CreateToken;
 import com.hedera.demo.auction.app.CreateTopic;
-import com.hedera.hashgraph.sdk.*;
+import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
+import com.hedera.hashgraph.sdk.TokenId;
+import com.hedera.hashgraph.sdk.TopicId;
+import com.hedera.hashgraph.sdk.TransactionResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.junit5.VertxTestContext;
@@ -11,7 +15,10 @@ import io.vertx.junit5.VertxTestContext;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AbstractAPITester extends AbstractE2ETest {
 

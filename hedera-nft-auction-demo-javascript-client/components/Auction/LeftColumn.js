@@ -51,12 +51,12 @@ const LeftColumn = ({ auction }) => {
       <p className='font-bold text-2xl my-5'>{titleToRender}</p>
       <div className='font-thin'>
         <p className='mb-4 text-sm'>{descriptionToRender}</p>
-        <p className='mb-4 text-sm'>
+        <p className='mb-4'>
           The highest bigger on the HNFT will receive a signed print of the
           painting by the artist
         </p>
       </div>
-      <p className='font-light text-sm'>
+      <p className='font-light'>
         Edition: <span className='font-bold'>1</span>
       </p>
       <p className='visible sm:invisible font-light mb-5'>

@@ -9,7 +9,10 @@ function HederaAuctionApp({ Component, pageProps }) {
   return (
     <QueryClientProvider client={queryClient}>
       <Topbar />
-      <div style={{ minHeight: 'calc(100vh - 12rem)' }}>
+      <div
+        style={{ minHeight: 'calc(100vh - 12rem)' }}
+        className='sm:p-section-desktop p-section-mobile'
+      >
         <Component {...pageProps} />
       </div>
       <Footer />

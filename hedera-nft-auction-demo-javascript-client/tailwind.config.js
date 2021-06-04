@@ -35,7 +35,7 @@ module.exports = {
       },
       padding: {
         'section-mobile': '12.5%',
-        'section-desktop': '6.5%'
+        'section-desktop': '6.5%', 
       }
     },
   },

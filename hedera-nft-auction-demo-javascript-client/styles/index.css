@@ -144,3 +144,15 @@ input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+.theme-margin {
+  margin-left: 6.5%;
+  margin-right: 6.5%;
+}
+
+@media screen and (max-width: 640px) {
+  .theme-margin {
+    margin-left: 12.5%;
+    margin-right: 12.5%;
+  }
+}

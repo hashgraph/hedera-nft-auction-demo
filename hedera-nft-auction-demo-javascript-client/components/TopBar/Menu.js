@@ -1,4 +1,3 @@
-/* This example requires Tailwind CSS v2.0+ */
 import React from 'react'
 import { useRouter } from 'next/router'
 import CloseIcon from './assets/close_icon.svg'
@@ -32,7 +31,7 @@ const Link = ({ item, isMobile, closeMenu }) => {
   )
 }
 
-export default function Example() {
+const TopBarMenu = () => {
   const [isOpen, setOpen] = React.useState(false)
   const handleMenuToggle = () => setOpen(!isOpen)
 
@@ -49,10 +48,12 @@ export default function Example() {
     { name: 'Sold', to: '/sold', isActive: isViewingSold },
   ]
 
+  const goToHederaFAQ = () => window.open('https://help.hedera.com/', '_blank')
+
   return (
     <div
       as='nav'
-      className='sm:py-2 py-4 mx-7 bg-black text-white border-b border-indigo-500'
+      className='sm:py-2 py-4 bg-black text-white border-b border-indigo-500 theme-margin'
     >
       <div className='mx-auto'>
         <div className='relative flex items-center justify-between h-16'>
@@ -79,7 +80,11 @@ export default function Example() {
                 ))}
               </div>
             </div>
-            <ConnectWalletIcon style={{ width: '6.5rem' }} />
+            <ConnectWalletIcon
+              onClick={goToHederaFAQ}
+              style={{ width: '6.5rem' }}
+              className='cursor-pointer'
+            />
           </div>
         </div>
       </div>
@@ -93,3 +98,5 @@ export default function Example() {
     </div>
   )
 }
+
+export default TopBarMenu

@@ -18,7 +18,6 @@ const getFormattedTime = timestamp => {
 
 const BidItem = ({ bid, currentPrice, isFirstItem, isLastItem }) => {
   const { timestamp, bidamount, bidderaccountid, transactionid } = bid
-  console.log('BID', bid)
   const formattedTimestamp = getFormattedTime(timestamp)
 
   const bidAmountToShow = getBidValue(bidamount)

@@ -171,16 +171,17 @@ nano .env
 set the following properties according to your Hedera account and refund key details
 
 _Note: 
-The operator id/key is used to query the hedera network (free queries) 
-* It is also used to set the submit key for the auction topic and also for creating the auction account, submitting auction creation messages to the topic.
-* And optionally creating a token to auction, then transferring it to the auction account_
+The operator id/key is used to query the hedera network for the token's metadata if present (FileId in memo) and issue or sign scheduled transactions._
+* _It is also used by the auction administrator to set the submit key for the auction topic and also for creating the auction account and submitting auction creation messages to the topic._
+* _And optionally creating a token to auction, then transferring it to the auction account_
+
 
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
 * `REFUND_KEY=` (Same as operator key for testing purposes)
 * `TRANSFER_ON_WIN=`true
 
-You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish
+You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish (although only the hedera mirror API is supported at this time).
 
 #### Javascript UI
 
@@ -242,7 +243,7 @@ __Command line__
 ./gradlew easySetup
 ```
 
-*Note: the application wil need to be restarted to take the new topic into account*
+*Note: the application will need to be restarted to take the new topic into account*
 
 ```shell
 ./gradlew easySetup --args="--name=myToken --symbol=MTT --no-clean"
@@ -266,9 +267,9 @@ curl -H "Content-Type: application/json" -X POST -d '{"symbol":"./sample-files/g
 
 These steps will enable you to create an `initDemo.json` file (located in `./sample-files`) which you can finally use to setup a new auction.
 
-_Note: the application will need to be restarted to take the new topic into account_
-
 __Create a topic__
+
+This will create a new topic id and set the `VUE_APP_TOPIC_ID` environment variable.
 
 ```shell
 ./gradlew createTopic
@@ -303,6 +304,11 @@ Your initDemo.json file should look like this (with your own values).
 You can change some of the attribute values if you wish
 
 _Note: if the `endtimestamp` (end of auction in seconds since Epoch) is left blank, the auction will run for 48 hours from now by default._
+
+You may also specify a time delta from the consensus time of the resulting HCS message such as:
+* `2d` for two days following the consensus time
+* `1h` for one hour
+* `10m` for ten minutes
 
 ```json
 {
@@ -339,7 +345,9 @@ The examples below show curl commands, however the `hedera-nft-auction-demo-java
 
 __Create a topic__
 
-_Note: the application wil need to be restarted to take the new topic into account_
+This will create a new topic id and set the `VUE_APP_TOPIC_ID` in the `.env` file.
+
+It is now necessary to restart the application for the changes to take effect.
 
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '
@@ -681,7 +689,10 @@ be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the va
 
 * `reserve` in tinybars
 * `minimumbid` in tinybars
-* `endtimestamp` will default to 2 days in the future if not set, otherwise specify the date and time you wish the auction to end in seconds since epoch
+* `endtimestamp` will default to 2 days in the future if not set, otherwise specify the date and time you wish the auction to end in seconds since epoch or
+    * `2m` for two minutes after the consensus timestamp of the HCS message
+    * `4h` for four hours after the consensus timestamp of the HCS message
+    * `1d` for 1 day after the consensus timestamp of the HCS message
 * `winnercanbid` whether the highest bidder is allowed to place a higher bid
 * `title` and `description` for the auction (rendered in the UI)
 

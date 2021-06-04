@@ -11,62 +11,12 @@ on:
       - v*
   workflow_dispatch:
 
-name: Docker Publish short
-
-on:
-  release:
-    # Publish `master` as Docker `latest` image.
-    branches:
-      - master
-
-    # Publish `v1.2.3` tags as releases.
-    tags:
-      - v*
-  workflow_dispatch:
+env:
+  JAVA_IMAGE_NAME: hedera-nft-auction-java-node
 
 jobs:
   # Push image to GitHub Packages.
   # See also https://docs.docker.com/docker-hub/builds/
-  push_postgres_image:
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Build postgres image
-        run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/nft-auction-postgres:latest --label "runnumber=${GITHUB_RUN_ID}"
-        working-directory: docker-postgres
-
-      - name: Log into registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Push image
-        run: docker push ghcr.io/${{ github.repository }}/nft-auction-postgres:latest
-
-  #  push_ui_image:
-  #    runs-on: ubuntu-latest
-  #    permissions:
-  #      packages: write
-  #      contents: read
-  #
-  #    steps:
-  #      - name: Checkout
-  #        uses: actions/checkout@v2
-  #
-  #      - name: Build ui image
-  #        run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/nft-auction-demo-ui:latest --label "runnumber=${GITHUB_RUN_ID}"
-  #        working-directory: hedera-nft-auction-demo-javascript-client
-  #
-  #      - name: Log into registry
-  #        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-  #
-  #      - name: Push image
-  #        run: docker push ghcr.io/${{ github.repository }}/nft-auction-demo-ui:latest
-
   push_java_image:
     runs-on: ubuntu-latest
     permissions:
@@ -78,11 +28,32 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build java node image
-        run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/hedera_nft_auction_java_node:latest --label "runnumber=${GITHUB_RUN_ID}"
+        run: docker build . --file Dockerfile --tag $JAVA_IMAGE_NAME --label "runnumber=${GITHUB_RUN_ID}"
         working-directory: hedera-nft-auction-demo-java-node
 
       - name: Log into registry
+        # This is where you will update the PAT to GITHUB_TOKEN
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Push image
-        run: docker push ghcr.io/${{ github.repository }}/hedera_nft_auction_java_node:latest
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$JAVA_IMAGE_NAME
+
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          # Strip git ref prefix from version
+#          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+#          # Strip "v" prefix from tag name
+#          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+#          # Use Docker `latest` tag convention
+#          [ "$VERSION" == "master" ] && VERSION=latest
+#          echo IMAGE_ID=$IMAGE_ID
+#          echo VERSION=$VERSION
+#          docker tag $IMAGE_ID $IMAGE_ID:$VERSION
+#          docker push $IMAGE_ID:$VERSION
+
+          VERSION=latest
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+          docker tag $IMAGE_ID $IMAGE_ID:$VERSION
+          docker push $IMAGE_ID:$VERSION

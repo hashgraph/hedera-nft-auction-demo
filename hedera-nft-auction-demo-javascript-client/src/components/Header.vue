@@ -20,36 +20,48 @@
         @change="chooseMirror()"
       />
     </div>
-    <v-chip class="ma-2" v-if="topicUrl" color="green"><a :href="topicUrl" style="text-decoration: none; color: inherit;" target="_blank"><b>Auctions Topic Id: {{ topicId }}</b></a></v-chip>
-    <v-chip class="ma-2" v-else color="green"><b>Auctions Topic Id: {{ topicId }}</b></v-chip>
+    <v-chip class="ma-2" v-if="topicUrl" color="green"
+      ><a
+        :href="topicUrl"
+        style="text-decoration: none; color: inherit;"
+        target="_blank"
+        ><b>Auctions Topic Id: {{ topicId }}</b></a
+      ></v-chip
+    >
+    <v-chip class="ma-2" v-else color="green"
+      ><b>Auctions Topic Id: {{ topicId }}</b></v-chip
+    >
   </v-app-bar>
 </template>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <script>
-import {EventBus, MIRROR_SELECTION} from "@/eventBus";
+import { EventBus, MIRROR_SELECTION } from "@/eventBus";
 import { getTopicURL } from "@/utils";
 
 export default {
   name: "Header",
   data: function() {
     return {
-      mirrors: ["Kabuto","Dragonglass"],
+      mirrors: ["Kabuto", "Dragonglass"],
       topicUrl: "",
       topicId: process.env.VUE_APP_TOPIC_ID,
       mirror: "Kabuto",
-      nodeOwner: process.env.VUE_APP_NODE_OWNER !== '' ? "(".concat(process.env.VUE_APP_NODE_OWNER).concat(")") : ""
+      nodeOwner:
+        process.env.VUE_APP_NODE_OWNER !== ""
+          ? "(".concat(process.env.VUE_APP_NODE_OWNER).concat(")")
+          : ""
     };
   },
   methods: {
     chooseMirror() {
       EventBus.$emit(MIRROR_SELECTION, this.mirror);
-      this.topicUrl = getTopicURL(this.mirror,this.topicId);
+      this.topicUrl = getTopicURL(this.mirror, this.topicId);
     }
   },
   created() {
     this.chooseMirror();
-  },
+  }
 };
 </script>
 <style scoped>

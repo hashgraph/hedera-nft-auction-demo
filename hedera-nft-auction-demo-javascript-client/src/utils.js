@@ -6,24 +6,35 @@ export function notifySuccess(message) {
 
 export function timeFromSeconds(timestamp) {
   const seconds = timestamp.substr(0, timestamp.indexOf("."));
-  return new Date(seconds * 1000).toLocaleDateString().concat(" at ").concat(new Date(seconds * 1000).toLocaleTimeString());
+  return new Date(seconds * 1000)
+    .toLocaleDateString()
+    .concat(" at ")
+    .concat(new Date(seconds * 1000).toLocaleTimeString());
 }
 
 export function getMirrorURL(type, mirror, id) {
   const network = process.env.VUE_APP_NETWORK.toUpperCase();
-  if (network === 'PREVIEWNET') {
+  if (network === "PREVIEWNET") {
     return "";
   }
   if (mirror.toUpperCase() === "KABUTO") {
-    const localNetwork = (network === "MAINNET") ? "mainnet" : "testnet";
+    const localNetwork = network === "MAINNET" ? "mainnet" : "testnet";
     if (type === "transactions") {
-      return process.env.VUE_APP_EXPLORER_KABUTO.concat(localNetwork).concat("/transaction/").concat(id);
+      return process.env.VUE_APP_EXPLORER_KABUTO.concat(localNetwork)
+        .concat("/transaction/")
+        .concat(id);
     } else {
-      return process.env.VUE_APP_EXPLORER_KABUTO.concat(localNetwork).concat("/id/").concat(id);
+      return process.env.VUE_APP_EXPLORER_KABUTO.concat(localNetwork)
+        .concat("/id/")
+        .concat(id);
     }
   } else {
     let transformId = id;
-    if ((typeof (transformId) !== "undefined") && (type === "transactions") && (transformId !== "")) {
+    if (
+      typeof transformId !== "undefined" &&
+      type === "transactions" &&
+      transformId !== ""
+    ) {
       transformId = transformId.replace(/\./g, "");
       transformId = transformId.replace("-", "");
       let left = "";
@@ -42,26 +53,30 @@ export function getMirrorURL(type, mirror, id) {
       transformId = left.concat(right);
     }
     if (network === "MAINNET") {
-      return process.env.VUE_APP_EXPLORER_DRAGONGLASS_MAINNET.concat(type).concat("/").concat(transformId);
+      return process.env.VUE_APP_EXPLORER_DRAGONGLASS_MAINNET.concat(type)
+        .concat("/")
+        .concat(transformId);
     } else {
-      return process.env.VUE_APP_EXPLORER_DRAGONGLASS_TESTNET.concat(type).concat("/").concat(transformId);
+      return process.env.VUE_APP_EXPLORER_DRAGONGLASS_TESTNET.concat(type)
+        .concat("/")
+        .concat(transformId);
     }
   }
 }
 
-export function getTopicURL (mirror, topicId) {
+export function getTopicURL(mirror, topicId) {
   return getMirrorURL("topics", mirror, topicId);
 }
 
-export function getAccountUrl (mirror, accountId) {
+export function getAccountUrl(mirror, accountId) {
   return getMirrorURL("accounts", mirror, accountId);
 }
 
-export function getTokenUrl (mirror, tokenId) {
+export function getTokenUrl(mirror, tokenId) {
   return getMirrorURL("tokens", mirror, tokenId);
 }
 
-export function getTransactionURL (mirror, transactionId, transactionhash) {
+export function getTransactionURL(mirror, transactionId, transactionhash) {
   if (mirror.toUpperCase() === "KABUTO") {
     return getMirrorURL("transactions", mirror, transactionhash);
   } else {
@@ -112,12 +127,11 @@ export function secondsToParts(seconds) {
 
 export function apiEndPoint() {
   const endPoint = window.location.protocol
-      .concat('//')
-      .concat(window.location.hostname)
-      .concat(":")
-      .concat(process.env.VUE_APP_API_PORT)
-      .concat("/v1");
+    .concat("//")
+    .concat(window.location.hostname)
+    .concat(":")
+    .concat(process.env.VUE_APP_API_PORT)
+    .concat("/v1");
 
   return endPoint;
 }
-

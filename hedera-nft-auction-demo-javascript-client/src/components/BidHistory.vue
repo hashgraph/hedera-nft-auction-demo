@@ -14,7 +14,12 @@
           fixed-header
         >
           <template v-slot:item.timestamp="{ item }">
-            <a :href="transactionURL(item.transactionid, item.transactionhash)" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ timeFromSeconds(item.timestamp) }}</b></a>
+            <a
+              :href="transactionURL(item.transactionid, item.transactionhash)"
+              style="text-decoration: none; color: inherit;"
+              target="_blank"
+              ><b>{{ timeFromSeconds(item.timestamp) }}</b></a
+            >
           </template>
           <template v-slot:item.bidamount="{ item }">
             <v-chip v-if="item.status === ''" color="green">
@@ -25,7 +30,12 @@
             </v-chip>
           </template>
           <template v-slot:item.bidderaccountid="{ item }">
-            <a :href="accountURL(item.bidderaccountid)" style="text-decoration: none; color: inherit;" target="_blank"><b>{{ item.bidderaccountid }}</b></a>
+            <a
+              :href="accountURL(item.bidderaccountid)"
+              style="text-decoration: none; color: inherit;"
+              target="_blank"
+              ><b>{{ item.bidderaccountid }}</b></a
+            >
           </template>
           <template v-slot:item.status="{ item }">
             <div v-if="item.status == ''">Current leader</div>
@@ -34,7 +44,12 @@
           <template v-slot:item.refundtxid="{ item }">
             <div v-if="item.refundtxid !== ''">
               <v-chip color="green">
-                <a :href="transactionURL(item.refundtxid, item.refundtxhash)" style="text-decoration: none; color: inherit;" target="_blank"><b>Yes</b></a>
+                <a
+                  :href="transactionURL(item.refundtxid, item.refundtxhash)"
+                  style="text-decoration: none; color: inherit;"
+                  target="_blank"
+                  ><b>Yes</b></a
+                >
               </v-chip>
             </div>
             <div v-else-if="item.status !== ''">
@@ -56,13 +71,13 @@
 </template>
 
 <script>
-import {getBids} from "@/service/bids";
-import {getAccountUrl, getTransactionURL, timeFromSeconds} from "@/utils";
+import { getBids } from "@/service/bids";
+import { getAccountUrl, getTransactionURL, timeFromSeconds } from "@/utils";
 const { Hbar } = require("@hashgraph/sdk");
 
 export default {
   name: "BidHistory",
-  props: ['mirror', 'auctionid'],
+  props: ["mirror", "auctionid"],
   data: function() {
     return {
       network: process.env.VUE_APP_NETWORK,
@@ -100,7 +115,7 @@ export default {
           sortable: false
         }
       ],
-      bids: [],
+      bids: []
     };
   },
   methods: {

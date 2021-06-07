@@ -15,20 +15,15 @@
       <P v-if="loading">Auctions loading, please wait</P>
     </div>
     <div v-else-if="auctions.length !== 0">
-      <v-carousel v-model="auctionIndex" hide-delimiters height="100%" :show-arrows=showArrows>
-        <v-carousel-item
-          v-for="auction in auctions"
-          :key=auction.id
-        >
-          <v-sheet
-              height="100%"
-              color="white"
-              tile
-          >
-            <v-row
-                align="center"
-                justify="center"
-            >
+      <v-carousel
+        v-model="auctionIndex"
+        hide-delimiters
+        height="100%"
+        :show-arrows="showArrows"
+      >
+        <v-carousel-item v-for="auction in auctions" :key="auction.id">
+          <v-sheet height="100%" color="white" tile>
+            <v-row align="center" justify="center">
               <Auction
                 :tokenid="auction.tokenid"
                 :auctionaccountid="auction.auctionaccountid"
@@ -42,10 +37,7 @@
                 :transfertxhash="auction.transfertxhash"
               />
             </v-row>
-            <v-row
-                align="center"
-                justify="center"
-            >
+            <v-row align="center" justify="center">
               <HighBid
                 :status="auction.status"
                 :winningaccount="auction.winningaccount"
@@ -59,11 +51,8 @@
                 :winningtxhash="auction.winningtxhash"
               />
             </v-row>
-            <v-row
-                align="center"
-                justify="center"
-            >
-              <BidHistory :mirror="mirror" :auctionid="auction.id"/>
+            <v-row align="center" justify="center">
+              <BidHistory :mirror="mirror" :auctionid="auction.id" />
             </v-row>
           </v-sheet>
         </v-carousel-item>
@@ -86,12 +75,15 @@
 <script>
 import HighBid from "@/components/HighBid";
 import Auction from "../components/Auction";
-const {
-  Status,
-} = require("@hashgraph/sdk");
 import BidHistory from "../components/BidHistory";
-import {BUSY_EVENT, EventBus, ERROR_NOTIFICATION, FOOTER_NOTIFICATION, MIRROR_SELECTION} from "../eventBus";
-import { getAuctions} from "../service/auctions"
+import {
+  BUSY_EVENT,
+  EventBus,
+  ERROR_NOTIFICATION,
+  FOOTER_NOTIFICATION,
+  MIRROR_SELECTION
+} from "../eventBus";
+import { getAuctions } from "../service/auctions";
 import { timeFromSeconds } from "@/utils";
 
 export default {
@@ -101,8 +93,7 @@ export default {
     Auction,
     BidHistory
   },
-  computed: {
-  },
+  computed: {},
   data: function() {
     return {
       auctionIndex: -1,
@@ -126,24 +117,23 @@ export default {
   methods: {
     timeFromSeconds(timestamp) {
       return timeFromSeconds(timestamp);
-    },
+    }
   },
   async mounted() {
     this.interval = setInterval(() => {
-      if (! this.auctionQuery) {
+      if (!this.auctionQuery) {
         this.auctionQuery = true;
         getAuctions().then(refreshedAuctions => {
           this.auctions = [];
           this.message = "";
           this.auctions = refreshedAuctions;
-          this.showArrows = (this.auctions.length > 1);
+          this.showArrows = this.auctions.length > 1;
           this.auctionQuery = false;
-        })
+        });
       }
     }, 2000);
   },
   async created() {
-
     this.auctions = await getAuctions();
     this.loading = false;
 
@@ -161,7 +151,6 @@ export default {
     EventBus.$on(FOOTER_NOTIFICATION, message => {
       this.message = message;
     });
-
   },
   beforeDestroy() {
     clearInterval(this.interval);

@@ -36,33 +36,6 @@
             </v-row>
           </v-sheet>
 
-          <div
-              v-if="accountid"
-          >
-            <v-card-actions>
-              <v-btn
-                text
-                class="ma-2"
-                color="green accent-4"
-                @click="revealBids()"
-              >
-                Show history
-              </v-btn>
-              <v-spacer></v-spacer>
-              <v-btn
-                class="ma-2"
-                color="green accent-4"
-                @click="showBidDialog()"
-                v-if="status !== 'CLOSED'"
-              >
-                Bid
-              </v-btn>
-
-            </v-card-actions>
-          </div>
-          <div v-else>
-            <a :href=extensionURL target="_blank">Please install and setup this browser extension (desktop only) and reload this page in order to bid</a>
-          </div>
         </v-card-text>
       </v-card>
     </div>
@@ -93,7 +66,6 @@
 <script>
 import {getAccountUrl
   , getTransactionURL, timeFromSeconds} from "@/utils";
-import {EventBus, SHOW_BID_DLG_EVENT, SHOW_BID_HISTORY} from "@/eventBus";
 const { Hbar } = require("@hashgraph/sdk");
 
 export default {
@@ -109,13 +81,6 @@ export default {
     timeFromSeconds(timestamp) {
       return timeFromSeconds(timestamp);
     },
-    showBidDialog() {
-      const bid = {"bid": this.winningbid / 100000000, "auctionaccountid": this.auctionaccountid};
-      EventBus.$emit(SHOW_BID_DLG_EVENT, bid);
-    },
-    revealBids() {
-      EventBus.$emit(SHOW_BID_HISTORY, this.auctionid);
-    }
   },
   computed: {
     winningBidText() {

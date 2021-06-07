@@ -7,17 +7,9 @@
         color="primary"
       ></v-progress-circular>
     </v-overlay>
-    <v-snackbar
-        :value="success"
-        color="green"
-        timeout=3000
-    >Bid sent - thank you</v-snackbar>
-
     <v-alert :value="error" dense dismissible type="error">{{
       errorMessage
     }}</v-alert>
-    <Bid/>
-    <BidHistory :mirror="mirror"/>
 
     <div v-if="loading">
       <P v-if="loading">Auctions loading, please wait</P>
@@ -71,10 +63,7 @@
                 align="center"
                 justify="center"
             >
-              <LastBid
-                :auctionid="auction.id"
-                :accountid="accountId"
-              />
+              <BidHistory :mirror="mirror" :auctionid="auction.id"/>
             </v-row>
           </v-sheet>
         </v-carousel-item>
@@ -97,33 +86,25 @@
 <script>
 import HighBid from "@/components/HighBid";
 import Auction from "../components/Auction";
-import LastBid from "../components/LastBid";
 const {
-  Client,
   Status,
-  TransferTransaction
 } = require("@hashgraph/sdk");
-import Bid from "../components/Bid";
 import BidHistory from "../components/BidHistory";
-import {BUSY_EVENT, EventBus, ERROR_NOTIFICATION, SENDBID, FOOTER_NOTIFICATION, MIRROR_SELECTION} from "../eventBus";
+import {BUSY_EVENT, EventBus, ERROR_NOTIFICATION, FOOTER_NOTIFICATION, MIRROR_SELECTION} from "../eventBus";
 import { getAuctions} from "../service/auctions"
 import { timeFromSeconds } from "@/utils";
 
 export default {
   name: "Dashboard",
   components: {
-    LastBid,
     HighBid,
     Auction,
-    Bid,
     BidHistory
   },
   computed: {
   },
   data: function() {
     return {
-      confetti: false,
-      confettiAllowed: [],
       auctionIndex: -1,
       auctions: null,
       message: "",
@@ -131,8 +112,6 @@ export default {
       textColor: "white--text",
       busy: false,
       loading: true,
-      wallet: null,
-      provider: null,
       success: false,
       error: false,
       errorMessage: "",
@@ -145,105 +124,9 @@ export default {
     };
   },
   methods: {
-    confettiOnOff() {
-      if (typeof (this.accountId) == "undefined") {
-        this.$confetti.stop();
-      } else {
-        if ((this.auctions.length > 0) && (this.auctionIndex !== -1)) {
-          if (this.auctions[this.auctionIndex].winningaccount === this.accountId) {
-            this.startConfetti(this.auctionIndex);
-          } else {
-            // this is to prevent confetti being displayed more than 5s
-            // after winning
-            this.confettiAllowed[this.auctionIndex] = true;
-            this.stopConfetti();
-          }
-        } else {
-          this.stopConfetti();
-        }
-      }
-    },
-    startConfetti() {
-      if ( ! this.confetti) {
-        if ((typeof (this.confettiAllowed[this.auctionIndex]) === "undefined") || (this.confettiAllowed[this.auctionIndex])) {
-          // this is to prevent confetti being displayed more than 5s
-          // after winning
-          this.confettiAllowed[this.auctionIndex] = false;
-          this.confetti = true;
-          this.$confetti.start({
-            particlesPerFrame: 0.2,
-          });
-
-          setTimeout( () => {
-          // this is to prevent confetti being displayed more than 5s
-            // after winning
-            this.stopConfetti();
-          }, 5000);
-        }
-      }
-    },
-    stopConfetti() {
-      if (this.confetti) {
-        this.confettiAllowed[this.auctionIndex] = false;
-        this.confetti = false;
-        this.$confetti.stop();
-      }
-    },
     timeFromSeconds(timestamp) {
       return timeFromSeconds(timestamp);
     },
-    async sendBid(bid, auctionAccountId) {
-      this.busy = true;
-      try {
-        this.message = "Preparing Bid Transaction";
-        let client = Client.forTestnet();
-        if (process.env.VUE_APP_NETWORK.toUpperCase() === 'MAINNET') {
-          client = Client.forMainnet();
-        } else if (process.env.VUE_APP_NETWORK.toUpperCase() === 'PREVIEWNET') {
-          client = Client.forPreviewnet();
-        }
-        if (this.account) {
-          client.setOperatorWith(this.account.id, this.account.publicKey, this.provider);
-          this.message = "Signing Bid Transaction";
-          const toExecute = await new TransferTransaction()
-            .addHbarTransfer(this.account.id, -bid)
-            .addHbarTransfer(auctionAccountId, bid)
-            .freezeWith(client)
-            .signWithOperator(client).catch(err => {
-              this.message = err.message
-              return null;
-            });
-
-          if (toExecute) {
-            this.message = "Sending Bid Transaction to Hedera";
-            const executed = await toExecute.execute(client);
-
-            // reset client so receipt request doesn't prompt for signature
-            this.message = "Fetching Receipt";
-            client = Client.forTestnet();
-            if (process.env.VUE_APP_NETWORK.toUpperCase() === 'MAINNET') {
-              client = Client.forMainnet();
-            } else if (process.env.VUE_APP_NETWORK.toUpperCase() === 'PREVIEWNET') {
-              client = Client.forPreviewnet();
-            }
-            const receipt = await executed.getReceipt(client);
-            this.message = "";
-            if (receipt.status == Status.Success) {
-              this.success = true;
-              setTimeout(() => (this.success = false), 2000);
-            } else {
-              this.error = true;
-              this.errorMessage = receipt.status.toString();
-            }
-          }
-        } else {
-          this.message = "Unable to login with extension - bid aborted";
-        }
-      } catch (e) {
-        this.message = e.toString();
-      }
-      this.busy = false;
-    }
   },
   async mounted() {
     this.interval = setInterval(() => {
@@ -255,7 +138,6 @@ export default {
           this.auctions = refreshedAuctions;
           this.showArrows = (this.auctions.length > 1);
           this.auctionQuery = false;
-          this.confettiOnOff();
         })
       }
     }, 2000);
@@ -272,9 +154,6 @@ export default {
     EventBus.$on(BUSY_EVENT, busy => {
       this.busy = busy;
     });
-    EventBus.$on(SENDBID, bid => {
-      this.sendBid(bid.bid, bid.auctionaccountid);
-    });
     EventBus.$on(ERROR_NOTIFICATION, error => {
       this.error = true;
       this.errorMessage = error;
@@ -283,23 +162,6 @@ export default {
       this.message = message;
     });
 
-    if (this.wallet === null) {
-      document.addEventListener("hederaWalletLoaded", async () => {
-        this.wallet = window.wallet;
-
-        try {
-          let network = process.env.VUE_APP_NETWORK;
-          network = network.charAt(0).toUpperCase() + network.slice(1);
-          this.account = await this.wallet.login(network);
-          this.accountId = this.account.id;
-          this.provider = this.wallet.getTransactionSigner();
-        } catch (e) {
-          this.message = "Unable to login with extension - ".concat(e.message);
-          this.accountId = undefined;
-        }
-
-      });
-    }
   },
   beforeDestroy() {
     clearInterval(this.interval);

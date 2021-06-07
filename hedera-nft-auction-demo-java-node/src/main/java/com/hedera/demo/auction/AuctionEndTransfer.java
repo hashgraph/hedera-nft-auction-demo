@@ -108,7 +108,11 @@ public class AuctionEndTransfer implements Runnable {
                                 if (! StringUtils.isEmpty(this.refundKey)) {
                                     log.debug("Transferring token");
                                     delay = transferToken(auction);
-                                    log.debug("Token transfer started");
+                                    if (! delay) {
+                                        log.debug("Token transfer started");
+                                    } else {
+                                        log.debug("Token transfer delayed");
+                                    }
                                 }
                                 break;
                             case SUCCESS:

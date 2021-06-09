@@ -61,6 +61,8 @@ public class PostAuctionHandler implements Handler<RoutingContext> {
                 auction.put("minimumbid", data.minimumbid);
                 auction.put("endtimestamp", data.endtimestamp);
                 auction.put("winnercanbid", data.winnercanbid);
+                auction.put("title", data.title);
+                auction.put("description", data.description);
 
                 // store auction data in initDemo.json file
                 FileWriter myWriter = new FileWriter(fileName, UTF_8);

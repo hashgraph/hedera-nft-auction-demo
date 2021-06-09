@@ -13,7 +13,6 @@ import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.Hbar;
 import com.hedera.hashgraph.sdk.PrivateKey;
-import com.hedera.hashgraph.sdk.Status;
 import com.hedera.hashgraph.sdk.TransactionId;
 import com.hedera.hashgraph.sdk.TransferTransaction;
 import lombok.extern.log4j.Log4j2;
@@ -85,17 +84,13 @@ public class Refunder implements Runnable {
 
     private void issueRefund(String auctionAccount, Bid bid) {
         @Var boolean refundIsInProgress = false;
-        @Var boolean delayRefund = false;
 
         AccountId auctionAccountId = AccountId.fromString(auctionAccount);
 
         log.info("Refunding " + bid.getBidamount() + " from " + auctionAccount + " to " + bid.getBidderaccountid());
         String memo = Bid.REFUND_MEMO_PREFIX.concat(bid.getTransactionid());
         // issue refund
-
-//        String txId = auctionAccount.concat("@").concat(bid.getTimestampforrefund());
-        String txId = hederaClient.operatorId().toString().concat("@").concat(bid.getTimestampforrefund());
-        TransactionId transactionId = TransactionId.fromString(txId);
+        TransactionId transactionId = TransactionId.generate(hederaClient.operatorId());
         transactionId.setScheduled(true);
         String shortTransactionId = transactionId.toString().replace("?scheduled", "");
 
@@ -116,8 +111,6 @@ public class Refunder implements Runnable {
                 if (transactionSchedulerResult.success) {
                     refundIsInProgress = true;
                     log.info("Refund transaction successfully scheduled (id " + shortTransactionId + ")");
-                } else if (transactionSchedulerResult.status == Status.TRANSACTION_EXPIRED) {
-                    delayRefund = true;
                 } else {
                     log.error("Error issuing refund to bid - timestamp = " + bid.getTimestamp());
                     log.error(transactionSchedulerResult.status);
@@ -129,20 +122,6 @@ public class Refunder implements Runnable {
             if (refundIsInProgress) {
                 log.info("setting bid to refund in progress (timestamp = " + bid.getTimestamp() + ")");
                 setRefundInProgress(bid);
-            }
-            if (delayRefund) {
-                // the bid's timestamp is too far in the past for a deterministic transaction id, add 30s and let the process
-                // try again later
-                log.info("delaying bid refund (timestamp = " + bid.getTimestamp() + ")");
-                String bidTimeStamp = bid.getTimestamp();
-                String bidRefundTimeStamp = Utils.addToTimestamp(bid.getTimestampforrefund(), 30);
-
-                try {
-                    bidsRepository.setBidRefundTimestamp(bidTimeStamp, bidRefundTimeStamp);
-                } catch (SQLException sqlException) {
-                    log.error("Unable to set bid next refund timestamp - bid timestamp = " + bidTimeStamp);
-                    log.error(sqlException);
-                }
             }
         }
     }

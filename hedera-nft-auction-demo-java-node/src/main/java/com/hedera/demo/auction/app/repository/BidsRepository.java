@@ -5,8 +5,11 @@ import com.hedera.demo.auction.app.SqlConnectionManager;
 import com.hedera.demo.auction.app.db.Tables;
 import com.hedera.demo.auction.app.domain.Bid;
 import lombok.extern.log4j.Log4j2;
+import org.jooq.Configuration;
+import org.jooq.DSLContext;
 import org.jooq.Record;
-import org.jooq.*;
+import org.jooq.Record1;
+import org.jooq.Result;
 import org.jooq.exception.DataAccessException;
 
 import javax.annotation.Nullable;

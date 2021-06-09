@@ -47,11 +47,20 @@ export function getMirrorURL(type, mirror, id) {
         right = transformId.substr(transformId.indexOf("-") + 1);
       }
 
-      while (right.charAt(0) === "0") {
-        right = right.substr(1);
+      if (right === "000000000") {
+        right = "0";
+      } else {
+        while (right.charAt(0) === "0") {
+          right = right.substr(1);
+        }
       }
+
       transformId = left.concat(right);
     }
+    //0.0.1865125-1623235870-000000000
+    //0018651251623235870-000000000
+    //https://testnet.dragonglass.me/hedera/transactions/0018651251623235870
+    // transformId = transformId.replace('','0')
     if (network === "MAINNET") {
       return process.env.VUE_APP_EXPLORER_DRAGONGLASS_MAINNET.concat(type)
         .concat("/")

@@ -176,8 +176,23 @@ public class AuctionEndTransfer implements Runnable {
                 try {
                     Client client = hederaClient.auctionClient(auctionAccountId, PrivateKey.fromString(refundKey));
                     String memo = "Token transfer from auction";
-                    //TODO: Use transferTimestamp (which also needs to be set when TRANSFERRING earlier)
-//                    String txId = auction.getAuctionaccountid().concat("@").concat(auction.getTransfertimestamp());
+
+                    String txTimestamp = auction.getTransfertimestamp();
+
+                    // query mirror for a TOKENASSOCIATE Transaction from the winning account
+                    // just in case this is greater than the auction's transfer timestamp
+                    // this will accelerate the catch up that may be necessary if the winning bid
+                    // was significantly earlier than the token association
+
+                    String associateTimeStamp = getTokenAssociateTimestamp(auction);
+                    if (associateTimeStamp.compareTo(txTimestamp) > 0) {
+                        // association time is greater than auction end timestamp
+                        log.debug("association time greater than auction end, updating auction");
+                        auction.setTransfertimestamp(associateTimeStamp);
+                        // update the auction in the database
+                        auctionsRepository.setTransferTimestamp(auction.getId(), associateTimeStamp);
+                    }
+
                     String txId = operatorId.toString().concat("@").concat(auction.getTransfertimestamp());
                     TransactionId transactionId = TransactionId.fromString(txId);
                     transactionId.setScheduled(true);
@@ -315,5 +330,41 @@ public class AuctionEndTransfer implements Runnable {
         return result;
     }
 
+    private String getTokenAssociateTimestamp(Auction auction) {
+        String uri = "/api/v1/transactions";
 
+        log.debug("getTokenAssociateTimestamp");
+        if (StringUtils.isEmpty(auction.getWinningaccount())) {
+            log.debug("No winner, token already associated to owner.");
+            return "";
+        }
+
+        @Var String timestamp = "";
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        Map<String, String> queryParameters = new HashMap<>();
+        queryParameters.put("account.id", auction.getWinningaccount());
+        queryParameters.put("transactiontype", "TOKENASSOCIATE");
+        queryParameters.put("order", "desc");
+        queryParameters.put("limit", "1");
+
+        log.debug("querying mirror for last token association " + queryParameters.get("account.id"));
+        Future<JsonObject> future = executor.submit(Utils.queryMirror(webClient, hederaClient, uri, queryParameters));
+        try {
+            JsonObject response = future.get();
+            if (response != null) {
+                MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
+                if (mirrorTransactions.transactions.size() > 0) {
+                    timestamp = mirrorTransactions.transactions.get(0).consensusTimestamp;
+                }
+            }
+        } catch (InterruptedException interruptedException) {
+            log.error(interruptedException);
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException executionException) {
+            log.error(executionException);
+        }
+
+        executor.shutdown();
+        return timestamp;
+    }
 }

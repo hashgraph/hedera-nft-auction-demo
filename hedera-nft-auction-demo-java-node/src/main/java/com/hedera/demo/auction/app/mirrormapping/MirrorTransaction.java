@@ -46,7 +46,6 @@ public class MirrorTransaction {
     public List<MirrorTokenTransfer> tokenTransfers = new ArrayList<>();
 
     public String payer() {
-        //TODO: Kabuto and Dragonglass
         String id = this.transactionId;
         return id.substring(0, id.indexOf("-"));
     }

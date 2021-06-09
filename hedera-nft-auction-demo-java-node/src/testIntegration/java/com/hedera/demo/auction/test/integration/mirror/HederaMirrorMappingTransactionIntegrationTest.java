@@ -72,7 +72,6 @@ public class HederaMirrorMappingTransactionIntegrationTest extends AbstractMirro
             assertEquals(hbarTransfers.getJsonObject(i).getString("account"), mirrorTransaction.hbarTransfers.get(i).account);
             assertEquals((long)hbarTransfers.getJsonObject(i).getLong("amount"), mirrorTransaction.hbarTransfers.get(i).amount);
         }
-        //TODO: Would be good to get a mirror response containing token_Transfers which is not guaranteed
         if (transaction.containsKey("token_transfers")) {
             JsonArray tokenTransfers = transaction.getJsonArray("token_transfers");
             assertEquals(tokenTransfers.size(), mirrorTransaction.tokenTransfers.size());

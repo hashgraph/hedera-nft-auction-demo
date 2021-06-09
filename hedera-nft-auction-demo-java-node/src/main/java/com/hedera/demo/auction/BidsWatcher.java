@@ -13,6 +13,7 @@ import com.hedera.demo.auction.app.repository.BidsRepository;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
+import org.jooq.DSLContext;
 import org.jooq.tools.StringUtils;
 
 import java.sql.SQLException;
@@ -195,11 +196,12 @@ public class BidsWatcher implements Runnable {
                 }
             }
 
-            //TODO: update auction and bid in a single tx
+            @Var boolean updatePriorBid = false;
+            Bid priorBid = new Bid();
+
             if (StringUtils.isEmpty(rejectReason)) {
                 // we have a winner
                 // update prior winning bid
-                Bid priorBid = new Bid();
                 // setting the timestamp for refund to match the winning timestamp
                 // will accelerate the refund (avoids repeated EXPIRED_TRANSACTIONS when refunding)
                 priorBid.setTimestampforrefund(transaction.consensusTimestamp);
@@ -212,7 +214,6 @@ public class BidsWatcher implements Runnable {
                 } else {
                     priorBid.setRefundstatus(Bid.REFUND_PENDING);
                 }
-                bidsRepository.setStatus(priorBid);
 
                 // update the auction
                 this.auction.setWinningtimestamp(transaction.consensusTimestamp);
@@ -220,26 +221,39 @@ public class BidsWatcher implements Runnable {
                 this.auction.setWinningbid(bidAmount);
                 this.auction.setWinningtxid(transaction.transactionId);
                 this.auction.setWinningtxhash(transaction.getTransactionHashString());
-                auctionsRepository.save(this.auction);
+                updatePriorBid = true;
             }
 
+            Bid newBid = new Bid();
             if (bidAmount > 0) {
                 // store the bid
-                Bid currentBid = new Bid();
-                currentBid.setBidamount(bidAmount);
-                currentBid.setAuctionid(this.auction.getId());
-                currentBid.setBidderaccountid(transaction.payer());
-                currentBid.setTimestamp(transaction.consensusTimestamp);
-                currentBid.setStatus(rejectReason);
-                currentBid.setTransactionid(transaction.transactionId);
-                currentBid.setTransactionhash(transaction.getTransactionHashString());
+                newBid.setBidamount(bidAmount);
+                newBid.setAuctionid(this.auction.getId());
+                newBid.setBidderaccountid(transaction.payer());
+                newBid.setTimestamp(transaction.consensusTimestamp);
+                newBid.setStatus(rejectReason);
+                newBid.setTransactionid(transaction.transactionId);
+                newBid.setTransactionhash(transaction.getTransactionHashString());
                 if (refund) {
-                    currentBid.setRefundstatus(Bid.REFUND_PENDING);
+                    newBid.setRefundstatus(Bid.REFUND_PENDING);
                 }
-                bidsRepository.add(currentBid);
             } else {
                 log.info("Bid amount " + bidAmount + " less than or equal to 0, not recording bid");
             }
+
+            DSLContext cx = auctionsRepository.connectionManager.dsl();
+            boolean finalUpdatePriorBid = updatePriorBid;
+            long finalBidAmount = bidAmount;
+            cx.transaction(dbTransaction -> {
+                if (finalUpdatePriorBid) {
+                    bidsRepository.setStatus(priorBid, dbTransaction);
+                    auctionsRepository.save(this.auction, dbTransaction);
+                }
+                if (finalBidAmount > 0) {
+                    bidsRepository.add(newBid, dbTransaction);
+                }
+            });
+            cx.close();
         } else {
             log.debug("Transaction Id " + transaction.transactionId + " status not SUCCESS.");
         }

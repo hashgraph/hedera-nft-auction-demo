@@ -4,6 +4,7 @@ import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.SqlConnectionManager;
 import com.hedera.demo.auction.app.domain.Auction;
 import lombok.extern.log4j.Log4j2;
+import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
@@ -19,7 +20,7 @@ import static com.hedera.demo.auction.app.db.Tables.AUCTIONS;
 
 @Log4j2
 public class AuctionsRepository {
-    private final SqlConnectionManager connectionManager;
+    public final SqlConnectionManager connectionManager;
 
     public AuctionsRepository(SqlConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
@@ -211,7 +212,14 @@ public class AuctionsRepository {
 
     public void save(Auction auction) throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        cx.update(AUCTIONS)
+        cx.transaction( transaction -> {
+            save(auction, transaction);
+        });
+        cx.close();
+    }
+
+    public void save(Auction auction, Configuration configuration) {
+        configuration.dsl().update(AUCTIONS)
                 .set(AUCTIONS.LASTCONSENSUSTIMESTAMP, auction.getLastconsensustimestamp())
                 .set(AUCTIONS.WINNINGACCOUNT, auction.getWinningaccount())
                 .set(AUCTIONS.WINNINGBID, auction.getWinningbid())
@@ -270,6 +278,7 @@ public class AuctionsRepository {
                 .where(AUCTIONS.STATUS.eq(Auction.ACTIVE))
                 .or(AUCTIONS.STATUS.eq(Auction.PENDING))
                 .fetchMap(AUCTIONS.ENDTIMESTAMP, AUCTIONS.ID);
+        cx.close();
         return rows;
     }
 

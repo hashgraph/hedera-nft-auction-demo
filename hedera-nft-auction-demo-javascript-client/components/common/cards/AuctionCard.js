@@ -80,7 +80,7 @@ const LiveAuctionCard = ({ auction, showStatus, isLastItem }) => {
             <img
               src={auctionImage}
               alt='live-auction-card'
-              className='sm:py-0 py-3'
+              className='sm:py-0 py-3 max-h-40'
             />
           </div>
           <div className='flex flex-col p-2'>

@@ -21,6 +21,7 @@ services:
   postgres-production:
     container_name: nft-auction-postgres-prod
     image: ghcr.io/hashgraph/hedera-nft-auction-demo/nft-auction-postgres:latest
+    pull_policy: always
     restart: unless-stopped
     environment:
       - POSTGRES_USER=postgres
@@ -62,6 +63,7 @@ services:
   node-production:
     container_name: nft-auction-node-prod
     image: ghcr.io/hashgraph/hedera-nft-auction-demo/hedera_nft_auction_java_node:latest
+    pull_policy: always
     restart: unless-stopped
     environment:
       # Database connection
@@ -118,6 +120,7 @@ services:
   rest-production:
     container_name: nft-auction-node-api-prod
     image: ghcr.io/hashgraph/hedera-nft-auction-demo/hedera_nft_auction_java_node:latest
+    pull_policy: always
     restart: unless-stopped
     environment:
       # Run API only

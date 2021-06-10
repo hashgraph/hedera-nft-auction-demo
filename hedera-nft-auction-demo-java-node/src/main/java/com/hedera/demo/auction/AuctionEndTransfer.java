@@ -17,7 +17,6 @@ import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.Hbar;
 import com.hedera.hashgraph.sdk.PrecheckStatusException;
 import com.hedera.hashgraph.sdk.PrivateKey;
-import com.hedera.hashgraph.sdk.Status;
 import com.hedera.hashgraph.sdk.TokenId;
 import com.hedera.hashgraph.sdk.TransactionId;
 import com.hedera.hashgraph.sdk.TransferTransaction;
@@ -76,7 +75,6 @@ public class AuctionEndTransfer implements Runnable {
             try {
                 List<Auction> auctionsList = auctionsRepository.getAuctionsList();
                 for (Auction auction: auctionsList) {
-                    @Var boolean delay = false;
                     if (auction.isClosed() && StringUtils.isEmpty(auction.getTransferstatus())) {
                         log.debug("auction closed " + auction.getAuctionaccountid());
                         // auction is closed, check association between token and winner
@@ -107,12 +105,8 @@ public class AuctionEndTransfer implements Runnable {
                                 // transfer the token
                                 if (! StringUtils.isEmpty(this.refundKey)) {
                                     log.debug("Transferring token");
-                                    delay = transferToken(auction);
-                                    if (! delay) {
-                                        log.debug("Token transfer started");
-                                    } else {
-                                        log.debug("Token transfer delayed");
-                                    }
+                                    transferToken(auction);
+                                    log.debug("Token transfer started");
                                 }
                                 break;
                             case SUCCESS:
@@ -122,9 +116,7 @@ public class AuctionEndTransfer implements Runnable {
                                 break;
                         }
                     }
-                    if (! delay) {
-                        Utils.sleep(this.mirrorQueryFrequency);
-                    }
+                    Utils.sleep(this.mirrorQueryFrequency);
                 }
             } catch (SQLException sqlException) {
                 log.error("Failed to fetch auctions");
@@ -158,9 +150,8 @@ public class AuctionEndTransfer implements Runnable {
         }
     }
 
-    public boolean transferToken(Auction auction) {
+    public void transferToken(Auction auction) {
         @Var boolean transferInProgress = false;
-        @Var boolean delayTransfer = false;
 
         TokenId tokenId = TokenId.fromString(auction.getTokenid());
         if (!StringUtils.isEmpty(auction.getTokenowneraccount())) {
@@ -177,24 +168,7 @@ public class AuctionEndTransfer implements Runnable {
                     Client client = hederaClient.auctionClient(auctionAccountId, PrivateKey.fromString(refundKey));
                     String memo = "Token transfer from auction";
 
-                    String txTimestamp = auction.getTransfertimestamp();
-
-                    // query mirror for a TOKENASSOCIATE Transaction from the winning account
-                    // just in case this is greater than the auction's transfer timestamp
-                    // this will accelerate the catch up that may be necessary if the winning bid
-                    // was significantly earlier than the token association
-
-                    String associateTimeStamp = getTokenAssociateTimestamp(auction);
-                    if (associateTimeStamp.compareTo(txTimestamp) > 0) {
-                        // association time is greater than auction end timestamp
-                        log.debug("association time greater than auction end, updating auction");
-                        auction.setTransfertimestamp(associateTimeStamp);
-                        // update the auction in the database
-                        auctionsRepository.setTransferTimestamp(auction.getId(), associateTimeStamp);
-                    }
-
-                    String txId = operatorId.toString().concat("@").concat(auction.getTransfertimestamp());
-                    TransactionId transactionId = TransactionId.fromString(txId);
+                    TransactionId transactionId = TransactionId.generate(operatorId);
                     transactionId.setScheduled(true);
                     String shortTransactionId = transactionId.toString().replace("?scheduled", "");
 
@@ -213,9 +187,6 @@ public class AuctionEndTransfer implements Runnable {
                         if (transactionSchedulerResult.success) {
                             transferInProgress = true;
                             log.info("token transfer scheduled (id " + shortTransactionId + ")");
-                        } else if (transactionSchedulerResult.status == Status.TRANSACTION_EXPIRED) {
-                            log.warn("token transfer scheduled transaction expired, delaying re-submission");
-                            delayTransfer = true;
                         } else {
                             log.error("error transferring token to winner auction: " + auction.getAuctionaccountid());
                             log.error(transactionSchedulerResult.status);
@@ -240,19 +211,6 @@ public class AuctionEndTransfer implements Runnable {
                     log.error(e);
                 }
             }
-            if (delayTransfer) {
-                // the transfer timestamp is too far in the past for a deterministic transaction id, add 30s and let the process
-                // try again later
-                log.info("delaying token transfer (auction = " + auction.getAuctionaccountid() + ")");
-                String transferTimestamp = Utils.addToTimestamp(auction.getTransfertimestamp(), 30);
-
-                try {
-                    auctionsRepository.setTransferTimestamp(auction.getId(), transferTimestamp);
-                } catch (SQLException sqlException) {
-                    log.error("unable to set auction next transfer timestamp (auction = " + auction.getAuctionaccountid() + ")");
-                    log.error(sqlException);
-                }
-            }
         } else {
             log.error("Token owner for auction id " + auction.getId() + " is not set.");
             try {
@@ -262,7 +220,6 @@ public class AuctionEndTransfer implements Runnable {
                 log.error(sqlException);
             }
         }
-        return delayTransfer;
     }
 
     private  TransferResult transferOccurredAlready(MirrorTransactions mirrorTransactions, String tokenId) {
@@ -328,43 +285,5 @@ public class AuctionEndTransfer implements Runnable {
         }
         executor.shutdown();
         return result;
-    }
-
-    private String getTokenAssociateTimestamp(Auction auction) {
-        String uri = "/api/v1/transactions";
-
-        log.debug("getTokenAssociateTimestamp");
-        if (StringUtils.isEmpty(auction.getWinningaccount())) {
-            log.debug("No winner, token already associated to owner.");
-            return "";
-        }
-
-        @Var String timestamp = "";
-        ExecutorService executor = Executors.newFixedThreadPool(1);
-        Map<String, String> queryParameters = new HashMap<>();
-        queryParameters.put("account.id", auction.getWinningaccount());
-        queryParameters.put("transactiontype", "TOKENASSOCIATE");
-        queryParameters.put("order", "desc");
-        queryParameters.put("limit", "1");
-
-        log.debug("querying mirror for last token association " + queryParameters.get("account.id"));
-        Future<JsonObject> future = executor.submit(Utils.queryMirror(webClient, hederaClient, uri, queryParameters));
-        try {
-            JsonObject response = future.get();
-            if (response != null) {
-                MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
-                if (mirrorTransactions.transactions.size() > 0) {
-                    timestamp = mirrorTransactions.transactions.get(0).consensusTimestamp;
-                }
-            }
-        } catch (InterruptedException interruptedException) {
-            log.error(interruptedException);
-            Thread.currentThread().interrupt();
-        } catch (ExecutionException executionException) {
-            log.error(executionException);
-        }
-
-        executor.shutdown();
-        return timestamp;
     }
 }

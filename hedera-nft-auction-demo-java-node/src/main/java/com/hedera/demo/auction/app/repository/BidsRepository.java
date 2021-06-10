@@ -5,6 +5,7 @@ import com.hedera.demo.auction.app.SqlConnectionManager;
 import com.hedera.demo.auction.app.db.Tables;
 import com.hedera.demo.auction.app.domain.Bid;
 import lombok.extern.log4j.Log4j2;
+import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Record1;
@@ -93,15 +94,25 @@ public class BidsRepository {
         cx.close();
     }
 
-    public boolean setStatus(Bid bid) throws SQLException {
-        DSLContext cx = connectionManager.dsl();
-        cx.update(Tables.BIDS)
+    public void setStatus(Bid bid, Configuration configuration) {
+        configuration.dsl().update(Tables.BIDS)
                 .set(Tables.BIDS.STATUS, bid.getStatus())
                 .set(Tables.BIDS.REFUNDSTATUS, bid.getRefundstatus())
                 .set(Tables.BIDS.TIMESTAMPFORREFUND, bid.getTimestampforrefund())
                 .where(Tables.BIDS.TIMESTAMP.eq(bid.getTimestamp()))
                 .execute();
-        return true;
+    }
+    public void setStatus(Bid bid) throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+        cx.transaction(transaction -> {
+            setStatus(bid, transaction);
+        });
+//        cx.update(Tables.BIDS)
+//                .set(Tables.BIDS.STATUS, bid.getStatus())
+//                .set(Tables.BIDS.REFUNDSTATUS, bid.getRefundstatus())
+//                .set(Tables.BIDS.TIMESTAMPFORREFUND, bid.getTimestampforrefund())
+//                .where(Tables.BIDS.TIMESTAMP.eq(bid.getTimestamp()))
+//                .execute();
     }
 
     public void setRefundIssued(String consensusTimestamp) throws SQLException {
@@ -147,32 +158,38 @@ public class BidsRepository {
         cx.close();
     }
 
+    public void add(Bid bid, Configuration configuration) {
+        configuration.dsl().insertInto(Tables.BIDS,
+                Tables.BIDS.AUCTIONID,
+                Tables.BIDS.STATUS,
+                Tables.BIDS.TIMESTAMP,
+                Tables.BIDS.BIDAMOUNT,
+                Tables.BIDS.BIDDERACCOUNTID,
+                Tables.BIDS.TRANSACTIONID,
+                Tables.BIDS.TRANSACTIONHASH,
+                Tables.BIDS.REFUNDSTATUS,
+                Tables.BIDS.TIMESTAMPFORREFUND
+        ).values(
+                bid.getAuctionid(),
+                bid.getStatus(),
+                bid.getTimestamp(),
+                bid.getBidamount(),
+                bid.getBidderaccountid(),
+                bid.getTransactionid(),
+                bid.getTransactionhash(),
+                bid.getRefundstatus(),
+                bid.getTimestamp()
+        ).execute();
+    }
+
     public boolean add(Bid bid) throws SQLException {
         @Var DSLContext cx = null;
         @Var boolean result = false;
         try {
             cx = connectionManager.dsl();
-            cx.insertInto(Tables.BIDS,
-                    Tables.BIDS.AUCTIONID,
-                    Tables.BIDS.STATUS,
-                    Tables.BIDS.TIMESTAMP,
-                    Tables.BIDS.BIDAMOUNT,
-                    Tables.BIDS.BIDDERACCOUNTID,
-                    Tables.BIDS.TRANSACTIONID,
-                    Tables.BIDS.TRANSACTIONHASH,
-                    Tables.BIDS.REFUNDSTATUS,
-                    Tables.BIDS.TIMESTAMPFORREFUND
-            ).values(
-                    bid.getAuctionid(),
-                    bid.getStatus(),
-                    bid.getTimestamp(),
-                    bid.getBidamount(),
-                    bid.getBidderaccountid(),
-                    bid.getTransactionid(),
-                    bid.getTransactionhash(),
-                    bid.getRefundstatus(),
-                    bid.getTimestamp()
-            ).execute();
+            cx.transaction(transaction -> {
+                add(bid, transaction);
+            });
             result = true;
         } catch (DataAccessException e) {
             log.info("Bid already in database");

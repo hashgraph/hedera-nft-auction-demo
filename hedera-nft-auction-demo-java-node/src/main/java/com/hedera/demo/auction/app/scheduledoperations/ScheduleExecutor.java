@@ -2,15 +2,14 @@ package com.hedera.demo.auction.app.scheduledoperations;
 
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.HederaClient;
+import com.hedera.demo.auction.app.Utils;
 import com.hedera.demo.auction.app.domain.Auction;
+import com.hedera.demo.auction.app.domain.ScheduledOperation;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.ScheduledOperationsRepository;
-import com.hedera.demo.auction.app.Utils;
-import com.hedera.demo.auction.app.domain.ScheduledOperation;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Hbar;
 import com.hedera.hashgraph.sdk.PrivateKey;
-import com.hedera.hashgraph.sdk.Status;
 import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
 import com.hedera.hashgraph.sdk.TokenId;
 import com.hedera.hashgraph.sdk.TransactionId;
@@ -60,21 +59,15 @@ public class ScheduleExecutor implements Runnable {
                                 tokenAssociateTransaction.setAccountId(auctionAccountId);
                                 tokenAssociateTransaction.setMaxTransactionFee(Hbar.from(100));
 
-                                String transactionIdString = auction.getAuctionaccountid().concat("@").concat(scheduledOperation.getTransactiontimestamp());
-                                TransactionId transactionId = TransactionId.fromString(transactionIdString);
+                                TransactionId transactionId = TransactionId.generate(auctionAccountId);
 
                                 TransactionScheduler transactionScheduler = new TransactionScheduler(hederaClient, auctionAccountId, refundKey, transactionId, tokenAssociateTransaction);
                                 try {
                                     TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction();
                                     if (transactionSchedulerResult.success) {
                                         scheduledOperation.setStatus(ScheduledOperation.EXECUTING);
-                                        log.info("token associate transaction successfully scheduled (id " + transactionIdString + ")");
+                                        log.info("token associate transaction successfully scheduled (id " + transactionId.toString() + ")");
                                         scheduledOperationsRepository.setStatus(scheduledOperation.getTransactiontimestamp(), ScheduledOperation.EXECUTING, "");
-                                    } else if (transactionSchedulerResult.status == Status.TRANSACTION_EXPIRED) {
-                                        String newTimeStamp = Utils.addToTimestamp(scheduledOperation.getTransactiontimestamp(), 30);
-                                        scheduledOperationsRepository.setTimestamp(scheduledOperation.getTransactiontimestamp(), newTimeStamp);
-                                        queryFrequency = 1 * 1000;
-                                        log.info("token associate transaction re-scheduled for timestamp " + newTimeStamp + " " + Utils.timestampToDate(newTimeStamp));
                                     } else {
                                         log.error("error scheduling token associate transaction (timestamp " + scheduledOperation.getTransactiontimestamp() + ")");
                                         scheduledOperationsRepository.setStatus(scheduledOperation.getTransactiontimestamp(), ScheduledOperation.PENDING, transactionSchedulerResult.status.toString());

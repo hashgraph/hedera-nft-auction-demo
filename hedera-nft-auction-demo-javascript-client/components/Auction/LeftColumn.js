@@ -9,7 +9,7 @@ const LeftColumn = ({ auction }) => {
   const closeShareModal = () => setSharingAuction(false)
 
   const { tokenid, tokenimage, title, description, auctionaccountid } = auction
-  const sidebarImage = tokenimage || '/assets/default-token-image.jpg'
+  const sidebarImage = tokenimage || '/assets/default-token-image.png'
 
   const titleToRender = title || 'Title'
   const descriptionToRender =

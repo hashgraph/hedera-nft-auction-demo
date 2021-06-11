@@ -118,7 +118,6 @@ public class E2EAppTest extends AbstractSystemTest {
 
         hederaClient.setMirrorProvider(mirror);
         hederaClient.setClientMirror();
-//        hederaClient.setOperator(auctionAccountId, auctionAccountKey);
 
         app.overrideEnv(hederaClient, /* restAPI= */true, /* adminAPI= */true, /* auctionNode= */true, topicId.toString(), auctionAccountKey.toString(), postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /* transferOnWin= */transferOnWin, masterKey.toString());
     }
@@ -358,21 +357,21 @@ public class E2EAppTest extends AbstractSystemTest {
                             .pollInterval(Duration.ofSeconds(1))
                             .await()
                             .atMost(Duration.ofSeconds(20))
-                            .until(auctionsCountMatches(Integer.parseInt(value)));
+                            .until(auctionsCountMatches(assertion, Integer.parseInt(value)));
                 } else if (parameter.equals("associated")) {
                     await()
                             .with()
                             .pollInterval(Duration.ofSeconds(1))
                             .await()
                             .atMost(Duration.ofSeconds(20))
-                            .until(tokenAssociated());
+                            .until(tokenAssociated(assertion));
                 } else {
                     await()
                             .with()
-                            .pollInterval(Duration.ofSeconds(1))
+                            .pollInterval(Duration.ofSeconds(5))
                             .await()
-                            .atMost(Duration.ofSeconds(30))
-                            .until(auctionValueAssert(parameter, value, condition));
+                            .atMost(Duration.ofSeconds(65))
+                            .until(auctionValueAssert(assertion, parameter, value, condition));
                 }
                 break;
             case "bid":
@@ -381,7 +380,7 @@ public class E2EAppTest extends AbstractSystemTest {
                         .pollInterval(Duration.ofSeconds(1))
                         .await()
                         .atMost(Duration.ofSeconds(30))
-                        .until(bidValueAssert(bidAccount, bidAmount, parameter, value, condition));
+                        .until(bidValueAssert(assertion, bidAccount, bidAmount, parameter, value, condition));
                 break;
             case "balance":
                 await()
@@ -389,7 +388,7 @@ public class E2EAppTest extends AbstractSystemTest {
                         .pollInterval(Duration.ofSeconds(1))
                         .await()
                         .atMost(Duration.ofSeconds(20))
-                        .until(checkBalance(parameter, condition));
+                        .until(checkBalance(assertion, parameter, condition));
                 break;
             case "winnerOwnsToken":
                 await()
@@ -399,7 +398,7 @@ public class E2EAppTest extends AbstractSystemTest {
                         .with()
                         .timeout(Duration.ofSeconds(30))
                         .await()
-                        .until(tokenTransferred(maxBidAccount));
+                        .until(tokenTransferred(assertion, maxBidAccount));
                 break;
             case "winnerDoesNotOwnToken":
                 await()
@@ -409,7 +408,7 @@ public class E2EAppTest extends AbstractSystemTest {
                         .with()
                         .timeout(Duration.ofSeconds(30))
                         .await()
-                        .until(tokenNotTransferred(maxBidAccount));
+                        .until(tokenNotTransferred(assertion, maxBidAccount));
                 break;
             case "issuerOwnsToken":
                 await()
@@ -419,7 +418,7 @@ public class E2EAppTest extends AbstractSystemTest {
                         .with()
                         .timeout(Duration.ofSeconds(30))
                         .await()
-                        .until(tokenTransferred(tokenOwnerAccountId));
+                        .until(tokenTransferred(assertion, tokenOwnerAccountId));
                 break;
             case "issuerDoesNotOwnToken":
                 await()
@@ -429,7 +428,7 @@ public class E2EAppTest extends AbstractSystemTest {
                         .with()
                         .timeout(Duration.ofSeconds(30))
                         .await()
-                        .until(tokenNotTransferred(tokenOwnerAccountId));
+                        .until(tokenNotTransferred(assertion, tokenOwnerAccountId));
                 break;
             default:
                 log.error("unknown assertion " + object);

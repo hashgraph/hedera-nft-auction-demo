@@ -328,6 +328,11 @@ public abstract class AbstractSystemTest {
         createTokenTransfer.transfer(tokenId.toString(), auctionAccountId.toString(), tokenOwnerAccountId, tokenOwnerPrivateKey);
     }
 
+    protected Callable<Boolean> auctionsCountMatches(javax.json.JsonObject assertion, int matchCount) {
+        log.info("asserting " + assertion.toString());
+        return auctionsCountMatches(matchCount);
+    }
+
     protected Callable<Boolean> auctionsCountMatches(int matchCount) {
         return () -> {
             List<Auction> auctionsList = auctionsRepository.getAuctionsList();
@@ -343,6 +348,10 @@ public abstract class AbstractSystemTest {
 
             return accountBalance.token.containsKey(tokenId);
         };
+    }
+    protected Callable<Boolean> tokenAssociated(javax.json.JsonObject  assertion) {
+        log.info("asserting " + assertion.toString());
+        return tokenAssociated();
     }
 
     protected Callable<Boolean> alwaysTrueForDelay() {
@@ -365,8 +374,9 @@ public abstract class AbstractSystemTest {
         };
     }
 
-    protected Callable<Boolean> tokenTransferred(AccountId accountId) {
+    protected Callable<Boolean> tokenTransferred(javax.json.JsonObject assertion, AccountId accountId) {
         return () -> {
+            log.info("asserting " + assertion.toString());
             AccountBalance balance = new AccountBalanceQuery()
                     .setAccountId(accountId)
                     .execute(hederaClient.client());
@@ -379,8 +389,9 @@ public abstract class AbstractSystemTest {
         };
     }
 
-    protected Callable<Boolean> tokenNotTransferred(AccountId accountId) {
+    protected Callable<Boolean> tokenNotTransferred(javax.json.JsonObject assertion, AccountId accountId) {
         return () -> {
+            log.info("asserting " + assertion.toString());
             AccountBalance balance = new AccountBalanceQuery()
                     .setAccountId(accountId)
                     .execute(hederaClient.client());
@@ -422,8 +433,9 @@ public abstract class AbstractSystemTest {
         }
     }
 
-    protected Callable<Boolean> auctionValueAssert(String parameter, String value, String condition) {
+    protected Callable<Boolean> auctionValueAssert(javax.json.JsonObject assertion, String parameter, String value, String condition) {
         return () -> {
+            log.info("asserting " + assertion.toString());
             Auction testAuction = auctionsRepository.getAuction(auction.getId());
 
             String valueToCheck = getAuctionValue(testAuction, parameter);
@@ -432,8 +444,9 @@ public abstract class AbstractSystemTest {
         };
     }
 
-    protected Callable<Boolean> checkBalance(String account, String condition) {
+    protected Callable<Boolean> checkBalance(javax.json.JsonObject assertion, String account, String condition) {
         return () -> {
+            log.info("asserting " + assertion.toString());
             AccountId accountId;
             switch (account) {
                 case "tokenOwner":
@@ -514,8 +527,9 @@ public abstract class AbstractSystemTest {
         }
     }
 
-    protected Callable<Boolean> bidValueAssert(String bidAccount, long bidAmount, String parameter, String value, String condition) throws SQLException {
+    protected Callable<Boolean> bidValueAssert(javax.json.JsonObject assertion, String bidAccount, long bidAmount, String parameter, String value, String condition) throws SQLException {
         return () -> {
+            log.info("asserting " + assertion.toString());
             Bid testBid = bidsRepository.getBid(auction.getId(), bidAccount, bidAmount);
             if (testBid == null) {
                 return false;

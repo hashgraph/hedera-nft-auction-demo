@@ -49,7 +49,6 @@ public final class App {
     private String postgresPassword = Optional.ofNullable(env.get("DATABASE_PASSWORD")).orElse("password");
     private boolean transferOnWin = Optional.ofNullable(env.get("TRANSFER_ON_WIN")).map(Boolean::parseBoolean).orElse(true);
     private String masterKey = Optional.ofNullable(env.get("MASTER_KEY")).orElse("");
-
     private HederaClient hederaClient;
 
     @Nullable
@@ -157,7 +156,7 @@ public final class App {
     }
 
     private void startScheduledExecutor(AuctionsRepository auctionsRepository, ScheduledOperationsRepository scheduledOperationsRepository) {
-        scheduleExecutor = new ScheduleExecutor(hederaClient, auctionsRepository, scheduledOperationsRepository, PrivateKey.fromString(refundKey));
+        scheduleExecutor = new ScheduleExecutor(hederaClient, auctionsRepository, scheduledOperationsRepository, PrivateKey.fromString(refundKey), this.mirrorQueryFrequency);
         Thread scheduleExecutorThread = new Thread(scheduleExecutor);
         scheduleExecutorThread.start();
     }

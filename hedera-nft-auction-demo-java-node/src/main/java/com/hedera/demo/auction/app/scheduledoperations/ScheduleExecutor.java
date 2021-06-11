@@ -1,6 +1,5 @@
 package com.hedera.demo.auction.app.scheduledoperations;
 
-import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.HederaClient;
 import com.hedera.demo.auction.app.Utils;
 import com.hedera.demo.auction.app.domain.Auction;
@@ -26,22 +25,22 @@ public class ScheduleExecutor implements Runnable {
     private final AuctionsRepository auctionsRepository;
     private final ScheduledOperationsRepository scheduledOperationsRepository;
     private final PrivateKey refundKey;
+    private final int mirrorQueryFrequency;
 
-    @Var private int queryFrequency = 10 * 1000;
     private boolean runThread = true;
 
-    public ScheduleExecutor(HederaClient hederaClient, AuctionsRepository auctionsRepository, ScheduledOperationsRepository scheduledOperationsRepository, PrivateKey refundKey) {
+    public ScheduleExecutor(HederaClient hederaClient, AuctionsRepository auctionsRepository, ScheduledOperationsRepository scheduledOperationsRepository, PrivateKey refundKey, int mirrorQueryFrequency) {
         this.hederaClient = hederaClient;
         this.auctionsRepository = auctionsRepository;
         this.scheduledOperationsRepository = scheduledOperationsRepository;
         this.refundKey = refundKey;
+        this.mirrorQueryFrequency = mirrorQueryFrequency;
     }
 
     @Override
     public void run() {
         while (runThread) {
             try {
-                queryFrequency = 10 * 1000;
                 List<ScheduledOperation> pendingOperations = scheduledOperationsRepository.getPendingOperationsList();
                 if (pendingOperations != null) {
                     for (ScheduledOperation scheduledOperation : pendingOperations) {
@@ -91,7 +90,7 @@ public class ScheduleExecutor implements Runnable {
                 log.error(sqlException);
             }
 
-            Utils.sleep(queryFrequency);
+            Utils.sleep(this.mirrorQueryFrequency);
         }
     }
 

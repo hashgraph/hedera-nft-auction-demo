@@ -2,9 +2,10 @@ package com.hedera.demo.auction.app.repository;
 
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.SqlConnectionManager;
+import com.hedera.demo.auction.app.db.Tables;
 import com.hedera.demo.auction.app.domain.Auction;
+import com.hedera.demo.auction.app.domain.Bid;
 import lombok.extern.log4j.Log4j2;
-import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
@@ -20,7 +21,7 @@ import static com.hedera.demo.auction.app.db.Tables.AUCTIONS;
 
 @Log4j2
 public class AuctionsRepository {
-    public final SqlConnectionManager connectionManager;
+    private final SqlConnectionManager connectionManager;
 
     public AuctionsRepository(SqlConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
@@ -30,7 +31,7 @@ public class AuctionsRepository {
     private Result<Record> getAuctions () throws SQLException {
         DSLContext cx = connectionManager.dsl();
         Result<Record> rows = cx.selectFrom(AUCTIONS).orderBy(AUCTIONS.ID).fetch();
-        cx.close();
+
         return rows;
     }
 
@@ -40,7 +41,6 @@ public class AuctionsRepository {
         Record auctionRecord = cx.selectFrom(AUCTIONS)
                 .where(AUCTIONS.ID.eq(auctionId))
                 .fetchAny();
-        cx.close();
 
         return auctionRecord;
     }
@@ -53,14 +53,12 @@ public class AuctionsRepository {
                 .set(AUCTIONS.ENDTIMESTAMP, AUCTIONS.LASTCONSENSUSTIMESTAMP)
                 .where(AUCTIONS.ID.eq(auctionId))
                 .execute();
-        cx.close();
-
     }
+
     public void deleteAllAuctions() throws SQLException {
         DSLContext cx = connectionManager.dsl();
         cx.deleteFrom(AUCTIONS)
                 .execute();
-        cx.close();
     }
 
     public List<Auction> getAuctionsList() throws SQLException {
@@ -89,7 +87,7 @@ public class AuctionsRepository {
     public Auction getAuction(String accountId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
         Record auctionData = cx.selectFrom(AUCTIONS).where(AUCTIONS.AUCTIONACCOUNTID.eq(accountId)).fetchAny();
-        cx.close();
+
         if ((auctionData == null) || (auctionData.size() == 0)) {
             return null;
         } else {
@@ -106,10 +104,9 @@ public class AuctionsRepository {
                 .set(AUCTIONS.TOKENOWNER, tokenOwnerAccount)
                 .where(AUCTIONS.AUCTIONACCOUNTID.eq(auction.getAuctionaccountid()))
                 .execute();
-        cx.close();
+
         auction.setStatus(Auction.ACTIVE);
         return auction;
-
     }
 
     public void setTransferPending(String tokenId) throws SQLException {
@@ -120,7 +117,6 @@ public class AuctionsRepository {
                 .set(AUCTIONS.TRANSFERTIMESTAMP, AUCTIONS.ENDTIMESTAMP)
                 .where(AUCTIONS.TOKENID.eq(tokenId))
                 .execute();
-        cx.close();
     }
 
     public void setTransferTimestamp(int auctionId, String timestamp) throws SQLException {
@@ -131,7 +127,6 @@ public class AuctionsRepository {
                 .set(AUCTIONS.TRANSFERTIMESTAMP, timestamp)
                 .where(AUCTIONS.ID.eq(auctionId))
                 .execute();
-        cx.close();
     }
 
     public void setTransferInProgress(String tokenId) throws SQLException {
@@ -142,7 +137,6 @@ public class AuctionsRepository {
                 .set(AUCTIONS.TRANSFERSTATUS, Auction.TRANSFER_STATUS_IN_PROGRESS)
                 .where(AUCTIONS.TOKENID.eq(tokenId))
                 .execute();
-        cx.close();
     }
 
     public void setTransferTransactionByTokenId(String tokenId, String transactionId, String transactionHash) throws SQLException {
@@ -156,7 +150,6 @@ public class AuctionsRepository {
                 .set(AUCTIONS.STATUS, Auction.ENDED)
                 .where(AUCTIONS.TOKENID.eq(tokenId))
                 .execute();
-        cx.close();
     }
 
     public void setTransferTransactionByAuctionId(int auctionId, String transactionId, String transactionHash) throws SQLException {
@@ -170,7 +163,6 @@ public class AuctionsRepository {
                 .set(AUCTIONS.STATUS, Auction.ENDED)
                 .where(AUCTIONS.ID.eq(auctionId))
                 .execute();
-        cx.close();
     }
 
     public void setEnded(int auctionId) throws SQLException {
@@ -180,7 +172,6 @@ public class AuctionsRepository {
                 .set(AUCTIONS.STATUS, Auction.ENDED)
                 .where(AUCTIONS.ID.eq(auctionId))
                 .execute();
-        cx.close();
     }
 
     public void setClosed(int auctionId) throws SQLException {
@@ -189,37 +180,17 @@ public class AuctionsRepository {
                 .set(AUCTIONS.STATUS, Auction.CLOSED)
                 .where(AUCTIONS.ID.eq(auctionId))
                 .execute();
-        cx.close();
     }
 
     public Auction setClosed(Auction auction) throws SQLException {
         setClosed(auction.getId());
-
-        updateStatus(auction.getAuctionaccountid(), Auction.CLOSED);
         auction.setStatus(Auction.CLOSED);
         return auction;
     }
 
-    private void updateStatus(String auctionAccountId, String newStatus) throws SQLException {
-        DSLContext cx = connectionManager.dsl();
-
-        cx.update(AUCTIONS)
-                .set(AUCTIONS.STATUS, newStatus)
-                .where(AUCTIONS.AUCTIONACCOUNTID.eq(auctionAccountId))
-                .execute();
-        cx.close();
-    }
-
     public void save(Auction auction) throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        cx.transaction( transaction -> {
-            save(auction, transaction);
-        });
-        cx.close();
-    }
-
-    public void save(Auction auction, Configuration configuration) {
-        configuration.dsl().update(AUCTIONS)
+        cx.update(AUCTIONS)
                 .set(AUCTIONS.LASTCONSENSUSTIMESTAMP, auction.getLastconsensustimestamp())
                 .set(AUCTIONS.WINNINGACCOUNT, auction.getWinningaccount())
                 .set(AUCTIONS.WINNINGBID, auction.getWinningbid())
@@ -263,10 +234,6 @@ public class AuctionsRepository {
         } catch (DataAccessException e) {
             log.info("Auction already in database");
             auction.setId(0);
-        } finally {
-            if (cx != null) {
-                cx.close();
-            }
         }
         return auction;
     }
@@ -278,7 +245,7 @@ public class AuctionsRepository {
                 .where(AUCTIONS.STATUS.eq(Auction.ACTIVE))
                 .or(AUCTIONS.STATUS.eq(Auction.PENDING))
                 .fetchMap(AUCTIONS.ENDTIMESTAMP, AUCTIONS.ID);
-        cx.close();
+
         return rows;
     }
 
@@ -335,11 +302,54 @@ public class AuctionsRepository {
             auction.setId(id);
         } catch (DataAccessException e) {
             log.info("Auction already in database");
-        } finally {
-            if (cx != null) {
-                cx.close();
-            }
         }
         return auction;
+    }
+
+    public void commitBidAndAuction(boolean updatePriorBid, long bidAmount, Bid priorBid, Auction auction, Bid newBid) throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+
+        //TODO: This should be transactional
+        if (updatePriorBid) {
+            cx.update(Tables.BIDS)
+                    .set(Tables.BIDS.STATUS, priorBid.getStatus())
+                    .set(Tables.BIDS.REFUNDSTATUS, priorBid.getRefundstatus())
+                    .set(Tables.BIDS.TIMESTAMPFORREFUND, priorBid.getTimestampforrefund())
+                    .where(Tables.BIDS.TIMESTAMP.eq(priorBid.getTimestamp()))
+                    .execute();
+
+            cx.update(AUCTIONS)
+                .set(AUCTIONS.LASTCONSENSUSTIMESTAMP, auction.getLastconsensustimestamp())
+                .set(AUCTIONS.WINNINGACCOUNT, auction.getWinningaccount())
+                .set(AUCTIONS.WINNINGBID, auction.getWinningbid())
+                .set(AUCTIONS.WINNINGTIMESTAMP, auction.getWinningtimestamp())
+                .set(AUCTIONS.WINNINGTXID, auction.getWinningtxid())
+                .set(AUCTIONS.WINNINGTXHASH, auction.getWinningtxhash())
+                .where(AUCTIONS.AUCTIONACCOUNTID.eq(auction.getAuctionaccountid()))
+                .execute();
+        }
+        if (bidAmount> 0) {
+            cx.insertInto(Tables.BIDS,
+                    Tables.BIDS.AUCTIONID,
+                    Tables.BIDS.STATUS,
+                    Tables.BIDS.TIMESTAMP,
+                    Tables.BIDS.BIDAMOUNT,
+                    Tables.BIDS.BIDDERACCOUNTID,
+                    Tables.BIDS.TRANSACTIONID,
+                    Tables.BIDS.TRANSACTIONHASH,
+                    Tables.BIDS.REFUNDSTATUS,
+                    Tables.BIDS.TIMESTAMPFORREFUND
+            ).values(
+                    newBid.getAuctionid(),
+                    newBid.getStatus(),
+                    newBid.getTimestamp(),
+                    newBid.getBidamount(),
+                    newBid.getBidderaccountid(),
+                    newBid.getTransactionid(),
+                    newBid.getTransactionhash(),
+                    newBid.getRefundstatus(),
+                    newBid.getTimestamp()
+            ).execute();
+        }
     }
 }

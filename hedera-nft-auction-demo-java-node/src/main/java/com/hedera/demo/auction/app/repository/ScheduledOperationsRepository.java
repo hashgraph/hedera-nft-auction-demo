@@ -33,7 +33,6 @@ public class ScheduledOperationsRepository {
                 .where(SCHEDULEDOPERATIONS.STATUS.eq(status))
                 .orderBy(SCHEDULEDOPERATIONS.TRANSACTIONTIMESTAMP)
                 .fetch();
-        cx.close();
         return rows;
     }
 
@@ -65,7 +64,6 @@ public class ScheduledOperationsRepository {
         DSLContext cx = connectionManager.dsl();
         cx.deleteFrom(SCHEDULEDOPERATIONS)
             .execute();
-        cx.close();
     }
 
     public boolean setSuccessful(String transactionId) throws SQLException {
@@ -126,10 +124,6 @@ public class ScheduledOperationsRepository {
             result = true;
         } catch (DataAccessException e) {
             log.info("scheduled operation already in database");
-        } finally {
-            if (cx != null) {
-                cx.close();
-            }
         }
         return result;
     }

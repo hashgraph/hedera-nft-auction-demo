@@ -5,7 +5,6 @@ import com.hedera.demo.auction.app.SqlConnectionManager;
 import com.hedera.demo.auction.app.db.Tables;
 import com.hedera.demo.auction.app.domain.Bid;
 import lombok.extern.log4j.Log4j2;
-import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Record1;
@@ -34,7 +33,6 @@ public class BidsRepository {
         Result<Record> rows = cx.selectFrom(Tables.BIDS)
                 .orderBy(Tables.BIDS.TIMESTAMP)
                 .fetch();
-        cx.close();
         return rows;
     }
 
@@ -47,7 +45,6 @@ public class BidsRepository {
                 .and(Tables.BIDS.BIDAMOUNT.eq(bidAmount))
                 .and(Tables.BIDS.BIDDERACCOUNTID.eq(accountId))
                 .fetch();
-        cx.close();
         if (result.size() != 1) {
             return null;
         } else {
@@ -63,7 +60,6 @@ public class BidsRepository {
                 .and(Tables.BIDS.REFUNDSTATUS.ne(""))
                 .and(Tables.BIDS.REFUNDSTATUS.ne(Bid.REFUND_REFUNDED))
                 .fetch();
-        cx.close();
         if (result.size() != 1) {
             return "";
         } else {
@@ -91,28 +87,17 @@ public class BidsRepository {
         DSLContext cx = connectionManager.dsl();
         cx.deleteFrom(Tables.BIDS)
             .execute();
-        cx.close();
     }
 
-    public void setStatus(Bid bid, Configuration configuration) {
-        configuration.dsl().update(Tables.BIDS)
+    public void setStatus(Bid bid) throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+        cx.update(Tables.BIDS)
                 .set(Tables.BIDS.STATUS, bid.getStatus())
                 .set(Tables.BIDS.REFUNDSTATUS, bid.getRefundstatus())
                 .set(Tables.BIDS.TIMESTAMPFORREFUND, bid.getTimestampforrefund())
                 .where(Tables.BIDS.TIMESTAMP.eq(bid.getTimestamp()))
                 .execute();
-    }
-    public void setStatus(Bid bid) throws SQLException {
-        DSLContext cx = connectionManager.dsl();
-        cx.transaction(transaction -> {
-            setStatus(bid, transaction);
-        });
-//        cx.update(Tables.BIDS)
-//                .set(Tables.BIDS.STATUS, bid.getStatus())
-//                .set(Tables.BIDS.REFUNDSTATUS, bid.getRefundstatus())
-//                .set(Tables.BIDS.TIMESTAMPFORREFUND, bid.getTimestampforrefund())
-//                .where(Tables.BIDS.TIMESTAMP.eq(bid.getTimestamp()))
-//                .execute();
+
     }
 
     public void setRefundIssued(String consensusTimestamp) throws SQLException {
@@ -121,7 +106,6 @@ public class BidsRepository {
                 .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_ISSUED)
                 .where(Tables.BIDS.TIMESTAMP.eq(consensusTimestamp))
                 .execute();
-        cx.close();
     }
 
     public void setRefundPending(String bidTransactionId) throws SQLException {
@@ -132,7 +116,6 @@ public class BidsRepository {
                 .set(Tables.BIDS.REFUNDTXID, "")
                 .where(Tables.BIDS.TRANSACTIONID.eq(bidTransactionId))
                 .execute();
-        cx.close();
     }
 
     public boolean setRefunded(String bidTransactionId, String refundTransactionId, String refundTransactionHash) throws SQLException {
@@ -144,7 +127,6 @@ public class BidsRepository {
                 .where(Tables.BIDS.TRANSACTIONID.eq(bidTransactionId))
                 .and(Tables.BIDS.REFUNDSTATUS.ne(Bid.REFUND_REFUNDED))
                 .execute();
-        cx.close();
 
         return (rowsUpdated != 0);
    }
@@ -155,31 +137,6 @@ public class BidsRepository {
                 .set(Tables.BIDS.TIMESTAMPFORREFUND, bidRefundTimestamp)
                 .where(Tables.BIDS.TIMESTAMP.eq(consensusTimestamp))
                 .execute();
-        cx.close();
-    }
-
-    public void add(Bid bid, Configuration configuration) {
-        configuration.dsl().insertInto(Tables.BIDS,
-                Tables.BIDS.AUCTIONID,
-                Tables.BIDS.STATUS,
-                Tables.BIDS.TIMESTAMP,
-                Tables.BIDS.BIDAMOUNT,
-                Tables.BIDS.BIDDERACCOUNTID,
-                Tables.BIDS.TRANSACTIONID,
-                Tables.BIDS.TRANSACTIONHASH,
-                Tables.BIDS.REFUNDSTATUS,
-                Tables.BIDS.TIMESTAMPFORREFUND
-        ).values(
-                bid.getAuctionid(),
-                bid.getStatus(),
-                bid.getTimestamp(),
-                bid.getBidamount(),
-                bid.getBidderaccountid(),
-                bid.getTransactionid(),
-                bid.getTransactionhash(),
-                bid.getRefundstatus(),
-                bid.getTimestamp()
-        ).execute();
     }
 
     public boolean add(Bid bid) throws SQLException {
@@ -187,16 +144,31 @@ public class BidsRepository {
         @Var boolean result = false;
         try {
             cx = connectionManager.dsl();
-            cx.transaction(transaction -> {
-                add(bid, transaction);
-            });
-            result = true;
+
+            cx.insertInto(Tables.BIDS,
+                    Tables.BIDS.AUCTIONID,
+                    Tables.BIDS.STATUS,
+                    Tables.BIDS.TIMESTAMP,
+                    Tables.BIDS.BIDAMOUNT,
+                    Tables.BIDS.BIDDERACCOUNTID,
+                    Tables.BIDS.TRANSACTIONID,
+                    Tables.BIDS.TRANSACTIONHASH,
+                    Tables.BIDS.REFUNDSTATUS,
+                    Tables.BIDS.TIMESTAMPFORREFUND
+            ).values(
+                    bid.getAuctionid(),
+                    bid.getStatus(),
+                    bid.getTimestamp(),
+                    bid.getBidamount(),
+                    bid.getBidderaccountid(),
+                    bid.getTransactionid(),
+                    bid.getTransactionhash(),
+                    bid.getRefundstatus(),
+                    bid.getTimestamp()
+            ).execute();
+
         } catch (DataAccessException e) {
             log.info("Bid already in database");
-        } finally {
-            if (cx != null) {
-                cx.close();
-            }
         }
         return result;
     }
@@ -210,7 +182,6 @@ public class BidsRepository {
                 .where(Tables.BIDS.AUCTIONID.eq(auctionId))
                 .and(Tables.BIDS.REFUNDSTATUS.eq(Bid.REFUND_PENDING))
                 .fetch();
-        cx.close();
 
         if (result != null) {
             for (Record record : result) {

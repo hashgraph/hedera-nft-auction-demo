@@ -13,7 +13,6 @@ import com.hedera.demo.auction.app.repository.BidsRepository;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
-import org.jooq.DSLContext;
 import org.jooq.tools.StringUtils;
 
 import java.sql.SQLException;
@@ -241,19 +240,7 @@ public class BidsWatcher implements Runnable {
                 log.info("Bid amount " + bidAmount + " less than or equal to 0, not recording bid");
             }
 
-            DSLContext cx = auctionsRepository.connectionManager.dsl();
-            boolean finalUpdatePriorBid = updatePriorBid;
-            long finalBidAmount = bidAmount;
-            cx.transaction(dbTransaction -> {
-                if (finalUpdatePriorBid) {
-                    bidsRepository.setStatus(priorBid, dbTransaction);
-                    auctionsRepository.save(this.auction, dbTransaction);
-                }
-                if (finalBidAmount > 0) {
-                    bidsRepository.add(newBid, dbTransaction);
-                }
-            });
-            cx.close();
+            auctionsRepository.commitBidAndAuction(updatePriorBid, bidAmount, priorBid, auction, newBid);
         } else {
             log.debug("Transaction Id " + transaction.transactionId + " status not SUCCESS.");
         }

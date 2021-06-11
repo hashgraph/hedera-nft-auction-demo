@@ -17,7 +17,6 @@ public class ScheduledOperationsLogRepository {
         DSLContext cx = connectionManager.dsl();
         cx.deleteFrom(Tables.SCHEDULEDOPERATIONSLOG)
             .execute();
-//        cx.close();
     }
 
 }

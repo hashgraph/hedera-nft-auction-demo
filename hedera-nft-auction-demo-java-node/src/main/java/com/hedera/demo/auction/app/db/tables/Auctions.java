@@ -21,6 +21,7 @@ import org.jooq.TableField;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
 
@@ -30,7 +31,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Auctions extends TableImpl<Record> {
 
-    private static final long serialVersionUID = 1491191112;
+    private static final long serialVersionUID = 1L;
 
     /**
      * The reference instance of <code>public.auctions</code>
@@ -48,123 +49,124 @@ public class Auctions extends TableImpl<Record> {
     /**
      * The column <code>public.auctions.id</code>.
      */
-    public final TableField<Record, Integer> ID = createField(DSL.name("id"), org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaultValue(org.jooq.impl.DSL.field("nextval('auctions_id_seq'::regclass)", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+    public final TableField<Record, Integer> ID = createField(DSL.name("id"), SQLDataType.INTEGER.nullable(false).identity(true), this, "");
 
     /**
      * The column <code>public.auctions.lastconsensustimestamp</code>.
      */
-    public final TableField<Record, String> LASTCONSENSUSTIMESTAMP = createField(DSL.name("lastconsensustimestamp"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("'0.0'::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> LASTCONSENSUSTIMESTAMP = createField(DSL.name("lastconsensustimestamp"), SQLDataType.CLOB.defaultValue(DSL.field("'0.0'::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.winningbid</code>.
      */
-    public final TableField<Record, Long> WINNINGBID = createField(DSL.name("winningbid"), org.jooq.impl.SQLDataType.BIGINT.defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.BIGINT)), this, "");
+    public final TableField<Record, Long> WINNINGBID = createField(DSL.name("winningbid"), SQLDataType.BIGINT.defaultValue(DSL.field("0", SQLDataType.BIGINT)), this, "");
 
     /**
      * The column <code>public.auctions.winningaccount</code>.
      */
-    public final TableField<Record, String> WINNINGACCOUNT = createField(DSL.name("winningaccount"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> WINNINGACCOUNT = createField(DSL.name("winningaccount"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.winningtimestamp</code>.
      */
-    public final TableField<Record, String> WINNINGTIMESTAMP = createField(DSL.name("winningtimestamp"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> WINNINGTIMESTAMP = createField(DSL.name("winningtimestamp"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.winningtxid</code>.
      */
-    public final TableField<Record, String> WINNINGTXID = createField(DSL.name("winningtxid"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> WINNINGTXID = createField(DSL.name("winningtxid"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.winningtxhash</code>.
      */
-    public final TableField<Record, String> WINNINGTXHASH = createField(DSL.name("winningtxhash"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> WINNINGTXHASH = createField(DSL.name("winningtxhash"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.transfertxid</code>.
      */
-    public final TableField<Record, String> TRANSFERTXID = createField(DSL.name("transfertxid"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> TRANSFERTXID = createField(DSL.name("transfertxid"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.transfertxhash</code>.
      */
-    public final TableField<Record, String> TRANSFERTXHASH = createField(DSL.name("transfertxhash"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> TRANSFERTXHASH = createField(DSL.name("transfertxhash"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.tokenid</code>.
      */
-    public final TableField<Record, String> TOKENID = createField(DSL.name("tokenid"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> TOKENID = createField(DSL.name("tokenid"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.auctionaccountid</code>.
      */
-    public final TableField<Record, String> AUCTIONACCOUNTID = createField(DSL.name("auctionaccountid"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> AUCTIONACCOUNTID = createField(DSL.name("auctionaccountid"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.endtimestamp</code>.
      */
-    public final TableField<Record, String> ENDTIMESTAMP = createField(DSL.name("endtimestamp"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> ENDTIMESTAMP = createField(DSL.name("endtimestamp"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.reserve</code>.
      */
-    public final TableField<Record, Long> RESERVE = createField(DSL.name("reserve"), org.jooq.impl.SQLDataType.BIGINT.defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.BIGINT)), this, "");
+    public final TableField<Record, Long> RESERVE = createField(DSL.name("reserve"), SQLDataType.BIGINT.defaultValue(DSL.field("0", SQLDataType.BIGINT)), this, "");
 
     /**
      * The column <code>public.auctions.status</code>.
      */
-    public final TableField<Record, String> STATUS = createField(DSL.name("status"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("'PENDING'::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> STATUS = createField(DSL.name("status"), SQLDataType.CLOB.defaultValue(DSL.field("'PENDING'::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.winnercanbid</code>.
      */
-    public final TableField<Record, Boolean> WINNERCANBID = createField(DSL.name("winnercanbid"), org.jooq.impl.SQLDataType.BOOLEAN.defaultValue(org.jooq.impl.DSL.field("false", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
+    public final TableField<Record, Boolean> WINNERCANBID = createField(DSL.name("winnercanbid"), SQLDataType.BOOLEAN.defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>public.auctions.tokenimage</code>.
      */
-    public final TableField<Record, String> TOKENIMAGE = createField(DSL.name("tokenimage"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> TOKENIMAGE = createField(DSL.name("tokenimage"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.minimumbid</code>.
      */
-    public final TableField<Record, Long> MINIMUMBID = createField(DSL.name("minimumbid"), org.jooq.impl.SQLDataType.BIGINT.defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.BIGINT)), this, "");
+    public final TableField<Record, Long> MINIMUMBID = createField(DSL.name("minimumbid"), SQLDataType.BIGINT.defaultValue(DSL.field("0", SQLDataType.BIGINT)), this, "");
 
     /**
      * The column <code>public.auctions.starttimestamp</code>.
      */
-    public final TableField<Record, String> STARTTIMESTAMP = createField(DSL.name("starttimestamp"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> STARTTIMESTAMP = createField(DSL.name("starttimestamp"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.tokenowner</code>.
      */
-    public final TableField<Record, String> TOKENOWNER = createField(DSL.name("tokenowner"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> TOKENOWNER = createField(DSL.name("tokenowner"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.transfertimestamp</code>.
      */
-    public final TableField<Record, String> TRANSFERTIMESTAMP = createField(DSL.name("transfertimestamp"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> TRANSFERTIMESTAMP = createField(DSL.name("transfertimestamp"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.transferstatus</code>.
      */
-    public final TableField<Record, String> TRANSFERSTATUS = createField(DSL.name("transferstatus"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> TRANSFERSTATUS = createField(DSL.name("transferstatus"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.title</code>.
      */
-    public final TableField<Record, String> TITLE = createField(DSL.name("title"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> TITLE = createField(DSL.name("title"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.description</code>.
      */
-    public final TableField<Record, String> DESCRIPTION = createField(DSL.name("description"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> DESCRIPTION = createField(DSL.name("description"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
-    /**
-     * Create a <code>public.auctions</code> table reference
-     */
-    public Auctions() {
-        this(DSL.name("auctions"), null);
+    private Auctions(Name alias, Table<Record> aliased) {
+        this(alias, aliased, null);
+    }
+
+    private Auctions(Name alias, Table<Record> aliased, Field<?>[] parameters) {
+        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
     }
 
     /**
@@ -181,12 +183,11 @@ public class Auctions extends TableImpl<Record> {
         this(alias, AUCTIONS);
     }
 
-    private Auctions(Name alias, Table<Record> aliased) {
-        this(alias, aliased, null);
-    }
-
-    private Auctions(Name alias, Table<Record> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
+    /**
+     * Create a <code>public.auctions</code> table reference
+     */
+    public Auctions() {
+        this(DSL.name("auctions"), null);
     }
 
     public <O extends Record> Auctions(Table<O> child, ForeignKey<O, Record> key) {
@@ -200,7 +201,7 @@ public class Auctions extends TableImpl<Record> {
 
     @Override
     public Identity<Record, Integer> getIdentity() {
-        return Keys.IDENTITY_AUCTIONS;
+        return (Identity<Record, Integer>) super.getIdentity();
     }
 
     @Override

@@ -4,11 +4,11 @@
 package com.hedera.demo.auction.app.db;
 
 
-import com.hedera.demo.auction.app.db.tables.Scheduledoperationslog;
 import com.hedera.demo.auction.app.db.tables.Auctions;
 import com.hedera.demo.auction.app.db.tables.Bids;
 import com.hedera.demo.auction.app.db.tables.FlywaySchemaHistory;
 import com.hedera.demo.auction.app.db.tables.Scheduledoperations;
+import com.hedera.demo.auction.app.db.tables.Scheduledoperationslog;
 
 import java.util.Arrays;
 import java.util.List;
@@ -25,7 +25,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Public extends SchemaImpl {
 
-    private static final long serialVersionUID = -818491124;
+    private static final long serialVersionUID = 1L;
 
     /**
      * The reference instance of <code>public</code>

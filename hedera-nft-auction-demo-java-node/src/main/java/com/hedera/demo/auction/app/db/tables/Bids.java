@@ -20,6 +20,7 @@ import org.jooq.TableField;
 import org.jooq.TableOptions;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
 
@@ -29,7 +30,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Bids extends TableImpl<Record> {
 
-    private static final long serialVersionUID = 309494280;
+    private static final long serialVersionUID = 1L;
 
     /**
      * The reference instance of <code>public.bids</code>
@@ -47,63 +48,64 @@ public class Bids extends TableImpl<Record> {
     /**
      * The column <code>public.bids.timestamp</code>.
      */
-    public final TableField<Record, String> TIMESTAMP = createField(DSL.name("timestamp"), org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "");
+    public final TableField<Record, String> TIMESTAMP = createField(DSL.name("timestamp"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
      * The column <code>public.bids.auctionid</code>.
      */
-    public final TableField<Record, Integer> AUCTIONID = createField(DSL.name("auctionid"), org.jooq.impl.SQLDataType.INTEGER, this, "");
+    public final TableField<Record, Integer> AUCTIONID = createField(DSL.name("auctionid"), SQLDataType.INTEGER, this, "");
 
     /**
      * The column <code>public.bids.bidderaccountid</code>.
      */
-    public final TableField<Record, String> BIDDERACCOUNTID = createField(DSL.name("bidderaccountid"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> BIDDERACCOUNTID = createField(DSL.name("bidderaccountid"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.bids.bidamount</code>.
      */
-    public final TableField<Record, Long> BIDAMOUNT = createField(DSL.name("bidamount"), org.jooq.impl.SQLDataType.BIGINT, this, "");
+    public final TableField<Record, Long> BIDAMOUNT = createField(DSL.name("bidamount"), SQLDataType.BIGINT, this, "");
 
     /**
      * The column <code>public.bids.status</code>.
      */
-    public final TableField<Record, String> STATUS = createField(DSL.name("status"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> STATUS = createField(DSL.name("status"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.bids.refundtxid</code>.
      */
-    public final TableField<Record, String> REFUNDTXID = createField(DSL.name("refundtxid"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> REFUNDTXID = createField(DSL.name("refundtxid"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.bids.refundtxhash</code>.
      */
-    public final TableField<Record, String> REFUNDTXHASH = createField(DSL.name("refundtxhash"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> REFUNDTXHASH = createField(DSL.name("refundtxhash"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.bids.transactionid</code>.
      */
-    public final TableField<Record, String> TRANSACTIONID = createField(DSL.name("transactionid"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> TRANSACTIONID = createField(DSL.name("transactionid"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.bids.transactionhash</code>.
      */
-    public final TableField<Record, String> TRANSACTIONHASH = createField(DSL.name("transactionhash"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> TRANSACTIONHASH = createField(DSL.name("transactionhash"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.bids.timestampforrefund</code>.
      */
-    public final TableField<Record, String> TIMESTAMPFORREFUND = createField(DSL.name("timestampforrefund"), org.jooq.impl.SQLDataType.CLOB, this, "");
+    public final TableField<Record, String> TIMESTAMPFORREFUND = createField(DSL.name("timestampforrefund"), SQLDataType.CLOB, this, "");
 
     /**
      * The column <code>public.bids.refundstatus</code>.
      */
-    public final TableField<Record, String> REFUNDSTATUS = createField(DSL.name("refundstatus"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> REFUNDSTATUS = createField(DSL.name("refundstatus"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
-    /**
-     * Create a <code>public.bids</code> table reference
-     */
-    public Bids() {
-        this(DSL.name("bids"), null);
+    private Bids(Name alias, Table<Record> aliased) {
+        this(alias, aliased, null);
+    }
+
+    private Bids(Name alias, Table<Record> aliased, Field<?>[] parameters) {
+        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
     }
 
     /**
@@ -120,12 +122,11 @@ public class Bids extends TableImpl<Record> {
         this(alias, BIDS);
     }
 
-    private Bids(Name alias, Table<Record> aliased) {
-        this(alias, aliased, null);
-    }
-
-    private Bids(Name alias, Table<Record> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
+    /**
+     * Create a <code>public.bids</code> table reference
+     */
+    public Bids() {
+        this(DSL.name("bids"), null);
     }
 
     public <O extends Record> Bids(Table<O> child, ForeignKey<O, Record> key) {
@@ -152,8 +153,13 @@ public class Bids extends TableImpl<Record> {
         return Arrays.<ForeignKey<Record, ?>>asList(Keys.BIDS__BIDS_AUCTIONID_FKEY);
     }
 
+    private transient Auctions _auctions;
+
     public Auctions auctions() {
-        return new Auctions(this, Keys.BIDS__BIDS_AUCTIONID_FKEY);
+        if (_auctions == null)
+            _auctions = new Auctions(this, Keys.BIDS__BIDS_AUCTIONID_FKEY);
+
+        return _auctions;
     }
 
     @Override

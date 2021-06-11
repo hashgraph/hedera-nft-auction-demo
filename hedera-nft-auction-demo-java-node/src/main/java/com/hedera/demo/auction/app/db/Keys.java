@@ -10,63 +10,35 @@ import com.hedera.demo.auction.app.db.tables.FlywaySchemaHistory;
 import com.hedera.demo.auction.app.db.tables.Scheduledoperations;
 
 import org.jooq.ForeignKey;
-import org.jooq.Identity;
 import org.jooq.Record;
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
+import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 
 
 /**
- * A class modelling foreign key relationships and constraints of tables of
- * the <code>public</code> schema.
+ * A class modelling foreign key relationships and constraints of tables in 
+ * public.
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Keys {
 
     // -------------------------------------------------------------------------
-    // IDENTITY definitions
-    // -------------------------------------------------------------------------
-
-    public static final Identity<Record, Integer> IDENTITY_AUCTIONS = Identities0.IDENTITY_AUCTIONS;
-
-    // -------------------------------------------------------------------------
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final UniqueKey<Record> AUCTIONS_PKEY = UniqueKeys0.AUCTIONS_PKEY;
-    public static final UniqueKey<Record> AUCTIONS_TOKENID_KEY = UniqueKeys0.AUCTIONS_TOKENID_KEY;
-    public static final UniqueKey<Record> AUCTIONS_AUCTIONACCOUNTID_KEY = UniqueKeys0.AUCTIONS_AUCTIONACCOUNTID_KEY;
-    public static final UniqueKey<Record> BIDS_PKEY = UniqueKeys0.BIDS_PKEY;
-    public static final UniqueKey<Record> FLYWAY_SCHEMA_HISTORY_PK = UniqueKeys0.FLYWAY_SCHEMA_HISTORY_PK;
-    public static final UniqueKey<Record> SCHEDULEDOPERATIONS_TRANSACTIONTIMESTAMP_KEY = UniqueKeys0.SCHEDULEDOPERATIONS_TRANSACTIONTIMESTAMP_KEY;
-    public static final UniqueKey<Record> SCHEDULEDOPERATIONS_TRANSACTIONID_KEY = UniqueKeys0.SCHEDULEDOPERATIONS_TRANSACTIONID_KEY;
+    public static final UniqueKey<Record> AUCTIONS_AUCTIONACCOUNTID_KEY = Internal.createUniqueKey(Auctions.AUCTIONS, DSL.name("auctions_auctionaccountid_key"), new TableField[] { Auctions.AUCTIONS.AUCTIONACCOUNTID }, true);
+    public static final UniqueKey<Record> AUCTIONS_PKEY = Internal.createUniqueKey(Auctions.AUCTIONS, DSL.name("auctions_pkey"), new TableField[] { Auctions.AUCTIONS.ID }, true);
+    public static final UniqueKey<Record> AUCTIONS_TOKENID_KEY = Internal.createUniqueKey(Auctions.AUCTIONS, DSL.name("auctions_tokenid_key"), new TableField[] { Auctions.AUCTIONS.TOKENID }, true);
+    public static final UniqueKey<Record> BIDS_PKEY = Internal.createUniqueKey(Bids.BIDS, DSL.name("bids_pkey"), new TableField[] { Bids.BIDS.TIMESTAMP }, true);
+    public static final UniqueKey<Record> FLYWAY_SCHEMA_HISTORY_PK = Internal.createUniqueKey(FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, DSL.name("flyway_schema_history_pk"), new TableField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.INSTALLED_RANK }, true);
+    public static final UniqueKey<Record> SCHEDULEDOPERATIONS_TRANSACTIONID_KEY = Internal.createUniqueKey(Scheduledoperations.SCHEDULEDOPERATIONS, DSL.name("scheduledoperations_transactionid_key"), new TableField[] { Scheduledoperations.SCHEDULEDOPERATIONS.TRANSACTIONID }, true);
+    public static final UniqueKey<Record> SCHEDULEDOPERATIONS_TRANSACTIONTIMESTAMP_KEY = Internal.createUniqueKey(Scheduledoperations.SCHEDULEDOPERATIONS, DSL.name("scheduledoperations_transactiontimestamp_key"), new TableField[] { Scheduledoperations.SCHEDULEDOPERATIONS.TRANSACTIONTIMESTAMP }, true);
 
     // -------------------------------------------------------------------------
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final ForeignKey<Record, Record> BIDS__BIDS_AUCTIONID_FKEY = ForeignKeys0.BIDS__BIDS_AUCTIONID_FKEY;
-
-    // -------------------------------------------------------------------------
-    // [#1459] distribute members to avoid static initialisers > 64kb
-    // -------------------------------------------------------------------------
-
-    private static class Identities0 {
-        public static Identity<Record, Integer> IDENTITY_AUCTIONS = Internal.createIdentity(Auctions.AUCTIONS, Auctions.AUCTIONS.ID);
-    }
-
-    private static class UniqueKeys0 {
-        public static final UniqueKey<Record> AUCTIONS_PKEY = Internal.createUniqueKey(Auctions.AUCTIONS, "auctions_pkey", new TableField[] { Auctions.AUCTIONS.ID }, true);
-        public static final UniqueKey<Record> AUCTIONS_TOKENID_KEY = Internal.createUniqueKey(Auctions.AUCTIONS, "auctions_tokenid_key", new TableField[] { Auctions.AUCTIONS.TOKENID }, true);
-        public static final UniqueKey<Record> AUCTIONS_AUCTIONACCOUNTID_KEY = Internal.createUniqueKey(Auctions.AUCTIONS, "auctions_auctionaccountid_key", new TableField[] { Auctions.AUCTIONS.AUCTIONACCOUNTID }, true);
-        public static final UniqueKey<Record> BIDS_PKEY = Internal.createUniqueKey(Bids.BIDS, "bids_pkey", new TableField[] { Bids.BIDS.TIMESTAMP }, true);
-        public static final UniqueKey<Record> FLYWAY_SCHEMA_HISTORY_PK = Internal.createUniqueKey(FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, "flyway_schema_history_pk", new TableField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.INSTALLED_RANK }, true);
-        public static final UniqueKey<Record> SCHEDULEDOPERATIONS_TRANSACTIONTIMESTAMP_KEY = Internal.createUniqueKey(Scheduledoperations.SCHEDULEDOPERATIONS, "scheduledoperations_transactiontimestamp_key", new TableField[] { Scheduledoperations.SCHEDULEDOPERATIONS.TRANSACTIONTIMESTAMP }, true);
-        public static final UniqueKey<Record> SCHEDULEDOPERATIONS_TRANSACTIONID_KEY = Internal.createUniqueKey(Scheduledoperations.SCHEDULEDOPERATIONS, "scheduledoperations_transactionid_key", new TableField[] { Scheduledoperations.SCHEDULEDOPERATIONS.TRANSACTIONID }, true);
-    }
-
-    private static class ForeignKeys0 {
-        public static final ForeignKey<Record, Record> BIDS__BIDS_AUCTIONID_FKEY = Internal.createForeignKey(Keys.AUCTIONS_PKEY, Bids.BIDS, "bids_auctionid_fkey", new TableField[] { Bids.BIDS.AUCTIONID }, true);
-    }
+    public static final ForeignKey<Record, Record> BIDS__BIDS_AUCTIONID_FKEY = Internal.createForeignKey(Bids.BIDS, DSL.name("bids_auctionid_fkey"), new TableField[] { Bids.BIDS.AUCTIONID }, Keys.AUCTIONS_PKEY, new TableField[] { Auctions.AUCTIONS.ID }, true);
 }

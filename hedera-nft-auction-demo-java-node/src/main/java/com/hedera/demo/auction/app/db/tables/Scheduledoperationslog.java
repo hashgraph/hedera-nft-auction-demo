@@ -15,6 +15,7 @@ import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableOptions;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
 
@@ -24,7 +25,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Scheduledoperationslog extends TableImpl<Record> {
 
-    private static final long serialVersionUID = -1605730842;
+    private static final long serialVersionUID = 1L;
 
     /**
      * The reference instance of <code>public.scheduledoperationslog</code>
@@ -42,33 +43,34 @@ public class Scheduledoperationslog extends TableImpl<Record> {
     /**
      * The column <code>public.scheduledoperationslog.transactiontype</code>.
      */
-    public final TableField<Record, String> TRANSACTIONTYPE = createField(DSL.name("transactiontype"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> TRANSACTIONTYPE = createField(DSL.name("transactiontype"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.scheduledoperationslog.transactiontimestamp</code>.
      */
-    public final TableField<Record, String> TRANSACTIONTIMESTAMP = createField(DSL.name("transactiontimestamp"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> TRANSACTIONTIMESTAMP = createField(DSL.name("transactiontimestamp"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.scheduledoperationslog.auctionid</code>.
      */
-    public final TableField<Record, Integer> AUCTIONID = createField(DSL.name("auctionid"), org.jooq.impl.SQLDataType.INTEGER.defaultValue(org.jooq.impl.DSL.field("0", org.jooq.impl.SQLDataType.INTEGER)), this, "");
+    public final TableField<Record, Integer> AUCTIONID = createField(DSL.name("auctionid"), SQLDataType.INTEGER.defaultValue(DSL.field("0", SQLDataType.INTEGER)), this, "");
 
     /**
      * The column <code>public.scheduledoperationslog.transactionid</code>.
      */
-    public final TableField<Record, String> TRANSACTIONID = createField(DSL.name("transactionid"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> TRANSACTIONID = createField(DSL.name("transactionid"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.scheduledoperationslog.result</code>.
      */
-    public final TableField<Record, String> RESULT = createField(DSL.name("result"), org.jooq.impl.SQLDataType.CLOB.defaultValue(org.jooq.impl.DSL.field("''::text", org.jooq.impl.SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> RESULT = createField(DSL.name("result"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
-    /**
-     * Create a <code>public.scheduledoperationslog</code> table reference
-     */
-    public Scheduledoperationslog() {
-        this(DSL.name("scheduledoperationslog"), null);
+    private Scheduledoperationslog(Name alias, Table<Record> aliased) {
+        this(alias, aliased, null);
+    }
+
+    private Scheduledoperationslog(Name alias, Table<Record> aliased, Field<?>[] parameters) {
+        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
     }
 
     /**
@@ -85,12 +87,11 @@ public class Scheduledoperationslog extends TableImpl<Record> {
         this(alias, SCHEDULEDOPERATIONSLOG);
     }
 
-    private Scheduledoperationslog(Name alias, Table<Record> aliased) {
-        this(alias, aliased, null);
-    }
-
-    private Scheduledoperationslog(Name alias, Table<Record> aliased, Field<?>[] parameters) {
-        super(alias, null, aliased, parameters, DSL.comment(""), TableOptions.table());
+    /**
+     * Create a <code>public.scheduledoperationslog</code> table reference
+     */
+    public Scheduledoperationslog() {
+        this(DSL.name("scheduledoperationslog"), null);
     }
 
     public <O extends Record> Scheduledoperationslog(Table<O> child, ForeignKey<O, Record> key) {

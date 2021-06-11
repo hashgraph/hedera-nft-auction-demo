@@ -70,6 +70,7 @@ setup the `.env` properties as follows
 * `VUE_APP_NETWORK=` (mainnet, testnet or previewnet)
 * `REFUND_KEY=` (Same as operator key for testing purposes)
 * `MASTER_KEY=` (set only for one node which has additional authority over the auction accounts, can be the same as operator key / refund key for testing purposes only, else must be different)
+* `NFT_STORAGE_API_KEY=` (We use IPFS storage using [nft.storage](https://nft.storage) to store NFT metadata. You can create your API key on https://nft.storage and add it to your .env file to enable IPFS upload, this is only required if your node will be involved in token creation through the API or command line)
 
 you may leave the other properties as is for now
 

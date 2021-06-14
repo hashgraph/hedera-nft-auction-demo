@@ -153,7 +153,7 @@ services:
   ui-development:
     container_name: nft-auction-ui-dev
     build:
-      context: hedera-nft-auction-demo-javascript-client
+      context: hedera-nft-auction-demo-javascript-client-legacy
     restart: unless-stopped
     env_file:
       - docker-files/.env
@@ -167,7 +167,7 @@ services:
   ui-production:
     container_name: nft-auction-ui-prod
     build:
-      context: hedera-nft-auction-demo-javascript-client
+      context: hedera-nft-auction-demo-javascript-client-legacy
     restart: unless-stopped
     env_file:
       - docker-files/.env

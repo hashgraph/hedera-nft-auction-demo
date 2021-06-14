@@ -76,7 +76,7 @@ you may leave the other properties as is for now
 
 ```shell
 cd hedera-nft-auction-demo
-cd hedera-nft-auction-demo-javascript-client
+cd hedera-nft-auction-demo-javascript-client-legacy
 cp .env.sample .env
 ```
 
@@ -186,7 +186,7 @@ You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish
 
 ```shell
 cd hedera-nft-auction-demo
-cd hedera-nft-auction-demo-javascript-client
+cd hedera-nft-auction-demo-javascript-client-legacy
 # Build the code
 ./yarn install
 ```
@@ -547,7 +547,7 @@ java -jar build/libs/hedera-nft-auction-demo-1.0.jar
 __Web UI__
 
 ```shell
-cd hedera-nft-auction-demo-javascript-client
+cd hedera-nft-auction-demo-javascript-client-legacy
 yarn serve
 ```
 

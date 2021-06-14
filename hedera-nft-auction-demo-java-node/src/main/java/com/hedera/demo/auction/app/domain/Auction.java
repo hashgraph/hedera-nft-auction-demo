@@ -29,7 +29,7 @@ public class Auction implements VertxPojo, Serializable {
     private boolean winnercanbid = false;
     private String winningtxid = "";
     private String winningtxhash = "";
-    private String tokenimage = "";
+    private String tokenmetadata = "";
     private long minimumbid = 0L;
     private String starttimestamp = "";
     private String transfertxid = "";
@@ -56,7 +56,7 @@ public class Auction implements VertxPojo, Serializable {
         this.winnercanbid = record.get(AUCTIONS.WINNERCANBID);
         this.winningtxid = record.get(AUCTIONS.WINNINGTXID);
         this.winningtxhash = record.get(AUCTIONS.WINNINGTXHASH);
-        this.tokenimage = record.get(AUCTIONS.TOKENIMAGE);
+        this.tokenmetadata = record.get(AUCTIONS.TOKENMETADATA);
         this.minimumbid = record.get(AUCTIONS.MINIMUMBID);
         this.starttimestamp = record.get(AUCTIONS.STARTTIMESTAMP);
         this.transfertxid = record.get(AUCTIONS.TRANSFERTXID);
@@ -82,7 +82,7 @@ public class Auction implements VertxPojo, Serializable {
         this.winnercanbid = row.getBoolean(AUCTIONS.WINNERCANBID.getName());
         this.winningtxid = row.getString(AUCTIONS.WINNINGTXID.getName());
         this.winningtxhash = row.getString(AUCTIONS.WINNINGTXHASH.getName());
-        this.tokenimage = row.getString(AUCTIONS.TOKENIMAGE.getName());
+        this.tokenmetadata = row.getString(AUCTIONS.TOKENMETADATA.getName());
         this.minimumbid = row.getLong(AUCTIONS.MINIMUMBID.getName());
         this.starttimestamp = row.getString(AUCTIONS.STARTTIMESTAMP.getName());
         this.transfertxid = row.getString(AUCTIONS.TRANSFERTXID.getName());
@@ -234,12 +234,12 @@ public class Auction implements VertxPojo, Serializable {
         this.winningtxhash = winningtxhash;
     }
 
-    public String getTokenimage() {
-        return this.tokenimage;
+    public String getTokenmetadata() {
+        return this.tokenmetadata;
     }
 
-    public void setTokenimage(String tokenimage) {
-        this.tokenimage = tokenimage;
+    public void setTokenmetadata(String tokenmetadata) {
+        this.tokenmetadata = tokenmetadata;
     }
 
     public Long getMinimumbid() {
@@ -327,7 +327,7 @@ public class Auction implements VertxPojo, Serializable {
         sb.append(", ").append(winnercanbid);
         sb.append(", ").append(winningtxid);
         sb.append(", ").append(winningtxhash);
-        sb.append(", ").append(tokenimage);
+        sb.append(", ").append(tokenmetadata);
         sb.append(", ").append(minimumbid);
         sb.append(", ").append(starttimestamp);
         sb.append(", ").append(transfertxid);
@@ -357,7 +357,7 @@ public class Auction implements VertxPojo, Serializable {
         this.setWinnercanbid(json.getBoolean("winnercanbid", /* def= */false));
         this.setWinningtxid(json.getString("winningtxid"));
         this.setWinningtxhash(json.getString("winningtxhash"));
-        this.setTokenimage(json.getString("tokenimage"));
+        this.setTokenmetadata(json.getString("tokenmetadata"));
         this.setMinimumbid(json.getLong("minimumbid", 0L));
         this.setStarttimestamp(json.getString("starttimestamp", "0.0"));
         this.setTransfertxid(json.getString("transfertxid", ""));
@@ -387,7 +387,7 @@ public class Auction implements VertxPojo, Serializable {
         json.put("winnercanbid",getWinnerCanBid());
         json.put("winningtxid", getWinningtxid());
         json.put("winningtxhash", getWinningtxhash());
-        json.put("tokenimage", getTokenimage());
+        json.put("tokenmetadata", getTokenmetadata());
         json.put("minimumbid", getMinimumbid());
         json.put("starttimestamp", getStarttimestamp());
         json.put("transfertxid", getTransfertxid());

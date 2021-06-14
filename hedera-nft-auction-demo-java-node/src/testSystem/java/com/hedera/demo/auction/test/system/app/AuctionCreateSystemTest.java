@@ -87,7 +87,7 @@ public class AuctionCreateSystemTest extends AbstractSystemTest {
         assertEquals(auctionReserve, auction.getReserve());
         assertEquals("0.0", auction.getLastconsensustimestamp());
         assertEquals(winnerCanBid, auction.getWinnerCanBid());
-        assertNull(auction.getTokenimage());
+        assertNull(auction.getTokenmetadata());
         assertEquals(0, auction.getWinningbid());
         assertEquals(minimumBid, auction.getMinimumbid());
 

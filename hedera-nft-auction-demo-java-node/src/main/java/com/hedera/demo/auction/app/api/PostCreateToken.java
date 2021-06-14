@@ -1,6 +1,5 @@
 package com.hedera.demo.auction.app.api;
 
-import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.CreateToken;
 import com.hedera.hashgraph.sdk.TokenId;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -19,21 +18,18 @@ public class PostCreateToken implements Handler<RoutingContext> {
     public void handle(RoutingContext routingContext) {
         var body = routingContext.getBodyAsJson();
 
-        @Var RequestCreateToken data = new RequestCreateToken();
-        if (body != null) {
-            data = body.mapTo(RequestCreateToken.class);
-        }
-
         try {
-            CreateToken createToken = new CreateToken();
-            createToken.setEnv(env);
-            TokenId tokenId = createToken.create(data.name, data.symbol, data.initialSupply, data.decimals, data.memo);
-            JsonObject response = new JsonObject();
-            response.put("tokenId", tokenId.toString());
+            if (body != null) {
+                CreateToken createToken = new CreateToken();
+                createToken.setEnv(env);
+                TokenId tokenId = createToken.create(body.encode());
+                JsonObject response = new JsonObject();
+                response.put("tokenId", tokenId.toString());
 
-            routingContext.response()
-                    .putHeader("content-type", "application/json")
-                    .end(Json.encodeToBuffer(response));
+                routingContext.response()
+                        .putHeader("content-type", "application/json")
+                        .end(Json.encodeToBuffer(response));
+            }
         } catch (Exception e) {
             routingContext.fail(400, e);
             return;

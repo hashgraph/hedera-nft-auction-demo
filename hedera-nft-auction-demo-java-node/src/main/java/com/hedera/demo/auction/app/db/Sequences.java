@@ -18,5 +18,5 @@ public class Sequences {
     /**
      * The sequence <code>public.auctions_id_seq</code>
      */
-    public static final Sequence<Long> AUCTIONS_ID_SEQ = Internal.createSequence("auctions_id_seq", Public.PUBLIC, SQLDataType.BIGINT.nullable(false), null, null, null, null, false, null);
+    public static final Sequence<Integer> AUCTIONS_ID_SEQ = Internal.createSequence("auctions_id_seq", Public.PUBLIC, SQLDataType.INTEGER.nullable(false), null, null, null, null, false, null);
 }

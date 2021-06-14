@@ -60,8 +60,8 @@ public class AbstractIntegrationTest {
     String winningtxhash() {
         return stringPlusIndex("winningtxhash");
     }
-    String tokenimage() {
-        return stringPlusIndex("tokenimage");
+    String tokenmetadata() {
+        return stringPlusIndex("tokenmetadata");
     }
     long minimumbid() {
         return 10L + this.index;
@@ -130,7 +130,7 @@ public class AbstractIntegrationTest {
         auction.setWinnercanbid(winnercanbid());
         auction.setWinningtxid(winningtxid());
         auction.setWinningtxhash(winningtxhash());
-        auction.setTokenimage(tokenimage());
+        auction.setTokenmetadata(tokenmetadata());
         auction.setMinimumbid(minimumbid());
         auction.setStarttimestamp(starttimestamp());
         auction.setTransfertxid(transfertxid());
@@ -151,7 +151,7 @@ public class AbstractIntegrationTest {
         assertEquals(auction.getEndtimestamp(),getAuction.getEndtimestamp());
         assertEquals(auction.getReserve(),getAuction.getReserve());
         assertEquals(winnercanbid(), getAuction.getWinnerCanBid());
-        assertEquals(auction.getTokenimage(),getAuction.getTokenimage());
+        assertEquals(auction.getTokenmetadata(),getAuction.getTokenmetadata());
         assertEquals(auction.getWinningbid(),getAuction.getWinningbid());
         assertEquals(auction.getMinimumbid(),getAuction.getMinimumbid());
         assertEquals(auction.getTitle(), getAuction.getTitle());
@@ -244,7 +244,7 @@ public class AbstractIntegrationTest {
         assertEquals(auction.getStatus(), body.getString("status"));
         assertEquals(auction.getWinningtxid(), body.getString("winningtxid"));
         assertEquals(auction.getWinningtxhash(), body.getString("winningtxhash"));
-        assertEquals(auction.getTokenimage(), body.getString("tokenimage"));
+        assertEquals(auction.getTokenmetadata(), body.getString("tokenmetadata"));
         assertEquals(auction.getMinimumbid(), body.getLong("minimumbid"));
         assertEquals(auction.getStarttimestamp(), body.getString("starttimestamp"));
         assertEquals(auction.getTransfertxid(), body.getString("transfertxid"));

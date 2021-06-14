@@ -136,7 +136,14 @@ public class AbstractAPITester extends AbstractE2ETest {
         topicId = createTopic.create();
 
         CreateToken createToken = new CreateToken();
-        tokenId = createToken.create(tokenName, symbol, initialSupply, decimals, tokenMemo);
+        JsonObject tokenData = new JsonObject();
+        tokenData.put("name", tokenName);
+        tokenData.put("symbol", symbol);
+        tokenData.put("initialSupply", initialSupply);
+        tokenData.put("decimals", decimals);
+        tokenData.put("memo", tokenMemo);
+
+        tokenId = createToken.create(tokenData.toString());
 
         CreateAuctionAccount createAuctionAccount = new CreateAuctionAccount();
         auctionAccountId = createAuctionAccount.create(initialBalance, "");

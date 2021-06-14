@@ -122,9 +122,9 @@ public class Auctions extends TableImpl<Record> {
     public final TableField<Record, Boolean> WINNERCANBID = createField(DSL.name("winnercanbid"), SQLDataType.BOOLEAN.defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
 
     /**
-     * The column <code>public.auctions.tokenimage</code>.
+     * The column <code>public.auctions.tokenmetadata</code>.
      */
-    public final TableField<Record, String> TOKENIMAGE = createField(DSL.name("tokenimage"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
+    public final TableField<Record, String> TOKENMETADATA = createField(DSL.name("tokenmetadata"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
      * The column <code>public.auctions.minimumbid</code>.

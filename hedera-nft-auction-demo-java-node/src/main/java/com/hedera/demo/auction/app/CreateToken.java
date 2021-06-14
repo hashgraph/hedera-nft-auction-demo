@@ -1,22 +1,27 @@
 package com.hedera.demo.auction.app;
 
-import com.google.errorprone.annotations.Var;
+import com.hedera.demo.auction.app.api.RequestCreateToken;
 import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.FileAppendTransaction;
-import com.hedera.hashgraph.sdk.FileCreateTransaction;
-import com.hedera.hashgraph.sdk.FileId;
-import com.hedera.hashgraph.sdk.FileUpdateTransaction;
 import com.hedera.hashgraph.sdk.Hbar;
-import com.hedera.hashgraph.sdk.KeyList;
 import com.hedera.hashgraph.sdk.Status;
 import com.hedera.hashgraph.sdk.TokenCreateTransaction;
 import com.hedera.hashgraph.sdk.TokenId;
 import com.hedera.hashgraph.sdk.TransactionReceipt;
 import com.hedera.hashgraph.sdk.TransactionResponse;
+import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
+import org.jooq.tools.StringUtils;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 
 @Log4j2
 public class CreateToken extends AbstractCreate {
@@ -27,77 +32,87 @@ public class CreateToken extends AbstractCreate {
 
     /**
      * Creates a simple token (no kyc, freeze, supply, etc...)
-     * @param name the name of the token
-     * @param symbol the symbol for the token
-     * @param initialSupply the initial supply for the token (defaults to 1)
-     * @param decimals the number of decimals for the token (defaults to 0)
-     * @param tokenMemo the memo (string) to associate with the token
+     * @param tokenSpec Json Describing the token to create or the path to a file containing the json
      * @throws Exception in the event of an exception
      */
-    public TokenId create(String name, String symbol, long initialSupply, int decimals, String tokenMemo) throws Exception {
+    public TokenId create(String tokenSpec) throws Exception {
 
-        Client client = hederaClient.client();
-        client.setMaxTransactionFee(Hbar.from(100));
-
-        @Var String tokenSymbol = symbol;
-
-        if (Files.exists(Path.of(symbol))) {
-            // the symbol is a valid file name, let's create a file on Hedera with the contents
-            String contents = Utils.readFileIntoString(symbol);
-            FileCreateTransaction fileCreateTransaction = new FileCreateTransaction();
-            fileCreateTransaction.setContents("");
-            fileCreateTransaction.setKeys(client.getOperatorPublicKey());
-            try {
-                @Var TransactionResponse response = fileCreateTransaction.execute(client);
-                @Var TransactionReceipt receipt = response.getReceipt(client);
-                if (receipt.status != Status.SUCCESS) {
-                    log.error("File creation for token failed " + receipt.status);
-                    throw new Exception("File creation for token failed " + receipt.status);
-                } else {
-                    log.info("Token file created " + receipt.fileId.toString());
-
-                    FileId fileId = receipt.fileId;
-                    // append data now
-                    FileAppendTransaction fileAppendTransaction = new FileAppendTransaction();
-                    fileAppendTransaction.setFileId(fileId);
-                    fileAppendTransaction.setContents(contents);
-                    response = fileAppendTransaction.execute(client);
-                    receipt = response.getReceipt(client);
-
-                    if (receipt.status != Status.SUCCESS) {
-                        log.error("File append for token failed " + receipt.status);
-                        throw new Exception("File append for token failed " + receipt.status);
-                    } else {
-                        log.info("Token data appended to file");
-                        FileUpdateTransaction fileUpdateTransaction = new FileUpdateTransaction();
-                        fileUpdateTransaction.setFileId(fileId);
-                        KeyList keys = new KeyList();
-                        fileUpdateTransaction.setKeys(keys);
-                        response = fileUpdateTransaction.execute(client);
-                        receipt = response.getReceipt(client);
-                        if (receipt.status != Status.SUCCESS) {
-                            log.error("File removal of keys failed " + receipt.status);
-                            throw new Exception("File removal of keys failed " + receipt.status);
-                        } else {
-                            log.info("File is now immutable");
-                            tokenSymbol = "HEDERA://" + fileId.toString();
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                log.error(e);
-                throw e;
-            }
+        RequestCreateToken tokenData;
+        if (Files.exists(Path.of(tokenSpec))) {
+            // the spec is a valid file name, let's load it
+            String contents = Utils.readFileIntoString(tokenSpec);
+            JsonObject contentsJson = new JsonObject(contents);
+            tokenData = contentsJson.mapTo(RequestCreateToken.class);
+        } else {
+            JsonObject contentsJson = new JsonObject(tokenSpec);
+            tokenData = contentsJson.mapTo(RequestCreateToken.class);
         }
 
+        if (tokenData.hasMetaData()) {
+            String nftStorageKey = Optional.ofNullable(env.get("NFT_STORAGE_API_KEY")).orElse("");
+            if (StringUtils.isEmpty(nftStorageKey)) {
+                log.error("empty NFT_STORAGE_API_KEY, unable to store metadata");
+                throw new Exception("Empty NFT_STORAGE_API_KEY, unable to store metadata");
+            }
+            tokenData.saveImagesToIPFS(nftStorageKey);
+
+            // store the token Data on IPFS
+            String response = storeTokenOnIPFS(nftStorageKey, JsonObject.mapFrom(tokenData));
+
+            if (response.contains("ipfs")) {
+                // create the token
+                return createToken(tokenData.name, response, tokenData.initialSupply, tokenData.decimals, tokenData.memo);
+            } else {
+                throw new Exception(response);
+            }
+        } else {
+            return createToken(tokenData.name, tokenData.symbol, tokenData.initialSupply, tokenData.decimals, tokenData.memo);
+        }
+    }
+
+
+    protected String storeTokenOnIPFS(String nftStorageKey, JsonObject imageJson) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.nft.storage/upload"))
+                .header("Content-Type", "text/plain;charset=UTF-8")
+                .header("Authorization", "Bearer ".concat(nftStorageKey))
+                .POST(BodyPublishers.ofString(imageJson.encode()))
+                .build();
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+        if (response.statusCode() == 200) {
+            try {
+                JsonObject body = new JsonObject(response.body());
+                if ("true".equals(body.getString("ok"))) {
+                    return "https://cloudflare-ipfs.com/ipfs/".concat(body.getJsonObject("value").getString("cid"));
+                } else {
+                    log.error("saving to IPFS failed ".concat(response.body()));
+                    return "";
+                }
+            } catch (RuntimeException e) {
+                log.error(e, e);
+                return "";
+            }
+        } else {
+            log.error("saving to IPFS failed status code=".concat(String.valueOf(response.statusCode())).concat(" ").concat(response.body()));
+            return "";
+        }
+    }
+
+    private TokenId createToken(String name, String symbol, long initialSupply, int decimals, String memo) throws Exception {
+
         try {
+            Client client = hederaClient.client();
+            client.setMaxTransactionFee(Hbar.from(100));
+
             TokenCreateTransaction tokenCreateTransaction = new TokenCreateTransaction();
             tokenCreateTransaction.setTokenName(name);
-            tokenCreateTransaction.setTokenSymbol(tokenSymbol);
+            tokenCreateTransaction.setTokenSymbol(symbol);
             tokenCreateTransaction.setInitialSupply(initialSupply);
             tokenCreateTransaction.setDecimals(decimals);
             tokenCreateTransaction.setTreasuryAccountId(hederaClient.operatorId());
-            tokenCreateTransaction.setTokenMemo(tokenMemo);
+            tokenCreateTransaction.setTokenMemo(memo);
 
             TransactionResponse response = tokenCreateTransaction.execute(client);
 
@@ -116,24 +131,12 @@ public class CreateToken extends AbstractCreate {
     }
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 2) {
-            log.error("Invalid number of arguments supplied - name and symbol are required at a minimum");
+        if (args.length != 1) {
+            log.error("Invalid number of arguments supplied - should be one");
         } else {
             log.info("Creating token");
-            @Var long initialSupply = 1;
-            @Var int decimals = 0;
-            @Var String memo = "";
-            if (args.length >= 3) {
-                initialSupply = Long.parseLong(args[2]);
-            }
-            if (args.length >= 4) {
-                decimals = Integer.parseInt(args[3]);
-            }
-            if (args.length >= 5) {
-                memo = args[4];
-            }
             CreateToken createToken = new CreateToken();
-            createToken.create(args[0], args[1], initialSupply, decimals, memo);
+            createToken.create(args[0]);
         }
     }
 }

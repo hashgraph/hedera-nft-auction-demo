@@ -202,7 +202,7 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
             assertEquals(testAuction.getWinnerCanBid(), auctionToTest.getWinnerCanBid());
             assertEquals(testAuction.getWinningtxid(), auctionToTest.getWinningtxid());
             assertEquals(testAuction.getWinningtxhash(), auctionToTest.getWinningtxhash());
-            assertEquals(testAuction.getTokenimage(), auctionToTest.getTokenimage());
+            assertEquals(testAuction.getTokenmetadata(), auctionToTest.getTokenmetadata());
             assertEquals(testAuction.getMinimumbid(), auctionToTest.getMinimumbid());
             assertEquals(testAuction.getStarttimestamp(), auctionToTest.getStarttimestamp());
             assertEquals(testAuction.getTransfertxid(), auctionToTest.getTransfertxid());

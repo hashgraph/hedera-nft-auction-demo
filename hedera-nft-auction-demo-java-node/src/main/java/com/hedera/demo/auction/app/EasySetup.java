@@ -2,9 +2,9 @@ package com.hedera.demo.auction.app;
 
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.app.repository.ScheduledOperationsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.demo.auction.app.repository.ScheduledOperationsLogRepository;
+import com.hedera.demo.auction.app.repository.ScheduledOperationsRepository;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.Status;
@@ -16,6 +16,8 @@ import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.FileWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -46,7 +48,7 @@ public class EasySetup extends AbstractCreate {
     public String setup(String[] args) throws Exception {
         Client client = hederaClient.client();
 
-        @Var String symbol = "./sample-files/hedera-logo-base64.txt";
+        @Var String symbol = "./sample-files/hedera-logo.jpg";
         @Var boolean clean = true;
         @Var String name = "Test Token";
 
@@ -72,8 +74,22 @@ public class EasySetup extends AbstractCreate {
         }
 
         CreateToken createToken = new CreateToken();
-        TokenId tokenId = createToken.create(name, symbol, 1L, 0, "");
-//        String key = client.getOperatorPublicKey().toString();
+        JsonObject tokenData = new JsonObject();
+        tokenData.put("name", name);
+        tokenData.put("symbol", symbol);
+        tokenData.put("initialSupply", 1L);
+        tokenData.put("decimals", 0);
+        tokenData.put("memo", "");
+
+        if (Files.exists(Path.of(symbol))) {
+            JsonObject meta = new JsonObject();
+            meta.put("type", "file");
+            meta.put("description", symbol);
+            tokenData.put("image", meta);
+        }
+
+        TokenId tokenId = createToken.create(tokenData.toString());
+
         CreateAuctionAccount createAuctionAccount = new CreateAuctionAccount();
         AccountId auctionAccount = createAuctionAccount.create(100, "");
         // associate auction account with token

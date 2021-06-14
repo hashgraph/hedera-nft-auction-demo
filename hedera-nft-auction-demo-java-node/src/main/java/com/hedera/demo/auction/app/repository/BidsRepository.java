@@ -139,9 +139,8 @@ public class BidsRepository {
                 .execute();
     }
 
-    public boolean add(Bid bid) throws SQLException {
+    public void add(Bid bid) throws SQLException {
         @Var DSLContext cx = null;
-        @Var boolean result = false;
         try {
             cx = connectionManager.dsl();
 
@@ -170,7 +169,6 @@ public class BidsRepository {
         } catch (DataAccessException e) {
             log.info("Bid already in database");
         }
-        return result;
     }
 
     public List<Bid> bidsToRefund(int auctionId) throws SQLException {

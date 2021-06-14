@@ -17,7 +17,7 @@ public abstract class AbstractAuction {
     boolean winnercanbid = true;
     String winningtxid = "winningtxid";
     String winningtxhash = "winningtxhash";
-    String tokenimage= "image";
+    String tokenmetadata= "tokenmetadata";
     long minimumbid = 10L;
     String starttimestamp = "starttimestamp";
     String transfertxid = "transfertxid";
@@ -42,7 +42,7 @@ public abstract class AbstractAuction {
         auction.setWinnercanbid(winnercanbid);
         auction.setWinningtxid(winningtxid);
         auction.setWinningtxhash(winningtxhash);
-        auction.setTokenimage(tokenimage);
+        auction.setTokenmetadata(tokenmetadata);
         auction.setMinimumbid(minimumbid);
         auction.setStarttimestamp(starttimestamp);
         auction.setTransfertxid(transfertxid);
@@ -69,7 +69,7 @@ public abstract class AbstractAuction {
         assertEquals(true, auction.getWinnerCanBid());
         assertEquals(winningtxid, auction.getWinningtxid());
         assertEquals(winningtxhash, auction.getWinningtxhash());
-        assertEquals(tokenimage, auction.getTokenimage());
+        assertEquals(tokenmetadata, auction.getTokenmetadata());
         assertEquals(minimumbid, auction.getMinimumbid());
         assertEquals(starttimestamp, auction.getStarttimestamp());
         assertEquals(transfertxid, auction.getTransfertxid());

@@ -1,19 +1,16 @@
 package com.hedera.demo.auction.app.subscriber;
 
 import com.google.errorprone.annotations.Var;
-import com.google.protobuf.ByteString;
-import com.hedera.demo.auction.app.domain.Auction;
-import com.hedera.demo.auction.app.repository.AuctionsRepository;
+import com.hedera.demo.auction.AuctionReadinessWatcher;
 import com.hedera.demo.auction.app.HederaClient;
 import com.hedera.demo.auction.app.Utils;
-import com.hedera.demo.auction.AuctionReadinessWatcher;
+import com.hedera.demo.auction.app.domain.Auction;
+import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.hashgraph.sdk.AccountBalance;
 import com.hedera.hashgraph.sdk.AccountBalanceQuery;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.FileContentsQuery;
-import com.hedera.hashgraph.sdk.FileId;
 import com.hedera.hashgraph.sdk.Hbar;
 import com.hedera.hashgraph.sdk.PrecheckStatusException;
 import com.hedera.hashgraph.sdk.PrivateKey;
@@ -162,16 +159,10 @@ public class TopicSubscriber implements Runnable{
                                     .setTokenId(TokenId.fromString(newAuction.getTokenid()))
                                     .execute(client);
 
-                            // if token symbol starts with HEDERA://
-                            // load file from hedera
-                            if (tokenInfo.symbol.startsWith("HEDERA://")) {
-                                String fileId = tokenInfo.symbol.replace("HEDERA://", "");
-                                ByteString contentsQuery = new FileContentsQuery()
-                                        .setFileId(FileId.fromString(fileId))
-                                        .execute(client);
-                                String contents = contentsQuery.toString(StandardCharsets.UTF_8);
+                            // store the IPFS url against the auction
+                            if (tokenInfo.symbol.contains("ipfs")) {
                                 // set token image data
-                                newAuction.setTokenimage(contents);
+                                newAuction.setTokenmetadata(tokenInfo.symbol);
                             }
                         } catch (Exception e) {
                             log.error(e);

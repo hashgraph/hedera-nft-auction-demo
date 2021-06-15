@@ -184,6 +184,8 @@ You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish
 
 #### Javascript UI
 
+__Note: The UI assumes it is served from the same server as the client REST api (The Java Appnet Node above)__
+
 ```shell
 cd hedera-nft-auction-demo
 cd hedera-nft-auction-demo-javascript-client-legacy

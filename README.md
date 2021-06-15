@@ -80,7 +80,7 @@ cd hedera-nft-auction-demo-javascript-client-legacy
 cp .env.sample .env
 ```
 
-you may leave the properties as is for now
+you may leave the properties as they are for now
 
 #### Start docker images
 
@@ -199,10 +199,7 @@ nano .env
 ```
 
 * `VUE_APP_API_PORT=8081` this is the port of the `Java REST API` above
-* `VUE_APP_NETWORK=testnet` previewnet, testnet or mainnet
-* `VUE_APP_TOPIC_ID=` topic id the appnet is using
 * `PORT=8080` the port you want to run the UI on
-* `VUE_APP_NODE_OWNER` optionally set the name of the company operating the node to display in the UI
 
 #### Setting up an auction
 

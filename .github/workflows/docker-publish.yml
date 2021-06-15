@@ -24,13 +24,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Find and Replace
-        uses: jacobtomlinson/gha-find-replace@master
-        with:
-          find: "VUE_APP_API_PORT"
-          replace: "8081"
-          include: "hedera-nft-auction-demo-javascript-client-legacy/src/"
-
       - name: Copy .env.sample
         run: cp .env.sample .env
         working-directory: hedera-nft-auction-demo-javascript-client-legacy

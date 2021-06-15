@@ -134,12 +134,15 @@ export function secondsToParts(seconds) {
 }
 
 export function apiEndPoint() {
-  const endPoint = window.location.protocol
+  let endPoint = window.location.protocol
     .concat("//")
     .concat(window.location.hostname)
-    .concat(":")
-    .concat(process.env.VUE_APP_API_PORT)
-    .concat("/v1");
+    .concat(":");
+  let port = process.env.VUE_APP_API_PORT;
+  if (typeof port === 'undefined' || port === null || port === "") {
+    port = "8081";
+  }
+  endPoint = endPoint.concat(port).concat("/v1");
 
   return endPoint;
 }

@@ -184,7 +184,7 @@ You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish
 
 #### Javascript UI
 
-__Note: The UI assumes it is served from the same server as the client REST api (The Java Appnet Node above)__
+_Note: The UI assumes it is served from the same server as the client REST api (The Java Appnet Node above)_
 
 ```shell
 cd hedera-nft-auction-demo
@@ -269,6 +269,8 @@ __Create a topic__
 
 This will create a new topic id and set the `VUE_APP_TOPIC_ID` environment variable.
 
+_Note: This command will create the topic using the `OPERATOR_ID` defined in the `.env` file, you should be using the account that will run the auction node here._
+
 ```shell
 ./gradlew createTopic
 ```
@@ -276,6 +278,8 @@ This will create a new topic id and set the `VUE_APP_TOPIC_ID` environment varia
 __Create a simple token__
 
 This command will create a token named `test` with a symbol of `tst`, an initial supply of `1` and `0` decimals.
+
+_Note: This command will create the token using the `OPERATOR_ID` defined in the `.env` file, it may be desirable to use a separate account to create the token than that used to run the auction node._
 
 First, create a file containing the specification of the token [Token specification](#token-specification), save it somewhere such that the application has access to it.
 
@@ -288,6 +292,8 @@ set the resulting `Token Id` to the `tokenId` attribute in your `./sample-files/
 __Create an auction account__
 
 This command will create an auction account with an initial balance of `100` hbar using the operator key for the account.
+
+_Note: This command will create the auction account using the `OPERATOR_ID` defined in the `.env` file, you should be using the account that will run the auction node here._
 
 ```shell
 ./gradlew createAuctionAccount --args="100"
@@ -306,6 +312,7 @@ You can change some of the attribute values if you wish
 _Note: if the `endtimestamp` (end of auction in seconds since Epoch) is left blank, the auction will run for 48 hours from now by default._
 
 You may also specify a time delta from the consensus time of the resulting HCS message such as:
+
 * `2d` for two days following the consensus time
 * `1h` for one hour
 * `10m` for ten minutes
@@ -325,6 +332,9 @@ You may also specify a time delta from the consensus time of the resulting HCS m
 _Note: the minimum bid and reserve are expressed in `tinybars`_
 
 __Create the auction__
+
+_Note: This command will create the auction using the `OPERATOR_ID` defined in the `.env` file, you should be using the account that will run the auction node here._
+
 ```shell
 ./gradlew createAuction --args="./sample-files/initDemo.json"
 ```
@@ -332,6 +342,8 @@ __Create the auction__
 __Transfer the token to the auction account__
 
 This transfer the token from the account that created it to the `auctionaccountid`, supply the `tokenId` and `accountId` created above in the parameters.
+
+_Note: This command will transfer the token using the `OPERATOR_ID` defined in the `.env` file, you should use the same account as that used to create the token._
 
 ```shell
 ./gradlew createTokenTransfer --args="tokenId accountId"
@@ -519,6 +531,8 @@ __Transfer the token to the auction account__
 This transfer the token from the account that created it to the `auctionaccountid`, supply the `tokenId` and `accountId` created above in the parameters.
 
 be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the values you obtained earlier.
+
+_Note: If the token has been created with the REST api call above, it will already by associated and owned by the `auctionaccountid`, there is no need to transfer it._
 
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '

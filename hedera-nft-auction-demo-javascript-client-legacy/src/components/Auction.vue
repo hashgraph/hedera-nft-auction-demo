@@ -25,8 +25,8 @@
         <v-col align="center">
           <div class="text-xs-center">
             <v-img
-              v-if="tokenimage"
-              :src="tokenimage"
+              v-if="tokenImage"
+              :src="tokenImage"
               class="ma-2"
               width="90%"
             ></v-img>
@@ -80,6 +80,8 @@
 import { getAccountUrl, getTokenUrl } from "@/utils";
 import FlipCountdown from "vue2-flip-countdown";
 import { getTransactionURL } from "../utils";
+import {ENV_DATA, EventBus, FOOTER_NOTIFICATION} from "@/eventBus";
+const axios = require("axios");
 
 export default {
   name: "Auction",
@@ -90,7 +92,7 @@ export default {
     "endtimestamp",
     "status",
     "mirror",
-    "tokenimage",
+    "tokenmetadata",
     "minimumbid",
     "transfertxid",
     "transfertxhash"
@@ -99,7 +101,10 @@ export default {
     FlipCountdown
   },
   data: function() {
-    return {};
+    return {
+      network: "",
+      tokenImage: ""
+    };
   },
   methods: {
     timeFromSeconds(timestamp) {
@@ -122,12 +127,30 @@ export default {
       return timeToEnd;
     }
   },
+  async created() {
+    EventBus.$on(ENV_DATA, envData => {
+      this.network = envData.network;
+    });
+    if (this.tokenmetadata) {
+      let response = await axios.get(this.tokenmetadata);
+      if (response.status !== 200) {
+        const error = "Error while fetching token Metadata";
+        EventBus.$emit(FOOTER_NOTIFICATION, error);
+        console.error(error);
+      } else {
+        const tokenData = response.data;
+        console.log(tokenData);
+        console.log(tokenData.name);
+        this.tokenImage = tokenData.image.description;
+      }
+    }
+  },
   computed: {
     accountURL() {
-      return getAccountUrl(this.mirror, this.auctionaccountid);
+      return getAccountUrl(this.mirror, this.auctionaccountid, this.network);
     },
     tokenURL() {
-      return getTokenUrl(this.mirror, this.tokenid);
+      return getTokenUrl(this.mirror, this.tokenid, this.network);
     },
     transferTransactionURL() {
       return getTransactionURL(

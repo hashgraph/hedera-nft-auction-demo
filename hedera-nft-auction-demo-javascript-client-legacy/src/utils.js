@@ -12,19 +12,18 @@ export function timeFromSeconds(timestamp) {
     .concat(new Date(seconds * 1000).toLocaleTimeString());
 }
 
-export function getMirrorURL(type, mirror, id) {
-  const network = process.env.VUE_APP_NETWORK.toUpperCase();
+export function getMirrorURL(type, mirror, id, network) {
   if (network === "PREVIEWNET") {
     return "";
   }
   if (mirror.toUpperCase() === "KABUTO") {
     const localNetwork = network === "MAINNET" ? "mainnet" : "testnet";
     if (type === "transactions") {
-      return process.env.VUE_APP_EXPLORER_KABUTO.concat(localNetwork)
+      return "https://explorer.kabuto.sh/".concat(localNetwork)
         .concat("/transaction/")
         .concat(id);
     } else {
-      return process.env.VUE_APP_EXPLORER_KABUTO.concat(localNetwork)
+      return "https://explorer.kabuto.sh/".concat(localNetwork)
         .concat("/id/")
         .concat(id);
     }
@@ -62,32 +61,32 @@ export function getMirrorURL(type, mirror, id) {
     //https://testnet.dragonglass.me/hedera/transactions/0018651251623235870
     // transformId = transformId.replace('','0')
     if (network === "MAINNET") {
-      return process.env.VUE_APP_EXPLORER_DRAGONGLASS_MAINNET.concat(type)
+      return "https://app.dragonglass.me/hedera/".concat(type)
         .concat("/")
         .concat(transformId);
     } else {
-      return process.env.VUE_APP_EXPLORER_DRAGONGLASS_TESTNET.concat(type)
+      return "https://testnet.dragonglass.me/hedera/".concat(type)
         .concat("/")
         .concat(transformId);
     }
   }
 }
 
-export function getTopicURL(mirror, topicId) {
-  return getMirrorURL("topics", mirror, topicId);
+export function getTopicURL(mirror, topicId, network) {
+  return getMirrorURL("topics", mirror, topicId, network);
 }
 
-export function getAccountUrl(mirror, accountId) {
-  return getMirrorURL("accounts", mirror, accountId);
+export function getAccountUrl(mirror, accountId, network) {
+  return getMirrorURL("accounts", mirror, accountId, network);
 }
 
-export function getTokenUrl(mirror, tokenId) {
-  return getMirrorURL("tokens", mirror, tokenId);
+export function getTokenUrl(mirror, tokenId, network) {
+  return getMirrorURL("tokens", mirror, tokenId, network);
 }
 
-export function getTransactionURL(mirror, transactionId, transactionhash) {
+export function getTransactionURL(mirror, transactionId, transactionhash, network) {
   if (mirror.toUpperCase() === "KABUTO") {
-    return getMirrorURL("transactions", mirror, transactionhash);
+    return getMirrorURL("transactions", mirror, transactionhash, network);
   } else {
     return getMirrorURL("transactions", mirror, transactionId);
   }

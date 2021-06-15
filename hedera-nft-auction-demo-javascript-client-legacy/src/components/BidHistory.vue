@@ -80,7 +80,6 @@ export default {
   props: ["mirror", "auctionid"],
   data: function() {
     return {
-      network: process.env.VUE_APP_NETWORK,
       loadingBids: false,
       interval: null,
       headers: [

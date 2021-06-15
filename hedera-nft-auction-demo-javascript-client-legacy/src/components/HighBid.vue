@@ -62,13 +62,6 @@
               This auction has not started yet
             </p>
           </v-sheet>
-
-          <div v-if="!accountid">
-            <a :href="extensionURL" target="_blank"
-              >You may install and setup this browser extension (desktop only)
-              in the mean time in order to bid later</a
-            >
-          </div>
         </v-card-text>
       </v-card>
     </div>
@@ -77,6 +70,7 @@
 
 <script>
 import { getAccountUrl, getTransactionURL, timeFromSeconds } from "@/utils";
+import {ENV_DATA, EventBus} from "@/eventBus";
 const { Hbar } = require("@hashgraph/sdk");
 
 export default {
@@ -95,9 +89,13 @@ export default {
   ],
   data: function() {
     return {
-      extensionURL: process.env.VUE_APP_BROWSER_EXTENSION_URL,
-      network: process.env.VUE_APP_NETWORK
+      network: ""
     };
+  },
+  created() {
+    EventBus.$on(ENV_DATA, envData => {
+      this.network = envData.network;
+    });
   },
   methods: {
     timeFromSeconds(timestamp) {

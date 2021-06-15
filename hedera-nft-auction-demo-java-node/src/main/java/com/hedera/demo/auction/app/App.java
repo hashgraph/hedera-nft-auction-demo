@@ -144,13 +144,12 @@ public final class App {
             if (! refundKey.isBlank()) {
                 // validator node, start the refunder thread
                 startRefunder(auctionsRepository, bidsRepository);
+                // and scheduled transaction executor
+                startScheduledExecutor(auctionsRepository, scheduledOperationsRepository);
             }
             startRefundChecker(webClient, auctionsRepository, bidsRepository);
             if (transferOnWin) {
                 startAuctionEndTransfers(webClient, auctionsRepository);
-            }
-            if (! refundKey.isBlank()) {
-                startScheduledExecutor(auctionsRepository, scheduledOperationsRepository);
             }
         }
     }

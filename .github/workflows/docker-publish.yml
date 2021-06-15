@@ -31,6 +31,10 @@ jobs:
           replace: "8081"
           include: "hedera-nft-auction-demo-javascript-client-legacy/src/"
 
+      - name: Copy .env.sample
+        run: cp .env.sample .env
+        working-directory: hedera-nft-auction-demo-javascript-client-legacy
+
       - name: Build ui image
         run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/nft-auction-demo-ui:latest --label "runnumber=${GITHUB_RUN_ID}"
         working-directory: hedera-nft-auction-demo-javascript-client-legacy

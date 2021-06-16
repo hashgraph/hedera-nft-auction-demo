@@ -72,6 +72,7 @@ public class TransactionScheduler {
         // the same tx has already been submitted, submit just the signature
         // get the receipt for the transaction
         try {
+            log.debug("Signing schedule id " + existingReceipt.scheduleId);
             TransactionResponse response = new ScheduleSignTransaction()
                     .setScheduleId(existingReceipt.scheduleId)
                     .setNodeAccountIds(List.of(AccountId.fromString("0.0.3")))

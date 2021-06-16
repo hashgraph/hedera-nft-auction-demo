@@ -56,7 +56,7 @@ public class TransactionScheduler {
                 TransactionReceipt receipt = response.getReceipt(hederaClient.client());
                 return handleResponse(receipt);
             } catch (TimeoutException timeoutException) {
-                log.error("Exception fetching receipt");
+                log.error("TimeoutException fetching receipt");
                 log.error(timeoutException);
                 throw timeoutException;
             } catch (ReceiptStatusException receiptStatusException) {

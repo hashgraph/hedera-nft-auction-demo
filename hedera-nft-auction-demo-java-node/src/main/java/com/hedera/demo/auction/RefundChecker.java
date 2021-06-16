@@ -32,6 +32,7 @@ public class RefundChecker implements Runnable {
     protected final int mirrorQueryFrequency;
     protected final HederaClient hederaClient;
     protected boolean runThread = true;
+    protected Map<Integer, String> queryTimestamps = new HashMap<Integer, String>();
 
     public RefundChecker(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int mirrorQueryFrequency) {
         this.webClient = webClient;
@@ -102,7 +103,10 @@ public class RefundChecker implements Runnable {
             List<Auction> auctions = auctionsRepository.getAuctionsList();
             for (Auction auction: auctions) {
                 try {
-                    @Var String queryFromTimestamp = bidsRepository.getFirstBidToRefund(auction.getId());
+                    if ( ! queryTimestamps.containsKey(auction.getId())) {
+                        queryTimestamps.put(auction.getId(), bidsRepository.getFirstBidToRefund(auction.getId()));
+                    }
+                    @Var String queryFromTimestamp = queryTimestamps.get(auction.getId());
                     while (!StringUtils.isEmpty(queryFromTimestamp)) {
 
                         Map<String, String> queryParameters = new HashMap<>();
@@ -118,6 +122,15 @@ public class RefundChecker implements Runnable {
                             foundRefundsToCheck = true;
                         }
                         queryFromTimestamp = Utils.getTimestampFromMirrorLink(mirrorTransactions.links.next);
+                        if (StringUtils.isEmpty(queryFromTimestamp)) {
+                            int transactionCount = mirrorTransactions.transactions.size();
+                            if (transactionCount > 0) {
+                                queryFromTimestamp = mirrorTransactions.transactions.get(transactionCount - 1).consensusTimestamp;
+                            }
+                        }
+                        if (! StringUtils.isEmpty(queryFromTimestamp)) {
+                            queryTimestamps.put(auction.getId(), queryFromTimestamp);
+                        }
                     }
                 } catch (SQLException sqlException) {
                     log.error("unable to fetch first bid to refund");

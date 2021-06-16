@@ -10,6 +10,7 @@ import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.exception.DataAccessException;
+import org.jooq.tools.StringUtils;
 
 import javax.annotation.Nullable;
 import java.sql.SQLException;
@@ -100,12 +101,22 @@ public class BidsRepository {
 
     }
 
-    public void setRefundIssued(String consensusTimestamp) throws SQLException {
+    public void setRefundIssued(String consensusTimestamp, String transactionId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        cx.update(Tables.BIDS)
-                .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_ISSUED)
-                .where(Tables.BIDS.TIMESTAMP.eq(consensusTimestamp))
-                .execute();
+
+        if (StringUtils.isEmpty(transactionId)) {
+            cx.update(Tables.BIDS)
+                    .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_ISSUED)
+                    .where(Tables.BIDS.TIMESTAMP.eq(consensusTimestamp))
+                    .execute();
+        } else {
+            cx.update(Tables.BIDS)
+                    .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_ISSUED)
+                    .set(Tables.BIDS.REFUNDTXID, transactionId)
+                    .where(Tables.BIDS.TIMESTAMP.eq(consensusTimestamp))
+                    .execute();
+
+        }
     }
 
     public void setRefundPending(String bidTransactionId) throws SQLException {

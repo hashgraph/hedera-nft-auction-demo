@@ -1,6 +1,5 @@
 package com.hedera.demo.auction;
 
-import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.HederaClient;
 import com.hedera.demo.auction.app.Utils;
 import com.hedera.demo.auction.app.domain.Auction;
@@ -83,8 +82,6 @@ public class Refunder implements Runnable {
     }
 
     private void issueRefund(String auctionAccount, Bid bid) {
-        @Var boolean refundIsInProgress = false;
-
         AccountId auctionAccountId = AccountId.fromString(auctionAccount);
 
         log.info("Refunding " + bid.getBidamount() + " from " + auctionAccount + " to " + bid.getBidderaccountid());
@@ -96,7 +93,7 @@ public class Refunder implements Runnable {
 
         if (testing) {
             // just testing, we can't sign a scheduled transaction, just record the state change on the bid
-            setRefundInProgress(bid);
+            setRefundInProgress(bid, "");
         } else {
             // Create a transfer transaction for the refund
             TransferTransaction transferTransaction = new TransferTransaction();
@@ -109,8 +106,9 @@ public class Refunder implements Runnable {
                 TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction();
 
                 if (transactionSchedulerResult.success) {
-                    refundIsInProgress = true;
                     log.info("Refund transaction successfully scheduled (id " + shortTransactionId + ")");
+                    log.info("setting bid to refund in progress (timestamp = " + bid.getTimestamp() + ")");
+                    setRefundInProgress(bid, shortTransactionId);
                 } else {
                     log.error("Error issuing refund to bid - timestamp = " + bid.getTimestamp());
                     log.error(transactionSchedulerResult.status);
@@ -118,17 +116,12 @@ public class Refunder implements Runnable {
             } catch (TimeoutException timeoutException) {
                 log.error(timeoutException);
             }
-
-            if (refundIsInProgress) {
-                log.info("setting bid to refund in progress (timestamp = " + bid.getTimestamp() + ")");
-                setRefundInProgress(bid);
-            }
         }
     }
 
-    private void setRefundInProgress(Bid bid) {
+    private void setRefundInProgress(Bid bid, String transactionId) {
         try {
-            bidsRepository.setRefundIssued(bid.getTimestamp());
+            bidsRepository.setRefundIssued(bid.getTimestamp(), transactionId);
         } catch (SQLException sqlException) {
             log.error("Failed to set bid refund in progress (bid timestamp " + bid.getTimestamp() + ")");
             log.error(sqlException);

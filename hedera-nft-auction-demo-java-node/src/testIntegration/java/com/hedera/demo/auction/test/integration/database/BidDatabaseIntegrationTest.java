@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.test.integration.database;
 
+import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.SqlConnectionManager;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.domain.Bid;
@@ -102,12 +103,20 @@ class BidDatabaseIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void setRefundInProgressTest() throws SQLException {
 
-        bidsRepository.setRefundIssued(bid.getTimestamp());
+        bidsRepository.setRefundIssued(bid.getTimestamp(), "");
 
-        List<Bid> bids = bidsRepository.getBidsList();
+        @Var List<Bid> bids = bidsRepository.getBidsList();
         assertNotNull(bids);
         assertEquals(1, bids.size());
         assertTrue(bids.get(0).isRefundIssued());
+
+        bidsRepository.setRefundIssued(bid.getTimestamp(), "someTxId");
+
+        bids = bidsRepository.getBidsList();
+        assertNotNull(bids);
+        assertEquals(1, bids.size());
+        assertTrue(bids.get(0).isRefundIssued());
+        assertEquals("someTxId", bids.get(0).getRefundtxid());
     }
 
     @Test
@@ -148,7 +157,7 @@ class BidDatabaseIntegrationTest extends AbstractIntegrationTest {
             Bid bid = testBidObject(i, auctionId);
             bids.add(bid);
             bidsRepository.add(bid);
-            bidsRepository.setRefundIssued(bid.getTimestamp());
+            bidsRepository.setRefundIssued(bid.getTimestamp(), "");
         }
 
         String firstBidToRefund = bidsRepository.getFirstBidToRefund(auctionId);

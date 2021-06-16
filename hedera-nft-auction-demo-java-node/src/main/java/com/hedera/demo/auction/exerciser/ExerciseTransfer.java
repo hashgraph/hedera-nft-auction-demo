@@ -37,8 +37,6 @@ public class ExerciseTransfer implements Supplier<ExerciseWinner> {
 
     HederaClient hederaClient;
     try {
-      hederaClient = new HederaClient();
-      Client client = hederaClient.client();
       @Var long maxBid = 0;
       Random random = new Random();
       for (int i=0; i < numTransfers; i++) {
@@ -48,6 +46,10 @@ public class ExerciseTransfer implements Supplier<ExerciseWinner> {
 
         AccountId fromAccount = accounts.get(index);
         PrivateKey privateKey = privateKeys.get(index);
+
+        hederaClient = new HederaClient();
+        Client client = hederaClient.client();
+        client.setOperator(fromAccount, privateKey);
 
         try {
           log.info("Transferring " + amount + " from " + fromAccount.toString());

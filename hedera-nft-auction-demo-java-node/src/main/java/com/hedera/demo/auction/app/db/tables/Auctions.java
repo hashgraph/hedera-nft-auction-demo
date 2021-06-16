@@ -142,11 +142,6 @@ public class Auctions extends TableImpl<Record> {
     public final TableField<Record, String> TOKENOWNER = createField(DSL.name("tokenowner"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
-     * The column <code>public.auctions.transfertimestamp</code>.
-     */
-    public final TableField<Record, String> TRANSFERTIMESTAMP = createField(DSL.name("transfertimestamp"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
-
-    /**
      * The column <code>public.auctions.transferstatus</code>.
      */
     public final TableField<Record, String> TRANSFERSTATUS = createField(DSL.name("transferstatus"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");

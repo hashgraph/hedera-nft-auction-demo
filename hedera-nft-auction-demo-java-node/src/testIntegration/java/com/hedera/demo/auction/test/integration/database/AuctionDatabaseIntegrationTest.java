@@ -247,21 +247,6 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void setTransferTimestampTest() throws Exception {
-        int auctionId = auction.getId();
-        String timestamp = "123.345";
-        String timestamp2 = "123123.345";
-        auctionsRepository.setTransferTimestamp(auctionId, timestamp);
-        @Var Auction checkAuction = auctionsRepository.getAuction(auctionId);
-        assertEquals(timestamp, checkAuction.getTransfertimestamp());
-
-        // negative test, should not update
-        auctionsRepository.setTransferTimestamp(0, timestamp2);
-        checkAuction = auctionsRepository.getAuction(auctionId);
-        assertEquals(timestamp, checkAuction.getTransfertimestamp());
-    }
-
-    @Test
     public void getAuctionByAccountIdTest() throws Exception {
         Auction testAuction = auctionsRepository.getAuction(auction.getAuctionaccountid());
         assertEquals(auction.getAuctionaccountid(), testAuction.getAuctionaccountid());

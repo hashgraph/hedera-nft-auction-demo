@@ -114,18 +114,7 @@ public class AuctionsRepository {
         log.debug("Setting auction transfer status to " + Auction.TRANSFER_STATUS_PENDING + " for token id " + tokenId);
         cx.update(AUCTIONS)
                 .set(AUCTIONS.TRANSFERSTATUS, Auction.TRANSFER_STATUS_PENDING)
-                .set(AUCTIONS.TRANSFERTIMESTAMP, AUCTIONS.ENDTIMESTAMP)
                 .where(AUCTIONS.TOKENID.eq(tokenId))
-                .execute();
-    }
-
-    public void setTransferTimestamp(int auctionId, String timestamp) throws SQLException {
-        DSLContext cx = connectionManager.dsl();
-        log.debug("setTransferTimestamp " + auctionId + ", timestamp " + timestamp);
-
-        cx.update(AUCTIONS)
-                .set(AUCTIONS.TRANSFERTIMESTAMP, timestamp)
-                .where(AUCTIONS.ID.eq(auctionId))
                 .execute();
     }
 

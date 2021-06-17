@@ -1,6 +1,8 @@
 package com.hedera.demo.auction.app.scheduledoperations;
 
 import com.hedera.demo.auction.app.HederaClient;
+import com.hedera.demo.auction.app.domain.Bid;
+import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.PrecheckStatusException;
 import com.hedera.hashgraph.sdk.PrivateKey;
@@ -14,6 +16,7 @@ import com.hedera.hashgraph.sdk.TransactionReceipt;
 import com.hedera.hashgraph.sdk.TransactionResponse;
 import lombok.extern.log4j.Log4j2;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
@@ -36,6 +39,23 @@ public class TransactionScheduler {
         this.transactionId = transactionId;
         this.transaction = transaction;
     }
+    public void issueScheduledTransactionForRefund(Bid bid, BidsRepository bidsRepository, String shortTransactionId) throws TimeoutException {
+        TransactionSchedulerResult transactionSchedulerResult = issueScheduledTransaction();
+        if (transactionSchedulerResult.success || transactionSchedulerResult.status == Status.NO_NEW_VALID_SIGNATURES) {
+            log.info("Refund transaction successfully scheduled (id " + shortTransactionId + ")");
+            log.info("setting bid to refund in progress (timestamp = " + bid.getTimestamp() + ")");
+            try {
+                bidsRepository.setRefundIssued(bid.getTimestamp(), shortTransactionId);
+            } catch (SQLException sqlException) {
+                log.error("Failed to set bid refund in progress (bid timestamp " + bid.getTimestamp() + ")");
+                log.error(sqlException);
+            }
+        } else {
+            log.error("Error issuing refund to bid - timestamp = " + bid.getTimestamp());
+            log.error(transactionSchedulerResult.status);
+        }
+    }
+
     public TransactionSchedulerResult issueScheduledTransaction() throws TimeoutException {
         hederaClient.setOperator(operatorId, operatorKey);
 
@@ -43,11 +63,16 @@ public class TransactionScheduler {
         ScheduleCreateTransaction scheduleCreateTransaction = transaction.schedule()
                 .setPayerAccountId(auctionAccountId)
                 .setTransactionId(transactionId)
-                //TODO: Fix list of node account ids
-                .setNodeAccountIds(List.of(AccountId.fromString("0.0.3")))
-                .freezeWith(hederaClient.client())
-                .sign(refundKey)
-                .sign(operatorKey);
+                .setScheduleMemo("Scheduled Refund");
+
+        if (! refundKey.toString().equals(operatorKey.toString())) {
+            // only freeze and sign if refund key is different to operator key
+            // this will be more efficient in terms of use of random nodes and
+            // will be more efficient since fewer signatures are generated
+            scheduleCreateTransaction.setNodeAccountIds(List.of(AccountId.fromString("0.0.3")))
+                    .freezeWith(hederaClient.client())
+                    .sign(refundKey);
+        }
 
         try {
             TransactionResponse response = scheduleCreateTransaction.execute(hederaClient.client());
@@ -73,12 +98,17 @@ public class TransactionScheduler {
         // get the receipt for the transaction
         try {
             log.debug("Signing schedule id " + existingReceipt.scheduleId);
-            TransactionResponse response = new ScheduleSignTransaction()
-                    .setScheduleId(existingReceipt.scheduleId)
-                    .setNodeAccountIds(List.of(AccountId.fromString("0.0.3")))
+            ScheduleSignTransaction scheduleSignTransaction = new ScheduleSignTransaction()
+                    .setScheduleId(existingReceipt.scheduleId);
+
+            if (! refundKey.toString().equals(hederaClient.operatorPrivateKey().toString())) {
+                // only add extra signature if keys are different
+                scheduleSignTransaction.setNodeAccountIds(List.of(AccountId.fromString("0.0.3")))
                     .freezeWith(hederaClient.client())
-                    .sign(refundKey)
-                    .execute(hederaClient.client());
+                    .sign(refundKey);
+
+            }
+            TransactionResponse response = scheduleSignTransaction.execute(hederaClient.client());
 
             try {
                 TransactionReceipt receipt = response.getReceipt(hederaClient.client());

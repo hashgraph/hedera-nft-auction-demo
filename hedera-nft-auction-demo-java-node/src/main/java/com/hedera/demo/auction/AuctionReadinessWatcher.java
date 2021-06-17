@@ -89,9 +89,11 @@ public class AuctionReadinessWatcher implements Runnable {
                     JsonObject response = future.get();
                     if (response != null) {
                         MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
+                        log.debug("Got " + mirrorTransactions.transactions.size() + " to verify");
 
                         if (handleResponse(mirrorTransactions)) {
                             // token is owned by the auction account, exit this thread
+                            log.debug("Token owned by the account");
                             runThread = false;
                             break;
                         } else {
@@ -105,6 +107,9 @@ public class AuctionReadinessWatcher implements Runnable {
                             if (transactionCount > 0) {
                                 nextTimestamp = mirrorTransactions.transactions.get(transactionCount - 1).consensusTimestamp;
                             }
+                        }
+                        if (StringUtils.isEmpty(nextTimestamp)) {
+                            nextTimestamp = "0.0";
                         }
                     }
                 } catch (InterruptedException interruptedException) {

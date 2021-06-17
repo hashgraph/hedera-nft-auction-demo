@@ -1,10 +1,10 @@
 package com.hedera.demo.auction.test.integration.auctionreadiness;
 
+import com.hedera.demo.auction.AuctionReadinessWatcher;
 import com.hedera.demo.auction.app.HederaClient;
 import com.hedera.demo.auction.app.SqlConnectionManager;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTransactions;
-import com.hedera.demo.auction.AuctionReadinessWatcher;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.test.integration.AbstractIntegrationTest;
 import com.hedera.demo.auction.test.integration.HederaJson;
@@ -70,7 +70,7 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
         auction.setTokenid(tokenId);
         auction = auctionsRepository.add(auction);
 
-        auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, null, auctionsRepository, null,auction, "", 5000);
+        auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, null, auctionsRepository, null,auction, 5000);
         auctionReadinessWatcher.setTesting();
     }
 
@@ -123,7 +123,7 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testAuctionReadinessFromJsonDataNotReadyLink() throws Exception {
 
-        AuctionReadinessWatcher readinessTester = new AuctionReadinessWatcher(hederaClient, null, auctionsRepository, null,auction, "",5000);
+        AuctionReadinessWatcher readinessTester = new AuctionReadinessWatcher(hederaClient, null, auctionsRepository, null,auction, 5000);
         readinessTester.setTesting();
 
         JsonObject jsonResponse = HederaJson.mirrorTransactions(HederaJson.tokenTransferTransaction(badTokenOwnerAccount, badAccount, tokenId, goodAmount));

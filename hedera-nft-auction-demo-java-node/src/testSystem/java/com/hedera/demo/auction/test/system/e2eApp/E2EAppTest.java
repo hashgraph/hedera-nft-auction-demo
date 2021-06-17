@@ -119,7 +119,7 @@ public class E2EAppTest extends AbstractSystemTest {
         hederaClient.setMirrorProvider(mirror);
         hederaClient.setClientMirror();
 
-        app.overrideEnv(hederaClient, /* restAPI= */true, /* adminAPI= */true, /* auctionNode= */true, topicId.toString(), auctionAccountKey.toString(), postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /* transferOnWin= */transferOnWin, masterKey.toString());
+        app.overrideEnv(hederaClient, /* restAPI= */true, /* adminAPI= */true, /* auctionNode= */true, topicId.toString(), true, postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /* transferOnWin= */transferOnWin, masterKey.toString());
     }
 
     private void bidOnBehalfOf(String from, long amount, boolean expectFail) throws TimeoutException, PrecheckStatusException, ReceiptStatusException {

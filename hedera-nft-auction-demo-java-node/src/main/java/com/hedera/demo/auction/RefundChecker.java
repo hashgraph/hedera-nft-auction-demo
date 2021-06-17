@@ -60,13 +60,16 @@ public class RefundChecker implements Runnable {
         @Var boolean refundsProcessed = false;
         for (MirrorTransaction transaction : mirrorTransactions.transactions) {
             String transactionMemo = transaction.getMemoString();
+            log.info("Memo " + transactionMemo);
             if (transactionMemo.contains(Bid.REFUND_MEMO_PREFIX)) {
                 String bidTransactionId = transaction.getMemoString().replace(Bid.REFUND_MEMO_PREFIX,"");
                 if (transaction.isSuccessful()) {
                     // set bid refund complete
                     log.debug("Found successful refund transaction on " + transaction.consensusTimestamp + " for bid transaction id " + bidTransactionId);
                     try {
-                        refundsProcessed = bidsRepository.setRefunded(bidTransactionId, transaction.transactionId, transaction.getTransactionHashString());
+                        if (bidsRepository.setRefunded(bidTransactionId, transaction.transactionId, transaction.getTransactionHashString())) {
+                            refundsProcessed = true;
+                        }
                     } catch (SQLException sqlException) {
                         log.error("Error setting bid to refunded (bid transaction id + " + bidTransactionId + ")");
                         log.error(sqlException);
@@ -75,8 +78,9 @@ public class RefundChecker implements Runnable {
                     // set bid refund pending
                     log.debug("Found failed refund transaction on " + transaction.consensusTimestamp + " for bid transaction id " + bidTransactionId);
                     try {
-                        bidsRepository.setRefundPending(bidTransactionId);
-                        refundsProcessed = true;
+                        if (bidsRepository.setRefundPending(bidTransactionId)) {
+                            refundsProcessed = true;
+                        }
                     } catch (SQLException sqlException) {
                         log.error("Error setting bid to refund pending (bid transaction id + " + bidTransactionId + ")");
                         log.error(sqlException);

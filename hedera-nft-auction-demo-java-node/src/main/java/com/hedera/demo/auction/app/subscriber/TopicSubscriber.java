@@ -45,7 +45,6 @@ public class TopicSubscriber implements Runnable{
     private final TopicId topicId;
     private static Instant startTime = Instant.EPOCH;
     private final WebClient webClient;
-    private final String refundKey;
     private final int mirrorQueryFrequency;
     private final HederaClient hederaClient;
     private boolean testing = false;
@@ -57,12 +56,11 @@ public class TopicSubscriber implements Runnable{
     private AuctionReadinessWatcher auctionReadinessWatcher = null;
     private final String masterKey;
 
-    public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, WebClient webClient, TopicId topicId, String refundKey, int mirrorQueryFrequency, String masterKey) {
+    public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, WebClient webClient, TopicId topicId, int mirrorQueryFrequency, String masterKey) {
         this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
         this.topicId = topicId;
         this.webClient = webClient;
-        this.refundKey = refundKey;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.hederaClient = hederaClient;
         this.masterKey = masterKey;
@@ -178,7 +176,7 @@ public class TopicSubscriber implements Runnable{
 
                     if (!skipReadinessWatcher && (webClient != null)) {
                         // Start a thread to watch this new auction for readiness
-                        auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction, refundKey, mirrorQueryFrequency);
+                        auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction, mirrorQueryFrequency);
                         Thread t = new Thread(auctionReadinessWatcher);
                         t.start();
                     }
@@ -189,7 +187,7 @@ public class TopicSubscriber implements Runnable{
                 // If refund key and master node, associate with the token
                 //TODO: Currently only available to the master node, this feature should eventually
                 // transition to use scheduled transactions
-                if (!StringUtils.isEmpty(refundKey) && !StringUtils.isEmpty(masterKey)) {
+                if (!StringUtils.isEmpty(masterKey)) {
 
                     Client client = hederaClient.auctionClient(auction, PrivateKey.fromString(masterKey));
 

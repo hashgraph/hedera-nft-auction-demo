@@ -17,23 +17,20 @@ import com.hedera.hashgraph.sdk.TransactionResponse;
 import lombok.extern.log4j.Log4j2;
 
 import java.sql.SQLException;
-import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 @Log4j2
 public class TransactionScheduler {
     private final HederaClient hederaClient;
     private final AccountId auctionAccountId;
-    private final PrivateKey refundKey;
     private final AccountId operatorId;
     private final PrivateKey operatorKey;
     private final TransactionId transactionId;
     private final Transaction transaction;
 
-    public TransactionScheduler(HederaClient hederaClient, AccountId auctionAccountId, PrivateKey refundKey, TransactionId transactionId, Transaction transaction) {
+    public TransactionScheduler(HederaClient hederaClient, AccountId auctionAccountId, TransactionId transactionId, Transaction transaction) {
         this.hederaClient = hederaClient;
         this.auctionAccountId = auctionAccountId;
-        this.refundKey = refundKey;
         this.operatorKey = hederaClient.operatorPrivateKey();
         this.operatorId = hederaClient.operatorId();
         this.transactionId = transactionId;
@@ -65,15 +62,6 @@ public class TransactionScheduler {
                 .setTransactionId(transactionId)
                 .setScheduleMemo("Scheduled Refund");
 
-        if (! refundKey.toString().equals(operatorKey.toString())) {
-            // only freeze and sign if refund key is different to operator key
-            // this will be more efficient in terms of use of random nodes and
-            // will be more efficient since fewer signatures are generated
-            scheduleCreateTransaction.setNodeAccountIds(List.of(AccountId.fromString("0.0.3")))
-                    .freezeWith(hederaClient.client())
-                    .sign(refundKey);
-        }
-
         try {
             TransactionResponse response = scheduleCreateTransaction.execute(hederaClient.client());
 
@@ -101,13 +89,6 @@ public class TransactionScheduler {
             ScheduleSignTransaction scheduleSignTransaction = new ScheduleSignTransaction()
                     .setScheduleId(existingReceipt.scheduleId);
 
-            if (! refundKey.toString().equals(hederaClient.operatorPrivateKey().toString())) {
-                // only add extra signature if keys are different
-                scheduleSignTransaction.setNodeAccountIds(List.of(AccountId.fromString("0.0.3")))
-                    .freezeWith(hederaClient.client())
-                    .sign(refundKey);
-
-            }
             TransactionResponse response = scheduleSignTransaction.execute(hederaClient.client());
 
             try {

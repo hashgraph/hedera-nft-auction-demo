@@ -43,7 +43,7 @@ public class AuctionEndTransfer implements Runnable {
     private final HederaClient hederaClient;
     private boolean runThread = true;
     private boolean testing = false;
-    private final String refundKey;
+    private final String operatorKey;
     private final int mirrorQueryFrequency;
     private final AccountId operatorId;
 
@@ -53,11 +53,11 @@ public class AuctionEndTransfer implements Runnable {
         NOT_FOUND
     }
 
-    public AuctionEndTransfer(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, String refundKey, int mirrorQueryFrequency) {
+    public AuctionEndTransfer(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, String operatorKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.hederaClient = hederaClient;
-        this.refundKey = refundKey;
+        this.operatorKey = operatorKey;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.operatorId = hederaClient.operatorId();
     }
@@ -99,21 +99,20 @@ public class AuctionEndTransfer implements Runnable {
                         // has a scheduled TX completed already, if so, just update the DB with it
                         log.debug("calling auctionEndTransferInterface.checkTransferInProgress");
                         TransferResult result = checkTransferInProgress(auction);
+                        // transfer the token
+                        // transfer already occurred and the checkTransferInProgress should have updated the auction
+                        // status accordingly
                         switch (result) {
                             case FAILED, NOT_FOUND:
                                 log.debug("result FAILED, NOT_FOUND");
-                                // transfer the token
-                                if (! StringUtils.isEmpty(this.refundKey)) {
+                                if (!StringUtils.isEmpty(this.operatorKey)) {
                                     log.debug("Transferring token");
                                     transferToken(auction);
                                     log.debug("Token transfer started");
                                 }
                                 break;
-                            case SUCCESS:
-                                // transfer already occurred and the checkTransferInProgress should have updated the auction
-                                // status accordingly
-                                log.debug("result SUCCESS");
-                                break;
+                        case SUCCESS:
+                            log.debug("result SUCCESS");
                         }
                     }
                     Utils.sleep(this.mirrorQueryFrequency);
@@ -165,7 +164,7 @@ public class AuctionEndTransfer implements Runnable {
 
             if (! testing) {
                 try {
-                    Client client = hederaClient.auctionClient(auctionAccountId, PrivateKey.fromString(refundKey));
+                    Client client = hederaClient.auctionClient(auctionAccountId, PrivateKey.fromString(operatorKey));
                     String memo = "Token transfer from auction";
 
                     TransactionId transactionId = TransactionId.generate(operatorId);
@@ -181,7 +180,7 @@ public class AuctionEndTransfer implements Runnable {
                     transferTransaction.addHbarTransfer(tokenOwnerAccount, Hbar.fromTinybars(auction.getWinningbid()));
 
                     try {
-                        TransactionScheduler transactionScheduler = new TransactionScheduler(hederaClient, auctionAccountId, PrivateKey.fromString(refundKey), transactionId, transferTransaction);
+                        TransactionScheduler transactionScheduler = new TransactionScheduler(hederaClient, auctionAccountId, transactionId, transferTransaction);
                         TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction();
 
                         if (transactionSchedulerResult.success) {

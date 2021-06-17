@@ -29,13 +29,13 @@ public class Refunder implements Runnable {
     private final int mirrorQueryFrequency;
     private boolean testing = false;
     private boolean runThread = true;
-    private final PrivateKey refundKey;
+    private final PrivateKey operatorKey;
     private final ExecutorService executor = Executors.newFixedThreadPool(10);
 
-    public Refunder(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, String refundKey, int mirrorQueryFrequency) {
+    public Refunder(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, String operatorKey, int mirrorQueryFrequency) {
         this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
-        this.refundKey = PrivateKey.fromString(refundKey);
+        this.operatorKey = PrivateKey.fromString(operatorKey);
         this.hederaClient = hederaClient;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
     }
@@ -64,7 +64,7 @@ public class Refunder implements Runnable {
                 if (auctions != null) {
                     for (Auction auction : auctions) {
                         try {
-                            Client auctionClient = hederaClient.auctionClient(auction, refundKey);
+                            Client auctionClient = hederaClient.auctionClient(auction, operatorKey);
                             try {
                                 List<Bid> bidsToRefund = bidsRepository.bidsToRefund(auction.getId());
                                 if (bidsToRefund != null) {
@@ -120,7 +120,7 @@ public class Refunder implements Runnable {
             transferTransaction.addHbarTransfer(auctionAccountId, Hbar.fromTinybars(-bid.getBidamount()));
             transferTransaction.addHbarTransfer(AccountId.fromString(bid.getBidderaccountid()), Hbar.fromTinybars(bid.getBidamount()));
 
-            TransactionScheduler transactionScheduler = new TransactionScheduler(hederaClient, auctionAccountId, refundKey, transactionId, transferTransaction);
+            TransactionScheduler transactionScheduler = new TransactionScheduler(hederaClient, auctionAccountId, transactionId, transferTransaction);
 //                TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction();
             executor.execute(new Runnable() {
                 public void run() {

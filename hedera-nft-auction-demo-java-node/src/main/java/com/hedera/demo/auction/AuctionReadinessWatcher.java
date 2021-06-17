@@ -32,7 +32,6 @@ public class AuctionReadinessWatcher implements Runnable {
     protected final BidsRepository bidsRepository;
     protected final int mirrorQueryFrequency;
     protected final String mirrorProvider;
-    protected final String refundKey;
     protected final HederaClient hederaClient;
 
     protected boolean testing = false;
@@ -41,13 +40,12 @@ public class AuctionReadinessWatcher implements Runnable {
     protected BidsWatcher bidsWatcher = null;
     protected String nextTimestamp = "0.0";
 
-    public AuctionReadinessWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
+    public AuctionReadinessWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
         this.auction = auction;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
-        this.refundKey = refundKey;
         this.hederaClient = hederaClient;
         this.mirrorProvider = hederaClient.mirrorProvider();
     }

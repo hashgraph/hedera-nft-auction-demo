@@ -93,7 +93,7 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
 
         addToEnvFromEnv("AUCTION_NODE");
         addToEnvFromEnv("TRANSFER_ON_WIN");
-        addToEnvFromEnv("REFUND_KEY");
+        addToEnvFromEnv("REFUND");
 
         addToEnvFromEnv("POOL_SIZE");
 

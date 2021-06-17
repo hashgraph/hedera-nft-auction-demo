@@ -34,17 +34,15 @@ public class AuctionsClosureWatcher implements Runnable {
     private final AuctionsRepository auctionsRepository;
     private final int mirrorQueryFrequency;
     private final boolean transferOnWin;
-    private final String refundKey;
     private final HederaClient hederaClient;
     private final String masterKey;
     protected boolean runThread = true;
 
-    public AuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String refundKey, String masterKey) {
+    public AuctionsClosureWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String masterKey) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.transferOnWin = transferOnWin;
-        this.refundKey = refundKey;
         this.hederaClient = hederaClient;
         this.masterKey = masterKey;
     }
@@ -110,7 +108,7 @@ public class AuctionsClosureWatcher implements Runnable {
                         }
                         //TODO: Enable scheduled transaction here when the ACCOUNT_UPDATE transaction type is
                         // supported by scheduled transactions, in the mean time, only the master node is able to do this.
-                        if ( !StringUtils.isEmpty(this.refundKey) && !StringUtils.isEmpty(masterKey)) {
+                        if ( !StringUtils.isEmpty(masterKey)) {
                             setSignatureRequiredOnAuctionAccount(auctionId);
                         }
 

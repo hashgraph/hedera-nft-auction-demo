@@ -60,18 +60,18 @@ public class HederaClient {
         return new HederaClient(AccountId.fromString("0.0.1"), PrivateKey.generate(), "TESTNET", "hedera", "", "");
     }
 
-    public Client auctionClient(Auction auction, PrivateKey refundKey) throws Exception {
+    public Client auctionClient(Auction auction, PrivateKey operatorKey) throws Exception {
         Client newClient = clientForNetwork(this.network);
         setClientMirror(newClient);
-        newClient.setOperator(AccountId.fromString(auction.getAuctionaccountid()), refundKey);
+        newClient.setOperator(AccountId.fromString(auction.getAuctionaccountid()), operatorKey);
 
         return newClient;
     }
 
-    public Client auctionClient(AccountId auctionAccountId, PrivateKey refundKey) throws Exception {
+    public Client auctionClient(AccountId auctionAccountId, PrivateKey operatorKey) throws Exception {
         Client newClient = clientForNetwork(this.network);
         setClientMirror(newClient);
-        newClient.setOperator(auctionAccountId, refundKey);
+        newClient.setOperator(auctionAccountId, operatorKey);
 
         return newClient;
     }

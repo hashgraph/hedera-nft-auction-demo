@@ -8,7 +8,6 @@ import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.ScheduledOperationsRepository;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Hbar;
-import com.hedera.hashgraph.sdk.PrivateKey;
 import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
 import com.hedera.hashgraph.sdk.TokenId;
 import com.hedera.hashgraph.sdk.TransactionId;
@@ -24,16 +23,14 @@ public class ScheduleExecutor implements Runnable {
     private final HederaClient hederaClient;
     private final AuctionsRepository auctionsRepository;
     private final ScheduledOperationsRepository scheduledOperationsRepository;
-    private final PrivateKey refundKey;
     private final int mirrorQueryFrequency;
 
     private boolean runThread = true;
 
-    public ScheduleExecutor(HederaClient hederaClient, AuctionsRepository auctionsRepository, ScheduledOperationsRepository scheduledOperationsRepository, PrivateKey refundKey, int mirrorQueryFrequency) {
+    public ScheduleExecutor(HederaClient hederaClient, AuctionsRepository auctionsRepository, ScheduledOperationsRepository scheduledOperationsRepository, int mirrorQueryFrequency) {
         this.hederaClient = hederaClient;
         this.auctionsRepository = auctionsRepository;
         this.scheduledOperationsRepository = scheduledOperationsRepository;
-        this.refundKey = refundKey;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
     }
 
@@ -60,7 +57,7 @@ public class ScheduleExecutor implements Runnable {
 
                                 TransactionId transactionId = TransactionId.generate(auctionAccountId);
 
-                                TransactionScheduler transactionScheduler = new TransactionScheduler(hederaClient, auctionAccountId, refundKey, transactionId, tokenAssociateTransaction);
+                                TransactionScheduler transactionScheduler = new TransactionScheduler(hederaClient, auctionAccountId, transactionId, tokenAssociateTransaction);
                                 try {
                                     TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction();
                                     if (transactionSchedulerResult.success) {

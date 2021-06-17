@@ -119,14 +119,15 @@ public class BidsRepository {
         }
     }
 
-    public void setRefundPending(String bidTransactionId) throws SQLException {
+    public boolean setRefundPending(String bidTransactionId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        cx.update(Tables.BIDS)
+        int rowsUpdated = cx.update(Tables.BIDS)
                 .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_PENDING)
                 .set(Tables.BIDS.REFUNDTXHASH, "")
                 .set(Tables.BIDS.REFUNDTXID, "")
                 .where(Tables.BIDS.TRANSACTIONID.eq(bidTransactionId))
                 .execute();
+        return (rowsUpdated != 0);
     }
 
     public boolean setRefunded(String bidTransactionId, String refundTransactionId, String refundTransactionHash) throws SQLException {

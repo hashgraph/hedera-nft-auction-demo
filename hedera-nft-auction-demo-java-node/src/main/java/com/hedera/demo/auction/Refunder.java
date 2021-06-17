@@ -7,7 +7,6 @@ import com.hedera.demo.auction.app.domain.Bid;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.demo.auction.app.scheduledoperations.TransactionScheduler;
-import com.hedera.demo.auction.app.scheduledoperations.TransactionSchedulerResult;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.Hbar;
@@ -18,6 +17,8 @@ import lombok.extern.log4j.Log4j2;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
 @Log4j2
@@ -29,6 +30,7 @@ public class Refunder implements Runnable {
     private boolean testing = false;
     private boolean runThread = true;
     private final PrivateKey refundKey;
+    private final ExecutorService executor = Executors.newFixedThreadPool(10);
 
     public Refunder(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, String refundKey, int mirrorQueryFrequency) {
         this.auctionsRepository = auctionsRepository;
@@ -47,6 +49,15 @@ public class Refunder implements Runnable {
 
     @Override
     public void run() {
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                log.debug("Performing some shutdown cleanup...");
+                runThread = false;
+                log.debug("Done cleaning");
+            }
+        }));
+
         while (runThread) {
             try {
                 List<Auction> auctions = auctionsRepository.getAuctionsList();
@@ -65,6 +76,9 @@ public class Refunder implements Runnable {
                             } catch (SQLException sqlException) {
                                 log.error("unable to fetch bids to refund");
                                 log.error(sqlException);
+                            } catch (Exception e) {
+                                log.error("error issuing refund");
+                                log.error(e);
                             }
                         } catch (Exception e) {
                             log.error("error setting up auction client");
@@ -76,9 +90,9 @@ public class Refunder implements Runnable {
                 log.error("unable to fetch auctions list");
                 log.error(sqlException);
             }
+            Utils.sleep(this.mirrorQueryFrequency);
         }
-
-        Utils.sleep(this.mirrorQueryFrequency);
+        executor.shutdownNow();
     }
 
     private void issueRefund(String auctionAccount, Bid bid) {
@@ -93,7 +107,12 @@ public class Refunder implements Runnable {
 
         if (testing) {
             // just testing, we can't sign a scheduled transaction, just record the state change on the bid
-            setRefundInProgress(bid, "");
+            try {
+                bidsRepository.setRefundIssued(bid.getTimestamp(), "");
+            } catch (SQLException sqlException) {
+                log.error("Failed to set bid refund in progress (bid timestamp " + bid.getTimestamp() + ")");
+                log.error(sqlException);
+            }
         } else {
             // Create a transfer transaction for the refund
             TransferTransaction transferTransaction = new TransferTransaction();
@@ -101,30 +120,17 @@ public class Refunder implements Runnable {
             transferTransaction.addHbarTransfer(auctionAccountId, Hbar.fromTinybars(-bid.getBidamount()));
             transferTransaction.addHbarTransfer(AccountId.fromString(bid.getBidderaccountid()), Hbar.fromTinybars(bid.getBidamount()));
 
-            try {
-                TransactionScheduler transactionScheduler = new TransactionScheduler(hederaClient, auctionAccountId, refundKey, transactionId, transferTransaction);
-                TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction();
-
-                if (transactionSchedulerResult.success) {
-                    log.info("Refund transaction successfully scheduled (id " + shortTransactionId + ")");
-                    log.info("setting bid to refund in progress (timestamp = " + bid.getTimestamp() + ")");
-                    setRefundInProgress(bid, shortTransactionId);
-                } else {
-                    log.error("Error issuing refund to bid - timestamp = " + bid.getTimestamp());
-                    log.error(transactionSchedulerResult.status);
+            TransactionScheduler transactionScheduler = new TransactionScheduler(hederaClient, auctionAccountId, refundKey, transactionId, transferTransaction);
+//                TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction();
+            executor.execute(new Runnable() {
+                public void run() {
+                    try {
+                        transactionScheduler.issueScheduledTransactionForRefund(bid, bidsRepository, shortTransactionId);
+                    } catch (TimeoutException timeoutException) {
+                        log.error(timeoutException, timeoutException);
+                    }
                 }
-            } catch (TimeoutException timeoutException) {
-                log.error(timeoutException);
-            }
-        }
-    }
-
-    private void setRefundInProgress(Bid bid, String transactionId) {
-        try {
-            bidsRepository.setRefundIssued(bid.getTimestamp(), transactionId);
-        } catch (SQLException sqlException) {
-            log.error("Failed to set bid refund in progress (bid timestamp " + bid.getTimestamp() + ")");
-            log.error(sqlException);
+            });
         }
     }
 }

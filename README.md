@@ -68,8 +68,8 @@ setup the `.env` properties as follows
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
 * `VUE_APP_NETWORK=` (mainnet, testnet or previewnet)
-* `REFUND_KEY=` (Same as operator key for testing purposes)
-* `MASTER_KEY=` (set only for one node which has additional authority over the auction accounts, can be the same as operator key / refund key for testing purposes only, else must be different)
+* `REFUND=` true to participate in refund issuance, false otherwise
+* `MASTER_KEY=` (set only for one node which has additional authority over the auction accounts, can be the same as operator key only, else must be different)
 * `NFT_STORAGE_API_KEY=` (We use IPFS storage using [nft.storage](https://nft.storage) to store NFT metadata. You can create your API key on https://nft.storage and add it to your .env file to enable IPFS upload, this is only required if your node will be involved in token creation through the API or command line)
 
 you may leave the other properties as is for now
@@ -167,7 +167,7 @@ cp .env.sample .env
 nano .env
 ```
 
-set the following properties according to your Hedera account and refund key details
+set the following properties according to your Hedera account details
 
 _Note: 
 The operator id/key is used to query the hedera network for the token's metadata if present (FileId in memo) and issue or sign scheduled transactions._
@@ -177,7 +177,7 @@ The operator id/key is used to query the hedera network for the token's metadata
 
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
-* `REFUND_KEY=` (Same as operator key for testing purposes)
+* `REFUND=` true to participate in refund issuance, false otherwise
 * `TRANSFER_ON_WIN=`true
 
 You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish (although only the hedera mirror API is supported at this time).
@@ -726,7 +726,7 @@ In addition, you'll need to generate an ED25519 private/public key and share the
 
 This node will be creating the `Topic Id` to share with the `Readonly` and `Validator` Nodes.
 
-Two ED25519 private/public keys will be required, one will be the `MASTER_KEY`, the other the `REFUND_KEY` for your node. Both public keys shared with whoever is setting up an auction.
+One additional ED25519 private/public key will be required, the `MASTER_KEY`. the key should be shared with whoever is setting up an auction account.
 
 ### Generating keys
 
@@ -750,6 +750,7 @@ _Note: this runs on the client REST API port (8081), not the admin API port (808
 
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
+* `REFUND=` true to participate in refund issuance, false otherwise
 * `VUE_APP_NETWORK=` (mainnet, testnet or previewnet)
 * `VUE_APP_NODE_OWNER=` (an identifier, e.g. `ACMEAuctions` to be rendered in the UI to show which node the UI is connected to)
 * `VUE_APP_TOPIC_ID=` (the topic id provided by whoever is setting up the application network, leave blank if you're setting up a new application network)
@@ -758,15 +759,13 @@ _Note: this runs on the client REST API port (8081), not the admin API port (808
 
 in addition to all node types above
 
-* `REFUND_KEY=` The ED25519 private key you generated
 * `TRANSFER_ON_WIN=` true or false depending on whether you want the auction to transfer the tokens and winning bid automatically at the end.
 
 ### Master node
 
 in addition to all node types above
 
-* `REFUND_KEY=` The ED25519 private key you generated
-* `MASTER_KEY=` The ED25519 private key you generated (set only for one node which has additional authority over the auction accounts, can be the same as operator key / refund key for testing purposes only, else must be different)
+* `MASTER_KEY=` The ED25519 private key you generated (set only for one node which has additional authority over the auction accounts, can be the same as operator key for testing purposes only, else must be different)
 * `TRANSFER_ON_WIN=` true or false depending on whether you want the auction to transfer the tokens and winning bid automatically at the end.
 
 ## Creating the topic ID to share with the rest of the network

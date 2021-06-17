@@ -39,6 +39,7 @@ public class AuctionReadinessWatcher implements Runnable {
     protected boolean runThread = true;
     @Nullable
     protected BidsWatcher bidsWatcher = null;
+    protected String nextTimestamp = "0.0";
 
     public AuctionReadinessWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
         this.webClient = webClient;
@@ -77,13 +78,12 @@ public class AuctionReadinessWatcher implements Runnable {
 
         ExecutorService executor = Executors.newFixedThreadPool(1);
         while (runThread) {
-            @Var String nextTimestamp = "0.0";
             while (!StringUtils.isEmpty(nextTimestamp)) {
                 log.debug("Checking ownership of token " + auction.getTokenid() + " for account " + auction.getAuctionaccountid());
                 Map<String, String> queryParameters = new HashMap<>();
                 queryParameters.put("account.id", auction.getAuctionaccountid());
                 queryParameters.put("transactiontype", "CRYPTOTRANSFER");
-                queryParameters.put("order", "desc");
+                queryParameters.put("order", "asc");
                 queryParameters.put("timestamp", "gt:".concat(nextTimestamp));
 
                 Future<JsonObject> future = executor.submit(Utils.queryMirror(webClient, hederaClient, uri, queryParameters));
@@ -102,6 +102,12 @@ public class AuctionReadinessWatcher implements Runnable {
                             }
                         }
                         nextTimestamp = Utils.getTimestampFromMirrorLink(mirrorTransactions.links.next);
+                        if (StringUtils.isEmpty(nextTimestamp)) {
+                            int transactionCount = mirrorTransactions.transactions.size();
+                            if (transactionCount > 0) {
+                                nextTimestamp = mirrorTransactions.transactions.get(transactionCount - 1).consensusTimestamp;
+                            }
+                        }
                     }
                 } catch (InterruptedException interruptedException) {
                     log.error(interruptedException);

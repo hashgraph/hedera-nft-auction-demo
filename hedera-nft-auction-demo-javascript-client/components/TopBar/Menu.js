@@ -39,7 +39,13 @@ const Link = ({ item, isMobile, closeMenu }) => {
     <div className={`sm:mx-10 mx-0 ml-5 ${isMobile ? 'py-3' : ''}`}>
       {isActive ? <ActiveBorder /> : <TransparentBorder />}
       <div onClick={goToPage} className='text-white cursor-pointer'>
-        <span>{item.name}</span>
+        <span
+          style={{
+            letterSpacing: '-.025rem !important',
+          }}
+        >
+          {item.name}
+        </span>
       </div>
     </div>
   )

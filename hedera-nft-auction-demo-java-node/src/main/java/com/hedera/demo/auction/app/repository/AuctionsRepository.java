@@ -290,7 +290,7 @@ public class AuctionsRepository {
             int id = cx.lastID().intValue();
             auction.setId(id);
         } catch (DataAccessException e) {
-            log.info("Auction already in database");
+            log.debug("Auction already in database");
         }
         return auction;
     }
@@ -320,27 +320,31 @@ public class AuctionsRepository {
                 .execute();
         }
         if (bidAmount> 0) {
-            cx.insertInto(Tables.BIDS,
-                    Tables.BIDS.AUCTIONID,
-                    Tables.BIDS.STATUS,
-                    Tables.BIDS.TIMESTAMP,
-                    Tables.BIDS.BIDAMOUNT,
-                    Tables.BIDS.BIDDERACCOUNTID,
-                    Tables.BIDS.TRANSACTIONID,
-                    Tables.BIDS.TRANSACTIONHASH,
-                    Tables.BIDS.REFUNDSTATUS,
-                    Tables.BIDS.TIMESTAMPFORREFUND
-            ).values(
-                    newBid.getAuctionid(),
-                    newBid.getStatus(),
-                    newBid.getTimestamp(),
-                    newBid.getBidamount(),
-                    newBid.getBidderaccountid(),
-                    newBid.getTransactionid(),
-                    newBid.getTransactionhash(),
-                    newBid.getRefundstatus(),
-                    newBid.getTimestamp()
-            ).execute();
+            try {
+                cx.insertInto(Tables.BIDS,
+                        Tables.BIDS.AUCTIONID,
+                        Tables.BIDS.STATUS,
+                        Tables.BIDS.TIMESTAMP,
+                        Tables.BIDS.BIDAMOUNT,
+                        Tables.BIDS.BIDDERACCOUNTID,
+                        Tables.BIDS.TRANSACTIONID,
+                        Tables.BIDS.TRANSACTIONHASH,
+                        Tables.BIDS.REFUNDSTATUS,
+                        Tables.BIDS.TIMESTAMPFORREFUND
+                ).values(
+                        newBid.getAuctionid(),
+                        newBid.getStatus(),
+                        newBid.getTimestamp(),
+                        newBid.getBidamount(),
+                        newBid.getBidderaccountid(),
+                        newBid.getTransactionid(),
+                        newBid.getTransactionhash(),
+                        newBid.getRefundstatus(),
+                        newBid.getTimestamp()
+                ).execute();
+            } catch (DataAccessException e) {
+                log.debug("Bid already in database");
+            }
         }
     }
 }

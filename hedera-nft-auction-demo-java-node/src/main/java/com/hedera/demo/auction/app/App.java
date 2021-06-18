@@ -11,8 +11,6 @@ import com.hedera.demo.auction.app.api.ApiVerticle;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
-import com.hedera.demo.auction.app.repository.ScheduledOperationsRepository;
-import com.hedera.demo.auction.app.scheduledoperations.ScheduleExecutor;
 import com.hedera.demo.auction.app.subscriber.TopicSubscriber;
 import com.hedera.hashgraph.sdk.TopicId;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -48,7 +46,7 @@ public final class App {
     private String postgresPassword = Optional.ofNullable(env.get("DATABASE_PASSWORD")).orElse("password");
     private boolean transferOnWin = Optional.ofNullable(env.get("TRANSFER_ON_WIN")).map(Boolean::parseBoolean).orElse(true);
     private String masterKey = Optional.ofNullable(env.get("MASTER_KEY")).orElse("");
-    private String operatorKey = env.get("OPERATOR_KEY");
+    private final String operatorKey = env.get("OPERATOR_KEY");
 
     private HederaClient hederaClient;
 
@@ -62,8 +60,8 @@ public final class App {
     private final List<AuctionReadinessWatcher> auctionReadinessWatchers = new ArrayList<>(0);
     @Nullable
     private AuctionEndTransfer auctionEndTransfer = null;
-    @Nullable
-    private ScheduleExecutor scheduleExecutor = null;
+//    @Nullable
+//    private ScheduleExecutor scheduleExecutor = null;
     @Nullable
     private Refunder refunder = null;
 
@@ -126,7 +124,7 @@ public final class App {
             SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgresUrl, this.postgresUser, this.postgresPassword);
             AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
             BidsRepository bidsRepository = new BidsRepository(connectionManager);
-            ScheduledOperationsRepository scheduledOperationsRepository = new ScheduledOperationsRepository(connectionManager);
+//            ScheduledOperationsRepository scheduledOperationsRepository = new ScheduledOperationsRepository(connectionManager);
 
             WebClientOptions webClientOptions = new WebClientOptions()
                     .setUserAgent("HederaAuction/1.0")
@@ -146,7 +144,7 @@ public final class App {
                 // validator node, start the refunder thread
                 startRefunder(auctionsRepository, bidsRepository);
                 // and scheduled transaction executor
-                startScheduledExecutor(auctionsRepository, scheduledOperationsRepository);
+//                startScheduledExecutor(auctionsRepository, scheduledOperationsRepository);
             }
             startRefundChecker(webClient, auctionsRepository, bidsRepository);
             if (transferOnWin) {
@@ -155,11 +153,11 @@ public final class App {
         }
     }
 
-    private void startScheduledExecutor(AuctionsRepository auctionsRepository, ScheduledOperationsRepository scheduledOperationsRepository) {
-        scheduleExecutor = new ScheduleExecutor(hederaClient, auctionsRepository, scheduledOperationsRepository, this.mirrorQueryFrequency);
-        Thread scheduleExecutorThread = new Thread(scheduleExecutor);
-        scheduleExecutorThread.start();
-    }
+//    private void startScheduledExecutor(AuctionsRepository auctionsRepository, ScheduledOperationsRepository scheduledOperationsRepository) {
+//        scheduleExecutor = new ScheduleExecutor(auctionsRepository, scheduledOperationsRepository, this.mirrorQueryFrequency);
+//        Thread scheduleExecutorThread = new Thread(scheduleExecutor);
+//        scheduleExecutorThread.start();
+//    }
 
     private void startAuctionsClosureWatcher(WebClient webClient, AuctionsRepository auctionsRepository) {
         // start a thread to monitor auction closures
@@ -182,7 +180,7 @@ public final class App {
             if (! auction.isPending()) {
                 // auction is not pending
                 // start the thread to monitor bids
-                BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction.getId(), mirrorQueryFrequency);
+                BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, webClient, auctionsRepository,  auction.getId(), mirrorQueryFrequency);
                 Thread t = new Thread(bidsWatcher);
                 t.start();
                 bidsWatchers.add(bidsWatcher);
@@ -234,9 +232,9 @@ public final class App {
         if (auctionsClosureWatcher != null) {
             auctionsClosureWatcher.stop();
         }
-        if (scheduleExecutor != null) {
-            scheduleExecutor.stop();
-        }
+//        if (scheduleExecutor != null) {
+//            scheduleExecutor.stop();
+//        }
         if (refundChecker != null) {
             refundChecker.stop();
         }

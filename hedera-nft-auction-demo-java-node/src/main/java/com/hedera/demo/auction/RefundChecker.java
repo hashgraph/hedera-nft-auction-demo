@@ -108,7 +108,10 @@ public class RefundChecker implements Runnable {
             for (Auction auction: auctions) {
                 try {
                     if ( ! queryTimestamps.containsKey(auction.getId())) {
-                        queryTimestamps.put(auction.getId(), bidsRepository.getFirstBidToRefund(auction.getId()));
+                        String firstBidTimestamp = bidsRepository.getFirstBidToRefund(auction.getId());
+                        if (! StringUtils.isEmpty(firstBidTimestamp)) {
+                            queryTimestamps.put(auction.getId(), firstBidTimestamp);
+                        }
                     }
                     @Var String queryFromTimestamp = queryTimestamps.get(auction.getId());
                     while (!StringUtils.isEmpty(queryFromTimestamp)) {

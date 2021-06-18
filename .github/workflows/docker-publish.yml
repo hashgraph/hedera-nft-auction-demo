@@ -14,15 +14,20 @@ on:
 jobs:
   # Push image to GitHub Packages.
   # See also https://docs.docker.com/docker-hub/builds/
-  set_environment_variables:
+  build_docker_images:
     runs-on: ubuntu-latest
     steps:
       - name: Set version
         run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+
       - name: Set datetime
         run: echo "DATETIME=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
+
       - name: Show values
         run: echo $VERSION - $DATETIME
+
+      - name: Log into registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -32,25 +37,22 @@ jobs:
         working-directory: hedera-nft-auction-demo-javascript-client-legacy
 
       - name: Build ui image
-        run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/nft-auction-demo-ui:latest --tag ghcr.io/${{ github.repository }}/nft-auction-demo-ui:VERSION --tag ghcr.io/${{ github.repository }}/nft-auction-demo-ui:DATETIME --label "runnumber=${GITHUB_RUN_ID}"
+        run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/nft-auction-demo-ui:latest --tag ghcr.io/${{ github.repository }}/nft-auction-demo-ui:$VERSION --tag ghcr.io/${{ github.repository }}/nft-auction-demo-ui:$DATETIME --label "runnumber=${GITHUB_RUN_ID}"
         working-directory: hedera-nft-auction-demo-javascript-client-legacy
 
-      - name: Log into registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Push image
+      - name: Push ui image
         run: docker push ghcr.io/${{ github.repository }}/nft-auction-demo-ui:latest
 
 #      - name: Build postgres image
 #        run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/nft-auction-postgres:latest --label "runnumber=${GITHUB_RUN_ID}"
 #        working-directory: docker-postgres
 #
-#      - name: Push image
+#      - name: Push postgres image
 #        run: docker push ghcr.io/${{ github.repository }}/nft-auction-postgres:latest
 #
 #      - name: Build java node image
 #        run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/hedera_nft_auction_java_node:latest --label "runnumber=${GITHUB_RUN_ID}"
 #        working-directory: hedera-nft-auction-demo-java-node
 #
-#      - name: Push image
+#      - name: Push java node image
 #        run: docker push ghcr.io/${{ github.repository }}/hedera_nft_auction_java_node:latest

@@ -156,7 +156,7 @@ public class AuctionReadinessWatcher implements Runnable {
                             auctionsRepository.setActive(auction, tokenOwnerAccount, transaction.consensusTimestamp);
                             // start the thread to monitor bids
                             if (!this.testing) {
-                                bidsWatcher = new BidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction.getId(), mirrorQueryFrequency);
+                                bidsWatcher = new BidsWatcher(hederaClient, webClient, auctionsRepository, auction.getId(), mirrorQueryFrequency);
                                 Thread t = new Thread(bidsWatcher);
                                 t.start();
                             }

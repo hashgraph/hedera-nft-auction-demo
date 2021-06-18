@@ -9,7 +9,6 @@ import com.hedera.demo.auction.app.mirrormapping.MirrorHbarTransfer;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTransaction;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.app.repository.BidsRepository;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
@@ -30,16 +29,14 @@ public class BidsWatcher implements Runnable {
     private final int auctionId;
     private Auction auction;
     private final WebClient webClient;
-    private final BidsRepository bidsRepository;
     private final AuctionsRepository auctionsRepository;
     private final int mirrorQueryFrequency;
     private final HederaClient hederaClient;
     protected boolean runThread = true;
     protected boolean testing = false;
 
-    public BidsWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, int mirrorQueryFrequency) {
+    public BidsWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int auctionId, int mirrorQueryFrequency) {
         this.webClient = webClient;
-        this.bidsRepository = bidsRepository;
         this.auctionsRepository = auctionsRepository;
         this.auctionId = auctionId;
         this.mirrorQueryFrequency = mirrorQueryFrequency;

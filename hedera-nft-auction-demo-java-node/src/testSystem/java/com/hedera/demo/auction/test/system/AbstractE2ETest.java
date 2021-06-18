@@ -126,7 +126,7 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
         environment.put("DATABASE_URL", "postgresql://pgdb:5432/postgres");
         environment.put("DATABASE_USERNAME", postgreSQLContainer.getUsername());
         environment.put("DATABASE_PASSWORD", postgreSQLContainer.getPassword());
-        environment.put("MIRROR_QUERY_FREQUENCY", "1000");
+        environment.put("MIRROR_QUERY_FREQUENCY", "10000");
 
         GenericContainer container = new GenericContainer(
                 DockerImageName.parse("hedera/hedera-nft-auction-demo-node:latest")

@@ -24,6 +24,7 @@ public class Bid implements VertxPojo, Serializable {
 
     public static final String REFUND_PENDING = "PENDING";
     public static final String REFUND_ISSUED = "ISSUED";
+    public static final String REFUND_ISSUING = "ISSUING";
     public static final String REFUND_REFUNDED = "REFUNDED";
     public static final String REFUND_MEMO_PREFIX = "Auction refund for tx ";
 

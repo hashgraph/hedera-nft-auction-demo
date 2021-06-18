@@ -9,17 +9,13 @@ import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.demo.auction.app.scheduledoperations.TransactionScheduler;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.Hbar;
 import com.hedera.hashgraph.sdk.PrivateKey;
-import com.hedera.hashgraph.sdk.TransactionId;
-import com.hedera.hashgraph.sdk.TransferTransaction;
 import lombok.extern.log4j.Log4j2;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeoutException;
 
 @Log4j2
 public class Refunder implements Runnable {
@@ -101,10 +97,6 @@ public class Refunder implements Runnable {
         log.info("Refunding " + bid.getBidamount() + " from " + auctionAccount + " to " + bid.getBidderaccountid());
         String memo = Bid.REFUND_MEMO_PREFIX.concat(bid.getTransactionid());
         // issue refund
-        TransactionId transactionId = TransactionId.generate(hederaClient.operatorId());
-        transactionId.setScheduled(true);
-        String shortTransactionId = transactionId.toString().replace("?scheduled", "");
-
         if (testing) {
             // just testing, we can't sign a scheduled transaction, just record the state change on the bid
             try {
@@ -114,20 +106,14 @@ public class Refunder implements Runnable {
                 log.error(sqlException);
             }
         } else {
-            // Create a transfer transaction for the refund
-            TransferTransaction transferTransaction = new TransferTransaction();
-            transferTransaction.setTransactionMemo(memo);
-            transferTransaction.addHbarTransfer(auctionAccountId, Hbar.fromTinybars(-bid.getBidamount()));
-            transferTransaction.addHbarTransfer(AccountId.fromString(bid.getBidderaccountid()), Hbar.fromTinybars(bid.getBidamount()));
-
-            TransactionScheduler transactionScheduler = new TransactionScheduler(hederaClient, auctionAccountId, transactionId, transferTransaction);
-//                TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction();
             executor.execute(new Runnable() {
                 public void run() {
                     try {
-                        transactionScheduler.issueScheduledTransactionForRefund(bid, bidsRepository, shortTransactionId);
-                    } catch (TimeoutException timeoutException) {
-                        log.error(timeoutException, timeoutException);
+                        bidsRepository.setRefundIssuing(bid.getTimestamp());
+                        TransactionScheduler transactionScheduler = new TransactionScheduler(auctionAccountId);
+                        transactionScheduler.issueScheduledTransactionForRefund(bid, bidsRepository, memo);
+                    } catch (Exception e) {
+                        log.error(e, e);
                     }
                 }
             });

@@ -119,6 +119,16 @@ public class BidsRepository {
         }
     }
 
+    public void setRefundIssuing(String consensusTimestamp) throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+
+        cx.update(Tables.BIDS)
+                .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_ISSUING)
+                .where(Tables.BIDS.TIMESTAMP.eq(consensusTimestamp))
+                .execute();
+
+    }
+
     public boolean setRefundPending(String bidTransactionId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
         int rowsUpdated = cx.update(Tables.BIDS)

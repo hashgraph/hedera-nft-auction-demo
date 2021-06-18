@@ -64,7 +64,7 @@ public class BidsWatcher implements Runnable {
     @Override
     public void run() {
 
-        @Var String nextLink = "";
+        @Var String nextLink = "0.0";
         String uri = "/api/v1/transactions";
 
         ExecutorService executor = Executors.newFixedThreadPool(1);
@@ -203,15 +203,16 @@ public class BidsWatcher implements Runnable {
                 // update prior winning bid
                 // setting the timestamp for refund to match the winning timestamp
                 // will accelerate the refund (avoids repeated EXPIRED_TRANSACTIONS when refunding)
-                priorBid.setTimestampforrefund(transaction.consensusTimestamp);
-                priorBid.setTimestamp(this.auction.getWinningtimestamp());
-                priorBid.setStatus(Bid.HIGHER_BID);
                 if ( StringUtils.isEmpty(this.auction.getWinningaccount())) {
                     // do not refund the very first bid !!!
-                    priorBid.setRefundstatus("");
+//                    priorBid.setRefundstatus("");
                     refund = false;
                 } else {
+                    priorBid.setTimestampforrefund(transaction.consensusTimestamp);
+                    priorBid.setTimestamp(this.auction.getWinningtimestamp());
+                    priorBid.setStatus(Bid.HIGHER_BID);
                     priorBid.setRefundstatus(Bid.REFUND_PENDING);
+                    updatePriorBid = true;
                 }
 
                 // update the auction
@@ -220,7 +221,6 @@ public class BidsWatcher implements Runnable {
                 this.auction.setWinningbid(bidAmount);
                 this.auction.setWinningtxid(transaction.transactionId);
                 this.auction.setWinningtxhash(transaction.getTransactionHashString());
-                updatePriorBid = true;
             }
 
             Bid newBid = new Bid();

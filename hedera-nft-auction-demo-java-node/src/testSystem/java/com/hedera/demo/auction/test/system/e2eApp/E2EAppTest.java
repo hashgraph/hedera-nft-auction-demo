@@ -108,7 +108,7 @@ public class E2EAppTest extends AbstractSystemTest {
         createTopicAndGetInfo();
 
         // create an auction account
-        io.vertx.core.json.JsonObject keysCreate = jsonThresholdKey(1, 1, masterKey.getPublicKey().toString(), auctionAccountKey.getPublicKey().toString());
+        io.vertx.core.json.JsonObject keysCreate = jsonThresholdKey(1, 1, masterKey.getPublicKey().toString(), hederaClient.operatorPublicKey().toString());
         createAccountAndGetInfo(keysCreate.toString());
         log.info("Auction account " + auctionAccountId.toString());
 

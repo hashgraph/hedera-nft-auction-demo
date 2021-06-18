@@ -63,6 +63,7 @@ public class TransactionScheduler {
                 .setScheduleMemo("Scheduled Refund");
 
         try {
+            log.debug("Creating scheduled transaction for pub key " + hederaClient.operatorPublicKey().toString());
             TransactionResponse response = scheduleCreateTransaction.execute(hederaClient.client());
 
             try {
@@ -85,7 +86,7 @@ public class TransactionScheduler {
         // the same tx has already been submitted, submit just the signature
         // get the receipt for the transaction
         try {
-            log.debug("Signing schedule id " + existingReceipt.scheduleId);
+            log.debug("Signing schedule id " + existingReceipt.scheduleId + " with key for public key " + hederaClient.operatorPublicKey().toString());
             ScheduleSignTransaction scheduleSignTransaction = new ScheduleSignTransaction()
                     .setScheduleId(existingReceipt.scheduleId);
 

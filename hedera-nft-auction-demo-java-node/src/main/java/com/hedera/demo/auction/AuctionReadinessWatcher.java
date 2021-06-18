@@ -76,13 +76,14 @@ public class AuctionReadinessWatcher implements Runnable {
 
         ExecutorService executor = Executors.newFixedThreadPool(1);
         while (runThread) {
-            while (!StringUtils.isEmpty(nextTimestamp)) {
+            @Var String queryFromTimeStamp = nextTimestamp;
+            while (!StringUtils.isEmpty(queryFromTimeStamp)) {
                 log.debug("Checking ownership of token " + auction.getTokenid() + " for account " + auction.getAuctionaccountid());
                 Map<String, String> queryParameters = new HashMap<>();
                 queryParameters.put("account.id", auction.getAuctionaccountid());
                 queryParameters.put("transactiontype", "CRYPTOTRANSFER");
                 queryParameters.put("order", "asc");
-                queryParameters.put("timestamp", "gt:".concat(nextTimestamp));
+                queryParameters.put("timestamp", "gt:".concat(queryFromTimeStamp));
 
                 Future<JsonObject> future = executor.submit(Utils.queryMirror(webClient, hederaClient, uri, queryParameters));
                 try {
@@ -101,15 +102,15 @@ public class AuctionReadinessWatcher implements Runnable {
                                 runThread = false;
                             }
                         }
-                        nextTimestamp = Utils.getTimestampFromMirrorLink(mirrorTransactions.links.next);
-                        if (StringUtils.isEmpty(nextTimestamp)) {
+                        queryFromTimeStamp = Utils.getTimestampFromMirrorLink(mirrorTransactions.links.next);
+                        if (StringUtils.isEmpty(queryFromTimeStamp)) {
                             int transactionCount = mirrorTransactions.transactions.size();
                             if (transactionCount > 0) {
-                                nextTimestamp = mirrorTransactions.transactions.get(transactionCount - 1).consensusTimestamp;
+                                queryFromTimeStamp = mirrorTransactions.transactions.get(transactionCount - 1).consensusTimestamp;
                             }
                         }
-                        if (StringUtils.isEmpty(nextTimestamp)) {
-                            nextTimestamp = "0.0";
+                        if (! StringUtils.isEmpty(queryFromTimeStamp)) {
+                            nextTimestamp = queryFromTimeStamp;
                         }
                     }
                 } catch (InterruptedException interruptedException) {

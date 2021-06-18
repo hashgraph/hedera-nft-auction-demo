@@ -91,11 +91,19 @@ const LiveAuctionCard = ({ auction, showStatus, isLastItem }) => {
         <div className='flex flex-col h-full justify-between'>
           <div
             className='flex justify-center items-center'
-            style={{
-              flexBasis: '75%',
-              background: `url(${auctionImage}) 50% 50% no-repeat`,
-            }}
-          ></div>
+            style={{ flexBasis: '75%' }}
+          >
+            <img
+              src={auctionImage}
+              alt='live-auction-card'
+              className='sm:py-0 py-3 max-h-40'
+              style={{
+                objectFit: 'cover',
+                width: '145px',
+                height: '145px',
+              }}
+            />
+          </div>
           <div className='flex flex-col p-2 px-4'>
             <p className='font-bold text-card-title mb-4'>{titleToRender}</p>
             <p className='font-light mb-2 text-card-tokenid'>

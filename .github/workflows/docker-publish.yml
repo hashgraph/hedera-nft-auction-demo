@@ -10,6 +10,9 @@ on:
     tags:
       - v*
   workflow_dispatch:
+env:
+  VERSION=${GITHUB_REF/refs\/tags\//}
+  DATETIME=$(date +%Y%m%d%H%M)
 
 jobs:
   # Push image to GitHub Packages.
@@ -21,6 +24,9 @@ jobs:
       contents: read
 
     steps:
+      - name: Echo env
+        run: echo $VERSION - $DATETIME
+
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -29,7 +35,7 @@ jobs:
         working-directory: hedera-nft-auction-demo-javascript-client-legacy
 
       - name: Build ui image
-        run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/nft-auction-demo-ui:latest --label "runnumber=${GITHUB_RUN_ID}"
+        run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/nft-auction-demo-ui:latest --tag ghcr.io/${{ github.repository }}/nft-auction-demo-ui:VERSION --tag ghcr.io/${{ github.repository }}/nft-auction-demo-ui:DATETIME --label "runnumber=${GITHUB_RUN_ID}"
         working-directory: hedera-nft-auction-demo-javascript-client-legacy
 
       - name: Log into registry

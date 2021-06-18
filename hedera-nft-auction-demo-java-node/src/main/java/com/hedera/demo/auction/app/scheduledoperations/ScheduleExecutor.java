@@ -1,6 +1,5 @@
 package com.hedera.demo.auction.app.scheduledoperations;
 
-import com.hedera.demo.auction.app.HederaClient;
 import com.hedera.demo.auction.app.Utils;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.domain.ScheduledOperation;
@@ -20,15 +19,13 @@ import java.util.concurrent.TimeoutException;
 
 @Log4j2
 public class ScheduleExecutor implements Runnable {
-    private final HederaClient hederaClient;
     private final AuctionsRepository auctionsRepository;
     private final ScheduledOperationsRepository scheduledOperationsRepository;
     private final int mirrorQueryFrequency;
 
     private boolean runThread = true;
 
-    public ScheduleExecutor(HederaClient hederaClient, AuctionsRepository auctionsRepository, ScheduledOperationsRepository scheduledOperationsRepository, int mirrorQueryFrequency) {
-        this.hederaClient = hederaClient;
+    public ScheduleExecutor(AuctionsRepository auctionsRepository, ScheduledOperationsRepository scheduledOperationsRepository, int mirrorQueryFrequency) {
         this.auctionsRepository = auctionsRepository;
         this.scheduledOperationsRepository = scheduledOperationsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
@@ -57,9 +54,9 @@ public class ScheduleExecutor implements Runnable {
 
                                 TransactionId transactionId = TransactionId.generate(auctionAccountId);
 
-                                TransactionScheduler transactionScheduler = new TransactionScheduler(hederaClient, auctionAccountId, transactionId, tokenAssociateTransaction);
+                                TransactionScheduler transactionScheduler = new TransactionScheduler(auctionAccountId, transactionId, tokenAssociateTransaction);
                                 try {
-                                    TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction();
+                                    TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction("");
                                     if (transactionSchedulerResult.success) {
                                         scheduledOperation.setStatus(ScheduledOperation.EXECUTING);
                                         log.info("token associate transaction successfully scheduled (id " + transactionId.toString() + ")");

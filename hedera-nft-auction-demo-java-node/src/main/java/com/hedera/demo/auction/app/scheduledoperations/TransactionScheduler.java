@@ -1,11 +1,12 @@
 package com.hedera.demo.auction.app.scheduledoperations;
 
+import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.HederaClient;
 import com.hedera.demo.auction.app.domain.Bid;
 import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.Hbar;
 import com.hedera.hashgraph.sdk.PrecheckStatusException;
-import com.hedera.hashgraph.sdk.PrivateKey;
 import com.hedera.hashgraph.sdk.ReceiptStatusException;
 import com.hedera.hashgraph.sdk.ScheduleCreateTransaction;
 import com.hedera.hashgraph.sdk.ScheduleSignTransaction;
@@ -14,53 +15,79 @@ import com.hedera.hashgraph.sdk.Transaction;
 import com.hedera.hashgraph.sdk.TransactionId;
 import com.hedera.hashgraph.sdk.TransactionReceipt;
 import com.hedera.hashgraph.sdk.TransactionResponse;
+import com.hedera.hashgraph.sdk.TransferTransaction;
 import lombok.extern.log4j.Log4j2;
 
+import javax.annotation.Nullable;
 import java.sql.SQLException;
 import java.util.concurrent.TimeoutException;
 
 @Log4j2
 public class TransactionScheduler {
-    private final HederaClient hederaClient;
     private final AccountId auctionAccountId;
-    private final AccountId operatorId;
-    private final PrivateKey operatorKey;
-    private final TransactionId transactionId;
-    private final Transaction transaction;
+    @Nullable
+    private TransactionId transactionId;
+    @Nullable
+    private Transaction transaction;
+    private final HederaClient hederaClient;
 
-    public TransactionScheduler(HederaClient hederaClient, AccountId auctionAccountId, TransactionId transactionId, Transaction transaction) {
-        this.hederaClient = hederaClient;
+    public TransactionScheduler(AccountId auctionAccountId, TransactionId transactionId, Transaction transaction) throws Exception {
+        this.hederaClient = new HederaClient();
         this.auctionAccountId = auctionAccountId;
-        this.operatorKey = hederaClient.operatorPrivateKey();
-        this.operatorId = hederaClient.operatorId();
         this.transactionId = transactionId;
         this.transaction = transaction;
     }
-    public void issueScheduledTransactionForRefund(Bid bid, BidsRepository bidsRepository, String shortTransactionId) throws TimeoutException {
-        TransactionSchedulerResult transactionSchedulerResult = issueScheduledTransaction();
-        if (transactionSchedulerResult.success || transactionSchedulerResult.status == Status.NO_NEW_VALID_SIGNATURES) {
-            log.info("Refund transaction successfully scheduled (id " + shortTransactionId + ")");
-            log.info("setting bid to refund in progress (timestamp = " + bid.getTimestamp() + ")");
-            try {
-                bidsRepository.setRefundIssued(bid.getTimestamp(), shortTransactionId);
-            } catch (SQLException sqlException) {
-                log.error("Failed to set bid refund in progress (bid timestamp " + bid.getTimestamp() + ")");
-                log.error(sqlException);
+
+    public TransactionScheduler(AccountId auctionAccountId) throws Exception {
+        this.hederaClient = new HederaClient();
+        this.auctionAccountId = auctionAccountId;
+        this.transactionId = null;
+        this.transaction = null;
+    }
+
+    public void issueScheduledTransactionForRefund(Bid bid, BidsRepository bidsRepository, String memo) throws TimeoutException {
+        // Create a transfer transaction for the refund
+        transactionId = TransactionId.generate(hederaClient.operatorId());
+        transactionId.setScheduled(true);
+        String shortTransactionId = transactionId.toString().replace("?scheduled", "");
+
+        TransferTransaction transferTransaction = new TransferTransaction();
+        transferTransaction.setTransactionMemo(memo);
+        transferTransaction.addHbarTransfer(auctionAccountId, Hbar.fromTinybars(-bid.getBidamount()));
+        transferTransaction.addHbarTransfer(AccountId.fromString(bid.getBidderaccountid()), Hbar.fromTinybars(bid.getBidamount()));
+
+        this.transaction = transferTransaction;
+
+        @Var TransactionSchedulerResult transactionSchedulerResult = null;
+        try {
+            transactionSchedulerResult = issueScheduledTransaction("Scheduled Auction Refund");
+            if (transactionSchedulerResult.success || transactionSchedulerResult.status == Status.NO_NEW_VALID_SIGNATURES) {
+                log.info("Refund transaction successfully scheduled (id " + shortTransactionId + ")");
+                log.info("setting bid to refund in progress (timestamp = " + bid.getTimestamp() + ")");
+                try {
+                    bidsRepository.setRefundIssued(bid.getTimestamp(), shortTransactionId);
+                } catch (SQLException sqlException) {
+                    log.error("Failed to set bid refund in progress (bid timestamp " + bid.getTimestamp() + ")");
+                    log.error(sqlException);
+                }
+            } else {
+                log.error("Error issuing refund to bid - timestamp = " + bid.getTimestamp());
+                log.error(transactionSchedulerResult.status);
             }
-        } else {
-            log.error("Error issuing refund to bid - timestamp = " + bid.getTimestamp());
-            log.error(transactionSchedulerResult.status);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            hederaClient.client().close();
         }
     }
 
-    public TransactionSchedulerResult issueScheduledTransaction() throws TimeoutException {
-        hederaClient.setOperator(operatorId, operatorKey);
+    public TransactionSchedulerResult issueScheduledTransaction(String scheduleMemo) throws TimeoutException {
 
         // Schedule the transaction
         ScheduleCreateTransaction scheduleCreateTransaction = transaction.schedule()
                 .setPayerAccountId(auctionAccountId)
                 .setTransactionId(transactionId)
-                .setScheduleMemo("Scheduled Refund");
+                .setScheduleMemo(scheduleMemo);
 
         try {
             log.debug("Creating scheduled transaction for pub key " + hederaClient.operatorPublicKey().toString());
@@ -72,12 +99,15 @@ public class TransactionScheduler {
             } catch (TimeoutException timeoutException) {
                 log.error("TimeoutException fetching receipt");
                 log.error(timeoutException);
+                hederaClient.client().close();
                 throw timeoutException;
             } catch (ReceiptStatusException receiptStatusException) {
+                hederaClient.client().close();
                 return handleResponse(receiptStatusException.receipt);
             }
 
         } catch (PrecheckStatusException e) {
+            hederaClient.client().close();
             return new TransactionSchedulerResult(/* success= */false, e.status);
         }
     }
@@ -104,6 +134,7 @@ public class TransactionScheduler {
             log.error(timeoutException);
             throw timeoutException;
         } catch (PrecheckStatusException precheckStatusException) {
+            hederaClient.client().close();
             return new TransactionSchedulerResult(/* success= */false, precheckStatusException.status);
         }
     }

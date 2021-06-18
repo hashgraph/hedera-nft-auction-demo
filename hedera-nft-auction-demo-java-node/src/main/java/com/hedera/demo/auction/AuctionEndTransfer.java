@@ -180,8 +180,8 @@ public class AuctionEndTransfer implements Runnable {
                     transferTransaction.addHbarTransfer(tokenOwnerAccount, Hbar.fromTinybars(auction.getWinningbid()));
 
                     try {
-                        TransactionScheduler transactionScheduler = new TransactionScheduler(hederaClient, auctionAccountId, transactionId, transferTransaction);
-                        TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction();
+                        TransactionScheduler transactionScheduler = new TransactionScheduler(auctionAccountId, transactionId, transferTransaction);
+                        TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction("Scheduled Auction End Transfer");
 
                         if (transactionSchedulerResult.success) {
                             transferInProgress = true;

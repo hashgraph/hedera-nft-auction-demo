@@ -156,3 +156,12 @@ input::-webkit-inner-spin-button {
     margin-right: 12.5%;
   }
 }
+
+p,
+h1,
+h2,
+h3,
+span,
+div {
+  letter-spacing: -0.05rem !important;
+}

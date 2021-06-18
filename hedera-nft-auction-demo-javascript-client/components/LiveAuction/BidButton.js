@@ -4,7 +4,7 @@ const BidButton = ({ onClick }) => {
   return (
     <button
       onClick={onClick}
-      className='bg-purple-gradient px-5 uppercase py-0 text-sm'
+      className='bg-purple-gradient px-6 uppercase py-1 text-md'
     >
       Bid
     </button>

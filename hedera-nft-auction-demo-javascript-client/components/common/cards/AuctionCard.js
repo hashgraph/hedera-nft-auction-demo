@@ -1,6 +1,10 @@
 import calculateTimeLeft from 'utils/calculateTimeLeft'
 import { Hbar } from '@hashgraph/sdk'
 import { useRouter } from 'next/router'
+import HbarUnbit from 'components/common/HbarUnit'
+
+const MINUTES_IN_A_DAY = 1440
+const MINUTES_IN_AN_HOUR = 60
 
 const LiveAuctionCard = ({ auction, showStatus, isLastItem }) => {
   const router = useRouter()
@@ -19,14 +23,26 @@ const LiveAuctionCard = ({ auction, showStatus, isLastItem }) => {
   const { days, hours, minutes, seconds } = calculateTimeLeft(endtimestamp)
   const goToAuctionPage = () => router.push(`/auction/${auctionId}`)
 
+  const endTimeisGreaterThanTwoDays = days >= 2
+  console.log('endTimeisGreaterThanTwoDays', endTimeisGreaterThanTwoDays)
+
   const isSold = !active
   const auctionImage = tokenimage || '/assets/default-token-image.png'
 
   const getEndTime = () => {
-    if (days > 0) return `${days}D ${hours}H ${minutes}M ${seconds}S`
-    if (hours > 0) return `${hours}H ${minutes}M ${seconds}S`
-    if (minutes > 0) return `${minutes}M ${seconds}S`
-    return `${seconds}S`
+    if (endTimeisGreaterThanTwoDays) return `${days}D ${hours}H`
+    const getTotalMinutes = () => {
+      let totalMinutes = minutes
+      if (days >= 1) {
+        totalMinutes =
+          days * MINUTES_IN_A_DAY + hours * MINUTES_IN_AN_HOUR + minutes
+      } else if (hours >= 1) {
+        totalMinutes = hours * MINUTES_IN_AN_HOUR + minutes
+      }
+      return totalMinutes
+    }
+    const totalMinutesToShow = getTotalMinutes()
+    return `${totalMinutesToShow}M ${seconds}S`
   }
 
   const endTimeToDisplay = getEndTime()
@@ -39,21 +55,21 @@ const LiveAuctionCard = ({ auction, showStatus, isLastItem }) => {
         <div className='p-2'>
           <p className='text-card-subtitle'>Winning Bid</p>
           <p className='text-card-units'>
-            {Hbar.fromTinybars(winningbid).toString()}
+            <HbarUnbit italic amount={winningbid} />
           </p>
         </div>
       )
     return (
       <>
         <div className='p-2'>
-          <p className='text-card-subtitle'>Current Bid</p>
-          <p className='text-card-units'>
-            {Hbar.fromTinybars(winningbid).toString()}
+          <p className='text-card-subtitle '>Current Bid</p>
+          <p className='text-lg'>
+            <HbarUnbit italic amount={winningbid} />
           </p>
         </div>
         <div className='p-2'>
           <p className='text-card-subtitle'>Auction ends</p>
-          <p className='text-card-units'>{endTimeToDisplay}</p>
+          <p className='text-card-units mt-1'>{endTimeToDisplay}</p>
         </div>
       </>
     )
@@ -68,8 +84,8 @@ const LiveAuctionCard = ({ auction, showStatus, isLastItem }) => {
     >
       <div className='flex flex-col h-full shadow-card'>
         {showStatus && (
-          <p className='p-1 bg-purple-gradient absolute uppercase font-bold'>
-            {status}
+          <p className='p-1 bg-purple-gradient absolute uppercase font-bold px-2'>
+            SOLD
           </p>
         )}
         <div className='flex flex-col h-full justify-between'>
@@ -83,14 +99,14 @@ const LiveAuctionCard = ({ auction, showStatus, isLastItem }) => {
               className='sm:py-0 py-3 max-h-40'
             />
           </div>
-          <div className='flex flex-col p-2'>
+          <div className='flex flex-col p-2 px-4'>
             <p className='font-bold text-card-title mb-4'>{titleToRender}</p>
             <p className='font-light mb-2 text-card-tokenid'>
               Token I.D.: <span className='font-normal'>{tokenid}</span>
             </p>
           </div>
         </div>
-        <div className='flex justify-between font-bold border-t border-indigo-600 py-4'>
+        <div className='flex justify-between font-bold border-t border-indigo-600 py-4 px-4'>
           <CardFooter />
         </div>
       </div>

@@ -6,7 +6,7 @@ const ViewButton = ({ auctionId }) => {
   return (
     <button
       onClick={goToAuctionDetailPage}
-      className='cursor-pointer border-gradient border-gradient-purple px-3 uppercase ml-5 font-light text-sm'
+      className='cursor-pointer border-gradient border-gradient-purple px-4 uppercase ml-5 font-light py-1 text-md'
     >
       View
     </button>

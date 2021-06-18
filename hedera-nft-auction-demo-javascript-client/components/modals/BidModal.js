@@ -3,6 +3,7 @@ import sendBid from 'utils/sendBid'
 import getUsdValue from 'utils/getUsdValue'
 import useHederaPrice from 'hooks/useHederaPrice'
 import CloseIcon from './assets/close_icon.svg'
+import HbarUnbit from 'components/common/HbarUnit'
 
 const Modal = ({ isOpen, close, auction }) => {
   const [bidAmount, setBidAmount] = React.useState(0)
@@ -47,8 +48,7 @@ const Modal = ({ isOpen, close, auction }) => {
             <h3 className='font-thin leading-6 text-sm'>Your bid in HBAR:</h3>
             <div className='text-3xl'>
               <p>
-                {bidAmount}
-                <span className='relative'>ℏ</span>
+                <HbarUnbit italic amount={bidAmount} className='relative' />
               </p>
               <p className='font-thin text-gray-400 text-sm'>${usdValue}</p>
             </div>
@@ -69,7 +69,7 @@ const Modal = ({ isOpen, close, auction }) => {
           <div className='flex items-end'>
             <input
               type='number'
-              className='border-b focus:outline-none px-3 text-3xl text-left text-white bg-transparent font-bold'
+              className='border-b focus:outline-none text-3xl text-left text-white bg-transparent font-bold'
               style={{
                 borderColor: '#4B68F1',
                 width: '62%',
@@ -79,7 +79,7 @@ const Modal = ({ isOpen, close, auction }) => {
               min='1'
               autoFocus
             />
-            <span className='text-3xl relative top-1 italic'>ℏ</span>
+            <HbarUnbit italic className='text-3xl relative top-1 italic' />
             <button
               onClick={handleBidSend}
               className='bg-purple-gradient px-9 py-1 uppercase ml-10 text-lg'

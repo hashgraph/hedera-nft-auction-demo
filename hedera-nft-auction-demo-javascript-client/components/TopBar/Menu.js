@@ -15,16 +15,30 @@ const Link = ({ item, isMobile, closeMenu }) => {
   }
 
   const ActiveBorder = () => (
-    <div style={{ width: '75%', border: '1px solid #5266F1' }} />
+    <div
+      style={{
+        width: '36px',
+        border: '1px solid #5266F1',
+        position: 'relative',
+        bottom: '1px',
+      }}
+    />
   )
   const TransparentBorder = () => (
-    <div style={{ width: '75%', border: '1px solid transparent' }} />
+    <div
+      style={{
+        width: '36px',
+        border: '1px solid transparent',
+        position: 'relative',
+        bottom: '1px',
+      }}
+    />
   )
 
   return (
     <div className={`sm:mx-10 mx-0 ml-5 ${isMobile ? 'py-3' : ''}`}>
       {isActive ? <ActiveBorder /> : <TransparentBorder />}
-      <div onClick={goToPage} className='text-white font-light cursor-pointer'>
+      <div onClick={goToPage} className='text-white cursor-pointer'>
         <span>{item.name}</span>
       </div>
     </div>
@@ -43,6 +57,8 @@ const TopBarMenu = () => {
   const isViewingLiveAuction = location === '/'
   const isViewingSold = location.includes('sold')
 
+  const goToHomePage = () => router.push('/')
+
   const navigation = [
     { name: 'Live Auctions', to: '/', isActive: isViewingLiveAuction },
     { name: 'Sold', to: '/sold', isActive: isViewingSold },
@@ -56,7 +72,7 @@ const TopBarMenu = () => {
       className='sm:py-2 py-4 bg-black text-white border-b border-indigo-500 theme-margin'
     >
       <div className='mx-auto'>
-        <div className='relative flex items-center justify-between h-16'>
+        <div className='relative flex items-center justify-between h-20'>
           <div className='flex items-center justify-between sm:items-stretch sm:justify-between w-full'>
             <div
               onClick={handleMenuToggle}
@@ -70,8 +86,9 @@ const TopBarMenu = () => {
             </div>
             <div className='flex'>
               <NFTLogo
-                style={{ top: '2px', width: '5.75rem' }}
-                className='relative'
+                style={{ top: '2px', width: '8.75rem' }}
+                className='relative cursor-pointer'
+                onClick={goToHomePage}
               />
               {/* Desktop Nav */}
               <div className='hidden sm:flex items-center sm:ml-10'>
@@ -82,7 +99,7 @@ const TopBarMenu = () => {
             </div>
             <ConnectWalletIcon
               onClick={goToHederaFAQ}
-              style={{ width: '6.5rem' }}
+              style={{ width: '8.75rem' }}
               className='cursor-pointer'
             />
           </div>

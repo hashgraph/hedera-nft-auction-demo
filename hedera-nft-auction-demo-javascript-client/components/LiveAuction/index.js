@@ -7,8 +7,6 @@ import { useRouter } from 'next/router'
 
 const LiveAuction = () => {
   const router = useRouter()
-  const [isViewingAllAuctions, setViewingAllAuctionsStatus] =
-    React.useState(false)
   const [auctions, setAuctions] = React.useState(null)
 
   React.useEffect(() => {
@@ -23,8 +21,7 @@ const LiveAuction = () => {
     asyncAuctionsFetch()
   }, [])
 
-  const hanldeViewAllLiveAuctionsClick = () => setViewingAllAuctionsStatus(true)
-  const handleBackToAuctionClick = () => setViewingAllAuctionsStatus(false)
+  const hanldeViewAllLiveAuctionsClick = () => router.push('/live-auctions')
 
   if (!auctions) return null
 
@@ -53,33 +50,6 @@ const LiveAuction = () => {
 
   const featuredAuction = getFeaturedAuction()
 
-  if (isViewingAllAuctions) {
-    return (
-      <div className=''>
-        <div className='text-right'>
-          <button
-            onClick={handleBackToAuctionClick}
-            className='border-gradient border-gradient-purple px-6 uppercase mr-4 mb-2 font-thin'
-          >
-            Back To Live Auction
-          </button>
-        </div>
-        <div className='flex flex-wrap'>
-          {liveAuctions.map((auction, index) => {
-            const isLastItem = index === liveAuctions.length - 1
-            return (
-              <AuctionCard
-                key={auction.id}
-                auction={auction}
-                isLastItem={isLastItem}
-              />
-            )
-          })}
-        </div>
-      </div>
-    )
-  }
-
   const handleViewAllSoldClick = () => router.push('/sold')
 
   // grabbing the most recent four live auctions
@@ -102,7 +72,14 @@ const LiveAuction = () => {
       <FeaturedAuction featuredAuction={featuredAuction} />
       <div className='pb-12'>
         <div className='flex justify-between border-b border-indigo-500 py-2 mb-6'>
-          <h1 className='text-md'>Live Auctions</h1>
+          <h1
+            className='text-lg relative'
+            style={{
+              top: '7px',
+            }}
+          >
+            Live Auctions
+          </h1>
           <ViewAllButton onClick={hanldeViewAllLiveAuctionsClick} />
         </div>
         <div className='flex flex-wrap'>
@@ -124,7 +101,14 @@ const LiveAuction = () => {
       </div>
       <div>
         <div className='flex justify-between border-b border-indigo-500 py-2 mb-6'>
-          <h1 className='text-md'>Sold</h1>
+          <h1
+            className='text-lg relative'
+            style={{
+              top: '7px',
+            }}
+          >
+            Sold
+          </h1>
           <ViewAllButton onClick={handleViewAllSoldClick} />
         </div>
         <div className='flex justify-start flex-wrap'>

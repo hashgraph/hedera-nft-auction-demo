@@ -5,6 +5,7 @@ import useHederaPrice from 'hooks/useHederaPrice'
 import getUsdValue from 'utils/getUsdValue'
 import getBidValue from 'utils/getBidValueToShow'
 import PurpleGradientBorder from 'components/common/border/PurpleGradientBorder'
+import FirstBidItem from './FirstBid'
 import dayjs from 'dayjs'
 var localizedFormat = require('dayjs/plugin/localizedFormat')
 dayjs.extend(localizedFormat)
@@ -35,11 +36,7 @@ const BidItem = ({ bid, currentPrice, isFirstItem, isLastItem }) => {
     window.open(dragonGlassBaseUrl + idForDragonGlass)
   }
 
-  const getMarginClass = () => {
-    if (isFirstItem) return 'mb-8'
-    if (isLastItem) return 'mt-8'
-    return 'my-8'
-  }
+  const getMarginClass = () => 'mb-8'
 
   const marginClass = getMarginClass()
 
@@ -50,15 +47,11 @@ const BidItem = ({ bid, currentPrice, isFirstItem, isLastItem }) => {
       <div className='bg-purple-gradient w-2 h-full absolute' />
       <div className='flex sm:flex-row flex-col sm:items-center items-left w-full justify-between sm:ml-5 ml-7'>
         <div className='sm:pb-0 pb-4'>
-          <p className='font-light text-xs text-gray-400'>
-            Bidder
-          </p>
+          <p className='font-light text-xs text-gray-400'>Bidder</p>
           <p className='font-bold text-sm'>{bidderaccountid}</p>
         </div>
         <div className='sm:pb-0 pb-4'>
-          <p className='font-light text-xs text-gray-400'>
-            Date placed
-          </p>
+          <p className='font-light text-xs text-gray-400'>Date placed</p>
           <p className='font-bold text-sm'>{formattedTimestamp}</p>
         </div>
         <div className='flex items-center sm:pb-0 pb-3'>
@@ -104,12 +97,33 @@ const BidHistory = ({ auction }) => {
     enabled: Boolean(auctionId),
   })
 
+  const {
+    auctionaccountid,
+    starttimestamp: createdAtTimestamp,
+    reserve,
+  } = auction
+
+  const formattedCreatedTime = getFormattedTime(createdAtTimestamp)
+
   if (isLoading) return <p>Loading...</p>
   if (!bidHistory) return <p>Error fetching Bid History</p>
 
   const hasNoBids = bidHistory.length === 0
 
-  if (hasNoBids) return <p>No Bids To Show</p>
+  if (hasNoBids)
+    return (
+      <div className='relative'>
+        <PurpleGradientBorder />
+        <h1 className='font-bold text-lg pt-2 pb-6'>History</h1>
+        <div className='p-1 '>
+          <FirstBidItem
+            auctionaccountid={auctionaccountid}
+            createdAt={formattedCreatedTime}
+            reserve={reserve}
+          />
+        </div>
+      </div>
+    )
 
   return (
     <div className='relative'>
@@ -117,18 +131,21 @@ const BidHistory = ({ auction }) => {
       <h1 className='font-bold text-lg pt-2 pb-6'>History</h1>
       <div className='p-1 '>
         {bidHistory.map((bid, index) => {
-          const isFirstItem = index === 0
           const isLastItem = index === bidHistory.length - 1
           return (
             <BidItem
               bid={bid}
               key={bid.timestamp}
               currentPrice={currentPrice}
-              isFirstItem={isFirstItem}
               isLastItem={isLastItem}
             />
           )
         })}
+        <FirstBidItem
+          auctionaccountid={auctionaccountid}
+          createdAt={formattedCreatedTime}
+          reserve={reserve}
+        />
       </div>
     </div>
   )

@@ -6,6 +6,7 @@ import getBidValue from 'utils/getBidValueToShow'
 import BidButton from './BidButton'
 import BidModal from 'components/modals/BidModal'
 import { Hbar } from '@hashgraph/sdk'
+import HbarUnbit from 'components/common/HbarUnit'
 
 const BidMetaData = ({ auction }) => {
   const { currentPrice, isFetching: isFetchingHederaData } = useHederaPrice()
@@ -29,7 +30,7 @@ const BidMetaData = ({ auction }) => {
         <div>
           <p className='font-bold text-md'>Sold For</p>
           <p className='font-bold sm:text-3xl text-md'>
-            {Hbar.from(bidToShow).toString()}
+            <HbarUnbit italic amount={bidToShow} />
           </p>
           <p className='text-gray-400 font-thin text-sm'>${usdValue}</p>
         </div>
@@ -45,11 +46,9 @@ const BidMetaData = ({ auction }) => {
   return (
     <div className='flex justify-between sm:flex-row flex-col'>
       <div className='sm:mb-0 mb-8'>
-        <p className='sm:font-semibold font-semibold sm:mb-2 mb-0'>
-          Current Bid
-        </p>
+        <p className='sm:mb-2 mb-0'>Current Bid</p>
         <p className='font-semibold sm:text-3xl text-lg'>
-          {Hbar.from(bidToShow).toString()}
+          <HbarUnbit italic amount={bidToShow} />
         </p>
         <p className='text-gray-400 sm:font-semibold sm:text-md text-sm'>
           ${usdValue}
@@ -81,16 +80,18 @@ const BidMetaData = ({ auction }) => {
       <div>
         <p className='font-semibold mb-2'>Reserve</p>
         <p className='font-bold sm:text-3xl text-md'>
-          {Hbar.from(reserve || 1).toString()}
+          <HbarUnbit italic amount={reserve} />
         </p>
       </div>
       <div className='sm:ml-5 ml-0 sm:mt-0 mt-5 relative sm:bottom-6 bottom-0'>
         <div className='font-semibold mb-2'>
-          <p className='relative' style={{ top: '6px' }}>Minimum</p>
+          <p className='relative' style={{ top: '6px' }}>
+            Minimum
+          </p>
           <p>Bid Increase</p>
         </div>
         <p className='font-bold sm:text-3xl text-sm'>
-          {Hbar.from(minimumbid).toString()}
+          <HbarUnbit italic amount={minimumbid} />
         </p>
       </div>
       <div className='block sm:hidden'>

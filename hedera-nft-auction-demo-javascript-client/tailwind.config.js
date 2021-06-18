@@ -24,8 +24,8 @@ module.exports = {
       fontSize: {
         'card-tokenid': '10px',
         'card-title': '1rem',
-        'card-subtitle': '10px',
-        'card-units': '11px',
+        'card-subtitle': '12px',
+        'card-units': '14px',
       },
       width: {
         'card-small': '22%',
@@ -36,7 +36,10 @@ module.exports = {
       padding: {
         'section-mobile': '12.5%',
         'section-desktop': '6.5%', 
-      }
+      },
+      lineHeight: {
+        'tight': '-1rem',
+       }
     },
   },
   variants: {

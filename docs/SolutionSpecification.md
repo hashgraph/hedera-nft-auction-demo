@@ -129,7 +129,7 @@ A Hedera Consensus Service topic will need to be created in order for new auctio
 
 ### Creation of a token
 
-A token may be created by any Hedera user, typically this would be a Non Fungible Token, having a quantity of 1 and no decimals. It should also not have any compliance keys associated to it (KYC, Freeze, Admin, etc...), however these properties are not mandated by the auction system.
+A token may be created by any Hedera user, typically this would be a Non Fungible Token, having a quantity of 1 and no decimals. It should also not have any compliance keys associated to it (KYC, Freeze, Admin, etc...), however these properties are not mandated by the auction system but the auction will only transfer a quantity of 1 of the token upon completion.
 
 ### Creation of an auction account
 

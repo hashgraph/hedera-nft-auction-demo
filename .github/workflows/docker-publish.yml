@@ -10,13 +10,19 @@ on:
     tags:
       - v*
   workflow_dispatch:
-env:
-  VERSION=${GITHUB_REF/refs\/tags\//}
-  DATETIME=$(date +%Y%m%d%H%M)
 
 jobs:
   # Push image to GitHub Packages.
   # See also https://docs.docker.com/docker-hub/builds/
+  set_environment_variables:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set version
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+      - name: Set datetime
+        run: echo "DATETIME=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
+      - name: Show values
+        run: echo $VERSION - $DATETIME
   push_ui_image:
     runs-on: ubuntu-latest
     permissions:

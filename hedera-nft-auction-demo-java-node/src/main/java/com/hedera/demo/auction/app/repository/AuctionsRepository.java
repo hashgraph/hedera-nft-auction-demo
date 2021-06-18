@@ -300,12 +300,14 @@ public class AuctionsRepository {
 
         //TODO: This should be transactional
         if (updatePriorBid) {
-            cx.update(Tables.BIDS)
+            int rows = cx.update(Tables.BIDS)
                     .set(Tables.BIDS.STATUS, priorBid.getStatus())
                     .set(Tables.BIDS.REFUNDSTATUS, priorBid.getRefundstatus())
                     .set(Tables.BIDS.TIMESTAMPFORREFUND, priorBid.getTimestampforrefund())
                     .where(Tables.BIDS.TIMESTAMP.eq(priorBid.getTimestamp()))
+                    .and(Tables.BIDS.REFUNDSTATUS.eq("")) // don't overwrite refund status if already set
                     .execute();
+            log.info("Updated " + rows + " bids");
 
             cx.update(AUCTIONS)
                 .set(AUCTIONS.LASTCONSENSUSTIMESTAMP, auction.getLastconsensustimestamp())

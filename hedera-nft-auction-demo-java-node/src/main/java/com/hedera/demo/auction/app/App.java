@@ -86,7 +86,7 @@ public final class App {
         this.auctionNode = auctionNode;
 
         this.topicId = topicId;
-        this.mirrorQueryFrequency = 1000;
+        this.mirrorQueryFrequency = 10000;
         this.refund = refund;
         this.postgresUrl = postgresUrl.replaceAll("jdbc:", "");
         this.postgresUser = postgresUser;

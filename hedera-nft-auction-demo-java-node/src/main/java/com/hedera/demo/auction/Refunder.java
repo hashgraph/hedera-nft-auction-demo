@@ -106,17 +106,21 @@ public class Refunder implements Runnable {
                 log.error(e, e);
             }
         } else {
-            executor.execute(new Runnable() {
-                public void run() {
-                    try {
-                        bidsRepository.setRefundIssuing(bid.getTimestamp());
-                        TransactionScheduler transactionScheduler = new TransactionScheduler(auctionAccountId);
-                        transactionScheduler.issueScheduledTransactionForRefund(bid, bidsRepository, memo);
-                    } catch (Exception e) {
-                        log.error(e, e);
+            try {
+                bidsRepository.setRefundIssuing(bid.getTimestamp());
+                executor.execute(new Runnable() {
+                    public void run() {
+                        try {
+                            TransactionScheduler transactionScheduler = new TransactionScheduler(auctionAccountId);
+                            transactionScheduler.issueScheduledTransactionForRefund(bid, bidsRepository, memo);
+                        } catch (Exception e) {
+                            log.error(e, e);
+                        }
                     }
-                }
-            });
+                });
+            } catch (SQLException e) {
+                log.error(e, e);
+            }
         }
     }
 }

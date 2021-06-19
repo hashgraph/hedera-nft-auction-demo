@@ -115,7 +115,6 @@ public class BidsRepository {
                     .set(Tables.BIDS.REFUNDTXID, transactionId)
                     .where(Tables.BIDS.TIMESTAMP.eq(consensusTimestamp))
                     .execute();
-
         }
     }
 
@@ -125,8 +124,8 @@ public class BidsRepository {
         cx.update(Tables.BIDS)
                 .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_ISSUING)
                 .where(Tables.BIDS.TIMESTAMP.eq(consensusTimestamp))
+                .and(Tables.BIDS.REFUNDSTATUS.eq(Bid.REFUND_PENDING))
                 .execute();
-
     }
 
     public boolean setRefundPending(String bidTransactionId) throws SQLException {

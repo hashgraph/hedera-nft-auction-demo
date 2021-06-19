@@ -51,13 +51,13 @@ public class CreateTokenTransfer extends AbstractCreate {
 
             TransactionReceipt receipt = response.getReceipt(client);
             if (receipt.status != Status.SUCCESS) {
-                log.error("Token transfer failed " + receipt.status);
-                throw new Exception("Token transfer failed " + receipt.status);
+                log.error("Token transfer failed {}", receipt.status);
+                throw new Exception("Token transfer failed ".concat(receipt.status.toString()));
             } else {
-                log.info("Token " + tokenId + " transferred to account " + accountId);
+                log.info("Token {} transferred to account {}", tokenId, accountId);
             }
         } catch (Exception e) {
-            log.error(e);
+            log.error(e, e);
             throw e;
         }
     }

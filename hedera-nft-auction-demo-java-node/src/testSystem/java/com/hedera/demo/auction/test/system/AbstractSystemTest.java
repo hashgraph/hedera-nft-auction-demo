@@ -329,7 +329,7 @@ public abstract class AbstractSystemTest {
     }
 
     protected Callable<Boolean> auctionsCountMatches(javax.json.JsonObject assertion, int matchCount) {
-        log.info("asserting " + assertion.toString());
+        log.info("asserting {}", assertion.toString());
         return auctionsCountMatches(matchCount);
     }
 
@@ -350,7 +350,7 @@ public abstract class AbstractSystemTest {
         };
     }
     protected Callable<Boolean> tokenAssociated(javax.json.JsonObject  assertion) {
-        log.info("asserting " + assertion.toString());
+        log.info("asserting {}", assertion.toString());
         return tokenAssociated();
     }
 
@@ -376,7 +376,7 @@ public abstract class AbstractSystemTest {
 
     protected Callable<Boolean> tokenTransferred(javax.json.JsonObject assertion, AccountId accountId) {
         return () -> {
-            log.info("asserting " + assertion.toString());
+            log.info("asserting {}", assertion.toString());
             AccountBalance balance = new AccountBalanceQuery()
                     .setAccountId(accountId)
                     .execute(hederaClient.client());
@@ -391,7 +391,7 @@ public abstract class AbstractSystemTest {
 
     protected Callable<Boolean> tokenNotTransferred(javax.json.JsonObject assertion, AccountId accountId) {
         return () -> {
-            log.info("asserting " + assertion.toString());
+            log.info("asserting {}", assertion.toString());
             AccountBalance balance = new AccountBalanceQuery()
                     .setAccountId(accountId)
                     .execute(hederaClient.client());
@@ -435,7 +435,7 @@ public abstract class AbstractSystemTest {
 
     protected Callable<Boolean> auctionValueAssert(javax.json.JsonObject assertion, String parameter, String value, String condition) {
         return () -> {
-            log.info("asserting " + assertion.toString());
+            log.info("asserting {}", assertion.toString());
             Auction testAuction = auctionsRepository.getAuction(auction.getId());
 
             String valueToCheck = getAuctionValue(testAuction, parameter);
@@ -446,7 +446,7 @@ public abstract class AbstractSystemTest {
 
     protected Callable<Boolean> checkBalance(javax.json.JsonObject assertion, String account, String condition) {
         return () -> {
-            log.info("asserting " + assertion.toString());
+            log.info("asserting {}", assertion);
             AccountId accountId;
             switch (account) {
                 case "tokenOwner":
@@ -459,12 +459,12 @@ public abstract class AbstractSystemTest {
                     accountId = maxBidAccount;
                     break;
                 default:
-                    log.warn("Invalid account " + account + " for getBalance task");
+                    log.warn("Invalid account {} for getBalance task", account);
                     return false;
             }
 
             if (accountId == null) {
-                log.warn("Cannot check balance of null account " + account);
+                log.warn("Cannot check balance of null account {}", account);
                 return false;
             }
 
@@ -472,7 +472,7 @@ public abstract class AbstractSystemTest {
                     .setAccountId(accountId)
                     .execute(testRunnerClient);
 
-            log.info("checking balance for " + account + " " + balance.hbars.toTinybars() + " " + condition + " than " + accountBalances.get(account));
+            log.info("checking balance for {} {} {} than {}", account, balance.hbars.toTinybars(), condition, accountBalances.get(account));
             if (condition.equals("greater")) {
                 return balance.hbars.toTinybars() > accountBalances.get(account);
             } else if (condition.equals("smaller") || condition.equals("lower")) {
@@ -484,7 +484,7 @@ public abstract class AbstractSystemTest {
         };
     }
     private static boolean checkCondition(String value, String condition, String valueToCheck) {
-        log.info("Checking condition " + condition + " on value " + value + " against " + valueToCheck);
+        log.info("Checking condition {} on value {} against {}", condition, value, valueToCheck);
         if (condition.equals("equals")) {
             return (value.equals(valueToCheck));
         } else if (condition.equals("notnull")) {
@@ -529,7 +529,7 @@ public abstract class AbstractSystemTest {
 
     protected Callable<Boolean> bidValueAssert(javax.json.JsonObject assertion, String bidAccount, long bidAmount, String parameter, String value, String condition) throws SQLException {
         return () -> {
-            log.info("asserting " + assertion.toString());
+            log.info("asserting {}", assertion);
             Bid testBid = bidsRepository.getBid(auction.getId(), bidAccount, bidAmount);
             if (testBid == null) {
                 return false;

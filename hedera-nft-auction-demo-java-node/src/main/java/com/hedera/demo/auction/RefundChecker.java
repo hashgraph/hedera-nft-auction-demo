@@ -60,30 +60,30 @@ public class RefundChecker implements Runnable {
         @Var boolean refundsProcessed = false;
         for (MirrorTransaction transaction : mirrorTransactions.transactions) {
             String transactionMemo = transaction.getMemoString();
-            log.info("Memo " + transactionMemo);
+            log.debug("Memo {}", transactionMemo);
             if (transactionMemo.contains(Bid.REFUND_MEMO_PREFIX)) {
                 String bidTransactionId = transaction.getMemoString().replace(Bid.REFUND_MEMO_PREFIX,"");
                 if (transaction.isSuccessful()) {
                     // set bid refund complete
-                    log.debug("Found successful refund transaction on " + transaction.consensusTimestamp + " for bid transaction id " + bidTransactionId);
+                    log.debug("Found successful refund transaction on {} for bid transaction id {}", transaction.consensusTimestamp, bidTransactionId);
                     try {
                         if (bidsRepository.setRefunded(bidTransactionId, transaction.transactionId, transaction.getTransactionHashString())) {
                             refundsProcessed = true;
                         }
-                    } catch (SQLException sqlException) {
-                        log.error("Error setting bid to refunded (bid transaction id + " + bidTransactionId + ")");
-                        log.error(sqlException);
+                    } catch (SQLException e) {
+                        log.error("Error setting bid to refunded (bid transaction id {})", bidTransactionId);
+                        log.error(e, e);
                     }
                 } else {
                     // set bid refund pending
-                    log.debug("Found failed refund transaction on " + transaction.consensusTimestamp + " for bid transaction id " + bidTransactionId);
+                    log.debug("Found failed refund transaction on {} for bid transaction id {}", transaction.consensusTimestamp, bidTransactionId);
                     try {
                         if (bidsRepository.setRefundPending(bidTransactionId)) {
                             refundsProcessed = true;
                         }
-                    } catch (SQLException sqlException) {
-                        log.error("Error setting bid to refund pending (bid transaction id + " + bidTransactionId + ")");
-                        log.error(sqlException);
+                    } catch (SQLException e) {
+                        log.error("Error setting bid to refund pending (bid transaction id {})", bidTransactionId);
+                        log.error(e, e);
                     }
                 }
             }
@@ -139,21 +139,21 @@ public class RefundChecker implements Runnable {
                             queryTimestamps.put(auction.getId(), queryFromTimestamp);
                         }
                     }
-                } catch (SQLException sqlException) {
+                } catch (SQLException e) {
                     log.error("unable to fetch first bid to refund");
-                    log.error(sqlException);
+                    log.error(e, e);
                 } catch (InterruptedException e) {
                     log.error("error occurred getting future");
-                    log.error(e);
+                    log.error(e, e);
                     Thread.currentThread().interrupt();
                 } catch (ExecutionException e) {
                     log.error("error occurred getting future");
-                    log.error(e);
+                    log.error(e, e);
                 }
             }
         } catch (SQLException e) {
             log.error("Unable to fetch auctions list");
-            log.error(e);
+            log.error(e, e);
         }
         executor.shutdown();
         return foundRefundsToCheck;

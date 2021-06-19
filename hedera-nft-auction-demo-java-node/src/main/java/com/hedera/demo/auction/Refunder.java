@@ -69,22 +69,22 @@ public class Refunder implements Runnable {
                                     }
                                 }
                             auctionClient.close();
-                            } catch (SQLException sqlException) {
+                            } catch (SQLException e) {
                                 log.error("unable to fetch bids to refund");
-                                log.error(sqlException);
+                                log.error(e, e);
                             } catch (Exception e) {
                                 log.error("error issuing refund");
-                                log.error(e);
+                                log.error(e, e);
                             }
                         } catch (Exception e) {
                             log.error("error setting up auction client");
-                            log.error(e);
+                            log.error(e, e);
                         }
                     }
                 }
-            } catch (SQLException sqlException) {
+            } catch (SQLException e) {
                 log.error("unable to fetch auctions list");
-                log.error(sqlException);
+                log.error(e, e);
             }
             Utils.sleep(this.mirrorQueryFrequency);
         }
@@ -94,16 +94,16 @@ public class Refunder implements Runnable {
     private void issueRefund(String auctionAccount, Bid bid) {
         AccountId auctionAccountId = AccountId.fromString(auctionAccount);
 
-        log.info("Refunding " + bid.getBidamount() + " from " + auctionAccount + " to " + bid.getBidderaccountid());
+        log.info("Refunding {} from {} to {}", bid.getBidamount(), auctionAccount, bid.getBidderaccountid());
         String memo = Bid.REFUND_MEMO_PREFIX.concat(bid.getTransactionid());
         // issue refund
         if (testing) {
             // just testing, we can't sign a scheduled transaction, just record the state change on the bid
             try {
                 bidsRepository.setRefundIssued(bid.getTimestamp(), "");
-            } catch (SQLException sqlException) {
-                log.error("Failed to set bid refund in progress (bid timestamp " + bid.getTimestamp() + ")");
-                log.error(sqlException);
+            } catch (SQLException e) {
+                log.error("Failed to set bid refund in progress (bid timestamp {})", bid.getTimestamp());
+                log.error(e, e);
             }
         } else {
             executor.execute(new Runnable() {

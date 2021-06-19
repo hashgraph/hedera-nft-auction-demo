@@ -60,7 +60,7 @@ public class CreateTopic extends AbstractCreate {
 
             TopicId topicId = Objects.requireNonNull(transactionReceipt.topicId);
 
-            log.info("New topic created: " + topicId);
+            log.info("New topic created: {}", topicId);
 
             @Var Path dotEnvPath = Paths.get(dotEnvFile);
             if (!Files.exists(dotEnvPath)) {
@@ -75,7 +75,7 @@ public class CreateTopic extends AbstractCreate {
                     log.info(dotEnvPath.getParent());
                     Files.createDirectories(dotEnvPath.getParent());
                 } catch (FileAlreadyExistsException e) {
-                    log.warn("path " + dotEnvPath.getParent() + " already exists");
+                    log.warn("path {} already exists", dotEnvPath.getParent());
                 }
                 Files.createFile(dotEnvPath);
             }
@@ -104,11 +104,11 @@ public class CreateTopic extends AbstractCreate {
             printWriter.close();
             Files.copy(dotEnvTempPath, dotEnvPath, StandardCopyOption.REPLACE_EXISTING);
             Files.delete(dotEnvTempPath);
-            log.info(".env file updated with new topic id " + topicId);
+            log.info(".env file updated with new topic id {}", topicId);
 
             return topicId;
         } catch (Exception e) {
-            log.error(e);
+            log.error(e, e);
             throw e;
         }
     }

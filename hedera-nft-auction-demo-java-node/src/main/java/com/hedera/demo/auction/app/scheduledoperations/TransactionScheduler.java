@@ -62,20 +62,20 @@ public class TransactionScheduler {
         try {
             transactionSchedulerResult = issueScheduledTransaction("Scheduled Auction Refund");
             if (transactionSchedulerResult.success || transactionSchedulerResult.status == Status.NO_NEW_VALID_SIGNATURES) {
-                log.info("Refund transaction successfully scheduled (id " + shortTransactionId + ")");
-                log.info("setting bid to refund in progress (timestamp = " + bid.getTimestamp() + ")");
+                log.info("Refund transaction successfully scheduled (id {})", shortTransactionId);
+                log.info("setting bid to refund in progress (timestamp = {})", bid.getTimestamp());
                 try {
                     bidsRepository.setRefundIssued(bid.getTimestamp(), shortTransactionId);
-                } catch (SQLException sqlException) {
-                    log.error("Failed to set bid refund in progress (bid timestamp " + bid.getTimestamp() + ")");
-                    log.error(sqlException);
+                } catch (SQLException e) {
+                    log.error("Failed to set bid refund in progress (bid timestamp {})",bid.getTimestamp());
+                    log.error(e, e);
                 }
             } else {
-                log.error("Error issuing refund to bid - timestamp = " + bid.getTimestamp());
+                log.error("Error issuing refund to bid - timestamp = {}", bid.getTimestamp());
                 log.error(transactionSchedulerResult.status);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e, e);
         } finally {
             hederaClient.client().close();
         }
@@ -90,17 +90,17 @@ public class TransactionScheduler {
                 .setScheduleMemo(scheduleMemo);
 
         try {
-            log.debug("Creating scheduled transaction for pub key " + hederaClient.operatorPublicKey().toString());
+            log.debug("Creating scheduled transaction for pub key {}", hederaClient.operatorPublicKey().toString());
             TransactionResponse response = scheduleCreateTransaction.execute(hederaClient.client());
 
             try {
                 TransactionReceipt receipt = response.getReceipt(hederaClient.client());
                 return handleResponse(receipt);
-            } catch (TimeoutException timeoutException) {
+            } catch (TimeoutException e) {
                 log.error("TimeoutException fetching receipt");
-                log.error(timeoutException);
+                log.error(e, e);
                 hederaClient.client().close();
-                throw timeoutException;
+                throw e;
             } catch (ReceiptStatusException receiptStatusException) {
                 hederaClient.client().close();
                 return handleResponse(receiptStatusException.receipt);
@@ -116,7 +116,7 @@ public class TransactionScheduler {
         // the same tx has already been submitted, submit just the signature
         // get the receipt for the transaction
         try {
-            log.debug("Signing schedule id " + existingReceipt.scheduleId + " with key for public key " + hederaClient.operatorPublicKey().toString());
+            log.debug("Signing schedule id {}  with key for public key {}", existingReceipt.scheduleId, hederaClient.operatorPublicKey().toString());
             ScheduleSignTransaction scheduleSignTransaction = new ScheduleSignTransaction()
                     .setScheduleId(existingReceipt.scheduleId);
 
@@ -129,10 +129,10 @@ public class TransactionScheduler {
                 return handleResponse(receiptStatusException.receipt);
             }
 
-        } catch (TimeoutException timeoutException) {
+        } catch (TimeoutException e) {
             log.error("Exception fetching receipt");
-            log.error(timeoutException);
-            throw timeoutException;
+            log.error(e, e);
+            throw e;
         } catch (PrecheckStatusException precheckStatusException) {
             hederaClient.client().close();
             return new TransactionSchedulerResult(/* success= */false, precheckStatusException.status);

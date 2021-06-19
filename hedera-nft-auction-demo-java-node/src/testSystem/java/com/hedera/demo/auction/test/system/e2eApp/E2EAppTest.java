@@ -85,7 +85,7 @@ public class E2EAppTest extends AbstractSystemTest {
 
         long testCost = startBalance.toTinybars() - endBalance.toTinybars();
 
-        log.info("System test cost in hbar: " + Hbar.fromTinybars(testCost));
+        log.info("System test cost in hbar: {}", Hbar.fromTinybars(testCost));
     }
 
     @BeforeEach
@@ -98,7 +98,7 @@ public class E2EAppTest extends AbstractSystemTest {
 
     private void setupTest(JsonValue mirrorValue, JsonObject test) throws Exception {
         String mirror = ((JsonString) mirrorValue).getString();
-        log.info("  Using mirror " + mirror);
+        log.info("  Using mirror {}", mirror);
 
         hederaClient = new HederaClient(dotenv);
 
@@ -110,7 +110,7 @@ public class E2EAppTest extends AbstractSystemTest {
         // create an auction account
         io.vertx.core.json.JsonObject keysCreate = jsonThresholdKey(1, 1, masterKey.getPublicKey().toString(), hederaClient.operatorPublicKey().toString());
         createAccountAndGetInfo(keysCreate.toString());
-        log.info("Auction account " + auctionAccountId.toString());
+        log.info("Auction account {}", auctionAccountId.toString());
 
         // create token
         String tokenSymbolFromJson = test.getString("symbol", "");
@@ -176,7 +176,7 @@ public class E2EAppTest extends AbstractSystemTest {
             String account = task.getString("account", "");
 
 
-            log.info("  running task " + taskName + " - " + taskDescription);
+            log.info("  running task {} - {}", taskName, taskDescription);
 
             switch (taskName) {
                 case "startApp":
@@ -227,7 +227,7 @@ public class E2EAppTest extends AbstractSystemTest {
                     // in-task assertions are handled after the switch case
                     break;
                 default:
-                    log.error("unknown task " + task);
+                    log.error("unknown task {}", task);
             }
             assertTask(task);
         }
@@ -244,7 +244,7 @@ public class E2EAppTest extends AbstractSystemTest {
     @ParameterizedTest
     @JsonFileSource(resources = "/e2eSystemTests.json")
     public void e2eTest(JsonObject test) throws Exception {
-        log.info("Starting e2e test : " + test.getString("testName"));
+        log.info("Starting e2e test : {}", test.getString("testName"));
 
         if (test.getBoolean("skip", false)) {
             return;
@@ -302,7 +302,7 @@ public class E2EAppTest extends AbstractSystemTest {
                 accountId = maxBidAccount;
                 break;
             default:
-                log.info("Invalid account " + account + " for getBalance task");
+                log.info("Invalid account {} for getBalance task", account);
                 return;
         }
 
@@ -314,7 +314,7 @@ public class E2EAppTest extends AbstractSystemTest {
     }
 
     private void assertValue(JsonObject assertion) throws SQLException {
-        log.info("  asserting " + assertion.toString());
+        log.info("  asserting {}", assertion);
 
         String object = assertion.getString("object", "");
         String parameter = assertion.getString( "parameter", "");
@@ -431,7 +431,7 @@ public class E2EAppTest extends AbstractSystemTest {
                         .until(tokenNotTransferred(assertion, tokenOwnerAccountId));
                 break;
             default:
-                log.error("unknown assertion " + object);
+                log.error("unknown assertion {}", object);
         }
     }
 }

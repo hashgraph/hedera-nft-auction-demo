@@ -111,7 +111,7 @@ public class AuctionsRepository {
 
     public void setTransferPending(String tokenId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        log.debug("Setting auction transfer status to " + Auction.TRANSFER_STATUS_PENDING + " for token id " + tokenId);
+        log.debug("Setting auction transfer status to {} for token id {}", Auction.TRANSFER_STATUS_PENDING, tokenId);
         cx.update(AUCTIONS)
                 .set(AUCTIONS.TRANSFERSTATUS, Auction.TRANSFER_STATUS_PENDING)
                 .where(AUCTIONS.TOKENID.eq(tokenId))
@@ -120,7 +120,7 @@ public class AuctionsRepository {
 
     public void setTransferInProgress(String tokenId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        log.debug("setTransferInProgress " + Auction.TRANSFER_STATUS_IN_PROGRESS + " for token id " + tokenId);
+        log.debug("setTransferInProgress {} for token id {}", Auction.TRANSFER_STATUS_IN_PROGRESS, tokenId);
 
         cx.update(AUCTIONS)
                 .set(AUCTIONS.TRANSFERSTATUS, Auction.TRANSFER_STATUS_IN_PROGRESS)
@@ -130,7 +130,7 @@ public class AuctionsRepository {
 
     public void setTransferTransactionByTokenId(String tokenId, String transactionId, String transactionHash) throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        log.debug("setTransferTransactionByTokenId " + tokenId + ", transactionId " + transactionId + ", hash " + transactionHash);
+        log.debug("setTransferTransactionByTokenId {}, transactionId {}, hash {}", tokenId, transactionId, transactionHash);
 
         cx.update(AUCTIONS)
                 .set(AUCTIONS.TRANSFERTXID, transactionId)
@@ -144,7 +144,7 @@ public class AuctionsRepository {
     public void setTransferTransactionByAuctionId(int auctionId, String transactionId, String transactionHash) throws SQLException {
         DSLContext cx = connectionManager.dsl();
 
-        log.debug("setTransferTransactionByAuctionId " + auctionId + ", transactionId " + transactionId + ", hash " + transactionHash);
+        log.debug("setTransferTransactionByAuctionId {}, transactionId {}, hash {}",auctionId, transactionId, transactionHash);
         cx.update(AUCTIONS)
                 .set(AUCTIONS.TRANSFERTXID, transactionId)
                 .set(AUCTIONS.TRANSFERTXHASH, transactionHash)
@@ -307,7 +307,7 @@ public class AuctionsRepository {
                     .where(Tables.BIDS.TIMESTAMP.eq(priorBid.getTimestamp()))
                     .and(Tables.BIDS.REFUNDSTATUS.eq("")) // don't overwrite refund status if already set
                     .execute();
-            log.info("Updated " + rows + " bids");
+            log.debug("Updated {} bids", rows);
 
             cx.update(AUCTIONS)
                 .set(AUCTIONS.LASTCONSENSUSTIMESTAMP, auction.getLastconsensustimestamp())

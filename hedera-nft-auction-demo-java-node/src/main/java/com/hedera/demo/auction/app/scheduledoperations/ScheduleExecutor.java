@@ -59,29 +59,29 @@ public class ScheduleExecutor implements Runnable {
                                     TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction("");
                                     if (transactionSchedulerResult.success) {
                                         scheduledOperation.setStatus(ScheduledOperation.EXECUTING);
-                                        log.info("token associate transaction successfully scheduled (id " + transactionId.toString() + ")");
+                                        log.info("token associate transaction successfully scheduled (id {})", transactionId.toString());
                                         scheduledOperationsRepository.setStatus(scheduledOperation.getTransactiontimestamp(), ScheduledOperation.EXECUTING, "");
                                     } else {
-                                        log.error("error scheduling token associate transaction (timestamp " + scheduledOperation.getTransactiontimestamp() + ")");
+                                        log.error("error scheduling token associate transaction (timestamp {})", scheduledOperation.getTransactiontimestamp());
                                         scheduledOperationsRepository.setStatus(scheduledOperation.getTransactiontimestamp(), ScheduledOperation.PENDING, transactionSchedulerResult.status.toString());
                                         log.error(transactionSchedulerResult.status);
                                     }
 
-                                } catch (TimeoutException timeoutException) {
-                                    log.error(timeoutException);
+                                } catch (TimeoutException e) {
+                                    log.error(e, e);
                                 }
                             }
                         } catch (SQLException e) {
                             log.error("error fetching auction for pending operations");
-                            log.error(e);
+                            log.error(e, e);
                         } catch (Exception e) {
-                            log.error(e);
+                            log.error(e, e);
                         }
                     }
                 }
-            } catch (SQLException sqlException) {
+            } catch (SQLException e) {
                 log.error("error fetching list of pending operations");
-                log.error(sqlException);
+                log.error(e, e);
             }
 
             Utils.sleep(this.mirrorQueryFrequency);

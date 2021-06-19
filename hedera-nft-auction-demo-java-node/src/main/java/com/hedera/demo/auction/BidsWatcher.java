@@ -45,8 +45,8 @@ public class BidsWatcher implements Runnable {
         try {
             this.auction = auctionsRepository.getAuction(auctionId);
         } catch (Exception e) {
-            log.error("unable to get auction id " + auctionId);
-            log.error(e);
+            log.error("unable to get auction id {}", auctionId);
+            log.error(e, e);
         }
     }
 
@@ -70,7 +70,7 @@ public class BidsWatcher implements Runnable {
                 // reload auction from database
                 Auction watchedAuction = auctionsRepository.getAuction(auctionId);
 
-                log.debug("Checking for bids on account " + watchedAuction.getAuctionaccountid() + " and token " + watchedAuction.getTokenid());
+                log.debug("Checking for bids on account {} and token {}", watchedAuction.getAuctionaccountid(), watchedAuction.getTokenid());
 
                 String consensusTimeStampFrom = StringUtils.isEmpty(nextLink) ? watchedAuction.getLastconsensustimestamp() : nextLink;
                 nextLink = "";
@@ -89,15 +89,15 @@ public class BidsWatcher implements Runnable {
                         nextLink = Utils.getTimestampFromMirrorLink(mirrorTransactions.links.next);
                         handleResponse(mirrorTransactions);
                     }
-                } catch (InterruptedException interruptedException) {
-                    log.error(interruptedException);
+                } catch (InterruptedException e) {
+                    log.error(e, e);
                     Thread.currentThread().interrupt();
-                } catch (ExecutionException executionException) {
-                    log.error(executionException);
+                } catch (ExecutionException e) {
+                    log.error(e, e);
                 }
 
             } catch (Exception e) {
-                log.error(e);
+                log.error(e, e);
             }
             if (StringUtils.isEmpty(nextLink)) {
                 Utils.sleep(this.mirrorQueryFrequency);
@@ -117,7 +117,7 @@ public class BidsWatcher implements Runnable {
                 auctionsRepository.save(this.auction);
             }
         } catch (Exception e) {
-            log.error(e);
+            log.error(e, e);
         }
     }
 
@@ -168,7 +168,7 @@ public class BidsWatcher implements Runnable {
             for (MirrorHbarTransfer transfer : transaction.hbarTransfers) {
                 if (transfer.account.equals(auctionAccountId)) {
                     bidAmount = transfer.amount;
-                    log.debug("Bid amount is " + bidAmount);
+                    log.debug("Bid amount is {}", bidAmount);
                     break;
                 }
             }
@@ -234,12 +234,12 @@ public class BidsWatcher implements Runnable {
                     newBid.setRefundstatus(Bid.REFUND_PENDING);
                 }
             } else {
-                log.info("Bid amount " + bidAmount + " less than or equal to 0, not recording bid");
+                log.info("Bid amount {} less than or equal to 0, not recording bid", bidAmount);
             }
 
             auctionsRepository.commitBidAndAuction(updatePriorBid, bidAmount, priorBid, auction, newBid);
         } else {
-            log.debug("Transaction Id " + transaction.transactionId + " status not SUCCESS.");
+            log.debug("Transaction Id {} status not SUCCESS.", transaction.transactionId);
         }
     }
 

@@ -76,22 +76,22 @@ public class AuctionEndTransfer implements Runnable {
                 List<Auction> auctionsList = auctionsRepository.getAuctionsList();
                 for (Auction auction: auctionsList) {
                     if (auction.isClosed() && StringUtils.isEmpty(auction.getTransferstatus())) {
-                        log.debug("auction closed " + auction.getAuctionaccountid());
+                        log.debug("auction closed {}", auction.getAuctionaccountid());
                         // auction is closed, check association between token and winner
 
                         if (StringUtils.isEmpty(auction.getWinningaccount())) {
                             // we don't have a winning bid, we'll transfer to the original token owner
                             try {
-                                log.debug("auction " + auction.getAuctionaccountid() + " no winning bid, setting to " + Auction.TRANSFER_STATUS_PENDING);
+                                log.debug("auction {} no winning bid, setting to {}", auction.getAuctionaccountid(), Auction.TRANSFER_STATUS_PENDING);
 
                                 auctionsRepository.setTransferPending(auction.getTokenid());
-                            } catch (SQLException sqlException) {
-                                log.error("Failed to set auction to " + Auction.TRANSFER_STATUS_PENDING + " status");
-                                log.error(sqlException);
+                            } catch (SQLException e) {
+                                log.error("Failed to set auction to {} status", Auction.TRANSFER_STATUS_PENDING);
+                                log.error(e, e);
                             }
                         } else {
-                            log.debug("auction " + auction.getAuctionaccountid() + " has winning bid");
-                            log.info("Checking association between token " + auction.getTokenid() + " and account " + auction.getWinningaccount());
+                            log.debug("auction {} has winning bid", auction.getAuctionaccountid());
+                            log.info("Checking association between token {} and account {}", auction.getTokenid(), auction.getWinningaccount());
                             setTransferringIfAssociated(auction);
                         }
                     }
@@ -117,9 +117,9 @@ public class AuctionEndTransfer implements Runnable {
                     }
                     Utils.sleep(this.mirrorQueryFrequency);
                 }
-            } catch (SQLException sqlException) {
+            } catch (SQLException e) {
                 log.error("Failed to fetch auctions");
-                log.error(sqlException);
+                log.error(e, e);
             }
         }
     }
@@ -137,15 +137,15 @@ public class AuctionEndTransfer implements Runnable {
             if (accountBalance.token.containsKey(TokenId.fromString(auction.getTokenid()))) {
                 auctionsRepository.setTransferPending(auction.getTokenid());
             }
-        } catch (TimeoutException timeoutException) {
+        } catch (TimeoutException e) {
             log.error("timeout exception querying for balance");
-            log.error(timeoutException);
-        } catch (PrecheckStatusException precheckStatusException) {
+            log.error(e, e);
+        } catch (PrecheckStatusException e) {
             log.error("precheckStatusException exception querying for balance");
-            log.error(precheckStatusException);
-        } catch (SQLException sqlException) {
+            log.error(e, e);
+        } catch (SQLException e) {
             log.error("unable to set auction to transferPending");
-            log.error(sqlException);
+            log.error(e, e);
         }
     }
 
@@ -185,38 +185,38 @@ public class AuctionEndTransfer implements Runnable {
 
                         if (transactionSchedulerResult.success) {
                             transferInProgress = true;
-                            log.info("token transfer scheduled (id " + shortTransactionId + ")");
+                            log.info("token transfer scheduled (id {})", shortTransactionId);
                         } else {
-                            log.error("error transferring token to winner auction: " + auction.getAuctionaccountid());
+                            log.error("error transferring token to winner auction: {}", auction.getAuctionaccountid());
                             log.error(transactionSchedulerResult.status);
                         }
                     } catch (TimeoutException e) {
                         log.error("error scheduling token transfer transaction");
-                        log.error(e);
+                        log.error(e, e);
                     }
                     client.close();
                 } catch (Exception e) {
                     log.error("unable to create client for auction account");
-                    log.error(e);
+                    log.error(e, e);
                 }
             }
 
             if (transferInProgress || testing) {
-                log.info("setting auction to transfer in progress (auction = " + auction.getAuctionaccountid() + ")");
+                log.info("setting auction to transfer in progress (auction = {})",auction.getAuctionaccountid());
                 try {
                     auctionsRepository.setTransferInProgress(auction.getTokenid());
                 } catch (SQLException e) {
-                    log.error("unable to set auction to transfer in progress (auction = " + auction.getAuctionaccountid() + ")");
-                    log.error(e);
+                    log.error("unable to set auction to transfer in progress (auction = {}", auction.getAuctionaccountid());
+                    log.error(e, e);
                 }
             }
         } else {
-            log.error("Token owner for auction id " + auction.getId() + " is not set.");
+            log.error("Token owner for auction id {} is not set.", auction.getAuctionaccountid());
             try {
                 auctionsRepository.setTransferTransactionByAuctionId(auction.getId(), "Token not transferred by owner", "Token not transferred by owner");
-            } catch (SQLException sqlException) {
+            } catch (SQLException e) {
                 log.error("unable to end auction with token not transferred by owner");
-                log.error(sqlException);
+                log.error(e, e);
             }
         }
     }
@@ -231,9 +231,9 @@ public class AuctionEndTransfer implements Runnable {
                         try {
                             auctionsRepository.setTransferTransactionByTokenId(tokenId, mirrorTransaction.transactionId, mirrorTransaction.getTransactionHashString());
                             return AuctionEndTransfer.TransferResult.SUCCESS;
-                        } catch (SQLException sqlException) {
+                        } catch (SQLException e) {
                             log.error("unable to set transaction to transfer complete");
-                            log.error(sqlException);
+                            log.error(e, e);
                         }
                     } else {
                         // note: we keep going through the transactions just in case one is successful later
@@ -264,7 +264,7 @@ public class AuctionEndTransfer implements Runnable {
             queryParameters.put("order", "asc");
             queryParameters.put("timestamp", "gt:".concat(nextTimestamp));
 
-            log.debug("querying mirror for successful transaction for account " + queryParameters.get("account.id") + ", timestamp:gt:".concat(nextTimestamp));
+            log.debug("querying mirror for successful transaction for account {} , timestamp:gt:{}", queryParameters.get("account.id"), nextTimestamp);
             Future<JsonObject> future = executor.submit(Utils.queryMirror(webClient, hederaClient, uri, queryParameters));
             try {
                 JsonObject response = future.get();
@@ -274,11 +274,11 @@ public class AuctionEndTransfer implements Runnable {
                     log.info(result);
                     nextTimestamp = Utils.getTimestampFromMirrorLink(mirrorTransactions.links.next);
                 }
-            } catch (InterruptedException interruptedException) {
-                log.error(interruptedException);
+            } catch (InterruptedException e) {
+                log.error(e, e);
                 Thread.currentThread().interrupt();
-            } catch (ExecutionException executionException) {
-                log.error(executionException);
+            } catch (ExecutionException e) {
+                log.error(e, e);
             }
 
         }

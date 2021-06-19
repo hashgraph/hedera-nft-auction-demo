@@ -140,8 +140,8 @@ public class HederaClient {
                 client = Client.forMainnet();
                 break;
             default:
-                log.error("Unknown network " + network);
-                throw new Exception("Unknown network " + network);
+                log.error("Unknown network {}", network);
+                throw new Exception("Unknown network ".concat(network));
         }
 
         client.setOperator(this.operatorId, this.operatorKey);

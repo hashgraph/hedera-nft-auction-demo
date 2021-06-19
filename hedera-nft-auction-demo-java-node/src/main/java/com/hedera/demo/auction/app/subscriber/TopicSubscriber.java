@@ -89,7 +89,7 @@ public class TopicSubscriber implements Runnable{
         try {
             startSubscription();
         } catch (RuntimeException e) {
-            log.error(e);
+            log.error(e, e);
         }
         while (runThread) {
             Utils.sleep(5000);
@@ -99,7 +99,7 @@ public class TopicSubscriber implements Runnable{
     private void startSubscription() {
         try {
             Client client = hederaClient.client();
-            log.debug("subscribing to topic id " + topicId + " from " + startTime);
+            log.debug("subscribing to topic id {} from {}", topicId, startTime);
             subscriptionHandle = new TopicMessageQuery()
                     .setTopicId(topicId)
                     .setStartTime(startTime)
@@ -109,7 +109,7 @@ public class TopicSubscriber implements Runnable{
                         handle(topicMessageWrapper);
                     });
         } catch (RuntimeException e) {
-            log.error("Mirror subscription error " + e.getMessage());
+            log.error("Mirror subscription error", e);
             log.info("Attempting re-subscription after 5s");
             Utils.sleep(5000);
             startSubscription();
@@ -163,7 +163,7 @@ public class TopicSubscriber implements Runnable{
                                 newAuction.setTokenmetadata(tokenInfo.symbol);
                             }
                         } catch (Exception e) {
-                            log.error(e);
+                            log.error(e, e);
                             throw e;
                         }
                     }
@@ -171,7 +171,7 @@ public class TopicSubscriber implements Runnable{
                     auction = auctionsRepository.add(newAuction);
 
                     if ((auction.getId() != 0) && !testing) {
-                        log.info("Auction for token " + newAuction.getTokenid() + " added");
+                        log.info("Auction for token {} added", newAuction.getTokenid());
                     }
 
                     if (!skipReadinessWatcher && (webClient != null)) {
@@ -211,13 +211,13 @@ public class TopicSubscriber implements Runnable{
 
                             TransactionReceipt receipt = response.getReceipt(client);
                             if (receipt.status != Status.SUCCESS) {
-                                log.error("Token association failed " + receipt.status);
+                                log.error("Token association failed {}", receipt.status);
                             } else {
-                                log.info("Scheduled transaction to associate token " + auction.getTokenid() + " with auction account " + auction.getAuctionaccountid());
+                                log.info("Scheduled transaction to associate token {} with auction account {}", auction.getTokenid(), auction.getAuctionaccountid());
                             }
                         } catch (PrecheckStatusException e) {
                             if (e.status != Status.TOKEN_ALREADY_ASSOCIATED_TO_ACCOUNT) {
-                                log.error("Error during association " + e.getMessage());
+                                log.error("Error during association",e);
                             }
                         }
                     }
@@ -225,10 +225,10 @@ public class TopicSubscriber implements Runnable{
 
             } catch (SQLException e) {
                 log.error("unable to determine if auction already exists");
-                log.error(e);
+                log.error(e, e);
             }
         } catch (Exception e) {
-            log.error(e);
+            log.error(e, e);
         }
     }
 }

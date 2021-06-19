@@ -66,7 +66,7 @@ public class RequestCreateToken {
                 if ("true".equals(body.getString("ok"))) {
                     return "https://cloudflare-ipfs.com/ipfs/".concat(body.getJsonObject("value").getString("cid"));
                 } else {
-                    log.error("saving to IPFS failed ".concat(response.body()));
+                    log.error("saving to IPFS failed {}", response.body());
                     return "";
                 }
             } catch (RuntimeException e) {
@@ -74,7 +74,7 @@ public class RequestCreateToken {
                 return "";
             }
         } else {
-            log.error("saving to IPFS failed status code=".concat(String.valueOf(response.statusCode())).concat(" ").concat(response.body()));
+            log.error("saving to IPFS failed status code={} response body={}", response.statusCode(), response.body());
             return "";
         }
     }

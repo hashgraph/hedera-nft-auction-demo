@@ -37,7 +37,7 @@ public class Utils {
         }
         catch (IOException e)
         {
-            log.error(e);
+            log.error(e, e);
         }
 
         return content;
@@ -96,7 +96,7 @@ public class Utils {
         try {
             Thread.sleep(milliseconds);
         } catch (InterruptedException e) {
-            log.error(e);
+            log.error(e, e);
             Thread.currentThread().interrupt();
         }
     }
@@ -120,7 +120,7 @@ public class Utils {
                         try {
                             future.complete(response.body());
                         } catch (RuntimeException e) {
-                            log.error(e);
+                            log.error(e, e);
                             future.complete(new JsonObject());
                         }
                     })

@@ -71,14 +71,14 @@ public class AuctionReadinessWatcher implements Runnable {
      */
     @Override
     public void run() {
-        log.info("Watching auction account Id " + auction.getAuctionaccountid() + ", token Id " + auction.getTokenid());
+        log.info("Watching auction account Id {}, token Id {}", auction.getAuctionaccountid(), auction.getTokenid());
         String uri = "/api/v1/transactions";
 
         ExecutorService executor = Executors.newFixedThreadPool(1);
         while (runThread) {
             @Var String queryFromTimeStamp = nextTimestamp;
             while (!StringUtils.isEmpty(queryFromTimeStamp)) {
-                log.debug("Checking ownership of token " + auction.getTokenid() + " for account " + auction.getAuctionaccountid());
+                log.debug("Checking ownership of token {} for account {}", auction.getTokenid(), auction.getAuctionaccountid());
                 Map<String, String> queryParameters = new HashMap<>();
                 queryParameters.put("account.id", auction.getAuctionaccountid());
                 queryParameters.put("transactiontype", "CRYPTOTRANSFER");
@@ -90,7 +90,7 @@ public class AuctionReadinessWatcher implements Runnable {
                     JsonObject response = future.get();
                     if (response != null) {
                         MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
-                        log.debug("Got " + mirrorTransactions.transactions.size() + " to verify");
+                        log.debug("Got {} to verify", mirrorTransactions.transactions.size());
 
                         if (handleResponse(mirrorTransactions)) {
                             // token is owned by the auction account, exit this thread
@@ -113,11 +113,11 @@ public class AuctionReadinessWatcher implements Runnable {
                             nextTimestamp = queryFromTimeStamp;
                         }
                     }
-                } catch (InterruptedException interruptedException) {
-                    log.error(interruptedException);
+                } catch (InterruptedException e) {
+                    log.error(e, e);
                     Thread.currentThread().interrupt();
-                } catch (ExecutionException executionException) {
-                    log.error(executionException);
+                } catch (ExecutionException e) {
+                    log.error(e, e);
                 }
             }
 
@@ -152,7 +152,7 @@ public class AuctionReadinessWatcher implements Runnable {
                         if (auctionAccountFound && ! StringUtils.isEmpty(tokenOwnerAccount)) {
                             // we have a transfer from the token owner to the auction account
                             // token is associated
-                            log.info("Account " + auction.getAuctionaccountid() + " owns token " + auction.getTokenid() + ", starting auction");
+                            log.info("Account {} owns token {}, starting auction",  auction.getAuctionaccountid(), auction.getTokenid());
                             auctionsRepository.setActive(auction, tokenOwnerAccount, transaction.consensusTimestamp);
                             // start the thread to monitor bids
                             if (!this.testing) {
@@ -167,7 +167,7 @@ public class AuctionReadinessWatcher implements Runnable {
                 return false;
             }
         } catch (RuntimeException | SQLException e) {
-            log.error(e);
+            log.error(e, e);
         }
         return false;
     }

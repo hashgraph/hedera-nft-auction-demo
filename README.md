@@ -88,14 +88,14 @@ Using pre-built images
 
 ```shell
 cd ..
-docker-compose --profile prod up
+docker-compose --profile image up
 ```
 
 Building your own images from source code
 ```shell
 cd ..
-docker-compose --profile dev build
-docker-compose --profile dev up
+docker-compose --profile compile build
+docker-compose --profile compile up
 ```
 
 _Note: you may need to `sudo` these commands depending on your environment`

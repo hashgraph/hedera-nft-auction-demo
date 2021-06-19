@@ -47,34 +47,44 @@ public class TransactionScheduler {
 
     public void issueScheduledTransactionForRefund(Bid bid, BidsRepository bidsRepository, String memo) throws TimeoutException {
         // Create a transfer transaction for the refund
-        transactionId = TransactionId.generate(hederaClient.operatorId());
-        transactionId.setScheduled(true);
-        String shortTransactionId = transactionId.toString().replace("?scheduled", "");
-
-        TransferTransaction transferTransaction = new TransferTransaction();
-        transferTransaction.setTransactionMemo(memo);
-        transferTransaction.addHbarTransfer(auctionAccountId, Hbar.fromTinybars(-bid.getBidamount()));
-        transferTransaction.addHbarTransfer(AccountId.fromString(bid.getBidderaccountid()), Hbar.fromTinybars(bid.getBidamount()));
-
-        this.transaction = transferTransaction;
-
-        @Var TransactionSchedulerResult transactionSchedulerResult = null;
+        // check the status of the bid isn't already refunded or issued
         try {
-            transactionSchedulerResult = issueScheduledTransaction("Scheduled Auction Refund");
-            if (transactionSchedulerResult.success || transactionSchedulerResult.status == Status.NO_NEW_VALID_SIGNATURES) {
-                log.info("Refund transaction successfully scheduled (id {})", shortTransactionId);
-                log.info("setting bid to refund in progress (timestamp = {})", bid.getTimestamp());
+            Bid testBid = bidsRepository.getBidForTimestamp(bid.getTimestamp());
+            if ((testBid != null) && (! testBid.isRefunded()) && (! testBid.isRefundIssued())) {
+                transactionId = TransactionId.generate(hederaClient.operatorId());
+                transactionId.setScheduled(true);
+                String shortTransactionId = transactionId.toString().replace("?scheduled", "");
+
+                TransferTransaction transferTransaction = new TransferTransaction();
+                transferTransaction.setTransactionMemo(memo);
+                transferTransaction.addHbarTransfer(auctionAccountId, Hbar.fromTinybars(-bid.getBidamount()));
+                transferTransaction.addHbarTransfer(AccountId.fromString(bid.getBidderaccountid()), Hbar.fromTinybars(bid.getBidamount()));
+
+                this.transaction = transferTransaction;
+
+                @Var TransactionSchedulerResult transactionSchedulerResult = null;
                 try {
-                    bidsRepository.setRefundIssued(bid.getTimestamp(), shortTransactionId);
-                } catch (SQLException e) {
-                    log.error("Failed to set bid refund in progress (bid timestamp {})",bid.getTimestamp());
+                    transactionSchedulerResult = issueScheduledTransaction("Scheduled Auction Refund");
+                    if (transactionSchedulerResult.success || transactionSchedulerResult.status == Status.NO_NEW_VALID_SIGNATURES) {
+                        log.info("Refund transaction successfully scheduled (id {})", shortTransactionId);
+                        log.info("setting bid to refund in progress (timestamp = {})", bid.getTimestamp());
+                        try {
+                            bidsRepository.setRefundIssued(bid.getTimestamp(), shortTransactionId);
+                        } catch (SQLException e) {
+                            log.error("Failed to set bid refund in progress (bid timestamp {})",bid.getTimestamp());
+                            log.error(e, e);
+                        }
+                    } else {
+                        log.error("Error issuing refund to bid - timestamp = {}", bid.getTimestamp());
+                        log.error(transactionSchedulerResult.status);
+                    }
+                } catch (Exception e) {
                     log.error(e, e);
+                } finally {
+                    hederaClient.client().close();
                 }
-            } else {
-                log.error("Error issuing refund to bid - timestamp = {}", bid.getTimestamp());
-                log.error(transactionSchedulerResult.status);
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             log.error(e, e);
         } finally {
             hederaClient.client().close();

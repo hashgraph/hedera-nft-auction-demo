@@ -53,6 +53,20 @@ public class BidsRepository {
         }
     }
 
+    @Nullable
+    public Bid getBidForTimestamp (String timestamp) throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+
+        Result<Record> result = cx.selectFrom(Tables.BIDS)
+                .where(Tables.BIDS.TIMESTAMP.eq(timestamp))
+                .fetch();
+        if (result.size() != 1) {
+            return null;
+        } else {
+            return new Bid(result.get(0));
+        }
+    }
+
     public String getFirstBidToRefund(int auctionId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
         Result<Record1<String>> result = cx.select(min(Tables.BIDS.TIMESTAMP))
@@ -108,24 +122,27 @@ public class BidsRepository {
             cx.update(Tables.BIDS)
                     .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_ISSUED)
                     .where(Tables.BIDS.TIMESTAMP.eq(consensusTimestamp))
+                    .and(Tables.BIDS.TIMESTAMP.eq(Bid.REFUND_ISSUING))
                     .execute();
         } else {
             cx.update(Tables.BIDS)
                     .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_ISSUED)
                     .set(Tables.BIDS.REFUNDTXID, transactionId)
                     .where(Tables.BIDS.TIMESTAMP.eq(consensusTimestamp))
+                    .and(Tables.BIDS.TIMESTAMP.eq(Bid.REFUND_ISSUING))
                     .execute();
         }
     }
 
-    public void setRefundIssuing(String consensusTimestamp) throws SQLException {
+    public boolean setRefundIssuing(String consensusTimestamp) throws SQLException {
         DSLContext cx = connectionManager.dsl();
 
-        cx.update(Tables.BIDS)
+        int rows = cx.update(Tables.BIDS)
                 .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_ISSUING)
                 .where(Tables.BIDS.TIMESTAMP.eq(consensusTimestamp))
                 .and(Tables.BIDS.REFUNDSTATUS.eq(Bid.REFUND_PENDING))
                 .execute();
+        return (rows == 1);
     }
 
     public boolean setRefundPending(String bidTransactionId) throws SQLException {

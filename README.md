@@ -8,11 +8,16 @@
 ## Dependencies
 
 * A testnet or mainnet account
-* PostgreSQL version 12
-* Node.js v14.9.0
-* Yarn 1.22.10
-* Java 14
-* Docker and docker-compose (optional)
+* git command line installed on your computer
+  
+* To build from code
+  * PostgreSQL version 12
+  * Node.js v14.9.0
+  * Yarn 1.22.10
+  * Java 14
+  
+* To run from docker images  
+  * Docker and docker-compose (optional)
 
 ## Notes
 

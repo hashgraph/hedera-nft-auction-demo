@@ -139,7 +139,7 @@ public final class App {
 
             startAuctionReadinessWatchers(webClient, auctionsRepository, bidsRepository);
             startAuctionsClosureWatcher(webClient, auctionsRepository);
-            startBidWatchers(webClient, auctionsRepository, bidsRepository);
+            startBidWatchers(webClient, auctionsRepository);
             if (refund) {
                 // validator node, start the refunder thread
                 startRefunder(auctionsRepository, bidsRepository);
@@ -175,7 +175,7 @@ public final class App {
             topicSubscriberThread.start();
         }
     }
-    private void startBidWatchers(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) throws SQLException {
+    private void startBidWatchers(WebClient webClient, AuctionsRepository auctionsRepository) throws SQLException {
         for (Auction auction : auctionsRepository.getAuctionsList()) {
             if (! auction.isPending()) {
                 // auction is not pending

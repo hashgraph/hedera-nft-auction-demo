@@ -109,6 +109,7 @@ public class Refunder implements Runnable {
             try {
                 if (bidsRepository.setRefundIssuing(bid.getTimestamp())) {
                     executor.execute(new Runnable() {
+                        @Override
                         public void run() {
                             try {
                                 TransactionScheduler transactionScheduler = new TransactionScheduler(auctionAccountId);

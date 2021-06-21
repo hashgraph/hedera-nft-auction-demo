@@ -57,19 +57,20 @@ public class E2EAppTest extends AbstractSystemTest {
 
     @BeforeAll
     public void beforeAll() throws Exception {
-        postgres = new PostgreSQLContainer("postgres:12.6");
-        postgres.start();
-        migrate(postgres);
-        SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-        auctionsRepository = new AuctionsRepository(connectionManager);
-        bidsRepository = new BidsRepository(connectionManager);
-        biddingAccounts = new HashMap<>();
+        try (PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:12.6")) {
+            postgres.start();
+            migrate(postgres);
+            SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+            auctionsRepository = new AuctionsRepository(connectionManager);
+            bidsRepository = new BidsRepository(connectionManager);
+            biddingAccounts = new HashMap<>();
 
-        AccountBalance balance = new AccountBalanceQuery()
-                .setAccountId(balanceHederaClient.operatorId())
-                .execute(balanceHederaClient.client());
+            AccountBalance balance = new AccountBalanceQuery()
+                    .setAccountId(balanceHederaClient.operatorId())
+                    .execute(balanceHederaClient.client());
 
-        startBalance = balance.hbars;
+            startBalance = balance.hbars;
+        }
     }
 
     @AfterAll

@@ -50,7 +50,7 @@ public class TransactionScheduler {
         // check the status of the bid isn't already refunded or issued
         try {
             Bid testBid = bidsRepository.getBidForTimestamp(bid.getTimestamp());
-            if ((testBid != null) && (! testBid.isRefunded()) && (! testBid.isRefundIssued())) {
+            if ((testBid != null) && ! testBid.isRefunded() && ! testBid.isRefundIssued()) {
                 transactionId = TransactionId.generate(hederaClient.operatorId());
                 transactionId.setScheduled(true);
                 String shortTransactionId = transactionId.toString().replace("?scheduled", "");

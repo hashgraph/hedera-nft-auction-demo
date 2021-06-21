@@ -27,7 +27,7 @@ plugins {
 	id 'nu.studer.jooq' version '5.2.1'
 	id "jacoco"
 	id 'java'
-	id 'com.bmuschko.docker-java-application' version '6.7.0'
+//	id 'com.bmuschko.docker-java-application' version '6.7.0'
 }
 
 allprojects {
@@ -73,12 +73,13 @@ allprojects {
 
 	idea {
 		module {
-			sourceDirs -= file("src/testIntegration/java")
-			testSourceDirs += file("src/testIntegration/java")
-			sourceDirs -= file("src/testSystem/java")
-			testSourceDirs += file("src/testSystem/java")
+//			sourceDirs -= file("src/testIntegration/java")
+//			testSourceDirs += file("src/testIntegration/java")
+//			sourceDirs -= file("src/testSystem/java")
+//			testSourceDirs += file("src/testSystem/java")
 
 			scopes.TEST.plus += [ configurations.testIntegrationCompile ]
+			scopes.TEST.plus += [ configurations.testSystemCompile ]
 		}
 	}
 
@@ -263,22 +264,22 @@ check.dependsOn testIntegration
 task testSystem(type: Test) {
 	description = 'Runs the system tests.'
 	group = 'verification'
-	dependsOn 'dockerBuildImage'
+//	dependsOn 'dockerBuildImage'
 
 	testClassesDirs = sourceSets.testSystem.output.classesDirs
 	classpath = sourceSets.testSystem.runtimeClasspath
 	outputs.upToDateWhen { false }
 }
 
-docker {
-	println "Building docker image"
-	javaApplication {
-		baseImage = 'adoptopenjdk:14-jre-hotspot'
-		ports = [8081, 8082]
-		images = ["hedera/${rootProject.name}:latest"]
-		mainClassName = "com.hedera.demo.auction.app.App"
-	}
-}
+//docker {
+//	println "Building docker image"
+//	javaApplication {
+//		baseImage = 'adoptopenjdk:14-jre-hotspot'
+//		ports = [8081, 8082]
+//		images = ["hedera/${rootProject.name}:latest"]
+//		mainClassName = "com.hedera.demo.auction.app.App"
+//	}
+//}
 
 flyway {
 	def dbURL = System.getenv("DATABASE_URL") ?: "postgresql://localhost:5432/postgres"

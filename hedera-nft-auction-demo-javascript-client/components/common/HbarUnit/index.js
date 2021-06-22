@@ -1,5 +1,6 @@
-const HbarUnit = ({ className, amount, italic }) => {
-  const classNames = italic ? `italic ` : ''
+const HbarUnit = ({ className, amount, italic, bold }) => {
+  let classNames = italic ? `italic ` : ''
+  if (bold) classNames += ' font-bold '
   if (!amount && amount !== 0) return <span className={classNames + className}>ℏ</span>
   if (amount % 1000000 === 0)
     return (

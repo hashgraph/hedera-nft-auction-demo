@@ -48,7 +48,7 @@ const BidMetaData = ({ auction }) => {
       <div className='sm:mb-0 mb-8'>
         <p className='sm:mb-2 mb-0'>Current Bid</p>
         <p className='font-semibold sm:text-3xl text-lg'>
-          <HbarUnbit italic amount={bidToShow} />
+          <HbarUnbit bold italic amount={bidToShow} />
         </p>
         <p className='text-gray-400 sm:font-semibold sm:text-md text-sm'>
           ${usdValue}

@@ -24,7 +24,6 @@ const AllLiveAuctions = () => {
     auction => !auction.ended && auction.active
   )
 
-
   return (
     <div className=''>
       <div className='flex flex-wrap'>

@@ -1,5 +1,4 @@
 import calculateTimeLeft from 'utils/calculateTimeLeft'
-import { Hbar } from '@hashgraph/sdk'
 import { useRouter } from 'next/router'
 import HbarUnbit from 'components/common/HbarUnit'
 
@@ -61,13 +60,13 @@ const LiveAuctionCard = ({ auction, showStatus, isLastItem }) => {
       )
     return (
       <>
-        <div className='p-2'>
+        <div className='pt-2'>
           <p className='text-card-subtitle '>Current Bid</p>
           <p className='text-lg'>
             <HbarUnbit italic amount={winningbid} />
           </p>
         </div>
-        <div className='p-2'>
+        <div className='pt-2'>
           <p className='text-card-subtitle'>Auction ends</p>
           <p className='text-card-units mt-1'>{endTimeToDisplay}</p>
         </div>
@@ -79,7 +78,7 @@ const LiveAuctionCard = ({ auction, showStatus, isLastItem }) => {
 
   return (
     <div
-      className={`sm:${marginRightClass} mr-0 mb-4 cursor-pointer sm:h-card h-full sm:w-card-small w-full`}
+      className={`sm:${marginRightClass} mr-0 mb-10 cursor-pointer sm:h-card h-full sm:w-card-small w-full`}
       onClick={goToAuctionPage}
     >
       <div className='flex flex-col h-full shadow-card'>
@@ -96,11 +95,9 @@ const LiveAuctionCard = ({ auction, showStatus, isLastItem }) => {
             <img
               src={auctionImage}
               alt='live-auction-card'
-              className='sm:py-0 py-3 max-h-40'
+              className='max-h-40'
               style={{
                 objectFit: 'cover',
-                width: '145px',
-                height: '145px',
               }}
             />
           </div>

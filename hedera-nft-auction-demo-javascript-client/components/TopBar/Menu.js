@@ -3,7 +3,10 @@ import { useRouter } from 'next/router'
 import CloseIcon from './assets/close_icon.svg'
 import ConnectWalletIcon from './assets/connect_wallet_logo.svg'
 import MobileMenuIcon from './assets/mobile_menu_icon.svg'
-import NFTLogo from './assets/nft_logo.svg'
+import NFTLogo from './assets/nft-auction.svg'
+import {
+  useWindowSize,
+} from '@react-hook/window-size'
 
 const Link = ({ item, isMobile, closeMenu }) => {
   const isActive = item.isActive
@@ -54,19 +57,28 @@ const Link = ({ item, isMobile, closeMenu }) => {
 const TopBarMenu = () => {
   const [isOpen, setOpen] = React.useState(false)
   const handleMenuToggle = () => setOpen(!isOpen)
+  const [width, height] = useWindowSize()
+
+  const isOnMobile = width <= 640
+  let connectWalletLogoSrc = '/assets/connect-wallet.png'
+  if (isOnMobile) connectWalletLogoSrc = '/assets/connect-wallet-mobile.png'
 
   const closeMenu = () => setOpen(false)
 
   const router = useRouter()
   const location = router.pathname
 
-  const isViewingLiveAuction = location === '/'
+  const isViewingLiveAuction = location === '/live-auctions'
   const isViewingSold = location.includes('sold')
 
   const goToHomePage = () => router.push('/')
 
   const navigation = [
-    { name: 'Live Auctions', to: '/', isActive: isViewingLiveAuction },
+    {
+      name: 'Live Auctions',
+      to: '/live-auctions',
+      isActive: isViewingLiveAuction,
+    },
     { name: 'Sold', to: '/sold', isActive: isViewingSold },
   ]
 
@@ -79,7 +91,7 @@ const TopBarMenu = () => {
     >
       <div className='mx-auto'>
         <div className='relative flex items-center justify-between h-20'>
-          <div className='flex items-center justify-between sm:items-stretch sm:justify-between w-full'>
+          <div className='flex items-center justify-between sm:justify-between w-full'>
             <div
               onClick={handleMenuToggle}
               className='cursor-pointer inline-flex items-center justify-center p-2 rounded-md text-gray-400 focus:outline-none focus:ring-none sm:hidden'
@@ -91,10 +103,15 @@ const TopBarMenu = () => {
               )}
             </div>
             <div className='flex'>
-              <NFTLogo
+              {/* <NFTLogo
                 style={{ top: '2px', width: '8.75rem' }}
                 className='relative cursor-pointer'
                 onClick={goToHomePage}
+              /> */}
+              <img
+                src='/assets/nft-auction.png'
+                onClick={goToHomePage}
+                className='cursor-pointer'
               />
               {/* Desktop Nav */}
               <div className='hidden sm:flex items-center sm:ml-10'>
@@ -103,11 +120,12 @@ const TopBarMenu = () => {
                 ))}
               </div>
             </div>
-            <ConnectWalletIcon
-              onClick={goToHederaFAQ}
-              style={{ width: '8.75rem' }}
-              className='cursor-pointer'
-            />
+            {/* <ConnectWalletIcon
+                onClick={goToHederaFAQ}
+                style={{ width: '8.75rem' }}
+                className='cursor-pointer'
+              /> */}
+            <img src={connectWalletLogoSrc} />
           </div>
         </div>
       </div>

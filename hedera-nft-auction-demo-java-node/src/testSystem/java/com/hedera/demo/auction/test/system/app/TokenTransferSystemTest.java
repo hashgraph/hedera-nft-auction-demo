@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -37,6 +38,7 @@ public class TokenTransferSystemTest extends AbstractSystemTest {
     public void testTokenTransfer() throws Exception {
         transferTokenAndGetBalance();
 
+        assertNotNull(accountBalance);
         Map<TokenId, Long> tokenBalances = accountBalance.token;
         assertTrue(tokenBalances.containsKey(tokenId));
         assertNotEquals(0, tokenBalances.get(tokenId));

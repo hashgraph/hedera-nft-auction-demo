@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -30,6 +31,7 @@ public class TokenCreateSystemTest extends AbstractSystemTest {
 
         getTokenInfo();
 
+        assertNotNull(tokenInfo);
         assertEquals(tokenName, tokenInfo.name);
         assertEquals(symbol, tokenInfo.symbol);
         assertNull(tokenInfo.adminKey);

@@ -10,15 +10,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public abstract class AbstractE2ETest extends AbstractSystemTest {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractE2ETest.class);
-    private static final Map<String, String> environment = new HashMap<>();
     protected int adminPort;
 
     private final WebClientOptions webClientOptions = new WebClientOptions()
@@ -50,19 +43,29 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
 
     protected Buffer createTokenTransferBody() {
         RequestTokenTransfer requestTokenTransfer = new RequestTokenTransfer();
-        requestTokenTransfer.tokenid = tokenId.toString();
-        requestTokenTransfer.auctionaccountid = auctionAccountId.toString();
+        if (tokenId != null) {
+            requestTokenTransfer.tokenid = tokenId.toString();
+        }
+        if (auctionAccountId != null) {
+            requestTokenTransfer.auctionaccountid = auctionAccountId.toString();
+        }
 
         return JsonObject.mapFrom(requestTokenTransfer).toBuffer();
     }
 
     protected Buffer createAuctionBody() {
         RequestCreateAuction requestCreateAuction = new RequestCreateAuction();
-        requestCreateAuction.auctionaccountid = auctionAccountId.toString();
+        if (auctionAccountId != null) {
+            requestCreateAuction.auctionaccountid = auctionAccountId.toString();
+        }
         requestCreateAuction.reserve = auctionReserve;
-        requestCreateAuction.tokenid = tokenId.toString();
+        if (tokenId != null) {
+            requestCreateAuction.tokenid = tokenId.toString();
+        }
         requestCreateAuction.endtimestamp = endTimeStamp;
-        requestCreateAuction.topicId = topicId.toString();
+        if (topicId != null) {
+            requestCreateAuction.topicId = topicId.toString();
+        }
         requestCreateAuction.winnercanbid = winnerCanBid;
         requestCreateAuction.minimumbid = minimumBid;
 

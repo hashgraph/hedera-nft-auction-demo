@@ -41,6 +41,7 @@ import org.junit.platform.commons.util.StringUtils;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -74,12 +75,17 @@ public abstract class AbstractSystemTest {
     protected EasySetup easySetup;
 
     protected static final long initialBalance = 100;
+    @Nullable
     protected static AccountId auctionAccountId;
+    @Nullable
     protected static AccountInfo accountInfo;
+    @Nullable
     protected static AccountBalance accountBalance;
     protected static Map<String, Long> accountBalances = new HashMap<>();
 
+    @Nullable
     protected static TopicId topicId;
+    @Nullable
     protected static TopicInfo topicInfo;
 
     protected static final String tokenName = "TestToken";
@@ -87,7 +93,9 @@ public abstract class AbstractSystemTest {
     protected static final long initialSupply = 1;
     protected static final int decimals = 0;
     protected static final String tokenMemo = "token Memo";
+    @Nullable
     protected static TokenId tokenId;
+    @Nullable
     protected static TokenInfo tokenInfo;
 
     protected static final long minimumBid = 0;
@@ -272,6 +280,12 @@ public abstract class AbstractSystemTest {
     }
 
     protected void transferTokenAndGetBalance() throws Exception {
+        if (tokenId == null) {
+            throw new Exception("tokenId is null");
+        }
+        if (auctionAccountId == null) {
+            throw new Exception("auctionAccountId is null");
+        }
         createTokenTransfer.transfer(tokenId.toString(), auctionAccountId.toString(), tokenOwnerAccountId, tokenOwnerPrivateKey);
         getAccountBalance();
     }
@@ -296,6 +310,13 @@ public abstract class AbstractSystemTest {
 
     protected void createAuction(long reserve, long minimumBid, boolean winnerCanBid) throws Exception {
 
+        if (tokenId == null) {
+            throw new Exception("tokenId is null");
+        }
+        if (auctionAccountId == null) {
+            throw new Exception("auctionAccountId is null");
+        }
+
         JsonObject auction = new JsonObject();
         auction.put("tokenid", tokenId.toString());
         auction.put("auctionaccountid", auctionAccountId.toString());
@@ -309,6 +330,9 @@ public abstract class AbstractSystemTest {
         printWriter.write(auction.encodePrettily());
         printWriter.close();
 
+        if (topicId == null) {
+            throw new Exception("topicId is null");
+        }
         createAuction.create(tempFile.getAbsolutePath(), topicId.toString());
     }
 
@@ -325,10 +349,16 @@ public abstract class AbstractSystemTest {
     }
 
     protected void transferToken() throws Exception {
+        if (tokenId == null) {
+            throw new Exception("tokenId is null");
+        }
+        if (auctionAccountId == null) {
+            throw new Exception("auctionAccountId is null");
+        }
         createTokenTransfer.transfer(tokenId.toString(), auctionAccountId.toString(), tokenOwnerAccountId, tokenOwnerPrivateKey);
     }
 
-    protected Callable<Boolean> auctionsCountMatches(javax.json.JsonObject assertion, int matchCount) {
+    protected Callable<Boolean> auctionsCountMatches(int matchCount, javax.json.JsonObject assertion) {
         log.info("asserting {}", assertion.toString());
         return auctionsCountMatches(matchCount);
     }
@@ -448,6 +478,10 @@ public abstract class AbstractSystemTest {
         return () -> {
             log.info("asserting {}", assertion);
             AccountId accountId;
+            if (account == null) {
+                log.warn("account is null");
+                return false;
+            }
             switch (account) {
                 case "tokenOwner":
                     accountId = tokenOwnerAccountId;
@@ -472,15 +506,24 @@ public abstract class AbstractSystemTest {
                     .setAccountId(accountId)
                     .execute(testRunnerClient);
 
-            log.info("checking balance for {} {} {} than {}", account, balance.hbars.toTinybars(), condition, accountBalances.get(account));
-            if (condition.equals("greater")) {
-                return balance.hbars.toTinybars() > accountBalances.get(account);
-            } else if (condition.equals("smaller") || condition.equals("lower")) {
-                return balance.hbars.toTinybars() < accountBalances.get(account);
-            } else if (condition.equals("equals")) {
-                return balance.hbars.toTinybars() == accountBalances.get(account);
+            if (accountBalances == null) {
+                log.warn("balance query result is null");
+                return false;
+            } else {
+                log.info("checking balance for {} {} {} than {}", account, balance.hbars.toTinybars(), condition, accountBalances.get(account));
+                if (accountBalances.get(account) != null) {
+                    if (condition.equals("greater")) {
+                        return balance.hbars.toTinybars() > accountBalances.get(account);
+                    } else if (condition.equals("smaller") || condition.equals("lower")) {
+                        return balance.hbars.toTinybars() < accountBalances.get(account);
+                    } else if (condition.equals("equals")) {
+                        return balance.hbars.toTinybars() == accountBalances.get(account);
+                    }
+                    return false;
+                } else {
+                    return false;
+                }
             }
-            return false;
         };
     }
     private static boolean checkCondition(String value, String condition, String valueToCheck) {

@@ -81,7 +81,9 @@ public class AuctionCreateSystemTest extends AbstractSystemTest {
         assertEquals(1, auctionsList.size());
         auction = auctionsList.get(0);
 
+        assertNotNull(tokenId);
         assertEquals(tokenId.toString(), auction.getTokenid());
+        assertNotNull(auctionAccountId);
         assertEquals(auctionAccountId.toString(), auction.getAuctionaccountid());
         assertNotNull(auction.getEndtimestamp());
         assertEquals(auctionReserve, auction.getReserve());

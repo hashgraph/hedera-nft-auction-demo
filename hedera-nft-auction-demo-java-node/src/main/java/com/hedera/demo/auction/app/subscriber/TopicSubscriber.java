@@ -44,6 +44,7 @@ public class TopicSubscriber implements Runnable{
     private final BidsRepository bidsRepository;
     private final TopicId topicId;
     private static Instant startTime = Instant.EPOCH;
+    @Nullable
     private final WebClient webClient;
     private final int mirrorQueryFrequency;
     private final HederaClient hederaClient;

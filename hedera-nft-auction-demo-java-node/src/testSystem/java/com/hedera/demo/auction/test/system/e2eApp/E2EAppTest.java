@@ -111,6 +111,9 @@ public class E2EAppTest extends AbstractSystemTest {
         // create an auction account
         io.vertx.core.json.JsonObject keysCreate = jsonThresholdKey(1, 1, masterKey.getPublicKey().toString(), hederaClient.operatorPublicKey().toString());
         createAccountAndGetInfo(keysCreate.toString());
+        if (auctionAccountId == null) {
+            throw new Exception ("auctionAccountId is null");
+        }
         log.info("Auction account {}", auctionAccountId.toString());
 
         // create token
@@ -120,7 +123,11 @@ public class E2EAppTest extends AbstractSystemTest {
         hederaClient.setMirrorProvider(mirror);
         hederaClient.setClientMirror();
 
-        app.overrideEnv(hederaClient, /* restAPI= */true, /* adminAPI= */true, /* auctionNode= */true, topicId.toString(), true, postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /* transferOnWin= */transferOnWin, masterKey.toString());
+        if (topicId == null) {
+            throw new Exception ("topicId is null");
+        }
+
+        app.overrideEnv(hederaClient, /* restAPI= */true, /* adminAPI= */true, /* auctionNode= */true, topicId.toString(), /*refund= */true, postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /* transferOnWin= */transferOnWin, masterKey.toString());
     }
 
     private void bidOnBehalfOf(String from, long amount, boolean expectFail) throws TimeoutException, PrecheckStatusException, ReceiptStatusException {
@@ -343,7 +350,11 @@ public class E2EAppTest extends AbstractSystemTest {
 
         if (object.equals("bid")) {
             if (! StringUtils.isEmpty(from)) {
-                bidAccount = biddingAccounts.get(from).toString();
+                if (biddingAccounts.get(from) != null) {
+                    bidAccount = biddingAccounts.get(from).toString();
+                } else {
+                    bidAccount = "";
+                }
             }
             if (assertion.containsKey("amount")) {
                 bidAmount = assertion.getJsonNumber("amount").longValue();
@@ -358,7 +369,7 @@ public class E2EAppTest extends AbstractSystemTest {
                             .pollInterval(Duration.ofSeconds(1))
                             .await()
                             .atMost(Duration.ofSeconds(20))
-                            .until(auctionsCountMatches(assertion, Integer.parseInt(value)));
+                            .until(auctionsCountMatches(Integer.parseInt(value), assertion));
                 } else if (parameter.equals("associated")) {
                     await()
                             .with()

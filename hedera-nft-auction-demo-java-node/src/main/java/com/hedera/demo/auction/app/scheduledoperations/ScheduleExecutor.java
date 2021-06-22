@@ -15,7 +15,6 @@ import lombok.extern.log4j.Log4j2;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 @Log4j2
 public class ScheduleExecutor implements Runnable {
@@ -55,20 +54,15 @@ public class ScheduleExecutor implements Runnable {
                                 TransactionId transactionId = TransactionId.generate(auctionAccountId);
 
                                 TransactionScheduler transactionScheduler = new TransactionScheduler(auctionAccountId, transactionId, tokenAssociateTransaction);
-                                try {
-                                    TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction("");
-                                    if (transactionSchedulerResult.success) {
-                                        scheduledOperation.setStatus(ScheduledOperation.EXECUTING);
-                                        log.info("token associate transaction successfully scheduled (id {})", transactionId.toString());
-                                        scheduledOperationsRepository.setStatus(scheduledOperation.getTransactiontimestamp(), ScheduledOperation.EXECUTING, "");
-                                    } else {
-                                        log.error("error scheduling token associate transaction (timestamp {})", scheduledOperation.getTransactiontimestamp());
-                                        scheduledOperationsRepository.setStatus(scheduledOperation.getTransactiontimestamp(), ScheduledOperation.PENDING, transactionSchedulerResult.status.toString());
-                                        log.error(transactionSchedulerResult.status);
-                                    }
-
-                                } catch (TimeoutException e) {
-                                    log.error(e, e);
+                                TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction("");
+                                if (transactionSchedulerResult.success) {
+                                    scheduledOperation.setStatus(ScheduledOperation.EXECUTING);
+                                    log.info("token associate transaction successfully scheduled (id {})", transactionId.toString());
+                                    scheduledOperationsRepository.setStatus(scheduledOperation.getTransactiontimestamp(), ScheduledOperation.EXECUTING, "");
+                                } else {
+                                    log.error("error scheduling token associate transaction (timestamp {})", scheduledOperation.getTransactiontimestamp());
+                                    scheduledOperationsRepository.setStatus(scheduledOperation.getTransactiontimestamp(), ScheduledOperation.PENDING, transactionSchedulerResult.status.toString());
+                                    log.error(transactionSchedulerResult.status);
                                 }
                             }
                         } catch (SQLException e) {

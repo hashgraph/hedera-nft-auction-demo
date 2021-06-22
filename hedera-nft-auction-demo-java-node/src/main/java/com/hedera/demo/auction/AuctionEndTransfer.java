@@ -16,7 +16,6 @@ import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.Hbar;
 import com.hedera.hashgraph.sdk.PrecheckStatusException;
-import com.hedera.hashgraph.sdk.PrivateKey;
 import com.hedera.hashgraph.sdk.TokenId;
 import com.hedera.hashgraph.sdk.TransactionId;
 import com.hedera.hashgraph.sdk.TransferTransaction;
@@ -164,7 +163,7 @@ public class AuctionEndTransfer implements Runnable {
 
             if (! testing) {
                 try {
-                    Client client = hederaClient.auctionClient(auctionAccountId, PrivateKey.fromString(operatorKey));
+//                    Client client = hederaClient.auctionClient(auctionAccountId, PrivateKey.fromString(operatorKey));
                     String memo = "Token transfer from auction";
 
                     TransactionId transactionId = TransactionId.generate(operatorId);
@@ -179,24 +178,20 @@ public class AuctionEndTransfer implements Runnable {
                     transferTransaction.addHbarTransfer(auctionAccountId, Hbar.fromTinybars(-auction.getWinningbid()));
                     transferTransaction.addHbarTransfer(tokenOwnerAccount, Hbar.fromTinybars(auction.getWinningbid()));
 
-                    try {
-                        TransactionScheduler transactionScheduler = new TransactionScheduler(auctionAccountId, transactionId, transferTransaction);
-                        TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction("Scheduled Auction End Transfer");
+                    TransactionScheduler transactionScheduler = new TransactionScheduler(auctionAccountId, transactionId, transferTransaction);
+                    TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction("Scheduled Auction End Transfer");
 
-                        if (transactionSchedulerResult.success) {
-                            transferInProgress = true;
-                            log.info("token transfer scheduled (id {})", shortTransactionId);
-                        } else {
-                            log.error("error transferring token to winner auction: {}", auction.getAuctionaccountid());
-                            log.error(transactionSchedulerResult.status);
-                        }
-                    } catch (TimeoutException e) {
-                        log.error("error scheduling token transfer transaction");
-                        log.error(e, e);
+                    if (transactionSchedulerResult.success) {
+                        transferInProgress = true;
+                        log.info("token transfer scheduled (id {})", shortTransactionId);
+                    } else {
+                        log.error("error transferring token to winner auction: {}", auction.getAuctionaccountid());
+                        log.error(transactionSchedulerResult.status);
                     }
-                    client.close();
+
+//                    client.close();
                 } catch (Exception e) {
-                    log.error("unable to create client for auction account");
+                    log.error("error scheduling transaction for auction {}, token {}, transfer {} to {}", auctionAccountId.toString(), tokenId.toString(), auction.getWinningbid(), transferToAccountId.toString());
                     log.error(e, e);
                 }
             }

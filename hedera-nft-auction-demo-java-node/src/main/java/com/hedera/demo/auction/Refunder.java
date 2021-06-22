@@ -111,12 +111,8 @@ public class Refunder implements Runnable {
                     executor.execute(new Runnable() {
                         @Override
                         public void run() {
-                            try {
-                                TransactionScheduler transactionScheduler = new TransactionScheduler(auctionAccountId);
-                                transactionScheduler.issueScheduledTransactionForRefund(bid, bidsRepository, memo);
-                            } catch (Exception e) {
-                                log.error(e, e);
-                            }
+                            TransactionScheduler transactionScheduler = new TransactionScheduler(auctionAccountId);
+                            transactionScheduler.issueScheduledTransactionForRefund(bid, bidsRepository, memo);
                         }
                     });
                 }

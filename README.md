@@ -474,6 +474,8 @@ _Note: the first key should be the "master key" which can sign transactions on b
 In the example below, we have a key list with a threshold of 1. The key list contains the master key and another list of keys with its own threshold.
 _
 
+_Note: all keys are *public* keys_
+
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '
 {
@@ -804,6 +806,8 @@ In the example below, we have a key list with a threshold of 1. The key list con
 * Replace and add "validator n public key" as required
 
 * Set threshold on the inner key list as required (leave the last threshold before `initialBalance` to 1).
+
+_Note: all keys are *public* keys_
 
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '

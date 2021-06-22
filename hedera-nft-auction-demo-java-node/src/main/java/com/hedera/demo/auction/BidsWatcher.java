@@ -61,7 +61,7 @@ public class BidsWatcher implements Runnable {
     @Override
     public void run() {
 
-        @Var String nextLink = "0.0";
+        @Var String nextLink = "";
         String uri = "/api/v1/transactions";
 
         ExecutorService executor = Executors.newFixedThreadPool(1);
@@ -72,8 +72,8 @@ public class BidsWatcher implements Runnable {
 
                 log.debug("Checking for bids on account {} and token {}", watchedAuction.getAuctionaccountid(), watchedAuction.getTokenid());
 
-                String consensusTimeStampFrom = StringUtils.isEmpty(nextLink) ? watchedAuction.getLastconsensustimestamp() : nextLink;
-                nextLink = "";
+                @Var String consensusTimeStampFrom = StringUtils.isEmpty(nextLink) ? watchedAuction.getLastconsensustimestamp() : nextLink;
+                consensusTimeStampFrom = StringUtils.isEmpty(consensusTimeStampFrom) ? "0.0" : consensusTimeStampFrom;
                 Map<String, String> queryParameters = new HashMap<>();
                 queryParameters.put("account.id", watchedAuction.getAuctionaccountid());
                 queryParameters.put("transactiontype", "CRYPTOTRANSFER");

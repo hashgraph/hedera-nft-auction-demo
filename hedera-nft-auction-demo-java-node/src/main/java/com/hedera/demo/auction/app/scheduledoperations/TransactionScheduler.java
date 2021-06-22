@@ -102,7 +102,7 @@ public class TransactionScheduler {
         HederaClient hederaClient = new HederaClient();
         try {
             log.debug("Creating scheduled transaction for pub key {}", hederaClient.operatorPublicKey().toString());
-            TransactionResponse response = scheduleCreateTransaction.freeze().execute(hederaClient.client());
+            TransactionResponse response = scheduleCreateTransaction.freezeWith(hederaClient.client()).execute(hederaClient.client());
 
             try {
                 TransactionReceipt receipt = response.getReceipt(hederaClient.client());
@@ -134,7 +134,7 @@ public class TransactionScheduler {
                     .setTransactionId(transactionId)
                     .setScheduleId(existingReceipt.scheduleId);
 
-            TransactionResponse response = scheduleSignTransaction.freeze().execute(hederaClient.client());
+            TransactionResponse response = scheduleSignTransaction.freezeWith(hederaClient.client()).execute(hederaClient.client());
 
             try {
                 TransactionReceipt receipt = response.getReceipt(hederaClient.client());

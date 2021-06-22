@@ -71,11 +71,12 @@ public class TransactionScheduler {
                         try {
                             bidsRepository.setRefundIssued(bid.getTimestamp(), shortTransactionId);
                         } catch (SQLException e) {
-                            log.error("Failed to set bid refund in progress (bid timestamp {})",bid.getTimestamp());
+                            log.error("Failed to set bid refund issued (bid timestamp {})",bid.getTimestamp());
                             log.error(e, e);
                         }
                     } else {
                         log.error("Error issuing refund to bid - timestamp = {}", bid.getTimestamp());
+                        bidsRepository.setRefundPending(bid.getTransactionid());
                         log.error(transactionSchedulerResult.status);
                     }
                 } catch (Exception e) {
@@ -101,20 +102,22 @@ public class TransactionScheduler {
         HederaClient hederaClient = new HederaClient();
         try {
             log.debug("Creating scheduled transaction for pub key {}", hederaClient.operatorPublicKey().toString());
-            TransactionResponse response = scheduleCreateTransaction.freezeWith(hederaClient.client()).execute(hederaClient.client());
+            TransactionResponse response = scheduleCreateTransaction.freeze().execute(hederaClient.client());
 
             try {
                 TransactionReceipt receipt = response.getReceipt(hederaClient.client());
+                TransactionSchedulerResult transactionSchedulerResult = handleResponse(hederaClient, receipt);
                 hederaClient.client().close();
-                return handleResponse(hederaClient, receipt);
+                return transactionSchedulerResult;
             } catch (TimeoutException e) {
                 log.error("TimeoutException fetching receipt");
                 log.error(e, e);
                 hederaClient.client().close();
                 throw e;
             } catch (ReceiptStatusException receiptStatusException) {
+                TransactionSchedulerResult transactionSchedulerResult = handleResponse(hederaClient, receiptStatusException.receipt);
                 hederaClient.client().close();
-                return handleResponse(hederaClient, receiptStatusException.receipt);
+                return  transactionSchedulerResult;
             }
         } catch (PrecheckStatusException e) {
             hederaClient.client().close();
@@ -122,15 +125,16 @@ public class TransactionScheduler {
         }
     }
 
-    private static TransactionSchedulerResult scheduleSignTransaction(HederaClient hederaClient, TransactionReceipt existingReceipt) throws TimeoutException {
+    private TransactionSchedulerResult scheduleSignTransaction(HederaClient hederaClient, TransactionReceipt existingReceipt) throws TimeoutException {
         // the same tx has already been submitted, submit just the signature
         // get the receipt for the transaction
         try {
             log.debug("Signing schedule id {}  with key for public key {}", existingReceipt.scheduleId, hederaClient.operatorPublicKey().toString());
             ScheduleSignTransaction scheduleSignTransaction = new ScheduleSignTransaction()
+                    .setTransactionId(transactionId)
                     .setScheduleId(existingReceipt.scheduleId);
 
-            TransactionResponse response = scheduleSignTransaction.freezeWith(hederaClient.client()).execute(hederaClient.client());
+            TransactionResponse response = scheduleSignTransaction.freeze().execute(hederaClient.client());
 
             try {
                 TransactionReceipt receipt = response.getReceipt(hederaClient.client());
@@ -148,7 +152,7 @@ public class TransactionScheduler {
         }
     }
 
-    private static TransactionSchedulerResult handleResponse(HederaClient hederaClient, TransactionReceipt receipt) throws TimeoutException {
+    private TransactionSchedulerResult handleResponse(HederaClient hederaClient, TransactionReceipt receipt) throws TimeoutException {
         //INVALID_TRANSACTION_START
         //
         log.info(receipt.status);

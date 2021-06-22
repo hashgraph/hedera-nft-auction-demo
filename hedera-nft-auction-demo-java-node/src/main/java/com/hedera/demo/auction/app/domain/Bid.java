@@ -161,6 +161,11 @@ public class Bid implements VertxPojo, Serializable {
         return this.refundstatus.equals(Bid.REFUND_ISSUED);
     }
 
+    public boolean isRefundIssuing() {
+        return this.refundstatus.equals(Bid.REFUND_ISSUING);
+    }
+
+
     public boolean isRefundPending() {
         return this.refundstatus.equals(Bid.REFUND_PENDING);
     }

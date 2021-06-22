@@ -65,7 +65,9 @@ public class TransactionScheduler {
                 @Var TransactionSchedulerResult transactionSchedulerResult = null;
                 try {
                     transactionSchedulerResult = issueScheduledTransaction("Scheduled Auction Refund");
-                    if (transactionSchedulerResult.success || transactionSchedulerResult.status == Status.NO_NEW_VALID_SIGNATURES) {
+                    if (transactionSchedulerResult.success
+                            || transactionSchedulerResult.status == Status.NO_NEW_VALID_SIGNATURES
+                            || transactionSchedulerResult.status == Status.DUPLICATE_TRANSACTION) {
                         log.info("Refund transaction successfully scheduled (id {})", shortTransactionId);
                         log.info("setting bid to refund in progress (timestamp = {})", bid.getTimestamp());
                         try {

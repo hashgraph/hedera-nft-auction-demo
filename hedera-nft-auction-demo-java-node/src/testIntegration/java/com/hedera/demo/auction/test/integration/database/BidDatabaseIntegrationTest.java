@@ -103,12 +103,14 @@ class BidDatabaseIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void setRefundInProgressTest() throws SQLException {
 
-        bidsRepository.setRefundIssued(bid.getTimestamp(), "");
+        bidsRepository.setRefundPending(bid.getTransactionid());
+//        bidsRepository.setRefundIssued(bid.getTimestamp(), "");
+        bidsRepository.setRefundIssuing(bid.getTimestamp());
 
         @Var List<Bid> bids = bidsRepository.getBidsList();
         assertNotNull(bids);
         assertEquals(1, bids.size());
-        assertTrue(bids.get(0).isRefundIssued());
+        assertTrue(bids.get(0).isRefundIssuing());
 
         bidsRepository.setRefundIssued(bid.getTimestamp(), "someTxId");
 

@@ -57,10 +57,10 @@ public class E2EAppTest extends AbstractSystemTest {
 
     @BeforeAll
     public void beforeAll() throws Exception {
-        PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:12.6");
-        postgres.start();
-        migrate(postgres);
-        SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+        this.postgres = new PostgreSQLContainer("postgres:12.6");
+        this.postgres.start();
+        migrate(this.postgres);
+        SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
         biddingAccounts = new HashMap<>();
@@ -126,7 +126,7 @@ public class E2EAppTest extends AbstractSystemTest {
             throw new Exception ("topicId is null");
         }
 
-        app.overrideEnv(hederaClient, /* restAPI= */true, /* adminAPI= */true, /* auctionNode= */true, topicId.toString(), /*refund= */true, postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /* transferOnWin= */transferOnWin, masterKey.toString());
+        app.overrideEnv(hederaClient, /* restAPI= */true, /* adminAPI= */true, /* auctionNode= */true, topicId.toString(), /*refund= */true, this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword(), /* transferOnWin= */transferOnWin, masterKey.toString());
     }
 
     private void bidOnBehalfOf(String from, long amount, boolean expectFail) throws TimeoutException, PrecheckStatusException, ReceiptStatusException {
@@ -262,18 +262,6 @@ public class E2EAppTest extends AbstractSystemTest {
         for (JsonValue mirrorValue : mirrors) {
 
             setupTest(mirrorValue, test);
-//
-//            App app = new App();
-//            app.overrideEnv(hederaClient, /* restAPI= */true, /* adminAPI= */true, /* auctionNode= */true, topicId.toString(), auctionAccountKey.toString(), postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /* transferOnWin= */transferOnWin);
-//            app.runApp();
-
-            // wait for auction to appear in database
-//            await()
-//                    .with()
-//                    .pollInterval(Duration.ofSeconds(1))
-//                    .await()
-//                    .atMost(Duration.ofSeconds(20))
-//                    .until(auctionsCountMatches(1));
 
             JsonArray tasks = test.getJsonArray("tasks");
 

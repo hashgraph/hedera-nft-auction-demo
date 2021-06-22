@@ -122,14 +122,14 @@ public class BidsRepository {
             cx.update(Tables.BIDS)
                     .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_ISSUED)
                     .where(Tables.BIDS.TIMESTAMP.eq(consensusTimestamp))
-                    .and(Tables.BIDS.TIMESTAMP.eq(Bid.REFUND_ISSUING))
+                    .and(Tables.BIDS.REFUNDSTATUS.eq(Bid.REFUND_ISSUING))
                     .execute();
         } else {
             cx.update(Tables.BIDS)
                     .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_ISSUED)
                     .set(Tables.BIDS.REFUNDTXID, transactionId)
                     .where(Tables.BIDS.TIMESTAMP.eq(consensusTimestamp))
-                    .and(Tables.BIDS.TIMESTAMP.eq(Bid.REFUND_ISSUING))
+                    .and(Tables.BIDS.REFUNDSTATUS.eq(Bid.REFUND_ISSUING))
                     .execute();
         }
     }

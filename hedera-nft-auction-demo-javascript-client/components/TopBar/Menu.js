@@ -4,9 +4,13 @@ import CloseIcon from './assets/close_icon.svg'
 import ConnectWalletIcon from './assets/connect_wallet_logo.svg'
 import MobileMenuIcon from './assets/mobile_menu_icon.svg'
 import NFTLogo from './assets/nft-auction.svg'
+import { useWindowSize } from '@react-hook/window-size'
 import {
-  useWindowSize,
-} from '@react-hook/window-size'
+  BrowserView,
+  MobileView,
+  isBrowser,
+  isMobile
+} from "react-device-detect";
 
 const Link = ({ item, isMobile, closeMenu }) => {
   const isActive = item.isActive
@@ -58,10 +62,9 @@ const TopBarMenu = () => {
   const [isOpen, setOpen] = React.useState(false)
   const handleMenuToggle = () => setOpen(!isOpen)
   const [width, height] = useWindowSize()
+  const connectWalletLogoSrc = '/assets/connect-wallet.png'
+  const mobileConnectWalletLogoSrc = '/assets/connect-wallet-mobile.png'
 
-  const isOnMobile = width <= 640
-  let connectWalletLogoSrc = '/assets/connect-wallet.png'
-  if (isOnMobile) connectWalletLogoSrc = '/assets/connect-wallet-mobile.png'
 
   const closeMenu = () => setOpen(false)
 
@@ -125,7 +128,14 @@ const TopBarMenu = () => {
                 style={{ width: '8.75rem' }}
                 className='cursor-pointer'
               /> */}
-            <img src={connectWalletLogoSrc} />
+            {}
+            <img
+              src={
+                (isMobile || width && width < 640)
+                  ? mobileConnectWalletLogoSrc
+                  : connectWalletLogoSrc
+              }
+            />
           </div>
         </div>
       </div>

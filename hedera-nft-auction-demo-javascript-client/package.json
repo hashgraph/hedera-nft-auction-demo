@@ -14,6 +14,8 @@
     "@testing-library/user-event": "^12.1.10",
     "autoprefixer": "^10.2.5",
     "dayjs": "^1.10.4",
+    "eslint-config-react": "^1.1.7",
+    "eslint-config-react-app": "^6.0.0",
     "next": "latest",
     "postcss": "^8.3.0",
     "react": "^17.0.2",
@@ -31,13 +33,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "export": "next export"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "export": "next export",
+    "lint": "next lint"
   },
   "browserslist": {
     "production": [
@@ -53,7 +50,6 @@
   },
   "devDependencies": {
     "eslint": "^7.29.0",
-    "eslint-config-next": "^11.0.1",
-    "eslint-config-react": "^1.1.7"
+    "eslint-config-next": "^11.0.1"
   }
 }

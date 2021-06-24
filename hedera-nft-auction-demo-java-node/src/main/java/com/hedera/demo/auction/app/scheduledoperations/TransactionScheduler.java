@@ -18,6 +18,7 @@ import com.hedera.hashgraph.sdk.TransactionResponse;
 import com.hedera.hashgraph.sdk.TransferTransaction;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.log4j.Log4j2;
+import org.jooq.tools.StringUtils;
 
 import javax.annotation.Nullable;
 import java.sql.SQLException;
@@ -47,10 +48,10 @@ public class TransactionScheduler {
 
     public void issueScheduledTransactionForRefund(Bid bid, BidsRepository bidsRepository, String memo) {
         // Create a transfer transaction for the refund
-        // check the status of the bid isn't already refunded or issued
+        // check the status of the bid isn't already refunded, issued or in error
         try {
             Bid testBid = bidsRepository.getBidForTimestamp(bid.getTimestamp());
-            if ((testBid != null) && ! testBid.isRefunded() && ! testBid.isRefundIssued()) {
+            if ((testBid != null) && ! testBid.isRefunded() && ! testBid.isRefundIssued() && ! testBid.isRefundError()) {
                 this.transactionId = TransactionId.generate(AccountId.fromString(Objects.requireNonNull(env.get("OPERATOR_ID"))));
                 this.transactionId.setScheduled(true);
                 String shortTransactionId = this.transactionId.toString().replace("?scheduled", "");
@@ -68,17 +69,20 @@ public class TransactionScheduler {
                     if (transactionSchedulerResult.success
                             || transactionSchedulerResult.status == Status.NO_NEW_VALID_SIGNATURES
                             || transactionSchedulerResult.status == Status.DUPLICATE_TRANSACTION) {
-                        log.info("Refund transaction successfully scheduled (id {})", shortTransactionId);
-                        log.info("setting bid to refund in progress (timestamp = {})", bid.getTimestamp());
+                        log.info("Refund transaction successfully scheduled (scheduleId {}, transactionId {})", transactionSchedulerResult.getScheduleId(), shortTransactionId);
+                        log.info("setting bid to refund issued (timestamp = {})", bid.getTimestamp());
                         try {
-                            bidsRepository.setRefundIssued(bid.getTimestamp(), shortTransactionId);
+                            if (StringUtils.isEmpty(transactionSchedulerResult.getScheduleId())) {
+                                log.debug("empty schedule id");
+                            }
+                            bidsRepository.setRefundIssued(bid.getTimestamp(), shortTransactionId, transactionSchedulerResult.getScheduleId());
                         } catch (SQLException e) {
                             log.error("Failed to set bid refund issued (bid timestamp {})",bid.getTimestamp());
                             log.error(e, e);
                         }
                     } else {
                         log.error("Error issuing refund to bid - timestamp = {}", bid.getTimestamp());
-                        bidsRepository.setRefundPending(bid.getTransactionid());
+                        bidsRepository.setRefundError(bid.getTransactionid());
                         log.error(transactionSchedulerResult.status);
                     }
                 } catch (Exception e) {
@@ -108,6 +112,7 @@ public class TransactionScheduler {
 
             try {
                 TransactionReceipt receipt = response.getReceipt(hederaClient.client());
+                log.debug("created scheduled transaction - scheduleId {}", receipt.scheduleId.toString());
                 TransactionSchedulerResult transactionSchedulerResult = handleResponse(hederaClient, receipt);
                 hederaClient.client().close();
                 return transactionSchedulerResult;
@@ -119,7 +124,7 @@ public class TransactionScheduler {
             } catch (ReceiptStatusException receiptStatusException) {
                 TransactionSchedulerResult transactionSchedulerResult = handleResponse(hederaClient, receiptStatusException.receipt);
                 hederaClient.client().close();
-                return  transactionSchedulerResult;
+                return transactionSchedulerResult;
             }
         } catch (PrecheckStatusException e) {
             hederaClient.client().close();
@@ -150,17 +155,22 @@ public class TransactionScheduler {
             log.error(e, e);
             throw e;
         } catch (PrecheckStatusException precheckStatusException) {
-            return new TransactionSchedulerResult(/* success= */false, precheckStatusException.status);
+            switch (precheckStatusException.status) {
+            case SCHEDULE_ALREADY_EXECUTED:
+            case DUPLICATE_TRANSACTION:
+                return new TransactionSchedulerResult(/* success= */true, Status.SUCCESS, existingReceipt.scheduleId);
+            default:
+                return new TransactionSchedulerResult(/* success= */false, precheckStatusException.status);
+            }
         }
     }
 
     private TransactionSchedulerResult handleResponse(HederaClient hederaClient, TransactionReceipt receipt) throws TimeoutException {
-        //INVALID_TRANSACTION_START
-        //
-        log.info(receipt.status);
+        log.debug(receipt.status);
         switch (receipt.status) {
             case SUCCESS:
             case SCHEDULE_ALREADY_EXECUTED:
+            case DUPLICATE_TRANSACTION:
                 return new TransactionSchedulerResult(/* success= */true, Status.SUCCESS, receipt.scheduleId);
             case IDENTICAL_SCHEDULE_ALREADY_CREATED:
                 return scheduleSignTransaction(hederaClient, receipt);

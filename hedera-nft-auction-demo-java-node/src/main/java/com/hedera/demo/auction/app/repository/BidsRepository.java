@@ -214,7 +214,7 @@ public class BidsRepository {
         }
     }
 
-    public List<Bid> bidsToRefund(int auctionId) throws SQLException {
+    public List<Bid> getBidsToRefund(int auctionId) throws SQLException {
 
         List<Bid> bids = new ArrayList<>();
         DSLContext cx = connectionManager.dsl();
@@ -222,6 +222,30 @@ public class BidsRepository {
         Result<Record> result = cx.selectFrom(Tables.BIDS)
                 .where(Tables.BIDS.AUCTIONID.eq(auctionId))
                 .and(Tables.BIDS.REFUNDSTATUS.eq(Bid.REFUND_PENDING))
+                .fetch();
+
+        if (result != null) {
+            for (Record record : result) {
+                Bid bid = new Bid(record);
+                bids.add(bid);
+            }
+        }
+        return bids;
+    }
+
+    /**
+     * Gets the list of bids that are either refund ISSUING, ISSUED or ERROR
+     * @return List of Bid objects
+     * @throws SQLException in the event of an error
+     */
+    public List<Bid> getOustandingRefunds() throws SQLException {
+        List<Bid> bids = new ArrayList<>();
+        DSLContext cx = connectionManager.dsl();
+
+        Result<Record> result = cx.selectFrom(Tables.BIDS)
+                .where(Tables.BIDS.REFUNDSTATUS.eq(Bid.REFUND_ISSUED))
+                .or(Tables.BIDS.REFUNDSTATUS.eq(Bid.REFUND_ISSUING))
+                .or(Tables.BIDS.REFUNDSTATUS.eq(Bid.REFUND_ERROR))
                 .fetch();
 
         if (result != null) {

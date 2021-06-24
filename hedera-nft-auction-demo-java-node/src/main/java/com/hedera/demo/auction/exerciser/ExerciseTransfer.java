@@ -35,7 +35,7 @@ public class ExerciseTransfer implements Supplier<ExerciseWinner> {
   @Override
   public ExerciseWinner get() {
 
-    HederaClient hederaClient;
+    @Var HederaClient hederaClient;
     try {
       @Var long maxBid = 0;
       Random random = new Random();
@@ -52,7 +52,7 @@ public class ExerciseTransfer implements Supplier<ExerciseWinner> {
         client.setOperator(fromAccount, privateKey);
 
         try {
-          log.info("Transferring " + amount + " from " + fromAccount.toString());
+          log.info("Transferring {} from {}", amount, fromAccount.toString());
           new TransferTransaction()
                   .addHbarTransfer(auctionAccount, Hbar.fromTinybars(amount))
                   .addHbarTransfer(fromAccount, Hbar.fromTinybars(amount).negated())

@@ -4,10 +4,7 @@ import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.domain.Bid;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.junit5.VertxExtension;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,10 +17,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ExtendWith(VertxExtension.class)
 public class AbstractIntegrationTest {
 
-    private final WebClientOptions webClientOptions = new WebClientOptions()
-            .setUserAgent("HederaAuction/1.0")
-            .setKeepAlive(false);
-    protected WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
     protected final static Dotenv env = Dotenv.configure().filename(".env.integration.sample").ignoreIfMissing().load();
 
     private int index;

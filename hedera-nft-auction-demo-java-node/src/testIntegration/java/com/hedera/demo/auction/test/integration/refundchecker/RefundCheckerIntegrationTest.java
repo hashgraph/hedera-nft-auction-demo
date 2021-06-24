@@ -55,7 +55,7 @@ public class RefundCheckerIntegrationTest extends AbstractIntegrationTest {
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
 
-        refundTester = new RefundChecker(hederaClient, webClient, auctionsRepository, bidsRepository, 5000);
+        refundTester = new RefundChecker(hederaClient, auctionsRepository, bidsRepository, 5000);
     }
 
     @AfterAll

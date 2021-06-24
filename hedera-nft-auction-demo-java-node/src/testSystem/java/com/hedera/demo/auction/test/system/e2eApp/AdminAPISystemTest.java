@@ -54,9 +54,8 @@ public class AdminAPISystemTest extends AbstractAPITester {
         auctionsRepository.deleteAllAuctions();
         TopicId topicId = createTopic.create();
         hederaClient.setMirrorProvider("hedera");
-        hederaClient.setClientMirror();
 
-        app.overrideEnv(hederaClient, /*restAPI= */ true, /*adminAPI= */true, /*auctionNode= */ true, topicId.toString(), hederaClient.operatorPrivateKey().toString(), postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /*transferOnWin= */true, masterKey.toString());
+        app.overrideEnv(hederaClient, /*restAPI= */ true, /*adminAPI= */true, /*auctionNode= */ true, topicId.toString(), /*refund= */true, postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /*transferOnWin= */true, masterKey.toString());
         app.runApp();
         Thread.sleep(5000);
     }

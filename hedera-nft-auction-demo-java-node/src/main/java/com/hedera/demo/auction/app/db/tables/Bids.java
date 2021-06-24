@@ -91,14 +91,14 @@ public class Bids extends TableImpl<Record> {
     public final TableField<Record, String> TRANSACTIONHASH = createField(DSL.name("transactionhash"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     /**
-     * The column <code>public.bids.timestampforrefund</code>.
-     */
-    public final TableField<Record, String> TIMESTAMPFORREFUND = createField(DSL.name("timestampforrefund"), SQLDataType.CLOB, this, "");
-
-    /**
      * The column <code>public.bids.refundstatus</code>.
      */
     public final TableField<Record, String> REFUNDSTATUS = createField(DSL.name("refundstatus"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
+
+    /**
+     * The column <code>public.bids.scheduleid</code>.
+     */
+    public final TableField<Record, String> SCHEDULEID = createField(DSL.name("scheduleid"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
     private Bids(Name alias, Table<Record> aliased) {
         this(alias, aliased, null);

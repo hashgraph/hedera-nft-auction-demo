@@ -36,7 +36,7 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <script>
-import { EventBus, MIRROR_SELECTION } from "@/eventBus";
+import {ENV_DATA, EventBus, MIRROR_SELECTION} from "@/eventBus";
 import { getTopicURL } from "@/utils";
 
 export default {
@@ -45,11 +45,12 @@ export default {
     return {
       mirrors: ["Kabuto", "Dragonglass"],
       topicUrl: "",
-      topicId: process.env.VUE_APP_TOPIC_ID,
+      topicId: "",
       mirror: "Kabuto",
+      nodeOperator: "",
       nodeOwner:
-        process.env.VUE_APP_NODE_OWNER !== ""
-          ? "(".concat(process.env.VUE_APP_NODE_OWNER).concat(")")
+        this.nodeOperator !== ""
+          ? "(".concat(this.nodeOperator).concat(")")
           : ""
     };
   },
@@ -61,6 +62,10 @@ export default {
   },
   created() {
     this.chooseMirror();
+    EventBus.$on(ENV_DATA, envData => {
+      this.nodeOperator = envData.operator;
+      this.topicId = envData.topicId;
+    });
   }
 };
 </script>

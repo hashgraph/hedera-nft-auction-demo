@@ -58,7 +58,7 @@ public class AdminApiVerticle extends AbstractVerticle {
         router.post("/v1/admin/easysetup").handler(postEasySetupHandler);
         router.get("/").handler(rootHandler);
 
-        log.info("Admin API Web Server Listening on port: " + httpPort);
+        log.info("Admin API Web Server Listening on port: {}", httpPort);
         server
                 .requestHandler(router)
                 .listen(httpPort, result -> {

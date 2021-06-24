@@ -1,14 +1,15 @@
 package com.hedera.demo.auction.test.integration.subscriber;
 
+import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.HederaClient;
 import com.hedera.demo.auction.app.SqlConnectionManager;
 import com.hedera.demo.auction.app.domain.Auction;
+import com.hedera.demo.auction.app.mirrormapping.MirrorTopicMessage;
+import com.hedera.demo.auction.app.mirrormapping.MirrorTopicMessages;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.app.subscriber.TopicMessageWrapper;
 import com.hedera.demo.auction.app.subscriber.TopicSubscriber;
 import com.hedera.demo.auction.test.integration.AbstractIntegrationTest;
 import com.hedera.hashgraph.sdk.TopicId;
-import com.hedera.hashgraph.sdk.TransactionId;
 import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -23,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -40,14 +42,11 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
     private final static String auctionAccountId = "0.0.20";
     private final static TopicId topicId = TopicId.fromString("0.0.1");
 
-    private TopicMessageWrapper topicMessageWrapper;
     private JsonObject auctionJson;
     private TopicSubscriber topicSubscriber;
     private Instant consensusTimestamp;
 
-    private final static byte[] runningHash = new byte[0];
-    private final static long sequenceNumber = 0;
-    private final static TransactionId transactionId = null;
+    private MirrorTopicMessages mirrorTopicMessages = new MirrorTopicMessages();
 
     public SubscriberIntegrationTest() throws Exception {
     }
@@ -60,7 +59,8 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
 
-        topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, null, null, topicId, "", 5000, masterKey);
+        topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, topicId, 5000, masterKey);
+        topicSubscriber.setSkipReadinessWatcher();
         topicSubscriber.setTesting();
 
         consensusTimestamp = Instant.now();
@@ -91,9 +91,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testAuctionNoEndTimestamp() throws Exception {
 
-        createTopicMessageWrapper();
+        createTopicMessage();
 
-        topicSubscriber.handle(topicMessageWrapper);
+        topicSubscriber.handle(mirrorTopicMessages);
 
         List<Auction> auctions = auctionsRepository.getAuctionsList();
 
@@ -115,9 +115,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
         consensusTimestamp = consensusTimestamp.plus(5, ChronoUnit.DAYS);
         auctionJson.put("endtimestamp", String.valueOf(consensusTimestamp.getEpochSecond()));
-        createTopicMessageWrapper();
+        createTopicMessage();
 
-        topicSubscriber.handle(topicMessageWrapper);
+        topicSubscriber.handle(mirrorTopicMessages);
 
         List<Auction> auctions = auctionsRepository.getAuctionsList();
 
@@ -134,9 +134,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
     public void testWinnerCantBid() throws Exception {
 
         auctionJson.put("winnercanbid", false);
-        createTopicMessageWrapper();
+        createTopicMessage();
 
-        topicSubscriber.handle(topicMessageWrapper);
+        topicSubscriber.handle(mirrorTopicMessages);
 
         List<Auction> auctions = auctionsRepository.getAuctionsList();
 
@@ -156,9 +156,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         auctionJson.remove("endtimestamp");
         auctionJson.remove("reserve");
         auctionJson.remove("winnercanbid");
-        createTopicMessageWrapper();
+        createTopicMessage();
 
-        topicSubscriber.handle(topicMessageWrapper);
+        topicSubscriber.handle(mirrorTopicMessages);
 
         List<Auction> auctions = auctionsRepository.getAuctionsList();
 
@@ -172,14 +172,24 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         assertFalse(auctions.get(0).getWinnerCanBid());
     }
 
-    private void createTopicMessageWrapper() {
-        byte[] contents = auctionJson.toString().getBytes(StandardCharsets.UTF_8);
+    private void createTopicMessage() {
 
-        topicMessageWrapper = new TopicMessageWrapper(consensusTimestamp, contents, runningHash, sequenceNumber, transactionId);
+        byte[] contents = auctionJson.toString().getBytes(StandardCharsets.UTF_8);
+        String base64Contents = Base64.getEncoder().encodeToString(contents);
+        JsonObject topicMessage = new JsonObject();
+        @Var String timeStamp = String.valueOf(consensusTimestamp.getEpochSecond());
+        timeStamp = timeStamp.concat(".");
+        timeStamp = timeStamp.concat(String.valueOf(consensusTimestamp.getNano()));
+
+        topicMessage.put("consensus_timestamp", timeStamp);
+        topicMessage.put("message", base64Contents);
+
+        MirrorTopicMessage mirrorTopicMessage = topicMessage.mapTo(MirrorTopicMessage.class);
+        mirrorTopicMessages = new MirrorTopicMessages();
+        mirrorTopicMessages.messages.add(mirrorTopicMessage);
     }
 
     private String consensusTimeStampWithNanos() {
         return String.valueOf(consensusTimestamp.getEpochSecond()).concat(".000000000");
-
     }
 }

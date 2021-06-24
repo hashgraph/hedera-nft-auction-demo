@@ -205,7 +205,6 @@ public class BidsWatcher implements Runnable {
 //                    priorBid.setRefundstatus("");
                     refund = false;
                 } else {
-                    priorBid.setTimestampforrefund(transaction.consensusTimestamp);
                     priorBid.setTimestamp(this.auction.getWinningtimestamp());
                     priorBid.setStatus(Bid.HIGHER_BID);
                     priorBid.setRefundstatus(Bid.REFUND_PENDING);

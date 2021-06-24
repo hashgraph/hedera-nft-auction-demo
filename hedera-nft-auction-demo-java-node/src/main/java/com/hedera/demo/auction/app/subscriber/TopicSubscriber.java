@@ -6,7 +6,6 @@ import com.hedera.demo.auction.app.HederaClient;
 import com.hedera.demo.auction.app.Utils;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.hashgraph.sdk.AccountBalance;
 import com.hedera.hashgraph.sdk.AccountBalanceQuery;
 import com.hedera.hashgraph.sdk.AccountId;
@@ -41,7 +40,6 @@ import java.util.Map;
 @Log4j2
 public class TopicSubscriber implements Runnable{
     private final AuctionsRepository auctionsRepository;
-    private final BidsRepository bidsRepository;
     private final TopicId topicId;
     private static Instant startTime = Instant.EPOCH;
     @Nullable
@@ -57,9 +55,8 @@ public class TopicSubscriber implements Runnable{
     private AuctionReadinessWatcher auctionReadinessWatcher = null;
     private final String masterKey;
 
-    public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, WebClient webClient, TopicId topicId, int mirrorQueryFrequency, String masterKey) {
+    public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, WebClient webClient, TopicId topicId, int mirrorQueryFrequency, String masterKey) {
         this.auctionsRepository = auctionsRepository;
-        this.bidsRepository = bidsRepository;
         this.topicId = topicId;
         this.webClient = webClient;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
@@ -177,7 +174,7 @@ public class TopicSubscriber implements Runnable{
 
                     if (!skipReadinessWatcher && (webClient != null)) {
                         // Start a thread to watch this new auction for readiness
-                        auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction, mirrorQueryFrequency);
+                        auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, auction, mirrorQueryFrequency);
                         Thread t = new Thread(auctionReadinessWatcher);
                         t.start();
                     }

@@ -303,7 +303,6 @@ public class AuctionsRepository {
             int rows = cx.update(Tables.BIDS)
                     .set(Tables.BIDS.STATUS, priorBid.getStatus())
                     .set(Tables.BIDS.REFUNDSTATUS, priorBid.getRefundstatus())
-                    .set(Tables.BIDS.TIMESTAMPFORREFUND, priorBid.getTimestampforrefund())
                     .where(Tables.BIDS.TIMESTAMP.eq(priorBid.getTimestamp()))
                     .and(Tables.BIDS.REFUNDSTATUS.eq("")) // don't overwrite refund status if already set
                     .execute();
@@ -329,8 +328,7 @@ public class AuctionsRepository {
                         Tables.BIDS.BIDDERACCOUNTID,
                         Tables.BIDS.TRANSACTIONID,
                         Tables.BIDS.TRANSACTIONHASH,
-                        Tables.BIDS.REFUNDSTATUS,
-                        Tables.BIDS.TIMESTAMPFORREFUND
+                        Tables.BIDS.REFUNDSTATUS
                 ).values(
                         newBid.getAuctionid(),
                         newBid.getStatus(),
@@ -339,8 +337,7 @@ public class AuctionsRepository {
                         newBid.getBidderaccountid(),
                         newBid.getTransactionid(),
                         newBid.getTransactionhash(),
-                        newBid.getRefundstatus(),
-                        newBid.getTimestamp()
+                        newBid.getRefundstatus()
                 ).execute();
             } catch (DataAccessException e) {
                 log.debug("Bid already in database");

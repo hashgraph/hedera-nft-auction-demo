@@ -42,9 +42,12 @@ public class RefundChecker implements Runnable {
         this.hederaClient = hederaClient;
     }
 
+    /**
+     * continuous loop except if runThread is false which checks for bids needing a refund
+     * Pauses a few seconds between each loop
+     */
     @Override
     public void run() {
-
         log.info("Checking for bid refunds");
         while (runThread) {
             watchRefunds();
@@ -56,41 +59,9 @@ public class RefundChecker implements Runnable {
         runThread = false;
     }
 
-    public boolean handleResponse(MirrorTransactions mirrorTransactions) {
-        @Var boolean refundsProcessed = false;
-        for (MirrorTransaction transaction : mirrorTransactions.transactions) {
-            String transactionMemo = transaction.getMemoString();
-            log.debug("Memo {}", transactionMemo);
-            if (transactionMemo.contains(Bid.REFUND_MEMO_PREFIX)) {
-                String bidTransactionId = transaction.getMemoString().replace(Bid.REFUND_MEMO_PREFIX,"");
-                if (transaction.isSuccessful()) {
-                    // set bid refund complete
-                    log.debug("Found successful refund transaction on {} for bid transaction id {}", transaction.consensusTimestamp, bidTransactionId);
-                    try {
-                        if (bidsRepository.setRefunded(bidTransactionId, transaction.transactionId, transaction.getTransactionHashString())) {
-                            refundsProcessed = true;
-                        }
-                    } catch (SQLException e) {
-                        log.error("Error setting bid to refunded (bid transaction id {})", bidTransactionId);
-                        log.error(e, e);
-                    }
-                } else {
-                    // set bid refund pending
-                    log.debug("Found failed refund transaction on {} for bid transaction id {}", transaction.consensusTimestamp, bidTransactionId);
-                    try {
-                        if (bidsRepository.setRefundPending(bidTransactionId)) {
-                            refundsProcessed = true;
-                        }
-                    } catch (SQLException e) {
-                        log.error("Error setting bid to refund pending (bid transaction id {})", bidTransactionId);
-                        log.error(e, e);
-                    }
-                }
-            }
-        }
-        return refundsProcessed;
-    }
-
+    /**
+     * runs the checks a single time, doesn't loop
+     */
     public void runOnce() {
         while (watchRefunds()) {
             log.info("Looking for refunded bids");
@@ -98,6 +69,15 @@ public class RefundChecker implements Runnable {
         log.info("Caught up with refunds");
     }
 
+    /**
+     * For each of the auctions in the database, finds out the lowest timestamp for all bids
+     * that are awaiting a refund.
+     * Queries mirror node for CRYPTOTRANSFER transactions after that timestamp
+     * Processes the response
+     * exits when no refunds were found to process
+     *
+     * @return boolean if refunds were found and processed
+     */
     private boolean watchRefunds() {
         String uri = "/api/v1/transactions";
 
@@ -159,4 +139,48 @@ public class RefundChecker implements Runnable {
         return foundRefundsToCheck;
     }
 
+    /**
+     * Handles the response from a mirror node containing transactions to check
+     * For each of the transactions in mirrorTransactions, check if the transaction has a memo matching
+     * the refund transaction memo prefix.
+     * If memo is matching and the transaction is successful, extract the bid transaction id from the memo and set the memo to refunded.
+     * If memo is matching and the transaction failed, set the corresponding bid status to pending so the refund can be attempted again
+     *
+     * @param mirrorTransactions a list of transactions to process
+     * @return boolean true if the status of a bid to be refunded has been updated
+     */
+    public boolean handleResponse(MirrorTransactions mirrorTransactions) {
+        @Var boolean refundsProcessed = false;
+        for (MirrorTransaction transaction : mirrorTransactions.transactions) {
+            String transactionMemo = transaction.getMemoString();
+            log.debug("Memo {}", transactionMemo);
+            if (transactionMemo.contains(Bid.REFUND_MEMO_PREFIX)) {
+                String bidTransactionId = transaction.getMemoString().replace(Bid.REFUND_MEMO_PREFIX,"");
+                if (transaction.isSuccessful()) {
+                    // set bid refund complete
+                    log.debug("Found successful refund transaction on {} for bid transaction id {}", transaction.consensusTimestamp, bidTransactionId);
+                    try {
+                        if (bidsRepository.setRefunded(bidTransactionId, transaction.transactionId, transaction.getTransactionHashString())) {
+                            refundsProcessed = true;
+                        }
+                    } catch (SQLException e) {
+                        log.error("Error setting bid to refunded (bid transaction id {})", bidTransactionId);
+                        log.error(e, e);
+                    }
+                } else {
+                    // set bid refund pending
+                    log.debug("Found failed refund transaction on {} for bid transaction id {}", transaction.consensusTimestamp, bidTransactionId);
+                    try {
+                        if (bidsRepository.setRefundPending(bidTransactionId)) {
+                            refundsProcessed = true;
+                        }
+                    } catch (SQLException e) {
+                        log.error("Error setting bid to refund pending (bid transaction id {})", bidTransactionId);
+                        log.error(e, e);
+                    }
+                }
+            }
+        }
+        return refundsProcessed;
+    }
 }

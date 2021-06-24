@@ -8,7 +8,6 @@ import com.hedera.demo.auction.app.mirrormapping.MirrorTokenTransfer;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTransaction;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.app.repository.BidsRepository;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
@@ -29,7 +28,6 @@ public class AuctionReadinessWatcher implements Runnable {
     protected final Auction auction;
     protected final WebClient webClient;
     protected final AuctionsRepository auctionsRepository;
-    protected final BidsRepository bidsRepository;
     protected final int mirrorQueryFrequency;
     protected final String mirrorProvider;
     protected final HederaClient hederaClient;
@@ -40,10 +38,9 @@ public class AuctionReadinessWatcher implements Runnable {
     protected BidsWatcher bidsWatcher = null;
     protected String nextTimestamp = "0.0";
 
-    public AuctionReadinessWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, int mirrorQueryFrequency) {
+    public AuctionReadinessWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, Auction auction, int mirrorQueryFrequency) {
         this.webClient = webClient;
         this.auctionsRepository = auctionsRepository;
-        this.bidsRepository = bidsRepository;
         this.auction = auction;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.hederaClient = hederaClient;
@@ -90,7 +87,6 @@ public class AuctionReadinessWatcher implements Runnable {
                     JsonObject response = future.get();
                     if (response != null) {
                         MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
-                        log.debug("Got {} to verify", mirrorTransactions.transactions.size());
 
                         if (handleResponse(mirrorTransactions)) {
                             // token is owned by the auction account, exit this thread

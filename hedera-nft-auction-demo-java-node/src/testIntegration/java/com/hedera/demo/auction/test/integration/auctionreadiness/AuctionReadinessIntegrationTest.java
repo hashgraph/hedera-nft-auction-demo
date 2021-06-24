@@ -70,7 +70,7 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
         auction.setTokenid(tokenId);
         auction = auctionsRepository.add(auction);
 
-        auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, null, auctionsRepository, null,auction, 5000);
+        auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, null, auctionsRepository, auction, 5000);
         auctionReadinessWatcher.setTesting();
     }
 
@@ -123,7 +123,7 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testAuctionReadinessFromJsonDataNotReadyLink() throws Exception {
 
-        AuctionReadinessWatcher readinessTester = new AuctionReadinessWatcher(hederaClient, null, auctionsRepository, null,auction, 5000);
+        AuctionReadinessWatcher readinessTester = new AuctionReadinessWatcher(hederaClient, null, auctionsRepository, auction, 5000);
         readinessTester.setTesting();
 
         JsonObject jsonResponse = HederaJson.mirrorTransactions(HederaJson.tokenTransferTransaction(badTokenOwnerAccount, badAccount, tokenId, goodAmount));

@@ -26,6 +26,7 @@ public class Bid implements VertxPojo, Serializable {
     public static final String REFUND_ISSUED = "ISSUED";
     public static final String REFUND_ISSUING = "ISSUING";
     public static final String REFUND_REFUNDED = "REFUNDED";
+    public static final String REFUND_ERROR = "ERROR";
     public static final String REFUND_MEMO_PREFIX = "Auction refund for tx ";
 
     private static final long serialVersionUID = -286838882;
@@ -39,8 +40,8 @@ public class Bid implements VertxPojo, Serializable {
     private String refundtxhash = "";
     private String transactionid = "";
     private String transactionhash = "";
-    private String timestampforrefund = "";
     private String refundstatus = "";
+    private String scheduleId = "";
 
     public Bid() {}
 
@@ -55,7 +56,7 @@ public class Bid implements VertxPojo, Serializable {
         this.timestamp = row.getString(Tables.BIDS.TIMESTAMP.getName());
         this.transactionhash = row.getString(Tables.BIDS.TRANSACTIONHASH.getName());
         this.refundstatus = row.getString(Tables.BIDS.REFUNDSTATUS.getName());
-        this.timestampforrefund = row.getString(Tables.BIDS.TIMESTAMPFORREFUND.getName());
+        this.scheduleId = row.getString(Tables.BIDS.SCHEDULEID.getName());
     }
 
     public Bid(Record record) {
@@ -69,7 +70,7 @@ public class Bid implements VertxPojo, Serializable {
         this.timestamp = record.get(Tables.BIDS.TIMESTAMP);
         this.transactionhash = record.get(Tables.BIDS.TRANSACTIONHASH);
         this.refundstatus = record.get(Tables.BIDS.REFUNDSTATUS);
-        this.timestampforrefund = record.get(Tables.BIDS.TIMESTAMPFORREFUND);
+        this.scheduleId = record.get(Tables.BIDS.SCHEDULEID);
     }
 
     public Bid(io.vertx.core.json.JsonObject json) {
@@ -165,18 +166,25 @@ public class Bid implements VertxPojo, Serializable {
         return this.refundstatus.equals(Bid.REFUND_ISSUING);
     }
 
-
     public boolean isRefundPending() {
         return this.refundstatus.equals(Bid.REFUND_PENDING);
+    }
+
+    public boolean isRefundError() {
+        return this.refundstatus.equals(Bid.REFUND_ERROR);
     }
 
     public void setRefundstatus(String refundstatus) {
         this.refundstatus = refundstatus;
     }
 
-    public String getTimestampforrefund() { return this.timestampforrefund; }
+    public String getScheduleId() {
+        return this.scheduleId;
+    }
 
-    public void setTimestampforrefund(String timestampforrefund) { this.timestampforrefund = timestampforrefund; }
+    public void setScheduleId(String scheduleId) {
+        this.scheduleId = scheduleId;
+    }
 
     @Override
     public Bid fromJson(io.vertx.core.json.JsonObject json) {
@@ -190,7 +198,7 @@ public class Bid implements VertxPojo, Serializable {
         this.setTransactionid(json.getString("transactionid"));
         this.setTransactionhash(json.getString("transactionhash"));
         this.setRefundstatus(json.getString("refundstatus"));
-        this.setTimestampforrefund(json.getString("timestampforrefund"));
+        this.setScheduleId(json.getString("scheduleid"));
         return this;
     }
 
@@ -207,7 +215,7 @@ public class Bid implements VertxPojo, Serializable {
         json.put("transactionid", getTransactionid());
         json.put("transactionhash", getTransactionhash());
         json.put("refundstatus", getRefundstatus());
-        json.put("timestampforrefund", getTimestampforrefund());
+        json.put("scheduleid", getScheduleId());
         return json;
     }
 }

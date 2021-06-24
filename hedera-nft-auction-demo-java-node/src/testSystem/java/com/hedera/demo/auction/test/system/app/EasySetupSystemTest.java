@@ -59,7 +59,7 @@ public class EasySetupSystemTest extends AbstractSystemTest {
 
         hederaClient.setMirrorProvider("hedera");
         hederaClient.setClientMirror();
-        TopicSubscriber topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository,  null, topicId, 5000, masterKey.toString());
+        TopicSubscriber topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, null, topicId, 5000, masterKey.toString());
 
         topicSubscriber.setSkipReadinessWatcher();
         // start the thread to monitor bids

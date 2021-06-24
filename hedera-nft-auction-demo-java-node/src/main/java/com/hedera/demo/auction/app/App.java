@@ -132,12 +132,12 @@ public final class App {
             WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
 
             // subscribe to topic to get new auction notifications
-            startSubscription(webClient, auctionsRepository, bidsRepository);
+            startSubscription(webClient, auctionsRepository);
 
             RefundChecker oneOffRefundChecker = new RefundChecker(hederaClient, webClient, auctionsRepository, bidsRepository, mirrorQueryFrequency);
             oneOffRefundChecker.runOnce();
 
-            startAuctionReadinessWatchers(webClient, auctionsRepository, bidsRepository);
+            startAuctionReadinessWatchers(webClient, auctionsRepository);
             startAuctionsClosureWatcher(webClient, auctionsRepository);
             startBidWatchers(webClient, auctionsRepository);
             if (refund) {
@@ -165,11 +165,11 @@ public final class App {
         Thread auctionsClosureWatcherThread = new Thread(auctionsClosureWatcher);
         auctionsClosureWatcherThread.start();
     }
-    private void startSubscription(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
+    private void startSubscription(WebClient webClient, AuctionsRepository auctionsRepository) {
         if (StringUtils.isEmpty(topicId)) {
             log.warn("No topic Id found in environment variables, not subscribing");
         } else {
-            topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, bidsRepository, webClient, TopicId.fromString(topicId), mirrorQueryFrequency, masterKey);
+            topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, webClient, TopicId.fromString(topicId), mirrorQueryFrequency, masterKey);
             // start the thread to monitor bids
             Thread topicSubscriberThread = new Thread(topicSubscriber);
             topicSubscriberThread.start();
@@ -195,11 +195,11 @@ public final class App {
         refundCheckerThread.start();
     }
 
-    private void startAuctionReadinessWatchers(WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository) throws SQLException {
+    private void startAuctionReadinessWatchers(WebClient webClient, AuctionsRepository auctionsRepository) throws SQLException {
         for (Auction auction : auctionsRepository.getAuctionsList()) {
             if (auction.isPending()) {
                 // start the thread to monitor token transfers to the auction account
-                AuctionReadinessWatcher auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction, mirrorQueryFrequency);
+                AuctionReadinessWatcher auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, auction, mirrorQueryFrequency);
                 Thread t = new Thread(auctionReadinessWatcher);
                 t.start();
                 auctionReadinessWatchers.add(auctionReadinessWatcher);

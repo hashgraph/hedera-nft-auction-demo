@@ -110,8 +110,8 @@ public class AuctionEndTransfer implements Runnable {
                             log.debug("result SUCCESS");
                         }
                     }
-                    Utils.sleep(this.mirrorQueryFrequency);
                 }
+                Utils.sleep(this.mirrorQueryFrequency);
             } catch (SQLException e) {
                 log.error("Failed to fetch auctions", e);
             }

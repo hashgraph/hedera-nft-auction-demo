@@ -16,7 +16,7 @@ services:
     volumes:
       - ./docker-files/postgres-data:/var/lib/postgresql/data
     profiles:
-      - dev
+      - compile
 
   postgres-production:
     container_name: nft-auction-postgres-prod
@@ -34,7 +34,7 @@ services:
     volumes:
       - ./docker-files/postgres-data:/var/lib/postgresql/data
     profiles:
-      - prod
+      - image
 
   node-development:
     container_name: nft-auction-node-dev
@@ -58,7 +58,7 @@ services:
     volumes:
       - ./docker-files:/demo
     profiles:
-      - dev
+      - compile
 
   node-production:
     container_name: nft-auction-node-prod
@@ -82,7 +82,7 @@ services:
     volumes:
       - ./docker-files:/demo
     profiles:
-      - prod
+      - image
 
   rest-development:
     container_name: nft-auction-node-api-dev
@@ -115,7 +115,7 @@ services:
     volumes:
       - ./docker-files:/demo
     profiles:
-      - dev
+      - compile
 
   rest-production:
     container_name: nft-auction-node-api-prod
@@ -148,7 +148,7 @@ services:
     volumes:
       - ./docker-files:/demo
     profiles:
-      - prod
+      - image
 
   ui-development:
     container_name: nft-auction-ui-dev
@@ -162,7 +162,7 @@ services:
     depends_on:
       - rest-development
     profiles:
-      - dev
+      - compile
 
   ui-production:
     container_name: nft-auction-ui-prod
@@ -174,4 +174,4 @@ services:
     depends_on:
       - rest-production
     profiles:
-      - prod
+      - image

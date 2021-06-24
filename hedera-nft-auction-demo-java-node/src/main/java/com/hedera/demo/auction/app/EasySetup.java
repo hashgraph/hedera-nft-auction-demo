@@ -127,7 +127,7 @@ public class EasySetup extends AbstractCreate {
             CreateAuction createAuction = new CreateAuction();
             createAuction.create("./sample-files/initDemo.json", topicId);
         } catch (Exception e) {
-            log.error(e);
+            log.error(e, e);
             throw e;
         }
         return topicId;

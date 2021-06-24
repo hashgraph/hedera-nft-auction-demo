@@ -16,12 +16,10 @@ import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.Hbar;
 import com.hedera.hashgraph.sdk.PrecheckStatusException;
-import com.hedera.hashgraph.sdk.PrivateKey;
 import com.hedera.hashgraph.sdk.TokenId;
 import com.hedera.hashgraph.sdk.TransactionId;
 import com.hedera.hashgraph.sdk.TransferTransaction;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
@@ -38,12 +36,11 @@ import java.util.concurrent.TimeoutException;
 @Log4j2
 public class AuctionEndTransfer implements Runnable {
 
-    private final WebClient webClient;
     private final AuctionsRepository auctionsRepository;
     private final HederaClient hederaClient;
     private boolean runThread = true;
     private boolean testing = false;
-    private final String refundKey;
+    private final String operatorKey;
     private final int mirrorQueryFrequency;
     private final AccountId operatorId;
 
@@ -53,11 +50,10 @@ public class AuctionEndTransfer implements Runnable {
         NOT_FOUND
     }
 
-    public AuctionEndTransfer(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, String refundKey, int mirrorQueryFrequency) {
-        this.webClient = webClient;
+    public AuctionEndTransfer(HederaClient hederaClient, AuctionsRepository auctionsRepository, String operatorKey, int mirrorQueryFrequency) {
         this.auctionsRepository = auctionsRepository;
         this.hederaClient = hederaClient;
-        this.refundKey = refundKey;
+        this.operatorKey = operatorKey;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.operatorId = hederaClient.operatorId();
     }
@@ -76,22 +72,21 @@ public class AuctionEndTransfer implements Runnable {
                 List<Auction> auctionsList = auctionsRepository.getAuctionsList();
                 for (Auction auction: auctionsList) {
                     if (auction.isClosed() && StringUtils.isEmpty(auction.getTransferstatus())) {
-                        log.debug("auction closed " + auction.getAuctionaccountid());
+                        log.debug("auction closed {}", auction.getAuctionaccountid());
                         // auction is closed, check association between token and winner
 
                         if (StringUtils.isEmpty(auction.getWinningaccount())) {
                             // we don't have a winning bid, we'll transfer to the original token owner
                             try {
-                                log.debug("auction " + auction.getAuctionaccountid() + " no winning bid, setting to " + Auction.TRANSFER_STATUS_PENDING);
+                                log.debug("auction {} no winning bid, setting to {}", auction.getAuctionaccountid(), Auction.TRANSFER_STATUS_PENDING);
 
                                 auctionsRepository.setTransferPending(auction.getTokenid());
-                            } catch (SQLException sqlException) {
-                                log.error("Failed to set auction to " + Auction.TRANSFER_STATUS_PENDING + " status");
-                                log.error(sqlException);
+                            } catch (SQLException e) {
+                                log.error("Failed to set auction to {} status", Auction.TRANSFER_STATUS_PENDING, e);
                             }
                         } else {
-                            log.debug("auction " + auction.getAuctionaccountid() + " has winning bid");
-                            log.info("Checking association between token " + auction.getTokenid() + " and account " + auction.getWinningaccount());
+                            log.debug("auction {} has winning bid", auction.getAuctionaccountid());
+                            log.info("Checking association between token {} and account {}", auction.getTokenid(), auction.getWinningaccount());
                             setTransferringIfAssociated(auction);
                         }
                     }
@@ -99,28 +94,26 @@ public class AuctionEndTransfer implements Runnable {
                         // has a scheduled TX completed already, if so, just update the DB with it
                         log.debug("calling auctionEndTransferInterface.checkTransferInProgress");
                         TransferResult result = checkTransferInProgress(auction);
+                        // transfer the token
+                        // transfer already occurred and the checkTransferInProgress should have updated the auction
+                        // status accordingly
                         switch (result) {
                             case FAILED, NOT_FOUND:
                                 log.debug("result FAILED, NOT_FOUND");
-                                // transfer the token
-                                if (! StringUtils.isEmpty(this.refundKey)) {
+                                if (!StringUtils.isEmpty(this.operatorKey)) {
                                     log.debug("Transferring token");
                                     transferToken(auction);
                                     log.debug("Token transfer started");
                                 }
                                 break;
-                            case SUCCESS:
-                                // transfer already occurred and the checkTransferInProgress should have updated the auction
-                                // status accordingly
-                                log.debug("result SUCCESS");
-                                break;
+                        case SUCCESS:
+                            log.debug("result SUCCESS");
                         }
                     }
-                    Utils.sleep(this.mirrorQueryFrequency);
                 }
-            } catch (SQLException sqlException) {
-                log.error("Failed to fetch auctions");
-                log.error(sqlException);
+                Utils.sleep(this.mirrorQueryFrequency);
+            } catch (SQLException e) {
+                log.error("Failed to fetch auctions", e);
             }
         }
     }
@@ -138,15 +131,12 @@ public class AuctionEndTransfer implements Runnable {
             if (accountBalance.token.containsKey(TokenId.fromString(auction.getTokenid()))) {
                 auctionsRepository.setTransferPending(auction.getTokenid());
             }
-        } catch (TimeoutException timeoutException) {
-            log.error("timeout exception querying for balance");
-            log.error(timeoutException);
-        } catch (PrecheckStatusException precheckStatusException) {
-            log.error("precheckStatusException exception querying for balance");
-            log.error(precheckStatusException);
-        } catch (SQLException sqlException) {
-            log.error("unable to set auction to transferPending");
-            log.error(sqlException);
+        } catch (TimeoutException e) {
+            log.error("timeout exception querying for balance", e);
+        } catch (PrecheckStatusException e) {
+            log.error("precheckStatusException exception querying for balance", e);
+        } catch (SQLException e) {
+            log.error("unable to set auction to transferPending", e);
         }
     }
 
@@ -165,7 +155,7 @@ public class AuctionEndTransfer implements Runnable {
 
             if (! testing) {
                 try {
-                    Client client = hederaClient.auctionClient(auctionAccountId, PrivateKey.fromString(refundKey));
+//                    Client client = hederaClient.auctionClient(auctionAccountId, PrivateKey.fromString(operatorKey));
                     String memo = "Token transfer from auction";
 
                     TransactionId transactionId = TransactionId.generate(operatorId);
@@ -180,44 +170,36 @@ public class AuctionEndTransfer implements Runnable {
                     transferTransaction.addHbarTransfer(auctionAccountId, Hbar.fromTinybars(-auction.getWinningbid()));
                     transferTransaction.addHbarTransfer(tokenOwnerAccount, Hbar.fromTinybars(auction.getWinningbid()));
 
-                    try {
-                        TransactionScheduler transactionScheduler = new TransactionScheduler(hederaClient, auctionAccountId, PrivateKey.fromString(refundKey), transactionId, transferTransaction);
-                        TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction();
+                    TransactionScheduler transactionScheduler = new TransactionScheduler(auctionAccountId, transactionId, transferTransaction);
+                    TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction("Scheduled Auction End Transfer");
 
-                        if (transactionSchedulerResult.success) {
-                            transferInProgress = true;
-                            log.info("token transfer scheduled (id " + shortTransactionId + ")");
-                        } else {
-                            log.error("error transferring token to winner auction: " + auction.getAuctionaccountid());
-                            log.error(transactionSchedulerResult.status);
-                        }
-                    } catch (TimeoutException e) {
-                        log.error("error scheduling token transfer transaction");
-                        log.error(e);
+                    if (transactionSchedulerResult.success) {
+                        transferInProgress = true;
+                        log.info("token transfer scheduled (id {})", shortTransactionId);
+                    } else {
+                        log.error("error transferring token to winner auction: {} status {}", auction.getAuctionaccountid(), transactionSchedulerResult.status);
                     }
-                    client.close();
+
+//                    client.close();
                 } catch (Exception e) {
-                    log.error("unable to create client for auction account");
-                    log.error(e);
+                    log.error("error scheduling transaction for auction {}, token {}, transfer {} to {}", auctionAccountId.toString(), tokenId.toString(), auction.getWinningbid(), transferToAccountId.toString(), e);
                 }
             }
 
             if (transferInProgress || testing) {
-                log.info("setting auction to transfer in progress (auction = " + auction.getAuctionaccountid() + ")");
+                log.info("setting auction to transfer in progress (auction = {})",auction.getAuctionaccountid());
                 try {
                     auctionsRepository.setTransferInProgress(auction.getTokenid());
                 } catch (SQLException e) {
-                    log.error("unable to set auction to transfer in progress (auction = " + auction.getAuctionaccountid() + ")");
-                    log.error(e);
+                    log.error("unable to set auction to transfer in progress (auction = {}", auction.getAuctionaccountid(), e);
                 }
             }
         } else {
-            log.error("Token owner for auction id " + auction.getId() + " is not set.");
+            log.error("Token owner for auction id {} is not set.", auction.getAuctionaccountid());
             try {
                 auctionsRepository.setTransferTransactionByAuctionId(auction.getId(), "Token not transferred by owner", "Token not transferred by owner");
-            } catch (SQLException sqlException) {
-                log.error("unable to end auction with token not transferred by owner");
-                log.error(sqlException);
+            } catch (SQLException e) {
+                log.error("unable to end auction with token not transferred by owner", e);
             }
         }
     }
@@ -232,9 +214,8 @@ public class AuctionEndTransfer implements Runnable {
                         try {
                             auctionsRepository.setTransferTransactionByTokenId(tokenId, mirrorTransaction.transactionId, mirrorTransaction.getTransactionHashString());
                             return AuctionEndTransfer.TransferResult.SUCCESS;
-                        } catch (SQLException sqlException) {
-                            log.error("unable to set transaction to transfer complete");
-                            log.error(sqlException);
+                        } catch (SQLException e) {
+                            log.error("unable to set transaction to transfer complete", e);
                         }
                     } else {
                         // note: we keep going through the transactions just in case one is successful later
@@ -265,8 +246,8 @@ public class AuctionEndTransfer implements Runnable {
             queryParameters.put("order", "asc");
             queryParameters.put("timestamp", "gt:".concat(nextTimestamp));
 
-            log.debug("querying mirror for successful transaction for account " + queryParameters.get("account.id") + ", timestamp:gt:".concat(nextTimestamp));
-            Future<JsonObject> future = executor.submit(Utils.queryMirror(webClient, hederaClient, uri, queryParameters));
+            log.debug("querying mirror for successful transaction for account {} , timestamp:gt:{}", queryParameters.get("account.id"), nextTimestamp);
+            Future<JsonObject> future = executor.submit(Utils.queryMirror(hederaClient, uri, queryParameters));
             try {
                 JsonObject response = future.get();
                 if (response != null) {
@@ -275,11 +256,11 @@ public class AuctionEndTransfer implements Runnable {
                     log.info(result);
                     nextTimestamp = Utils.getTimestampFromMirrorLink(mirrorTransactions.links.next);
                 }
-            } catch (InterruptedException interruptedException) {
-                log.error(interruptedException);
+            } catch (InterruptedException e) {
+                log.error(e, e);
                 Thread.currentThread().interrupt();
-            } catch (ExecutionException executionException) {
-                log.error(executionException);
+            } catch (ExecutionException e) {
+                log.error(e, e);
             }
 
         }

@@ -87,7 +87,7 @@ public class CreateToken extends AbstractCreate {
                 if ("true".equals(body.getString("ok"))) {
                     return "https://cloudflare-ipfs.com/ipfs/".concat(body.getJsonObject("value").getString("cid"));
                 } else {
-                    log.error("saving to IPFS failed ".concat(response.body()));
+                    log.error("saving to IPFS failed {}", response.body());
                     return "";
                 }
             } catch (RuntimeException e) {
@@ -95,7 +95,7 @@ public class CreateToken extends AbstractCreate {
                 return "";
             }
         } else {
-            log.error("saving to IPFS failed status code=".concat(String.valueOf(response.statusCode())).concat(" ").concat(response.body()));
+            log.error("saving to IPFS failed status code={} response body={}", response.statusCode(), response.body());
             return "";
         }
     }
@@ -118,14 +118,14 @@ public class CreateToken extends AbstractCreate {
 
             TransactionReceipt receipt = response.getReceipt(client);
             if (receipt.status != Status.SUCCESS) {
-                log.error("Token creation failed " + receipt.status);
-                throw new Exception("Token creation failed " + receipt.status);
+                log.error("Token creation failed {}",receipt.status);
+                throw new Exception("Token creation failed ".concat(receipt.status.toString()));
             } else {
-                log.info("Token created " + receipt.tokenId.toString());
+                log.info("Token created {}", receipt.tokenId.toString());
             }
             return receipt.tokenId;
         } catch (Exception e) {
-            log.error(e);
+            log.error(e, e);
             throw e;
         }
     }

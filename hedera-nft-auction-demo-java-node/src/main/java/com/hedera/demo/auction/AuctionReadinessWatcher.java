@@ -8,9 +8,7 @@ import com.hedera.demo.auction.app.mirrormapping.MirrorTokenTransfer;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTransaction;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.app.repository.BidsRepository;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
@@ -27,28 +25,29 @@ import java.util.concurrent.Future;
 public class AuctionReadinessWatcher implements Runnable {
 
     protected final Auction auction;
-    protected final WebClient webClient;
     protected final AuctionsRepository auctionsRepository;
-    protected final BidsRepository bidsRepository;
     protected final int mirrorQueryFrequency;
     protected final String mirrorProvider;
-    protected final String refundKey;
     protected final HederaClient hederaClient;
 
     protected boolean testing = false;
     protected boolean runThread = true;
     @Nullable
     protected BidsWatcher bidsWatcher = null;
+    protected String nextTimestamp = "0.0";
+    protected boolean runOnce = false;
 
-    public AuctionReadinessWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, Auction auction, String refundKey, int mirrorQueryFrequency) {
-        this.webClient = webClient;
+    public AuctionReadinessWatcher(HederaClient hederaClient, AuctionsRepository auctionsRepository, Auction auction, int mirrorQueryFrequency) {
         this.auctionsRepository = auctionsRepository;
-        this.bidsRepository = bidsRepository;
         this.auction = auction;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
-        this.refundKey = refundKey;
         this.hederaClient = hederaClient;
         this.mirrorProvider = hederaClient.mirrorProvider();
+    }
+
+    public AuctionReadinessWatcher(HederaClient hederaClient, AuctionsRepository auctionsRepository, Auction auction, int mirrorQueryFrequency, boolean runOnce) {
+        this(hederaClient, auctionsRepository, auction, mirrorQueryFrequency);
+        this.runOnce = runOnce;
     }
 
     public void setTesting() {
@@ -72,21 +71,21 @@ public class AuctionReadinessWatcher implements Runnable {
      */
     @Override
     public void run() {
-        log.info("Watching auction account Id " + auction.getAuctionaccountid() + ", token Id " + auction.getTokenid());
+        log.info("Watching auction account Id {}, token Id {}", auction.getAuctionaccountid(), auction.getTokenid());
         String uri = "/api/v1/transactions";
 
         ExecutorService executor = Executors.newFixedThreadPool(1);
         while (runThread) {
-            @Var String nextTimestamp = "0.0";
-            while (!StringUtils.isEmpty(nextTimestamp)) {
-                log.debug("Checking ownership of token " + auction.getTokenid() + " for account " + auction.getAuctionaccountid());
+            @Var String queryFromTimeStamp = nextTimestamp;
+            while (!StringUtils.isEmpty(queryFromTimeStamp)) {
+                log.debug("Checking ownership of token {} for account {}", auction.getTokenid(), auction.getAuctionaccountid());
                 Map<String, String> queryParameters = new HashMap<>();
                 queryParameters.put("account.id", auction.getAuctionaccountid());
                 queryParameters.put("transactiontype", "CRYPTOTRANSFER");
-                queryParameters.put("order", "desc");
-                queryParameters.put("timestamp", "gt:".concat(nextTimestamp));
+                queryParameters.put("order", "asc");
+                queryParameters.put("timestamp", "gt:".concat(queryFromTimeStamp));
 
-                Future<JsonObject> future = executor.submit(Utils.queryMirror(webClient, hederaClient, uri, queryParameters));
+                Future<JsonObject> future = executor.submit(Utils.queryMirror(hederaClient, uri, queryParameters));
                 try {
                     JsonObject response = future.get();
                     if (response != null) {
@@ -94,6 +93,7 @@ public class AuctionReadinessWatcher implements Runnable {
 
                         if (handleResponse(mirrorTransactions)) {
                             // token is owned by the auction account, exit this thread
+                            log.debug("Token owned by the account");
                             runThread = false;
                             break;
                         } else {
@@ -101,18 +101,27 @@ public class AuctionReadinessWatcher implements Runnable {
                                 runThread = false;
                             }
                         }
-                        nextTimestamp = Utils.getTimestampFromMirrorLink(mirrorTransactions.links.next);
+                        queryFromTimeStamp = Utils.getTimestampFromMirrorLink(mirrorTransactions.links.next);
+                        if (StringUtils.isEmpty(queryFromTimeStamp)) {
+                            int transactionCount = mirrorTransactions.transactions.size();
+                            if (transactionCount > 0) {
+                                queryFromTimeStamp = mirrorTransactions.transactions.get(transactionCount - 1).consensusTimestamp;
+                            }
+                        }
+                        if (! StringUtils.isEmpty(queryFromTimeStamp)) {
+                            nextTimestamp = queryFromTimeStamp;
+                        }
                     }
-                } catch (InterruptedException interruptedException) {
-                    log.error(interruptedException);
+                } catch (InterruptedException e) {
+                    log.error(e, e);
                     Thread.currentThread().interrupt();
-                } catch (ExecutionException executionException) {
-                    log.error(executionException);
+                } catch (ExecutionException e) {
+                    log.error(e, e);
                 }
             }
 
-            if (testing) {
-                runThread = false;
+            if (this.testing || this.runOnce) {
+                this.runThread = false;
             } else {
                 Utils.sleep(this.mirrorQueryFrequency);
             }
@@ -142,13 +151,18 @@ public class AuctionReadinessWatcher implements Runnable {
                         if (auctionAccountFound && ! StringUtils.isEmpty(tokenOwnerAccount)) {
                             // we have a transfer from the token owner to the auction account
                             // token is associated
-                            log.info("Account " + auction.getAuctionaccountid() + " owns token " + auction.getTokenid() + ", starting auction");
+                            log.info("Account {} owns token {}, starting auction",  auction.getAuctionaccountid(), auction.getTokenid());
                             auctionsRepository.setActive(auction, tokenOwnerAccount, transaction.consensusTimestamp);
                             // start the thread to monitor bids
                             if (!this.testing) {
-                                bidsWatcher = new BidsWatcher(hederaClient, webClient, auctionsRepository, bidsRepository, auction.getId(), mirrorQueryFrequency);
-                                Thread t = new Thread(bidsWatcher);
-                                t.start();
+                                bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, auction.getId(), mirrorQueryFrequency, runOnce);
+                                if (this.runOnce) {
+                                    // do not run as a thread
+                                    bidsWatcher.run();
+                                } else {
+                                    Thread t = new Thread(bidsWatcher);
+                                    t.start();
+                                }
                             }
                             return true;
                         }
@@ -157,7 +171,7 @@ public class AuctionReadinessWatcher implements Runnable {
                 return false;
             }
         } catch (RuntimeException | SQLException e) {
-            log.error(e);
+            log.error(e, e);
         }
         return false;
     }

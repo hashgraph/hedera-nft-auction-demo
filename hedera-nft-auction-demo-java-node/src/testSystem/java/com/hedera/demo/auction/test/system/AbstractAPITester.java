@@ -42,6 +42,7 @@ public class AbstractAPITester extends AbstractE2ETest {
 
                     getTopicInfo();
 
+                    assertNotNull(topicInfo);
                     assertEquals(topicId, topicInfo.topicId);
 
                     testContext.completeNow();
@@ -64,6 +65,7 @@ public class AbstractAPITester extends AbstractE2ETest {
 
                     getTokenInfo();
 
+                    assertNotNull(tokenInfo);
                     assertEquals(tokenId, tokenInfo.tokenId);
                     assertEquals(tokenName, tokenInfo.name);
                     assertEquals(symbol, tokenInfo.symbol);
@@ -90,6 +92,7 @@ public class AbstractAPITester extends AbstractE2ETest {
 
                     getAccountInfo();
 
+                    assertNotNull(accountInfo);
                     assertEquals(auctionAccountId, accountInfo.accountId);
                     assertEquals(initialBalance, accountInfo.balance.getValue().longValue());
 
@@ -123,6 +126,7 @@ public class AbstractAPITester extends AbstractE2ETest {
 
                     getAccountBalance();
 
+                    assertNotNull(accountBalance);
                     Map<TokenId, Long> tokenBalances = accountBalance.token;
                     assertTrue(tokenBalances.containsKey(tokenId));
                     assertNotEquals(0, tokenBalances.get(tokenId));
@@ -163,6 +167,7 @@ public class AbstractAPITester extends AbstractE2ETest {
 
                     getTopicInfo();
 
+                    assertNotNull(topicInfo);
                     assertEquals(1, topicInfo.sequenceNumber);
 
                     testContext.completeNow();

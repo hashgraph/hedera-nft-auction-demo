@@ -43,13 +43,13 @@ public class CreateAuction extends AbstractCreate {
             localTopicId = topicId;
         }
         if (! Files.exists(Path.of(auctionFile))) {
-            log.error("File " + auctionFile + " not found");
+            log.error("File {} not found", auctionFile);
         } else {
             // submit message with auction file contents
-            log.info("Loading " + auctionFile + " file");
+            log.info("Loading {} file", auctionFile);
             String auctionInitData = Files.readString(Path.of(auctionFile), StandardCharsets.US_ASCII);
 
-            log.info("Submitting " + auctionFile + " file contents to HCS on topic " + localTopicId);
+            log.info("Submitting {} file contents to HCS on topic {}", auctionFile, localTopicId);
 
             try {
                 TopicMessageSubmitTransaction topicMessageSubmitTransaction = new TopicMessageSubmitTransaction()
@@ -60,12 +60,12 @@ public class CreateAuction extends AbstractCreate {
                 TransactionResponse response = topicMessageSubmitTransaction.execute(hederaClient.client());
                 TransactionReceipt receipt = response.getReceipt(hederaClient.client());
                 if (receipt.status != Status.SUCCESS) {
-                    log.error("Topic submit failed " + receipt.status);
+                    log.error("Topic submit failed {}", receipt.status);
                 } else {
                     log.info("Auction submitted");
                 }
             } catch (Exception e) {
-                log.error(e);
+                log.error(e, e);
                 throw e;
             }
         }

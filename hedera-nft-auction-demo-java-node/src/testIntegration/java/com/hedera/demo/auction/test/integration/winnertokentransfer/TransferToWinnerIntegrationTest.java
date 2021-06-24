@@ -44,7 +44,7 @@ public class TransferToWinnerIntegrationTest extends AbstractIntegrationTest {
         migrate(this.postgres);
         SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
-        auctionEndTransfer = new AuctionEndTransfer(hederaClient, webClient, auctionsRepository, "", 5000);
+        auctionEndTransfer = new AuctionEndTransfer(hederaClient, auctionsRepository, "", 5000);
         auctionEndTransfer.setTesting();
     }
 

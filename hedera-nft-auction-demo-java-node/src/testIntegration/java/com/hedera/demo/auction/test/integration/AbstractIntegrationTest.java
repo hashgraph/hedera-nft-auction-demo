@@ -106,7 +106,6 @@ public class AbstractIntegrationTest {
     String transactionhash() {
         return stringPlusIndex("transactionhash");
     }
-    String timestampforrefund() { return stringPlusIndex("timestampforrefund"); }
     String refundStatus() { return Bid.REFUND_ISSUED; }
 
     String transferStatus() { return stringPlusIndex("transferstatus"); }
@@ -172,7 +171,6 @@ public class AbstractIntegrationTest {
         bid.setTransactionid(transactionid());
         bid.setTransactionhash(transactionhash());
         bid.setRefundstatus(refundStatus());
-        bid.setTimestampforrefund(timestampforrefund());
 
         return bid;
     }
@@ -187,7 +185,6 @@ public class AbstractIntegrationTest {
         assertEquals(bid.getTransactionid(),newBid.getTransactionid());
         assertEquals(bid.getTransactionhash(),newBid.getTransactionhash());
         assertEquals(bid.getRefundstatus(), newBid.getRefundstatus());
-        assertEquals(bid.getTimestamp(), newBid.getTimestampforrefund());
     }
 
     protected void migrate(PostgreSQLContainer postgres) {
@@ -227,7 +224,6 @@ public class AbstractIntegrationTest {
         assertEquals(bid.getRefundtxhash(), body.getString("refundtxhash"));
         assertEquals(bid.getTransactionid(), body.getString("transactionid"));
         assertEquals(bid.getTransactionhash(), body.getString("transactionhash"));
-        assertEquals(bid.getTimestamp(), body.getString("timestampforrefund"));
         assertEquals(bid.getRefundstatus(), body.getString("refundstatus"));
     }
 

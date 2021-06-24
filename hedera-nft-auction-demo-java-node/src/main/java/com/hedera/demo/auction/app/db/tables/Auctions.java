@@ -156,6 +156,11 @@ public class Auctions extends TableImpl<Record> {
      */
     public final TableField<Record, String> DESCRIPTION = createField(DSL.name("description"), SQLDataType.CLOB.defaultValue(DSL.field("''::text", SQLDataType.CLOB)), this, "");
 
+    /**
+     * The column <code>public.auctions.processrefunds</code>.
+     */
+    public final TableField<Record, Boolean> PROCESSREFUNDS = createField(DSL.name("processrefunds"), SQLDataType.BOOLEAN.defaultValue(DSL.field("false", SQLDataType.BOOLEAN)), this, "");
+
     private Auctions(Name alias, Table<Record> aliased) {
         this(alias, aliased, null);
     }

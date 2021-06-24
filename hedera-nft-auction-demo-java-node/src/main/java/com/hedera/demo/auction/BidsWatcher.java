@@ -9,9 +9,7 @@ import com.hedera.demo.auction.app.mirrormapping.MirrorHbarTransfer;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTransaction;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.app.repository.BidsRepository;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
@@ -29,17 +27,14 @@ public class BidsWatcher implements Runnable {
 
     private final int auctionId;
     private Auction auction;
-    private final WebClient webClient;
-    private final BidsRepository bidsRepository;
     private final AuctionsRepository auctionsRepository;
     private final int mirrorQueryFrequency;
     private final HederaClient hederaClient;
     protected boolean runThread = true;
     protected boolean testing = false;
+    protected boolean runOnce = false;
 
-    public BidsWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int auctionId, int mirrorQueryFrequency) {
-        this.webClient = webClient;
-        this.bidsRepository = bidsRepository;
+    public BidsWatcher(HederaClient hederaClient, AuctionsRepository auctionsRepository, int auctionId, int mirrorQueryFrequency) {
         this.auctionsRepository = auctionsRepository;
         this.auctionId = auctionId;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
@@ -48,9 +43,13 @@ public class BidsWatcher implements Runnable {
         try {
             this.auction = auctionsRepository.getAuction(auctionId);
         } catch (Exception e) {
-            log.error("unable to get auction id " + auctionId);
-            log.error(e);
+            log.error("unable to get auction id {}", auctionId, e);
         }
+    }
+
+    public BidsWatcher(HederaClient hederaClient, AuctionsRepository auctionsRepository, int auctionId, int mirrorQueryFrequency, boolean runOnce) {
+        this(hederaClient, auctionsRepository, auctionId, mirrorQueryFrequency);
+        this.runOnce = runOnce;
     }
 
     public void setTesting() {
@@ -68,22 +67,22 @@ public class BidsWatcher implements Runnable {
         String uri = "/api/v1/transactions";
 
         ExecutorService executor = Executors.newFixedThreadPool(1);
-        while (runThread ) {
+        while (runThread) {
             try {
                 // reload auction from database
                 Auction watchedAuction = auctionsRepository.getAuction(auctionId);
 
-                log.debug("Checking for bids on account " + watchedAuction.getAuctionaccountid() + " and token " + watchedAuction.getTokenid());
+                log.debug("Checking for bids on account {} and token {}", watchedAuction.getAuctionaccountid(), watchedAuction.getTokenid());
 
-                String consensusTimeStampFrom = StringUtils.isEmpty(nextLink) ? watchedAuction.getLastconsensustimestamp() : nextLink;
-                nextLink = "";
+                @Var String consensusTimeStampFrom = StringUtils.isEmpty(nextLink) ? watchedAuction.getLastconsensustimestamp() : nextLink;
+                consensusTimeStampFrom = StringUtils.isEmpty(consensusTimeStampFrom) ? "0.0" : consensusTimeStampFrom;
                 Map<String, String> queryParameters = new HashMap<>();
                 queryParameters.put("account.id", watchedAuction.getAuctionaccountid());
                 queryParameters.put("transactiontype", "CRYPTOTRANSFER");
                 queryParameters.put("order", "asc");
                 queryParameters.put("timestamp", "gt:".concat(consensusTimeStampFrom));
 
-                Future<JsonObject> future = executor.submit(Utils.queryMirror(webClient, hederaClient, uri, queryParameters));
+                Future<JsonObject> future = executor.submit(Utils.queryMirror(hederaClient, uri, queryParameters));
 
                 try {
                     JsonObject response = future.get();
@@ -92,23 +91,27 @@ public class BidsWatcher implements Runnable {
                         nextLink = Utils.getTimestampFromMirrorLink(mirrorTransactions.links.next);
                         handleResponse(mirrorTransactions);
                     }
-                } catch (InterruptedException interruptedException) {
-                    log.error(interruptedException);
+                } catch (InterruptedException e) {
+                    log.error(e, e);
                     Thread.currentThread().interrupt();
-                } catch (ExecutionException executionException) {
-                    log.error(executionException);
+                } catch (ExecutionException e) {
+                    log.error(e, e);
                 }
 
             } catch (Exception e) {
-                log.error(e);
+                log.error(e, e);
             }
             if (StringUtils.isEmpty(nextLink)) {
-                Utils.sleep(this.mirrorQueryFrequency);
+                // no more to process
+                if (this.runOnce) {
+                    this.runThread = false;
+                } else {
+                    Utils.sleep(this.mirrorQueryFrequency);
+                }
             }
         }
         executor.shutdown();
     }
-
 
     public void handleResponse(MirrorTransactions mirrorTransactions) {
         try {
@@ -120,10 +123,9 @@ public class BidsWatcher implements Runnable {
                 auctionsRepository.save(this.auction);
             }
         } catch (Exception e) {
-            log.error(e);
+            log.error(e, e);
         }
     }
-
 
     public void handleTransaction(MirrorTransaction transaction) throws SQLException {
         @Var String rejectReason = "";
@@ -171,7 +173,7 @@ public class BidsWatcher implements Runnable {
             for (MirrorHbarTransfer transfer : transaction.hbarTransfers) {
                 if (transfer.account.equals(auctionAccountId)) {
                     bidAmount = transfer.amount;
-                    log.debug("Bid amount is " + bidAmount);
+                    log.debug("Bid amount is {}", bidAmount);
                     break;
                 }
             }
@@ -203,15 +205,15 @@ public class BidsWatcher implements Runnable {
                 // update prior winning bid
                 // setting the timestamp for refund to match the winning timestamp
                 // will accelerate the refund (avoids repeated EXPIRED_TRANSACTIONS when refunding)
-                priorBid.setTimestampforrefund(transaction.consensusTimestamp);
-                priorBid.setTimestamp(this.auction.getWinningtimestamp());
-                priorBid.setStatus(Bid.HIGHER_BID);
                 if ( StringUtils.isEmpty(this.auction.getWinningaccount())) {
                     // do not refund the very first bid !!!
-                    priorBid.setRefundstatus("");
+//                    priorBid.setRefundstatus("");
                     refund = false;
                 } else {
+                    priorBid.setTimestamp(this.auction.getWinningtimestamp());
+                    priorBid.setStatus(Bid.HIGHER_BID);
                     priorBid.setRefundstatus(Bid.REFUND_PENDING);
+                    updatePriorBid = true;
                 }
 
                 // update the auction
@@ -220,7 +222,6 @@ public class BidsWatcher implements Runnable {
                 this.auction.setWinningbid(bidAmount);
                 this.auction.setWinningtxid(transaction.transactionId);
                 this.auction.setWinningtxhash(transaction.getTransactionHashString());
-                updatePriorBid = true;
             }
 
             Bid newBid = new Bid();
@@ -237,12 +238,12 @@ public class BidsWatcher implements Runnable {
                     newBid.setRefundstatus(Bid.REFUND_PENDING);
                 }
             } else {
-                log.info("Bid amount " + bidAmount + " less than or equal to 0, not recording bid");
+                log.info("Bid amount {} less than or equal to 0, not recording bid", bidAmount);
             }
 
             auctionsRepository.commitBidAndAuction(updatePriorBid, bidAmount, priorBid, auction, newBid);
         } else {
-            log.debug("Transaction Id " + transaction.transactionId + " status not SUCCESS.");
+            log.debug("Transaction Id {} status not SUCCESS.", transaction.transactionId);
         }
     }
 
@@ -250,7 +251,7 @@ public class BidsWatcher implements Runnable {
         if (StringUtils.isEmpty(memo)) {
             return false;
         }
-        String[] memos = new String[]{"CREATEAUCTION", "FUNDACCOUNT", "TRANSFERTOAUCTION", "ASSOCIATE", "AUCTION REFUND", "TOKEN TRANSFER FROM AUCTION"};
+        String[] memos = new String[]{"CREATEAUCTION", "FUNDACCOUNT", "TRANSFERTOAUCTION", "ASSOCIATE", "AUCTION REFUND", "TOKEN TRANSFER FROM AUCTION", "SCHEDULED REFUND"};
         return Arrays.stream(memos).anyMatch(memo.toUpperCase()::startsWith);
     }
 }

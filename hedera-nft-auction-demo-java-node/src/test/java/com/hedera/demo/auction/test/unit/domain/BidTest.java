@@ -32,7 +32,6 @@ public class BidTest extends AbstractBid {
         assertEquals(transactionid, bidJson.getString("transactionid"));
         assertEquals(transactionhash, bidJson.getString("transactionhash"));
         assertEquals(refundStatus, bidJson.getString("refundstatus"));
-        assertEquals(timestampforrefund, bidJson.getString("timestampforrefund"));
     }
 
     @Test

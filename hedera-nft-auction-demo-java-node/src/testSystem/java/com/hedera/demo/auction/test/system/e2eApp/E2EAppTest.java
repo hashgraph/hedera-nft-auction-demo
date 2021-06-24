@@ -120,7 +120,6 @@ public class E2EAppTest extends AbstractSystemTest {
         createTokenAndGetInfo(tokenSymbolFromJson);
 
         hederaClient.setMirrorProvider(mirror);
-        hederaClient.setClientMirror();
 
         if (topicId == null) {
             throw new Exception ("topicId is null");

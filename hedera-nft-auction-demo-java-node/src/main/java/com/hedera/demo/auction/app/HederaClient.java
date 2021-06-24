@@ -1,6 +1,5 @@
 package com.hedera.demo.auction.app;
 
-import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
@@ -10,8 +9,6 @@ import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
-import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -23,8 +20,6 @@ public class HederaClient {
     private String mirrorUrl = "";
     private final Client client;
     private String network;
-    @Nullable
-    private Dotenv env;
 
     public HederaClient(AccountId operatorId, PrivateKey operatorKey, String network, String mirrorProvider, String mirrorUrl, String mirrorAddress) throws Exception {
         this.operatorId = operatorId;
@@ -33,12 +28,8 @@ public class HederaClient {
         this.client = clientForNetwork(network);
         this.mirrorUrl = mirrorUrl;
         this.network = network;
-
-        if ( ! StringUtils.isEmpty(mirrorAddress)) {
-            client.setMirrorNetwork(List.of(mirrorAddress));
-        }
-
     }
+
     public HederaClient(Dotenv env) throws Exception {
         this.operatorId = AccountId.fromString(Objects.requireNonNull(env.get("OPERATOR_ID")));
         this.operatorKey = PrivateKey.fromString(Objects.requireNonNull(env.get("OPERATOR_KEY")));
@@ -48,8 +39,15 @@ public class HederaClient {
         this.network = Optional.ofNullable(env.get("VUE_APP_NETWORK")).orElse("");
         this.network = this.network.toUpperCase();
         this.client = clientForNetwork(this.network);
-        this.env = env;
-        setClientMirror(this.client);
+        String envVariable = "REST_".concat(this.mirrorProvider.toUpperCase()).concat("_")
+                .concat(this.network);
+        this.mirrorUrl = "";
+        if (env != null) {
+            this.mirrorUrl = env.get(envVariable);
+        }
+        if (StringUtils.isBlank(this.mirrorUrl)) {
+            throw new Exception("VUE_APP_NETWORK and/or MIRROR_PROVIDER environment variables not set");
+        }
     }
 
     public HederaClient() throws Exception {
@@ -62,7 +60,6 @@ public class HederaClient {
 
     public Client auctionClient(Auction auction, PrivateKey operatorKey) throws Exception {
         Client newClient = clientForNetwork(this.network);
-        setClientMirror(newClient);
         newClient.setOperator(AccountId.fromString(auction.getAuctionaccountid()), operatorKey);
 
         return newClient;
@@ -70,7 +67,6 @@ public class HederaClient {
 
     public Client auctionClient(AccountId auctionAccountId, PrivateKey operatorKey) throws Exception {
         Client newClient = clientForNetwork(this.network);
-        setClientMirror(newClient);
         newClient.setOperator(auctionAccountId, operatorKey);
 
         return newClient;
@@ -78,34 +74,6 @@ public class HederaClient {
 
     public void setTestingMirrorURL(String testUrl) {
         this.mirrorUrl = testUrl;
-    }
-
-    public void setClientMirror() throws Exception {
-        setClientMirror(this.client);
-    }
-
-    public void setClientMirror(Client clientToSet) throws Exception {
-        @Var String envVariable = "GRPC_".concat(this.mirrorProvider).concat("_")
-                .concat(this.network);
-        @Var String url = "";
-        if (this.env != null) {
-            url = this.env.get(envVariable);
-        }
-        if (StringUtils.isBlank(url)) {
-            throw new Exception("VUE_APP_NETWORK and/or MIRROR_PROVIDER environment variables not set");
-        }
-
-        clientToSet.setMirrorNetwork(List.of(url));
-
-        envVariable = "REST_".concat(this.mirrorProvider).concat("_")
-                .concat(this.network);
-        this.mirrorUrl = "";
-        if (this.env != null) {
-            this.mirrorUrl = this.env.get(envVariable);
-        }
-        if (StringUtils.isBlank(this.mirrorUrl)) {
-            throw new Exception("VUE_APP_NETWORK and/or MIRROR_PROVIDER environment variables not set");
-        }
     }
 
     public PrivateKey operatorPrivateKey() {

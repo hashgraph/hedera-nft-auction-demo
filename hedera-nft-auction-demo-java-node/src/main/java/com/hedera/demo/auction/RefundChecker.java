@@ -31,12 +31,18 @@ public class RefundChecker implements Runnable {
     protected final HederaClient hederaClient;
     protected boolean runThread = true;
     protected Map<Integer, String> queryTimestamps = new HashMap<Integer, String>();
+    protected boolean runOnce = false;
 
     public RefundChecker(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int mirrorQueryFrequency) {
         this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.hederaClient = hederaClient;
+    }
+
+    public RefundChecker(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int mirrorQueryFrequency, boolean runOnce) {
+        this(hederaClient, auctionsRepository, bidsRepository, mirrorQueryFrequency);
+        this.runOnce = runOnce;
     }
 
     /**
@@ -47,23 +53,21 @@ public class RefundChecker implements Runnable {
     public void run() {
         log.info("Checking for bid refunds");
         while (runThread) {
-            watchRefunds();
-            Utils.sleep(this.mirrorQueryFrequency);
+            if (this.runOnce) {
+                while (watchRefunds()) {
+                    log.info("Looking for refunded bids");
+                };
+                log.info("Caught up with refunds");
+                this.runThread = false;
+            } else {
+                watchRefunds();
+                Utils.sleep(this.mirrorQueryFrequency);
+            }
         }
     }
 
     public void stop() {
         runThread = false;
-    }
-
-    /**
-     * runs the checks a single time, doesn't loop
-     */
-    public void runOnce() {
-        while (watchRefunds()) {
-            log.info("Looking for refunded bids");
-        };
-        log.info("Caught up with refunds");
     }
 
     /**

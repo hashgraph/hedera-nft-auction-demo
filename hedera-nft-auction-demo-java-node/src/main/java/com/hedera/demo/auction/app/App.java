@@ -121,35 +121,35 @@ public final class App {
             SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgresUrl, this.postgresUser, this.postgresPassword);
             AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
             BidsRepository bidsRepository = new BidsRepository(connectionManager);
-//            ScheduledOperationsRepository scheduledOperationsRepository = new ScheduledOperationsRepository(connectionManager);
 
+            // perform a one off check for new auctions and bids
+            startSubscription(auctionsRepository, /* runOnce= */ true);
+            // check for bids (one off)
+//            startBidWatchers(auctionsRepository, /* runOnce= */ true);
+            // check for completed refunds (one off)
+            startRefundChecker(auctionsRepository, bidsRepository, /* runOnce= */ true);
+
+
+            // now subscribe for new events
             // subscribe to topic to get new auction notifications
-            startSubscription(auctionsRepository);
+            startSubscription(auctionsRepository, /* runOnce= */ false);
 
-            RefundChecker oneOffRefundChecker = new RefundChecker(hederaClient, auctionsRepository, bidsRepository, mirrorQueryFrequency);
-            oneOffRefundChecker.runOnce();
+//            RefundChecker oneOffRefundChecker = new RefundChecker(hederaClient, auctionsRepository, bidsRepository, mirrorQueryFrequency, /* runOnce= */true);
+//            oneOffRefundChecker.run();
 
             startAuctionReadinessWatchers(auctionsRepository);
             startAuctionsClosureWatcher(auctionsRepository);
-            startBidWatchers(auctionsRepository);
+            startBidWatchers(auctionsRepository, /* runOnce= */ false);
             if (refund) {
                 // validator node, start the refunder thread
                 startRefunder(auctionsRepository, bidsRepository);
-                // and scheduled transaction executor
-//                startScheduledExecutor(auctionsRepository, scheduledOperationsRepository);
             }
-            startRefundChecker(auctionsRepository, bidsRepository);
+            startRefundChecker(auctionsRepository, bidsRepository, /* runOnce= */ false);
             if (transferOnWin) {
                 startAuctionEndTransfers(auctionsRepository);
             }
         }
     }
-
-//    private void startScheduledExecutor(AuctionsRepository auctionsRepository, ScheduledOperationsRepository scheduledOperationsRepository) {
-//        scheduleExecutor = new ScheduleExecutor(auctionsRepository, scheduledOperationsRepository, this.mirrorQueryFrequency);
-//        Thread scheduleExecutorThread = new Thread(scheduleExecutor);
-//        scheduleExecutorThread.start();
-//    }
 
     private void startAuctionsClosureWatcher(AuctionsRepository auctionsRepository) {
         // start a thread to monitor auction closures
@@ -157,34 +157,49 @@ public final class App {
         Thread auctionsClosureWatcherThread = new Thread(auctionsClosureWatcher);
         auctionsClosureWatcherThread.start();
     }
-    private void startSubscription(AuctionsRepository auctionsRepository) {
+    private void startSubscription(AuctionsRepository auctionsRepository, boolean runOnce) {
         if (StringUtils.isEmpty(topicId)) {
             log.warn("No topic Id found in environment variables, not subscribing");
         } else {
-            topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository,TopicId.fromString(topicId), mirrorQueryFrequency, masterKey);
-            // start the thread to monitor bids
-            Thread topicSubscriberThread = new Thread(topicSubscriber);
-            topicSubscriberThread.start();
+            topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository,TopicId.fromString(topicId), mirrorQueryFrequency, masterKey, runOnce);
+            if (runOnce) {
+                // don't run as a thread
+                topicSubscriber.run();
+            } else {
+                // start the thread to monitor bids
+                Thread topicSubscriberThread = new Thread(topicSubscriber);
+                topicSubscriberThread.start();
+            }
         }
     }
-    private void startBidWatchers(AuctionsRepository auctionsRepository) throws SQLException {
+    private void startBidWatchers(AuctionsRepository auctionsRepository, boolean runOnce) throws SQLException {
         for (Auction auction : auctionsRepository.getAuctionsList()) {
             if (! auction.isPending()) {
                 // auction is not pending
                 // start the thread to monitor bids
-                BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository,  auction.getId(), mirrorQueryFrequency);
-                Thread t = new Thread(bidsWatcher);
-                t.start();
-                bidsWatchers.add(bidsWatcher);
+                BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository,  auction.getId(), mirrorQueryFrequency, runOnce);
+                if (runOnce) {
+                    // do not run as a thread
+                    bidsWatcher.run();
+                } else {
+                    Thread t = new Thread(bidsWatcher);
+                    t.start();
+                    bidsWatchers.add(bidsWatcher);
+                }
             }
         }
     }
 
-    private void startRefundChecker(AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
+    private void startRefundChecker(AuctionsRepository auctionsRepository, BidsRepository bidsRepository, boolean runOnce) {
         // start the thread to monitor bids
-        refundChecker = new RefundChecker(hederaClient, auctionsRepository, bidsRepository, mirrorQueryFrequency);
-        Thread refundCheckerThread = new Thread(refundChecker);
-        refundCheckerThread.start();
+        refundChecker = new RefundChecker(hederaClient, auctionsRepository, bidsRepository, mirrorQueryFrequency, runOnce);
+        if (runOnce) {
+            // do not run as a thread
+            refundChecker.run();
+        } else {
+            Thread refundCheckerThread = new Thread(refundChecker);
+            refundCheckerThread.start();
+        }
     }
 
     private void startAuctionReadinessWatchers(AuctionsRepository auctionsRepository) throws SQLException {

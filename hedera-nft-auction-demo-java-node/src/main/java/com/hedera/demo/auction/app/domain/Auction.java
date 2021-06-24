@@ -365,7 +365,7 @@ public class Auction implements VertxPojo, Serializable {
         this.setTransferstatus(json.getString("transferstatus", ""));
         this.setTitle(json.getString("title", ""));
         this.setDescription(json.getString("description", ""));
-        this.setProcessrefunds(json.getBoolean("processrefunds", false));
+        this.setProcessrefunds(json.getBoolean("processrefunds", /* def= */false));
         return this;
     }
 

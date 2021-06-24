@@ -89,6 +89,17 @@ public class Utils {
         return instant.toString().concat(" (UTC)");
     }
 
+    public static Instant timestampToInstant(String timestamp) {
+        List<String> timeStampParts = Splitter.on('.').splitToList(timestamp);
+        long seconds = Long.parseLong(timeStampParts.get(0));
+        @Var int nanos = 0;
+        if (timeStampParts.size() > 1) {
+            nanos = Integer.parseInt(timeStampParts.get(1));
+        }
+        Instant instant = Instant.ofEpochSecond(seconds, nanos);
+        return instant;
+    }
+
     public static String getTimestampFromMirrorLink(String link) {
         if (! StringUtils.isEmpty(link)) {
             // extract the timestamp from the link

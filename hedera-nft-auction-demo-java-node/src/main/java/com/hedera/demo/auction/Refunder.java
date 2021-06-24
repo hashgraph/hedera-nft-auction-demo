@@ -144,8 +144,6 @@ public class Refunder implements Runnable {
         } else {
             try {
                 if (bidsRepository.setRefundIssuing(bid.getTimestamp())) {
-                    log.debug("Adding {} to map", bid.getTimestamp());
-                    log.debug("+ new map size {}", refundsInProgress.size());
                     refundsInProgress.put(bid.getTimestamp(), "");
                     CompletableFuture.supplyAsync(() -> {
                         try {
@@ -159,9 +157,7 @@ public class Refunder implements Runnable {
                     }, executor)
                     .thenAccept(refundingBid -> {
                         if (!StringUtils.isEmpty(refundingBid)) {
-                            log.debug("Removing {} from map", refundingBid);
                             refundsInProgress.remove(refundingBid);
-                            log.debug("- new map size {}", refundsInProgress.size());
                         }
                     })
                     .exceptionally(exception -> {

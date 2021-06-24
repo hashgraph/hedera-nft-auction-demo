@@ -99,26 +99,6 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
 //        addToEnvFromEnv("REST_HEDERA_TESTNET");
 //        addToEnvFromEnv("REST_HEDERA_PREVIEWNET");
 //
-//        addToEnvFromEnv("REST_KABUTO_MAINNET");
-//        addToEnvFromEnv("REST_KABUTO_TESTNET");
-//        addToEnvFromEnv("REST_KABUTO_PREVIEWNET");
-//
-//        addToEnvFromEnv("REST_DRAGONGLASS_MAINNET");
-//        addToEnvFromEnv("REST_DRAGONGLASS_TESTNET");
-//        addToEnvFromEnv("REST_DRAGONGLASS_PREVIEWNET");
-//
-//        addToEnvFromEnv("GRPC_HEDERA_MAINNET");
-//        addToEnvFromEnv("GRPC_HEDERA_TESTNET");
-//        addToEnvFromEnv("GRPC_HEDERA_PREVIEWNET");
-//
-//        addToEnvFromEnv("GRPC_KABUTO_MAINNET");
-//        addToEnvFromEnv("GRPC_KABUTO_TESTNET");
-//        addToEnvFromEnv("GRPC_KABUTO_PREVIEWNET");
-//
-//        addToEnvFromEnv("GRPC_DRAGONGLASS_MAINNET");
-//        addToEnvFromEnv("GRPC_DRAGONGLASS_TESTNET");
-//        addToEnvFromEnv("GRPC_DRAGONGLASS_PREVIEWNET");
-//
 //        environment.put("VUE_APP_TOPIC_ID", topicId);
 //        environment.put("MIRROR_PROVIDER", mirrorProvider);
 //        environment.put("DATABASE_URL", "postgresql://pgdb:5432/postgres");

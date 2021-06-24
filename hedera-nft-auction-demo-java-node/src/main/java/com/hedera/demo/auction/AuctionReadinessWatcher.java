@@ -35,6 +35,7 @@ public class AuctionReadinessWatcher implements Runnable {
     @Nullable
     protected BidsWatcher bidsWatcher = null;
     protected String nextTimestamp = "0.0";
+    protected boolean runOnce = false;
 
     public AuctionReadinessWatcher(HederaClient hederaClient, AuctionsRepository auctionsRepository, Auction auction, int mirrorQueryFrequency) {
         this.auctionsRepository = auctionsRepository;
@@ -42,6 +43,11 @@ public class AuctionReadinessWatcher implements Runnable {
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.hederaClient = hederaClient;
         this.mirrorProvider = hederaClient.mirrorProvider();
+    }
+
+    public AuctionReadinessWatcher(HederaClient hederaClient, AuctionsRepository auctionsRepository, Auction auction, int mirrorQueryFrequency, boolean runOnce) {
+        this(hederaClient, auctionsRepository, auction, mirrorQueryFrequency);
+        this.runOnce = runOnce;
     }
 
     public void setTesting() {
@@ -114,8 +120,8 @@ public class AuctionReadinessWatcher implements Runnable {
                 }
             }
 
-            if (testing) {
-                runThread = false;
+            if (this.testing || this.runOnce) {
+                this.runThread = false;
             } else {
                 Utils.sleep(this.mirrorQueryFrequency);
             }
@@ -149,9 +155,14 @@ public class AuctionReadinessWatcher implements Runnable {
                             auctionsRepository.setActive(auction, tokenOwnerAccount, transaction.consensusTimestamp);
                             // start the thread to monitor bids
                             if (!this.testing) {
-                                bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, auction.getId(), mirrorQueryFrequency);
-                                Thread t = new Thread(bidsWatcher);
-                                t.start();
+                                bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, auction.getId(), mirrorQueryFrequency, runOnce);
+                                if (this.runOnce) {
+                                    // do not run as a thread
+                                    bidsWatcher.run();
+                                } else {
+                                    Thread t = new Thread(bidsWatcher);
+                                    t.start();
+                                }
                             }
                             return true;
                         }

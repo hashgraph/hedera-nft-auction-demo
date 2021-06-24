@@ -32,6 +32,7 @@ public class BidsWatcher implements Runnable {
     private final HederaClient hederaClient;
     protected boolean runThread = true;
     protected boolean testing = false;
+    protected boolean runOnce = false;
 
     public BidsWatcher(HederaClient hederaClient, AuctionsRepository auctionsRepository, int auctionId, int mirrorQueryFrequency) {
         this.auctionsRepository = auctionsRepository;
@@ -44,6 +45,11 @@ public class BidsWatcher implements Runnable {
         } catch (Exception e) {
             log.error("unable to get auction id {}", auctionId, e);
         }
+    }
+
+    public BidsWatcher(HederaClient hederaClient, AuctionsRepository auctionsRepository, int auctionId, int mirrorQueryFrequency, boolean runOnce) {
+        this(hederaClient, auctionsRepository, auctionId, mirrorQueryFrequency);
+        this.runOnce = runOnce;
     }
 
     public void setTesting() {
@@ -61,7 +67,7 @@ public class BidsWatcher implements Runnable {
         String uri = "/api/v1/transactions";
 
         ExecutorService executor = Executors.newFixedThreadPool(1);
-        while (runThread ) {
+        while (runThread) {
             try {
                 // reload auction from database
                 Auction watchedAuction = auctionsRepository.getAuction(auctionId);
@@ -96,12 +102,16 @@ public class BidsWatcher implements Runnable {
                 log.error(e, e);
             }
             if (StringUtils.isEmpty(nextLink)) {
-                Utils.sleep(this.mirrorQueryFrequency);
+                // no more to process
+                if (this.runOnce) {
+                    this.runThread = false;
+                } else {
+                    Utils.sleep(this.mirrorQueryFrequency);
+                }
             }
         }
         executor.shutdown();
     }
-
 
     public void handleResponse(MirrorTransactions mirrorTransactions) {
         try {
@@ -116,7 +126,6 @@ public class BidsWatcher implements Runnable {
             log.error(e, e);
         }
     }
-
 
     public void handleTransaction(MirrorTransaction transaction) throws SQLException {
         @Var String rejectReason = "";

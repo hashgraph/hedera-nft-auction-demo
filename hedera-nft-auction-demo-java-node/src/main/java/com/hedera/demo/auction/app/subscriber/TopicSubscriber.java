@@ -9,6 +9,8 @@ import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.hashgraph.sdk.AccountBalance;
 import com.hedera.hashgraph.sdk.AccountBalanceQuery;
 import com.hedera.hashgraph.sdk.AccountId;
+import com.hedera.hashgraph.sdk.AccountInfo;
+import com.hedera.hashgraph.sdk.AccountInfoQuery;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.Hbar;
 import com.hedera.hashgraph.sdk.PrecheckStatusException;
@@ -24,7 +26,6 @@ import com.hedera.hashgraph.sdk.TopicMessageQuery;
 import com.hedera.hashgraph.sdk.TransactionReceipt;
 import com.hedera.hashgraph.sdk.TransactionResponse;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
@@ -42,8 +43,6 @@ public class TopicSubscriber implements Runnable{
     private final AuctionsRepository auctionsRepository;
     private final TopicId topicId;
     private static Instant startTime = Instant.EPOCH;
-    @Nullable
-    private final WebClient webClient;
     private final int mirrorQueryFrequency;
     private final HederaClient hederaClient;
     private boolean testing = false;
@@ -55,10 +54,9 @@ public class TopicSubscriber implements Runnable{
     private AuctionReadinessWatcher auctionReadinessWatcher = null;
     private final String masterKey;
 
-    public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, WebClient webClient, TopicId topicId, int mirrorQueryFrequency, String masterKey) {
+    public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, TopicId topicId, int mirrorQueryFrequency, String masterKey) {
         this.auctionsRepository = auctionsRepository;
         this.topicId = topicId;
-        this.webClient = webClient;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.hederaClient = hederaClient;
         this.masterKey = masterKey;
@@ -139,6 +137,7 @@ public class TopicSubscriber implements Runnable{
 
             newAuction.setEndtimestamp(endTimeStamp.concat(".000000000")); // add nanoseconds
             newAuction.setWinningbid(0L);
+            newAuction.setProcessrefunds(false);
 
             @Var Auction auction;
             try {
@@ -148,9 +147,9 @@ public class TopicSubscriber implements Runnable{
                 if (auction == null) {
                     if (!testing) {
                         // get token info
+                        Client client = hederaClient.client();
                         try {
                             log.debug("Getting token info");
-                            Client client = hederaClient.client();
                             TokenInfo tokenInfo = new TokenInfoQuery()
                                     .setTokenId(TokenId.fromString(newAuction.getTokenid()))
                                     .execute(client);
@@ -161,9 +160,18 @@ public class TopicSubscriber implements Runnable{
                                 newAuction.setTokenmetadata(tokenInfo.symbol);
                             }
                         } catch (Exception e) {
-                            log.error(e, e);
+                            log.error("error getting token info", e);
                             throw e;
                         }
+                        // get auction account info
+                        log.debug("getting auction account info");
+                        AccountInfo accountInfo = new AccountInfoQuery()
+                                .setAccountId(AccountId.fromString(newAuction.getAuctionaccountid()))
+                                .execute(client);
+
+                        // only process refunds for this auction if the auction's key contains the operator's public key
+                        newAuction.setProcessrefunds(accountInfo.key.toString().toUpperCase().contains(hederaClient.operatorPublicKey().toString().toUpperCase()));
+
                     }
 
                     auction = auctionsRepository.add(newAuction);
@@ -172,9 +180,9 @@ public class TopicSubscriber implements Runnable{
                         log.info("Auction for token {} added", newAuction.getTokenid());
                     }
 
-                    if (!skipReadinessWatcher && (webClient != null)) {
+                    if (!skipReadinessWatcher) {
                         // Start a thread to watch this new auction for readiness
-                        auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, webClient, auctionsRepository, auction, mirrorQueryFrequency);
+                        auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, auctionsRepository, auction, mirrorQueryFrequency);
                         Thread t = new Thread(auctionReadinessWatcher);
                         t.start();
                     }
@@ -222,8 +230,7 @@ public class TopicSubscriber implements Runnable{
                 }
 
             } catch (SQLException e) {
-                log.error("unable to determine if auction already exists");
-                log.error(e, e);
+                log.error("unable to determine if auction already exists", e);
             }
         } catch (Exception e) {
             log.error(e, e);

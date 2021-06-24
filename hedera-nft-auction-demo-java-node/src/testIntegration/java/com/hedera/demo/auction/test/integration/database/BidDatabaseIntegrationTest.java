@@ -86,21 +86,6 @@ class BidDatabaseIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void setStatusTest() throws SQLException {
-
-        String newStatus = "test status update";
-        bid.setStatus(newStatus);
-
-        bidsRepository.setStatus(bid);
-
-        List<Bid> bids = bidsRepository.getBidsList();
-        assertNotNull(bids);
-        assertEquals(1, bids.size());
-        assertEquals(newStatus, bids.get(0).getStatus());
-
-    }
-
-    @Test
     public void setRefundInProgressTest() throws SQLException {
 
         bidsRepository.setRefundPending(bid.getTransactionid());
@@ -112,13 +97,14 @@ class BidDatabaseIntegrationTest extends AbstractIntegrationTest {
         assertEquals(1, bids.size());
         assertTrue(bids.get(0).isRefundIssuing());
 
-        bidsRepository.setRefundIssued(bid.getTimestamp(), "someTxId");
+        bidsRepository.setRefundIssued(bid.getTimestamp(), "someTxId", "scheduleId");
 
         bids = bidsRepository.getBidsList();
         assertNotNull(bids);
         assertEquals(1, bids.size());
         assertTrue(bids.get(0).isRefundIssued());
         assertEquals("someTxId", bids.get(0).getRefundtxid());
+        assertEquals("scheduleId", bids.get(0).getScheduleId());
     }
 
     @Test
@@ -159,7 +145,7 @@ class BidDatabaseIntegrationTest extends AbstractIntegrationTest {
             Bid bid = testBidObject(i, auctionId);
             bids.add(bid);
             bidsRepository.add(bid);
-            bidsRepository.setRefundIssued(bid.getTimestamp(), "");
+            bidsRepository.setRefundIssued(bid.getTimestamp(), "", "");
         }
 
         String firstBidToRefund = bidsRepository.getFirstBidToRefund(auctionId);
@@ -181,15 +167,5 @@ class BidDatabaseIntegrationTest extends AbstractIntegrationTest {
         List<Bid> bids = bidsRepository.getBidsList();
         assertNotNull(bids);
         assertEquals(0, bids.size());
-    }
-    @Test
-    public void bidRefundTimestampTest() throws SQLException {
-
-        bidsRepository.setBidRefundTimestamp(bid.getTimestamp(), "testTimestampHere");
-
-        List<Bid> bids = bidsRepository.getBidsList();
-        assertNotNull(bids);
-        assertEquals(1, bids.size());
-        assertEquals("testTimestampHere", bids.get(0).getTimestampforrefund());
     }
 }

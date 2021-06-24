@@ -73,13 +73,13 @@ public class GetBidsIntegrationTest extends AbstractIntegrationTest {
 
         Bid bid1 = testBidObject(1, newAuction1.getId());
         bidsRepository.add(bid1);
-        bidsRepository.setRefundIssued(bid1.getTimestamp(), "");
+        bidsRepository.setRefundIssued(bid1.getTimestamp(), "", "");
         bidsRepository.setRefunded(bid1.getTransactionid(), bid1.getRefundtxid(), bid1.getRefundtxhash());
         bid1.setRefundstatus(Bid.REFUND_REFUNDED);
 
         Bid bid2 = testBidObject(2, newAuction1.getId());
         bidsRepository.add(bid2);
-        bidsRepository.setRefundIssued(bid2.getTimestamp(), "");
+        bidsRepository.setRefundIssued(bid2.getTimestamp(), "", "");
         bidsRepository.setRefunded(bid2.getTransactionid(), bid2.getRefundtxid(), bid2.getRefundtxhash());
         bid2.setRefundstatus(Bid.REFUND_REFUNDED);
 

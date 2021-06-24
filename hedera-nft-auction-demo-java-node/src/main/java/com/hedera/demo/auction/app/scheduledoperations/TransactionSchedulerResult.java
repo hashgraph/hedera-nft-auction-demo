@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 public class TransactionSchedulerResult {
     public boolean success;
     @Nullable
-    public ScheduleId scheduleId;
+    private ScheduleId scheduleId;
     public Status status;
 
     public TransactionSchedulerResult(boolean success, Status status, ScheduleId scheduleId) {
@@ -19,5 +19,8 @@ public class TransactionSchedulerResult {
     public TransactionSchedulerResult(boolean success, Status status) {
         this.success = success;
         this.status = status;
+    }
+    public String getScheduleId() {
+        return (this.scheduleId == null) ? "" : this.scheduleId.toString();
     }
 }

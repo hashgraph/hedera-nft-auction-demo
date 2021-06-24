@@ -107,7 +107,7 @@ public class RefundCheckerIntegrationTest extends AbstractIntegrationTest {
         bidTransaction.put("memo_base64", memoBase64);
         bidTransaction.put("result","failed");
         bidTransactions = HederaJson.mirrorTransactions(bidTransaction);
-        bidsRepository.setRefundIssued(bid.getTimestamp(), "");
+        bidsRepository.setRefundIssued(bid.getTimestamp(), "", "");
 
         MirrorTransactions mirrorTransactions = bidTransactions.mapTo(MirrorTransactions.class);
         refundTester.handleResponse(mirrorTransactions);

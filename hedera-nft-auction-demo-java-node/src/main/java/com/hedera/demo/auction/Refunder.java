@@ -100,7 +100,7 @@ public class Refunder implements Runnable {
         if (testing) {
             // just testing, we can't sign a scheduled transaction, just record the state change on the bid
             try {
-                bidsRepository.setRefundIssued(bid.getTimestamp(), "");
+                bidsRepository.setRefundIssued(bid.getTimestamp(), "", "");
             } catch (SQLException e) {
                 log.error("Failed to set bid refund in progress (bid timestamp {})", bid.getTimestamp());
                 log.error(e, e);

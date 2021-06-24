@@ -8,11 +8,16 @@
 ## Dependencies
 
 * A testnet or mainnet account
-* PostgreSQL version 12
-* Node.js v14.9.0
-* Yarn 1.22.10
-* Java 14
-* Docker and docker-compose (optional)
+* git command line installed on your computer
+  
+* To build from code
+  * PostgreSQL version 12
+  * Node.js v14.9.0
+  * Yarn 1.22.10
+  * Java 14
+  
+* To run from docker images  
+  * Docker and docker-compose (optional)
 
 ## Notes
 
@@ -68,19 +73,19 @@ setup the `.env` properties as follows
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
 * `VUE_APP_NETWORK=` (mainnet, testnet or previewnet)
-* `REFUND_KEY=` (Same as operator key for testing purposes)
-* `MASTER_KEY=` (set only for one node which has additional authority over the auction accounts, can be the same as operator key / refund key for testing purposes only, else must be different)
+* `REFUND=` true to participate in refund issuance, false otherwise
+* `MASTER_KEY=` (set only for one node which has additional authority over the auction accounts, can be the same as operator key only, else must be different)
 * `NFT_STORAGE_API_KEY=` (We use IPFS storage using [nft.storage](https://nft.storage) to store NFT metadata. You can create your API key on https://nft.storage and add it to your .env file to enable IPFS upload, this is only required if your node will be involved in token creation through the API or command line)
 
 you may leave the other properties as is for now
 
 ```shell
 cd hedera-nft-auction-demo
-cd hedera-nft-auction-demo-javascript-client
+cd hedera-nft-auction-demo-javascript-client-legacy
 cp .env.sample .env
 ```
 
-you may leave the properties as is for now
+you may leave the properties as they are for now
 
 #### Start docker images
 
@@ -88,14 +93,14 @@ Using pre-built images
 
 ```shell
 cd ..
-docker-compose --profile prod up
+docker-compose --profile image up
 ```
 
 Building your own images from source code
 ```shell
 cd ..
-docker-compose --profile dev build
-docker-compose --profile dev up
+docker-compose --profile compile build
+docker-compose --profile compile up
 ```
 
 _Note: you may need to `sudo` these commands depending on your environment`
@@ -167,7 +172,7 @@ cp .env.sample .env
 nano .env
 ```
 
-set the following properties according to your Hedera account and refund key details
+set the following properties according to your Hedera account details
 
 _Note: 
 The operator id/key is used to query the hedera network for the token's metadata if present (FileId in memo) and issue or sign scheduled transactions._
@@ -177,16 +182,18 @@ The operator id/key is used to query the hedera network for the token's metadata
 
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
-* `REFUND_KEY=` (Same as operator key for testing purposes)
+* `REFUND=` true to participate in refund issuance, false otherwise
 * `TRANSFER_ON_WIN=`true
 
 You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish (although only the hedera mirror API is supported at this time).
 
 #### Javascript UI
 
+_Note: The UI assumes it is served from the same server as the client REST api (The Java Appnet Node above)_
+
 ```shell
 cd hedera-nft-auction-demo
-cd hedera-nft-auction-demo-javascript-client
+cd hedera-nft-auction-demo-javascript-client-legacy
 # Build the code
 ./yarn install
 ```
@@ -199,10 +206,7 @@ nano .env
 ```
 
 * `VUE_APP_API_PORT=8081` this is the port of the `Java REST API` above
-* `VUE_APP_NETWORK=testnet` previewnet, testnet or mainnet
-* `VUE_APP_TOPIC_ID=` topic id the appnet is using
 * `PORT=8080` the port you want to run the UI on
-* `VUE_APP_NODE_OWNER` optionally set the name of the company operating the node to display in the UI
 
 #### Setting up an auction
 
@@ -270,6 +274,8 @@ __Create a topic__
 
 This will create a new topic id and set the `VUE_APP_TOPIC_ID` environment variable.
 
+_Note: This command will create the topic using the `OPERATOR_ID` defined in the `.env` file, you should be using the account that will run the auction node here._
+
 ```shell
 ./gradlew createTopic
 ```
@@ -277,6 +283,8 @@ This will create a new topic id and set the `VUE_APP_TOPIC_ID` environment varia
 __Create a simple token__
 
 This command will create a token named `test` with a symbol of `tst`, an initial supply of `1` and `0` decimals.
+
+_Note: This command will create the token using the `OPERATOR_ID` defined in the `.env` file, it may be desirable to use a separate account to create the token than that used to run the auction node._
 
 First, create a file containing the specification of the token [Token specification](#token-specification), save it somewhere such that the application has access to it.
 
@@ -289,6 +297,8 @@ set the resulting `Token Id` to the `tokenId` attribute in your `./sample-files/
 __Create an auction account__
 
 This command will create an auction account with an initial balance of `100` hbar using the operator key for the account.
+
+_Note: This command will create the auction account using the `OPERATOR_ID` defined in the `.env` file, you should be using the account that will run the auction node here._
 
 ```shell
 ./gradlew createAuctionAccount --args="100"
@@ -307,6 +317,7 @@ You can change some of the attribute values if you wish
 _Note: if the `endtimestamp` (end of auction in seconds since Epoch) is left blank, the auction will run for 48 hours from now by default._
 
 You may also specify a time delta from the consensus time of the resulting HCS message such as:
+
 * `2d` for two days following the consensus time
 * `1h` for one hour
 * `10m` for ten minutes
@@ -326,6 +337,9 @@ You may also specify a time delta from the consensus time of the resulting HCS m
 _Note: the minimum bid and reserve are expressed in `tinybars`_
 
 __Create the auction__
+
+_Note: This command will create the auction using the `OPERATOR_ID` defined in the `.env` file, you should be using the account that will run the auction node here._
+
 ```shell
 ./gradlew createAuction --args="./sample-files/initDemo.json"
 ```
@@ -333,6 +347,8 @@ __Create the auction__
 __Transfer the token to the auction account__
 
 This transfer the token from the account that created it to the `auctionaccountid`, supply the `tokenId` and `accountId` created above in the parameters.
+
+_Note: This command will transfer the token using the `OPERATOR_ID` defined in the `.env` file, you should use the same account as that used to create the token._
 
 ```shell
 ./gradlew createTokenTransfer --args="tokenId accountId"
@@ -458,6 +474,8 @@ _Note: the first key should be the "master key" which can sign transactions on b
 In the example below, we have a key list with a threshold of 1. The key list contains the master key and another list of keys with its own threshold.
 _
 
+_Note: all keys are *public* keys_
+
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '
 {
@@ -521,6 +539,8 @@ This transfer the token from the account that created it to the `auctionaccounti
 
 be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the values you obtained earlier.
 
+_Note: If the token has been created with the REST api call above, it will already by associated and owned by the `auctionaccountid`, there is no need to transfer it._
+
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '
 {
@@ -547,7 +567,7 @@ java -jar build/libs/hedera-nft-auction-demo-1.0.jar
 __Web UI__
 
 ```shell
-cd hedera-nft-auction-demo-javascript-client
+cd hedera-nft-auction-demo-javascript-client-legacy
 yarn serve
 ```
 
@@ -713,7 +733,7 @@ In addition, you'll need to generate an ED25519 private/public key and share the
 
 This node will be creating the `Topic Id` to share with the `Readonly` and `Validator` Nodes.
 
-Two ED25519 private/public keys will be required, one will be the `MASTER_KEY`, the other the `REFUND_KEY` for your node. Both public keys shared with whoever is setting up an auction.
+One additional ED25519 private/public key will be required, the `MASTER_KEY`. the key should be shared with whoever is setting up an auction account.
 
 ### Generating keys
 
@@ -737,6 +757,7 @@ _Note: this runs on the client REST API port (8081), not the admin API port (808
 
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
+* `REFUND=` true to participate in refund issuance, false otherwise
 * `VUE_APP_NETWORK=` (mainnet, testnet or previewnet)
 * `VUE_APP_NODE_OWNER=` (an identifier, e.g. `ACMEAuctions` to be rendered in the UI to show which node the UI is connected to)
 * `VUE_APP_TOPIC_ID=` (the topic id provided by whoever is setting up the application network, leave blank if you're setting up a new application network)
@@ -745,15 +766,13 @@ _Note: this runs on the client REST API port (8081), not the admin API port (808
 
 in addition to all node types above
 
-* `REFUND_KEY=` The ED25519 private key you generated
 * `TRANSFER_ON_WIN=` true or false depending on whether you want the auction to transfer the tokens and winning bid automatically at the end.
 
 ### Master node
 
 in addition to all node types above
 
-* `REFUND_KEY=` The ED25519 private key you generated
-* `MASTER_KEY=` The ED25519 private key you generated (set only for one node which has additional authority over the auction accounts, can be the same as operator key / refund key for testing purposes only, else must be different)
+* `MASTER_KEY=` The ED25519 private key you generated (set only for one node which has additional authority over the auction accounts, can be the same as operator key for testing purposes only, else must be different)
 * `TRANSFER_ON_WIN=` true or false depending on whether you want the auction to transfer the tokens and winning bid automatically at the end.
 
 ## Creating the topic ID to share with the rest of the network
@@ -787,6 +806,8 @@ In the example below, we have a key list with a threshold of 1. The key list con
 * Replace and add "validator n public key" as required
 
 * Set threshold on the inner key list as required (leave the last threshold before `initialBalance` to 1).
+
+_Note: all keys are *public* keys_
 
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '

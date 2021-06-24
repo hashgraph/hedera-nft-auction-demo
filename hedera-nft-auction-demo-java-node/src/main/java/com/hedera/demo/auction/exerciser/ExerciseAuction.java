@@ -34,6 +34,9 @@ import java.util.concurrent.Executors;
 @Log4j2
 public final class ExerciseAuction {
 
+  private ExerciseAuction() {
+  }
+
   public static void main(String[] args) throws Exception {
 
     HederaClient hederaClient = new HederaClient();
@@ -44,10 +47,12 @@ public final class ExerciseAuction {
 //    int numThreads = Integer.parseInt(args[2]);
 //    int numTransfers = Integer.parseInt(args[3]);
     //    String auctionAccount = args[0];
-    String auctionAccount = "0.0.3";
+    String auctionAccount = "0.0.1969379";
     int numAccounts = 10;
-    int numThreads = 2;
-    int numTransfers = 4;
+    int numThreads = 1;
+    int numTransfers = 1;
+//    int numThreads = 1;
+//    int numTransfers = 10;
 
     log.info("starting exerciser");
 
@@ -145,7 +150,9 @@ public final class ExerciseAuction {
       }
       System.out.println("Winning amount " + winners.get(0).amount);
       for (ExerciseWinner exerciseWinner : winners) {
-        System.out.println("Winning account(s) " + exerciseWinner.accountId.toString());
+        if (exerciseWinner.accountId != null) {
+          System.out.println("Winning account(s) " + exerciseWinner.accountId.toString());
+        }
       }
     });
 

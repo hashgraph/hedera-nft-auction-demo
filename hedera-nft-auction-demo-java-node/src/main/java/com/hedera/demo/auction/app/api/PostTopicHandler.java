@@ -40,10 +40,10 @@ public class PostTopicHandler implements Handler<RoutingContext> {
             Thread.currentThread().interrupt();
         } catch (IOException | TimeoutException |PrecheckStatusException | ReceiptStatusException e) {
             routingContext.fail(400, e);
-            log.error(e);
+            log.error(e, e);
         } catch (Exception e) {
             routingContext.fail(400, e);
-            log.error(e);
+            log.error(e, e);
         }
     }
 }

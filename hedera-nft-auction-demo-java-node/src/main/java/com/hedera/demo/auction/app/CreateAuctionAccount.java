@@ -58,14 +58,14 @@ public class CreateAuctionAccount extends AbstractCreate {
 
             TransactionReceipt receipt = response.getReceipt(client);
             if (receipt.status != Status.SUCCESS) {
-                log.error("Account creation failed " + receipt.status);
-                throw new Exception("Account creation failed " + receipt.status);
+                log.error("Account creation failed {}", receipt.status);
+                throw new Exception("Account creation failed ".concat(receipt.status.toString()));
             } else {
-                log.info("Account created " + receipt.accountId.toString());
+                log.info("Account created {}", receipt.accountId.toString());
             }
             return receipt.accountId;
         } catch (Exception e) {
-            log.error(e);
+            log.error(e, e);
             throw e;
         }
     }

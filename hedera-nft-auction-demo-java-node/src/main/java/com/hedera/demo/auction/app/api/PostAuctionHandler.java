@@ -91,7 +91,7 @@ public class PostAuctionHandler implements Handler<RoutingContext> {
             routingContext.fail(400, e);
             return;
         } catch (Exception e) {
-            log.error(e);
+            log.error(e, e);
             routingContext.fail(400, e);
         }
     }

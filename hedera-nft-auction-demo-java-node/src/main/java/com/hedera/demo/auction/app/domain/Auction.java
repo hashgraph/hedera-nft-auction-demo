@@ -35,10 +35,10 @@ public class Auction implements VertxPojo, Serializable {
     private String transfertxid = "";
     private String transfertxhash = "";
     private String tokenowneraccount = "";
-    private String transfertimestamp = "";
     private String transferstatus = "";
     private String title = "";
     private String description = "";
+    private boolean processrefunds = false;
 
     public Auction() {}
 
@@ -62,10 +62,10 @@ public class Auction implements VertxPojo, Serializable {
         this.transfertxid = record.get(AUCTIONS.TRANSFERTXID);
         this.transfertxhash = record.get(AUCTIONS.TRANSFERTXHASH);
         this.tokenowneraccount = record.get(AUCTIONS.TOKENOWNER);
-        this.transfertimestamp = record.get(AUCTIONS.TRANSFERTIMESTAMP);
         this.transferstatus = record.get(AUCTIONS.TRANSFERSTATUS);
         this.title = record.get(AUCTIONS.TITLE);
         this.description = record.get(AUCTIONS.DESCRIPTION);
+        this.processrefunds = record.get(AUCTIONS.PROCESSREFUNDS);
     }
 
     public Auction (Row row) {
@@ -88,10 +88,10 @@ public class Auction implements VertxPojo, Serializable {
         this.transfertxid = row.getString(AUCTIONS.TRANSFERTXID.getName());
         this.transfertxhash = row.getString(AUCTIONS.TRANSFERTXHASH.getName());
         this.tokenowneraccount = row.getString(AUCTIONS.TOKENOWNER.getName());
-        this.transfertimestamp = row.getString(AUCTIONS.TRANSFERTIMESTAMP.getName());
         this.transferstatus = row.getString(AUCTIONS.TRANSFERSTATUS.getName());
         this.title = row.getString(AUCTIONS.TITLE.getName());
         this.description = row.getString(AUCTIONS.DESCRIPTION.getName());
+        this.processrefunds = row.getBoolean(AUCTIONS.PROCESSREFUNDS.getName());
     }
 
     public Auction(io.vertx.core.json.JsonObject json) {
@@ -278,14 +278,6 @@ public class Auction implements VertxPojo, Serializable {
 
     public void setTokenowneraccount(String tokenowneraccount) { this.tokenowneraccount = tokenowneraccount; }
 
-    public String getTransfertimestamp() {
-        return this.transfertimestamp;
-    }
-
-    public void setTransfertimestamp(String transfertimestamp) {
-        this.transfertimestamp = transfertimestamp;
-    }
-
     public String getTransferstatus() {
         return transferstatus;
     }
@@ -308,6 +300,13 @@ public class Auction implements VertxPojo, Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public void setProcessrefunds(boolean processrefunds) {
+        this.processrefunds = processrefunds;
+    }
+    public boolean getProcessrefunds() {
+        return this.processrefunds;
     }
 
     @Override
@@ -333,10 +332,10 @@ public class Auction implements VertxPojo, Serializable {
         sb.append(", ").append(transfertxid);
         sb.append(", ").append(transfertxhash);
         sb.append(", ").append(tokenowneraccount);
-        sb.append(", ").append(transfertimestamp);
         sb.append(", ").append(getTransferstatus());
         sb.append(", ").append(getTitle());
         sb.append(", ").append(getDescription());
+        sb.append(", ").append(getProcessrefunds());
 
         sb.append(")");
         return sb.toString();
@@ -363,10 +362,10 @@ public class Auction implements VertxPojo, Serializable {
         this.setTransfertxid(json.getString("transfertxid", ""));
         this.setTransfertxhash(json.getString("transfertxhash", ""));
         this.setTokenowneraccount(json.getString("tokenowneraccount", ""));
-        this.setTransfertimestamp(json.getString("transfertimestamp", ""));
         this.setTransferstatus(json.getString("transferstatus", ""));
         this.setTitle(json.getString("title", ""));
         this.setDescription(json.getString("description", ""));
+        this.setProcessrefunds(json.getBoolean("processrefunds", /* def= */false));
         return this;
     }
 
@@ -393,10 +392,10 @@ public class Auction implements VertxPojo, Serializable {
         json.put("transfertxid", getTransfertxid());
         json.put("transfertxhash", getTransfertxhash());
         json.put("tokenowneraccount", getTokenowneraccount());
-        json.put("transfertimestamp", getTransfertimestamp());
         json.put("transferstatus", getTransferstatus());
         json.put("title", getTitle());
         json.put("description", getDescription());
+        json.put("processrefunds", getProcessrefunds());
 
         return json;
     }

@@ -31,7 +31,7 @@
                 :endtimestamp="auction.endtimestamp"
                 :status="auction.status"
                 :mirror="mirror"
-                :tokenimage="auction.tokenimage"
+                :tokenmetadata="auction.tokenmetadata"
                 :minimumbid="auction.minimumbid"
                 :transfertxid="auction.transfertxid"
                 :transfertxhash="auction.transfertxhash"
@@ -85,6 +85,7 @@ import {
 } from "../eventBus";
 import { getAuctions } from "../service/auctions";
 import { timeFromSeconds } from "@/utils";
+import { loadEnvironment } from "@/environment";
 
 export default {
   name: "Dashboard",
@@ -136,6 +137,7 @@ export default {
   async created() {
     this.auctions = await getAuctions();
     this.loading = false;
+    loadEnvironment();
 
     EventBus.$on(MIRROR_SELECTION, mirror => {
       this.mirror = mirror;

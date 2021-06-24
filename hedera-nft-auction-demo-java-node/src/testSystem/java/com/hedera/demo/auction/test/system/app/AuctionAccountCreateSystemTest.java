@@ -10,6 +10,7 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.util.Arrays;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -30,6 +31,7 @@ public class AuctionAccountCreateSystemTest extends AbstractSystemTest {
 
         createAccountAndGetInfo("");
 
+        assertNotNull(accountInfo);
         assertEquals(hederaClient.operatorPublicKey().toString(), accountInfo.key.toString());
 
         assertEquals(initialBalance * 100000000, accountInfo.balance.toTinybars());
@@ -43,6 +45,7 @@ public class AuctionAccountCreateSystemTest extends AbstractSystemTest {
 
         createAccountAndGetInfo(keysCreate.toString());
 
+        assertNotNull(accountInfo);
         KeyList accountKeyList = (KeyList) accountInfo.key;
 
         assertEquals(2, accountKeyList.size());
@@ -63,6 +66,7 @@ public class AuctionAccountCreateSystemTest extends AbstractSystemTest {
 
         createAccountAndGetInfo(keysCreate.toString());
 
+        assertNotNull(accountInfo);
         KeyList accountKeyList = (KeyList) accountInfo.key;
 
         assertEquals(2, accountKeyList.size());

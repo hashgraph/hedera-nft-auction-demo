@@ -14,62 +14,48 @@ on:
 jobs:
   # Push image to GitHub Packages.
   # See also https://docs.docker.com/docker-hub/builds/
-  push_postgres_image:
+  build_docker_images:
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
-
     steps:
+      - name: Set version
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+
+      - name: Strip version
+        run: echo "VERSION=${VERSION/refs\/heads\//}" >> $GITHUB_ENV
+
+      - name: Set datetime
+        run: echo "DATETIME=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
+
+      - name: Show values
+        run: echo $VERSION - $DATETIME
+
+      - name: Log into registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Copy .env.sample
+        run: cp .env.sample .env
+        working-directory: hedera-nft-auction-demo-javascript-client-legacy
+
+      - name: Build ui image
+        run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/nft-auction-demo-ui:latest --tag ghcr.io/${{ github.repository }}/nft-auction-demo-ui:$VERSION --tag ghcr.io/${{ github.repository }}/nft-auction-demo-ui:$DATETIME --label "runnumber=${GITHUB_RUN_ID}"
+        working-directory: hedera-nft-auction-demo-javascript-client-legacy
+
+      - name: Push ui image
+        run: docker push ghcr.io/${{ github.repository }}/nft-auction-demo-ui:latest
 
       - name: Build postgres image
-        run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/nft-auction-postgres:latest --label "runnumber=${GITHUB_RUN_ID}"
+        run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/nft-auction-postgres:latest --tag ghcr.io/${{ github.repository }}/nft-auction-postgres:$VERSION --tag ghcr.io/${{ github.repository }}/nft-auction-postgres:$DATETIME --label "runnumber=${GITHUB_RUN_ID}"
         working-directory: docker-postgres
 
-      - name: Log into registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Push image
+      - name: Push postgres image
         run: docker push ghcr.io/${{ github.repository }}/nft-auction-postgres:latest
 
-  #  push_ui_image:
-  #    runs-on: ubuntu-latest
-  #    permissions:
-  #      packages: write
-  #      contents: read
-  #
-  #    steps:
-  #      - name: Checkout
-  #        uses: actions/checkout@v2
-  #
-  #      - name: Build ui image
-  #        run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/nft-auction-demo-ui:latest --label "runnumber=${GITHUB_RUN_ID}"
-  #        working-directory: hedera-nft-auction-demo-javascript-client
-  #
-  #      - name: Log into registry
-  #        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-  #
-  #      - name: Push image
-  #        run: docker push ghcr.io/${{ github.repository }}/nft-auction-demo-ui:latest
-
-  push_java_image:
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
       - name: Build java node image
-        run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/hedera_nft_auction_java_node:latest --label "runnumber=${GITHUB_RUN_ID}"
+        run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/hedera_nft_auction_java_node:latest --tag ghcr.io/${{ github.repository }}/hedera_nft_auction_java_node:$VERSION --tag ghcr.io/${{ github.repository }}/hedera_nft_auction_java_node:$DATETIME --label "runnumber=${GITHUB_RUN_ID}"
         working-directory: hedera-nft-auction-demo-java-node
 
-      - name: Log into registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Push image
+      - name: Push java node image
         run: docker push ghcr.io/${{ github.repository }}/hedera_nft_auction_java_node:latest

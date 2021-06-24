@@ -73,9 +73,11 @@ public class TransactionScheduler {
                         log.info("setting bid to refund issued (timestamp = {})", bid.getTimestamp());
                         try {
                             if (StringUtils.isEmpty(transactionSchedulerResult.getScheduleId())) {
-                                log.debug("empty schedule id");
+                                log.error("empty schedule id for bid transaction id {}", bid.getTransactionid());
+                                bidsRepository.setRefundError(bid.getTransactionid());
+                            } else {
+                                bidsRepository.setRefundIssued(bid.getTimestamp(), shortTransactionId, transactionSchedulerResult.getScheduleId());
                             }
-                            bidsRepository.setRefundIssued(bid.getTimestamp(), shortTransactionId, transactionSchedulerResult.getScheduleId());
                         } catch (SQLException e) {
                             log.error("Failed to set bid refund issued (bid timestamp {})",bid.getTimestamp());
                             log.error(e, e);

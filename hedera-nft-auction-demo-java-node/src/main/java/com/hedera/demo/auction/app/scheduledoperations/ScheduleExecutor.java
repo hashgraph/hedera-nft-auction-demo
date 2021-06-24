@@ -66,16 +66,14 @@ public class ScheduleExecutor implements Runnable {
                                 }
                             }
                         } catch (SQLException e) {
-                            log.error("error fetching auction for pending operations");
-                            log.error(e, e);
+                            log.error("error fetching auction for pending operations", e);
                         } catch (Exception e) {
                             log.error(e, e);
                         }
                     }
                 }
             } catch (SQLException e) {
-                log.error("error fetching list of pending operations");
-                log.error(e, e);
+                log.error("error fetching list of pending operations", e);
             }
 
             Utils.sleep(this.mirrorQueryFrequency);

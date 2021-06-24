@@ -2,8 +2,12 @@ package com.hedera.demo.auction.app;
 
 import com.google.common.base.Splitter;
 import com.google.errorprone.annotations.Var;
+import com.hedera.demo.auction.app.mirrormapping.MirrorSchedule;
+import com.hedera.demo.auction.app.mirrormapping.MirrorTransactions;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.binary.Hex;
@@ -15,15 +19,25 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Log4j2
 public class Utils {
+
+    private static final WebClientOptions webClientOptions = new WebClientOptions()
+            .setUserAgent("HederaAuction/1.0")
+            .setKeepAlive(false);
+    private static final WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
 
     private Utils() {
     }
@@ -101,7 +115,7 @@ public class Utils {
         }
     }
 
-    public static Callable<JsonObject> queryMirror(WebClient webClient, HederaClient hederaClient, String url, Map<String, String> queryParameters) {
+    public static Callable<JsonObject> queryMirror(HederaClient hederaClient, String url, Map<String, String> queryParameters) {
         String mirrorURL = hederaClient.mirrorUrl();
 
         return () -> {
@@ -132,4 +146,56 @@ public class Utils {
         };
     }
 
+    public static String getLastConsensusTimeFromMirror(HederaClient hederaClient) {
+        @Var String lastTimestamp = "";
+        String uri = "/api/v1/transactions";
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        Map<String, String> queryParameters = new HashMap<>();
+        queryParameters.put("limit", "1");
+        Future<JsonObject> future = executor.submit(Utils.queryMirror(hederaClient, uri, queryParameters));
+        try {
+            JsonObject response = future.get();
+            if (response != null) {
+                MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
+                if (mirrorTransactions.transactions != null) {
+                    if (mirrorTransactions.transactions.size() > 0) {
+                        lastTimestamp = mirrorTransactions.transactions.get(0).consensusTimestamp;
+                    }
+                }
+            }
+        } catch (InterruptedException e) {
+            log.error(e, e);
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            log.error(e, e);
+        } finally {
+            executor.shutdown();
+        }
+        return lastTimestamp;
+    }
+
+    public static boolean scheduleHasExecuted(HederaClient hederaClient, String scheduleId) {
+        @Var boolean hasExecuted = false;
+        String uri = "/api/v1/schedules/".concat(scheduleId);
+        ExecutorService executor = Executors.newFixedThreadPool(1);
+        Map<String, String> queryParameters = new HashMap<>();
+        Future<JsonObject> future = executor.submit(Utils.queryMirror(hederaClient, uri, queryParameters));
+        try {
+            JsonObject response = future.get();
+            if (response != null) {
+                MirrorSchedule mirrorSchedule = response.mapTo(MirrorSchedule.class);
+                log.debug("schedule {} contains {} signatures", scheduleId, mirrorSchedule.getSignatureCount());
+                hasExecuted = ! StringUtils.isEmpty(mirrorSchedule.executedTimestamp);
+            }
+        } catch (InterruptedException e) {
+            log.error(e, e);
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            log.error(e, e);
+        } finally {
+            executor.shutdown();
+        }
+        log.debug("schedule {} has executed is ", scheduleId, hasExecuted ? "true" : "false");
+        return hasExecuted;
+    }
 }

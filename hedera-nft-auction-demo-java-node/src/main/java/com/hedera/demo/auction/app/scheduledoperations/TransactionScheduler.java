@@ -79,13 +79,11 @@ public class TransactionScheduler {
                                 bidsRepository.setRefundIssued(bid.getTimestamp(), shortTransactionId, transactionSchedulerResult.getScheduleId());
                             }
                         } catch (SQLException e) {
-                            log.error("Failed to set bid refund issued (bid timestamp {})",bid.getTimestamp());
-                            log.error(e, e);
+                            log.error("Failed to set bid refund issued (bid timestamp {})",bid.getTimestamp(), e);
                         }
                     } else {
-                        log.error("Error issuing refund to bid - timestamp = {}", bid.getTimestamp());
+                        log.error("Error issuing refund to bid - timestamp = {} status {}", bid.getTimestamp(), transactionSchedulerResult.status);
                         bidsRepository.setRefundError(bid.getTransactionid());
-                        log.error(transactionSchedulerResult.status);
                     }
                 } catch (Exception e) {
                     log.error(e, e);
@@ -119,8 +117,7 @@ public class TransactionScheduler {
                 hederaClient.client().close();
                 return transactionSchedulerResult;
             } catch (TimeoutException e) {
-                log.error("TimeoutException fetching receipt");
-                log.error(e, e);
+                log.error("TimeoutException fetching receipt", e);
                 hederaClient.client().close();
                 throw e;
             } catch (ReceiptStatusException receiptStatusException) {
@@ -153,8 +150,7 @@ public class TransactionScheduler {
             }
 
         } catch (TimeoutException e) {
-            log.error("Exception fetching receipt");
-            log.error(e, e);
+            log.error("Exception fetching receipt", e);
             throw e;
         } catch (PrecheckStatusException precheckStatusException) {
             switch (precheckStatusException.status) {

@@ -59,7 +59,7 @@ public class AuctionCreateSystemTest extends AbstractSystemTest {
 
         hederaClient.setMirrorProvider("hedera");
         hederaClient.setClientMirror();
-        TopicSubscriber topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, null, topicId, 5000, auctionAccountKey.toString());
+        TopicSubscriber topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, topicId, 5000, auctionAccountKey.toString());
         topicSubscriber.setSkipReadinessWatcher();
         // start the thread to monitor bids
         Thread t = new Thread(topicSubscriber);

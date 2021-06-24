@@ -10,7 +10,6 @@ import com.hedera.demo.auction.app.mirrormapping.MirrorTransaction;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
@@ -28,15 +27,13 @@ public class BidsWatcher implements Runnable {
 
     private final int auctionId;
     private Auction auction;
-    private final WebClient webClient;
     private final AuctionsRepository auctionsRepository;
     private final int mirrorQueryFrequency;
     private final HederaClient hederaClient;
     protected boolean runThread = true;
     protected boolean testing = false;
 
-    public BidsWatcher(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, int auctionId, int mirrorQueryFrequency) {
-        this.webClient = webClient;
+    public BidsWatcher(HederaClient hederaClient, AuctionsRepository auctionsRepository, int auctionId, int mirrorQueryFrequency) {
         this.auctionsRepository = auctionsRepository;
         this.auctionId = auctionId;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
@@ -45,8 +42,7 @@ public class BidsWatcher implements Runnable {
         try {
             this.auction = auctionsRepository.getAuction(auctionId);
         } catch (Exception e) {
-            log.error("unable to get auction id {}", auctionId);
-            log.error(e, e);
+            log.error("unable to get auction id {}", auctionId, e);
         }
     }
 
@@ -80,7 +76,7 @@ public class BidsWatcher implements Runnable {
                 queryParameters.put("order", "asc");
                 queryParameters.put("timestamp", "gt:".concat(consensusTimeStampFrom));
 
-                Future<JsonObject> future = executor.submit(Utils.queryMirror(webClient, hederaClient, uri, queryParameters));
+                Future<JsonObject> future = executor.submit(Utils.queryMirror(hederaClient, uri, queryParameters));
 
                 try {
                     JsonObject response = future.get();

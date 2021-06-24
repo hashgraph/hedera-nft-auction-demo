@@ -10,7 +10,6 @@ import com.hedera.demo.auction.app.mirrormapping.MirrorTransactions;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.WebClient;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
@@ -26,7 +25,6 @@ import java.util.concurrent.Future;
 @Log4j2
 public class RefundChecker implements Runnable {
 
-    protected final WebClient webClient;
     protected final AuctionsRepository auctionsRepository;
     protected final BidsRepository bidsRepository;
     protected final int mirrorQueryFrequency;
@@ -34,8 +32,7 @@ public class RefundChecker implements Runnable {
     protected boolean runThread = true;
     protected Map<Integer, String> queryTimestamps = new HashMap<Integer, String>();
 
-    public RefundChecker(HederaClient hederaClient, WebClient webClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int mirrorQueryFrequency) {
-        this.webClient = webClient;
+    public RefundChecker(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int mirrorQueryFrequency) {
         this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
@@ -101,7 +98,7 @@ public class RefundChecker implements Runnable {
                         queryParameters.put("transactiontype", "CRYPTOTRANSFER");
                         queryParameters.put("order", "asc");
                         queryParameters.put("timestamp", "gt:".concat(queryFromTimestamp));
-                        Future<JsonObject> future = executor.submit(Utils.queryMirror(webClient, hederaClient, uri, queryParameters));
+                        Future<JsonObject> future = executor.submit(Utils.queryMirror(hederaClient, uri, queryParameters));
 
                         JsonObject body = future.get();
                         MirrorTransactions mirrorTransactions = body.mapTo(MirrorTransactions.class);
@@ -120,20 +117,16 @@ public class RefundChecker implements Runnable {
                         }
                     }
                 } catch (SQLException e) {
-                    log.error("unable to fetch first bid to refund");
-                    log.error(e, e);
+                    log.error("unable to fetch first bid to refund", e);
                 } catch (InterruptedException e) {
-                    log.error("error occurred getting future");
-                    log.error(e, e);
+                    log.error("error occurred getting future", e);
                     Thread.currentThread().interrupt();
                 } catch (ExecutionException e) {
-                    log.error("error occurred getting future");
-                    log.error(e, e);
+                    log.error("error occurred getting future", e);
                 }
             }
         } catch (SQLException e) {
-            log.error("Unable to fetch auctions list");
-            log.error(e, e);
+            log.error("Unable to fetch auctions list", e);
         }
         executor.shutdown();
         return foundRefundsToCheck;
@@ -164,8 +157,7 @@ public class RefundChecker implements Runnable {
                             refundsProcessed = true;
                         }
                     } catch (SQLException e) {
-                        log.error("Error setting bid to refunded (bid transaction id {})", bidTransactionId);
-                        log.error(e, e);
+                        log.error("Error setting bid to refunded (bid transaction id {})", bidTransactionId, e);
                     }
                 } else {
                     // set bid refund pending
@@ -175,8 +167,7 @@ public class RefundChecker implements Runnable {
                             refundsProcessed = true;
                         }
                     } catch (SQLException e) {
-                        log.error("Error setting bid to refund pending (bid transaction id {})", bidTransactionId);
-                        log.error(e, e);
+                        log.error("Error setting bid to refund pending (bid transaction id {})", bidTransactionId, e);
                     }
                 }
             }

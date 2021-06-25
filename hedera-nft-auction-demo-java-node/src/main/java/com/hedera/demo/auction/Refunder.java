@@ -40,7 +40,7 @@ public class Refunder implements Runnable {
     private final int mirrorQueryFrequency;
     private boolean testing = false;
     private boolean runThread = true;
-    private final ExecutorService executor = Executors.newFixedThreadPool(10);
+    private ExecutorService executor;
     private final Map<String, String> refundsInProgress = new HashMap();
     private int lastErrorCheckHour = -1;
 
@@ -51,11 +51,12 @@ public class Refunder implements Runnable {
      * @param bidsRepository the bids repository
      * @param mirrorQueryFrequency the time to sleep in seconds between mirror queries
      */
-    public Refunder(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int mirrorQueryFrequency) {
+    public Refunder(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int mirrorQueryFrequency, int refundThreads) {
         this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
         this.hederaClient = hederaClient;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
+        this.executor = Executors.newFixedThreadPool(refundThreads);
     }
 
     /**

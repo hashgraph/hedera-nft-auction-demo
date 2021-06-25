@@ -1,6 +1,7 @@
 package com.hedera.demo.auction.exerciser;
 
 import com.google.errorprone.annotations.Var;
+import com.hedera.demo.auction.app.CreateTopic;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.PrivateKey;
@@ -35,21 +36,14 @@ public final class SetupHelper {
     client.setOperator(testOperator, testOperatorKey);
     @Var TransactionResponse response;
     @Var TransactionReceipt receipt;
-    response = new TransferTransaction()
-            .addTokenTransfer(TokenId.fromString("0.0.1969378"), testOperator, -1)
-            .addTokenTransfer(TokenId.fromString("0.0.1969378"), AccountId.fromString("0.0.1969379"), 1)
-            .execute(client);
 
-    response.getReceipt(client);
-
-    System.exit(0);
     // create topic
-//    CreateTopic createTopic = new CreateTopic();
-//    createTopic.create();
-//
-//    System.out.println("Topic Created");
-//    System.out.println("Update .env in environments and restart");
-//    pressAnyKeyToContinue();
+    CreateTopic createTopic = new CreateTopic();
+    createTopic.create();
+
+    System.out.println("Topic Created");
+    System.out.println("Update .env in environments and restart");
+    pressAnyKeyToContinue();
 
     System.out.println("Creating token");
 

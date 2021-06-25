@@ -195,8 +195,8 @@ public class Utils {
             JsonObject response = future.get();
             if (response != null) {
                 MirrorSchedule mirrorSchedule = response.mapTo(MirrorSchedule.class);
-                log.debug("schedule {} contains {} signatures", scheduleId, mirrorSchedule.getSignatureCount());
                 hasExecuted = ! StringUtils.isEmpty(mirrorSchedule.executedTimestamp);
+                log.debug("schedule {} contains {} signatures", scheduleId, mirrorSchedule.getSignatureCount());
             }
         } catch (InterruptedException e) {
             log.error(e, e);
@@ -206,7 +206,7 @@ public class Utils {
         } finally {
             executor.shutdown();
         }
-        log.debug("schedule {} has executed is ", scheduleId, hasExecuted ? "true" : "false");
+        log.debug("schedule {} has executed is {}", scheduleId, hasExecuted);
         return hasExecuted;
     }
 }

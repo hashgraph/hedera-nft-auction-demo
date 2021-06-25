@@ -258,6 +258,7 @@ public class TopicSubscriber implements Runnable{
                                 }
                             }
                         }
+                        client.close();
                     }
 
                 } catch (SQLException e) {

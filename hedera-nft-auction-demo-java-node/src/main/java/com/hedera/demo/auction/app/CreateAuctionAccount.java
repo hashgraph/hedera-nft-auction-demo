@@ -38,7 +38,7 @@ public class CreateAuctionAccount extends AbstractCreate {
         AccountCreateTransaction accountCreateTransaction = new AccountCreateTransaction();
         Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
 
-        Key keyList;
+        @Var Key keyList;
         if (StringUtils.isEmpty(keys)) {
             log.info("No public key provided, defaulting to operator public key");
             keyList = client.getOperatorPublicKey();
@@ -56,17 +56,16 @@ public class CreateAuctionAccount extends AbstractCreate {
                 log.info("No public key provided, defaulting to operator public key");
                 keyList = client.getOperatorPublicKey();
             }
-        }
+            String masterKey = Optional.ofNullable(dotenv.get("MASTER_KEY")).orElse("");
 
-        String masterKey = Optional.ofNullable(dotenv.get("MASTER_KEY")).orElse("");
-
-        if ( ! StringUtils.isEmpty(masterKey)) {
-            // check master key is not already in provided key list
-            PublicKey masterPublicKey = PrivateKey.fromString(masterKey).getPublicKey();
-            if ( ! keys.toUpperCase().contains(masterPublicKey.toString().toUpperCase())) {
-                // not supplied in the key list, add it here
-                Key fullKeyList = KeyList.of(keyList, masterPublicKey).setThreshold(1);
-                keyList = fullKeyList;
+            if ( ! StringUtils.isEmpty(masterKey)) {
+                // check master key is not already in provided key list
+                PublicKey masterPublicKey = PrivateKey.fromString(masterKey).getPublicKey();
+                if ( ! keys.toUpperCase().contains(masterPublicKey.toString().toUpperCase())) {
+                    // not supplied in the key list, add it here
+                    Key fullKeyList = KeyList.of(keyList, masterPublicKey).setThreshold(1);
+                    keyList = fullKeyList;
+                }
             }
         }
 

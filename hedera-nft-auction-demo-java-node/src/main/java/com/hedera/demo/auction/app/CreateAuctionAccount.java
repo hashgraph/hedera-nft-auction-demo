@@ -6,12 +6,18 @@ import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.Hbar;
 import com.hedera.hashgraph.sdk.Key;
+import com.hedera.hashgraph.sdk.KeyList;
+import com.hedera.hashgraph.sdk.PrivateKey;
+import com.hedera.hashgraph.sdk.PublicKey;
 import com.hedera.hashgraph.sdk.Status;
 import com.hedera.hashgraph.sdk.TransactionReceipt;
 import com.hedera.hashgraph.sdk.TransactionResponse;
+import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
+
+import java.util.Optional;
 
 @Log4j2
 public class CreateAuctionAccount extends AbstractCreate {
@@ -30,8 +36,9 @@ public class CreateAuctionAccount extends AbstractCreate {
 
         Client client = hederaClient.client();
         AccountCreateTransaction accountCreateTransaction = new AccountCreateTransaction();
+        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
 
-        Key keyList;
+        @Var Key keyList;
         if (StringUtils.isEmpty(keys)) {
             log.info("No public key provided, defaulting to operator public key");
             keyList = client.getOperatorPublicKey();
@@ -48,6 +55,17 @@ public class CreateAuctionAccount extends AbstractCreate {
             } else {
                 log.info("No public key provided, defaulting to operator public key");
                 keyList = client.getOperatorPublicKey();
+            }
+            String masterKey = Optional.ofNullable(dotenv.get("MASTER_KEY")).orElse("");
+
+            if ( ! StringUtils.isEmpty(masterKey)) {
+                // check master key is not already in provided key list
+                PublicKey masterPublicKey = PrivateKey.fromString(masterKey).getPublicKey();
+                if ( ! keys.toUpperCase().contains(masterPublicKey.toString().toUpperCase())) {
+                    // not supplied in the key list, add it here
+                    Key fullKeyList = KeyList.of(keyList, masterPublicKey).setThreshold(1);
+                    keyList = fullKeyList;
+                }
             }
         }
 

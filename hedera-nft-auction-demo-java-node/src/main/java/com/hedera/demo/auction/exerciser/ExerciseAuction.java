@@ -47,10 +47,10 @@ public final class ExerciseAuction {
 //    int numThreads = Integer.parseInt(args[2]);
 //    int numTransfers = Integer.parseInt(args[3]);
     //    String auctionAccount = args[0];
-    String auctionAccount = "0.0.1969379";
+    String auctionAccount = "0.0.1976700";
     int numAccounts = 10;
-    int numThreads = 1;
-    int numTransfers = 1;
+    int numThreads = 4;
+    int numTransfers = 4;
 //    int numThreads = 1;
 //    int numTransfers = 10;
 
@@ -154,6 +154,10 @@ public final class ExerciseAuction {
           System.out.println("Winning account(s) " + exerciseWinner.accountId.toString());
         }
       }
+    })
+    .exceptionally(exception -> {
+      log.error(exception);
+      return null;
     });
 
     System.out.println("End of transfers");

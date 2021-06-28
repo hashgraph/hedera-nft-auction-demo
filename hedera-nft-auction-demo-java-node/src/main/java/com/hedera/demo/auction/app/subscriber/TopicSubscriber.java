@@ -97,7 +97,7 @@ public class TopicSubscriber implements Runnable{
         while (this.runThread) {
             try {
 
-                log.debug("Checking for messages on topic id {} {}", this.topicId.toString());
+                log.debug("Checking for messages on topic id {}", this.topicId.toString());
 
                 Map<String, String> queryParameters = new HashMap<>();
                 queryParameters.put("timestamp", "gt:".concat(nextTimestamp));
@@ -258,6 +258,7 @@ public class TopicSubscriber implements Runnable{
                                 }
                             }
                         }
+                        client.close();
                     }
 
                 } catch (SQLException e) {

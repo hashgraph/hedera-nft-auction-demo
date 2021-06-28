@@ -44,6 +44,7 @@ public final class App {
     private String postgresPassword = Optional.ofNullable(env.get("DATABASE_PASSWORD")).orElse("password");
     private boolean transferOnWin = Optional.ofNullable(env.get("TRANSFER_ON_WIN")).map(Boolean::parseBoolean).orElse(true);
     private String masterKey = Optional.ofNullable(env.get("MASTER_KEY")).orElse("");
+    private final int refundThreads = Optional.ofNullable(env.get("REFUND_THREADS")).map(Integer::parseInt).orElse(10);
     private final String operatorKey = env.get("OPERATOR_KEY");
     private HederaClient hederaClient;
 
@@ -142,7 +143,7 @@ public final class App {
             startBidWatchers(auctionsRepository, /* runOnce= */ false);
             if (refund) {
                 // validator node, start the refunder thread
-                startRefunder(auctionsRepository, bidsRepository);
+                startRefunder(auctionsRepository, bidsRepository, refundThreads);
             }
             startRefundChecker(auctionsRepository, bidsRepository, /* runOnce= */ false);
             if (transferOnWin) {
@@ -221,9 +222,9 @@ public final class App {
         auctionEndTransferThread.start();
     }
 
-    private void startRefunder(AuctionsRepository auctionsRepository, BidsRepository bidsRepository) {
+    private void startRefunder(AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int refundThreads) {
         // start the thread to monitor winning account association with token
-        refunder = new Refunder(hederaClient, auctionsRepository, bidsRepository, mirrorQueryFrequency);
+        refunder = new Refunder(hederaClient, auctionsRepository, bidsRepository, mirrorQueryFrequency, refundThreads);
         Thread refunderThread = new Thread(refunder);
         refunderThread.start();
     }

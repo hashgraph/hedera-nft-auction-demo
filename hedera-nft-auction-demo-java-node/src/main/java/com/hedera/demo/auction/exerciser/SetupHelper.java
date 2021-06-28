@@ -1,6 +1,7 @@
 package com.hedera.demo.auction.exerciser;
 
 import com.google.errorprone.annotations.Var;
+import com.hedera.demo.auction.app.CreateTopic;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.PrivateKey;
@@ -35,21 +36,14 @@ public final class SetupHelper {
     client.setOperator(testOperator, testOperatorKey);
     @Var TransactionResponse response;
     @Var TransactionReceipt receipt;
-    response = new TransferTransaction()
-            .addTokenTransfer(TokenId.fromString("0.0.1969378"), testOperator, -1)
-            .addTokenTransfer(TokenId.fromString("0.0.1969378"), AccountId.fromString("0.0.1969379"), 1)
-            .execute(client);
 
-    response.getReceipt(client);
-
-    System.exit(0);
     // create topic
-//    CreateTopic createTopic = new CreateTopic();
-//    createTopic.create();
-//
-//    System.out.println("Topic Created");
-//    System.out.println("Update .env in environments and restart");
-//    pressAnyKeyToContinue();
+    CreateTopic createTopic = new CreateTopic();
+    createTopic.create();
+
+    System.out.println("Topic Created");
+    System.out.println("Update .env in environments and restart");
+    pressAnyKeyToContinue();
 
     System.out.println("Creating token");
 
@@ -67,36 +61,27 @@ public final class SetupHelper {
 
     // create auction account
     // Account create JSON
-    String createAccountString = "    {" +
-            "      \"keyList\" : {" +
-            "      \"keys\": [" +
+    String createAccountString =
+            "{" +
+            "  \"keyList\": {" +
+            "    \"keys\": [" +
             "      {" +
-            "        \"key\" : \"302a300506032b6570032100362c7be3137d0c6f53b9d89cb591c8bfb0ce4d28e8b0549948da5a7db9b9d768\"" +
+            "        \"key\": \"302a300506032b6570032100130044fa6c178739733d525210d2965cb89420255335349e50c8b329e4732c75\"" +
             "      }," +
             "      {" +
-            "        \"keyList\": {" +
-            "        \"keys\": [" +
-            "        {" +
-            "          \"key\": \"302a300506032b6570032100130044fa6c178739733d525210d2965cb89420255335349e50c8b329e4732c75\"" +
-            "        }," +
-            "        {" +
-            "          \"key\": \"302a300506032b65700321008ba273d242fb1ebd3c66c26d88c5c433876d5cffdfd6e5520a151034eb9eabff\"" +
-            "        }" +
-            "          ]," +
-            "        \"threshold\": 1" +
-            "      }" +
+            "        \"key\": \"302a300506032b65700321008ba273d242fb1ebd3c66c26d88c5c433876d5cffdfd6e5520a151034eb9eabff\"" +
             "      }" +
             "    ]," +
-            "      \"threshold\" : 1" +
-            "    }," +
-            "      \"initialBalance\": 100" +
-            "    }    ";
+            "    \"threshold\": 2" +
+            "  }," +
+            "  \"initialBalance\": 10" +
+            "}";
     JsonObject createAccountJson = new JsonObject(createAccountString);// .mapFrom(createAccountString);
 
     System.out.println("Creating auction account");
 
     @Var HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://hedera-nft-auction:8082/v1/admin/auctionaccount"))
+            .uri(URI.create("http://localhost:8082/v1/admin/auctionaccount"))
             .header("Content-Type", "application/json")
             .POST(BodyPublishers.ofString(createAccountJson.toString()))
             .build();
@@ -140,6 +125,7 @@ public final class SetupHelper {
     System.out.println("Start the containers so that the auction account associates with the token");
     System.out.println("Press a key to transfer the token to the auction");
     pressAnyKeyToContinue();
+
 
     response = new TransferTransaction()
             .addTokenTransfer(tokenId, testOperator, -1)

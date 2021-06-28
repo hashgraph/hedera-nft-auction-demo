@@ -1,9 +1,10 @@
+import {NETWORK} from "./constants";
 const getWalletData = () => {
   return new Promise(async (resolve, reject) => {
     try {
       const network =
-        process.env.NEXT_PUBLIC_NETWORK.charAt(0).toUpperCase() +
-        process.env.NEXT_PUBLIC_NETWORK.slice(1)
+        NETWORK.charAt(0).toUpperCase() +
+          NETWORK.slice(1)
       let wallet = window.wallet
       if (!wallet) {
         document.addEventListener('hederaWalletLoaded', async () => {

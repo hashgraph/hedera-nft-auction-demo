@@ -1,7 +1,8 @@
-import { API_BASE_URL } from './constants'
-
 const fetchAuctions = () => {
-  const endpoint = API_BASE_URL + '/auctions'
+  let endpoint = process.env.NEXT_PUBLIC_BASE_API_URL ? process.env.NEXT_PUBLIC_BASE_API_URL : "http://".concat(window.location.hostname).concat(":8081");
+  endpoint = endpoint + '/v1/auctions';
+  console.log(endpoint);
+
   return new Promise(async (resolve, reject) => {
     try {
       const auctionResponse = await fetch(endpoint)

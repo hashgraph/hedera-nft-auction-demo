@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:14.15.0
 
 ENV PORT 3000
 
@@ -14,7 +14,7 @@ RUN npm install
 COPY . /app
 
 # Building app
-RUN npm run build
+RUN npm run-script build
 EXPOSE 3000
 
 # Running the app

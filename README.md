@@ -12,7 +12,7 @@
   
 * To build from code
   * PostgreSQL version 12
-  * Node.js v14.9.0
+  * Node.js v14.15.0
   * Yarn 1.22.10
   * Java 14
   
@@ -81,7 +81,7 @@ you may leave the other properties as is for now
 
 ```shell
 cd hedera-nft-auction-demo
-cd hedera-nft-auction-demo-javascript-client-legacy
+cd hedera-nft-auction-demo-javascript-client
 cp .env.sample .env
 ```
 
@@ -193,7 +193,7 @@ _Note: The UI assumes it is served from the same server as the client REST api (
 
 ```shell
 cd hedera-nft-auction-demo
-cd hedera-nft-auction-demo-javascript-client-legacy
+cd hedera-nft-auction-demo-javascript-client
 # Build the code
 ./yarn install
 ```
@@ -555,7 +555,7 @@ java -jar build/libs/hedera-nft-auction-demo-1.0.jar
 __Web UI__
 
 ```shell
-cd hedera-nft-auction-demo-javascript-client-legacy
+cd hedera-nft-auction-demo-javascript-client
 yarn serve
 ```
 

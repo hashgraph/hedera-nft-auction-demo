@@ -44,7 +44,7 @@ public final class App {
     private String postgresPassword = Optional.ofNullable(env.get("DATABASE_PASSWORD")).orElse("password");
     private boolean transferOnWin = Optional.ofNullable(env.get("TRANSFER_ON_WIN")).map(Boolean::parseBoolean).orElse(true);
     private String masterKey = Optional.ofNullable(env.get("MASTER_KEY")).orElse("");
-    private int refundThreads = Optional.ofNullable(env.get("REFUND_THREADS")).map(Integer::parseInt).orElse(10);
+    private final int refundThreads = Optional.ofNullable(env.get("REFUND_THREADS")).map(Integer::parseInt).orElse(10);
     private final String operatorKey = env.get("OPERATOR_KEY");
     private HederaClient hederaClient;
 

@@ -40,7 +40,7 @@ public class Refunder implements Runnable {
     private final int mirrorQueryFrequency;
     private boolean testing = false;
     private boolean runThread = true;
-    private ExecutorService executor;
+    private final ExecutorService executor;
     private final Map<String, String> refundsInProgress = new HashMap();
     private int lastErrorCheckHour = -1;
 

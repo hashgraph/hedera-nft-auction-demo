@@ -74,7 +74,7 @@ public abstract class AbstractSystemTest {
     protected CreateAuction createAuction;
     protected EasySetup easySetup;
 
-    protected static final long initialBalance = 100;
+    protected static final long initialBalance = 10;
     @Nullable
     protected static AccountId auctionAccountId;
     @Nullable
@@ -112,7 +112,7 @@ public abstract class AbstractSystemTest {
     protected Map<String, AccountId> biddingAccounts = new HashMap<>();
     protected final PrivateKey bidAccountKey = PrivateKey.generate();
 
-    protected PrivateKey masterKey = PrivateKey.generate();
+    protected PrivateKey masterKey = PrivateKey.fromString(Dotenv.load().get("MASTER_KEY"));
 
     // test token owner
     PrivateKey tokenOwnerPrivateKey;

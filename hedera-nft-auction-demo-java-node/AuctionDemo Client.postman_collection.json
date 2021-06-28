@@ -222,20 +222,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/bids/:auctionid",
+					"raw": "{{base_url}}/v1/generatekey",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
 						"v1",
-						"bids",
-						":auctionid"
-					],
-					"variable": [
-						{
-							"key": "auctionid",
-							"value": "0"
-						}
+						"generatekey"
 					]
 				}
 			},

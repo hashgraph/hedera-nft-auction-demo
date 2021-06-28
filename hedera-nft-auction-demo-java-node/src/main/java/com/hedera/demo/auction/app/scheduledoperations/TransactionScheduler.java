@@ -191,7 +191,7 @@ public class TransactionScheduler {
         return handleResponse(hederaClient, receipt, receipt.scheduleId);
     }
 
-    private String shortKey(PublicKey publicKey) {
+    private static String shortKey(PublicKey publicKey) {
         return publicKey.toString().substring(publicKey.toString().length() - 4);
     }
 }

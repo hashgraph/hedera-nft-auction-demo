@@ -36,7 +36,7 @@ public final class App {
     private boolean adminAPI = Optional.ofNullable(env.get("ADMIN_API")).map(Boolean::parseBoolean).orElse(false);
     private int adminApiVerticleCount = Optional.ofNullable(env.get("ADMIN_API_VERTICLE_COUNT")).map(Integer::parseInt).orElse(2);
     private boolean auctionNode = Optional.ofNullable(env.get("AUCTION_NODE")).map(Boolean::parseBoolean).orElse(false);
-    private String topicId = Optional.ofNullable(env.get("VUE_APP_TOPIC_ID")).orElse("");
+    private String topicId = Optional.ofNullable(env.get("TOPIC_ID")).orElse("");
     private int mirrorQueryFrequency = Integer.parseInt(Optional.ofNullable(env.get("MIRROR_QUERY_FREQUENCY")).orElse("5000"));
     private boolean refund = Optional.ofNullable(env.get("REFUND")).map(Boolean::parseBoolean).orElse(false);
     private String postgresUrl = Optional.ofNullable(env.get("DATABASE_URL")).orElse("postgresql://localhost:5432/postgres");

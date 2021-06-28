@@ -38,7 +38,7 @@ public class TopicCreateSystemTest extends AbstractSystemTest {
 
         @Var boolean bFoundTopicId = false;
         for (String line : dotEnvLines) {
-            if (line.trim().startsWith("VUE_APP_TOPIC_ID")) {
+            if (line.trim().startsWith("TOPIC_ID")) {
                 if (line.contains(topicInfo.topicId.toString())) {
                     bFoundTopicId = true;
                 }

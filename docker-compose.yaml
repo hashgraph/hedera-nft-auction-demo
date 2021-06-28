@@ -100,7 +100,7 @@ services:
       - DATABASE_PASSWORD=password
       - POOL_SIZE=10
       # REST API Ports
-      - VUE_APP_API_PORT=8081
+      - API_PORT=8081
       - API_VERTICLE_COUNT=16
       - ADMIN_API_PORT=8082
       - ADMIN_API_VERTICLE_COUNT=1
@@ -133,7 +133,7 @@ services:
       - DATABASE_PASSWORD=password
       - POOL_SIZE=10
       # REST API Ports
-      - VUE_APP_API_PORT=8081
+      - API_PORT=8081
       - API_VERTICLE_COUNT=16
       - ADMIN_API_PORT=8082
       - ADMIN_API_VERTICLE_COUNT=1

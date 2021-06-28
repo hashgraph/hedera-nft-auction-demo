@@ -36,10 +36,10 @@ jobs:
         OPERATOR_ID: ${{ secrets.OPERATOR_ID }}
         OPERATOR_KEY: ${{ secrets.OPERATOR_KEY }}
         REFUND_KEY: ${{ secrets.OPERATOR_KEY }}
-        VUE_APP_NETWORK: testnet
+        NETWORK: testnet
         #       Run the REST API true/false
         REST_API: true
-        VUE_APP_API_PORT: 8081
+        API_PORT: 8081
         API_VERTICLE_COUNT: 1
         #       Run the admin REST API true/false
         ADMIN_API: true
@@ -50,7 +50,7 @@ jobs:
         #       only if participating in refund transactions
         TRANSFER_ON_WIN: true
         #       auction topic details
-        VUE_APP_TOPIC_ID:
+        TOPIC_ID:
         #       mirror node detail
         #       the mirror provider may be hedera, kabuto or dragonglass
         MIRROR_PROVIDER: hedera

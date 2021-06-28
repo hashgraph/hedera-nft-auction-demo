@@ -209,7 +209,7 @@ public class AbstractIntegrationTest {
                 .put("DATABASE_USERNAME", username)
                 .put("DATABASE_PASSWORD", password)
                 .put("POOL_SIZE", "1")
-                .put("VUE_APP_API_PORT","9005");
+                .put("API_PORT","9005");
         DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(1);
         return options;
     }

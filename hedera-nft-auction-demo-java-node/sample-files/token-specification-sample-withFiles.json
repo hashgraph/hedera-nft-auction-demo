@@ -1,0 +1,19 @@
+{
+  "name": "Token Name",
+  "symbol": "Symbol",
+  "initialSupply": 1,
+  "decimals": 0,
+  "memo": "token memo",
+  "description": {
+    "type": "string",
+    "description": "Describes the asset to which this token represents."
+  },
+  "image": {
+    "type": "file",
+    "description": "sample-files/GoldCoin.jpg"
+  },
+  "certificate": {
+    "type": "file",
+    "description": "sample-files/silver.jpg"
+  }
+}

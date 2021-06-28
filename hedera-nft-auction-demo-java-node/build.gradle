@@ -12,7 +12,7 @@ buildscript {
 	dependencies {
 		classpath "org.glassfish.jaxb:jaxb-runtime:2.3.2"
 		classpath "org.postgresql:postgresql:42.2.14"
-		classpath "io.github.jklingsporn:vertx-jooq-generate:5.2.0"
+		classpath "io.github.jklingsporn:vertx-jooq-generate:6.3.0"
 		classpath "io.vertx:vertx-core:4.0.3"
 	}
 }
@@ -24,10 +24,10 @@ plugins {
 	id "net.ltgt.errorprone" version "1.3.0" apply false
 	id "com.github.ben-manes.versions" version "0.29.0" apply false
 	id "org.flywaydb.flyway" version "6.5.5"
-	id 'nu.studer.jooq' version '5.0.1'
+	id 'nu.studer.jooq' version '5.2.1'
 	id "jacoco"
 	id 'java'
-	id 'com.bmuschko.docker-java-application' version '6.7.0'
+//	id 'com.bmuschko.docker-java-application' version '6.7.0'
 }
 
 allprojects {
@@ -73,12 +73,13 @@ allprojects {
 
 	idea {
 		module {
-			sourceDirs -= file("src/testIntegration/java")
-			testSourceDirs += file("src/testIntegration/java")
-			sourceDirs -= file("src/testSystem/java")
-			testSourceDirs += file("src/testSystem/java")
+//			sourceDirs -= file("src/testIntegration/java")
+//			testSourceDirs += file("src/testIntegration/java")
+//			sourceDirs -= file("src/testSystem/java")
+//			testSourceDirs += file("src/testSystem/java")
 
 			scopes.TEST.plus += [ configurations.testIntegrationCompile ]
+			scopes.TEST.plus += [ configurations.testSystemCompile ]
 		}
 	}
 
@@ -120,7 +121,7 @@ allprojects {
 		options.errorprone {
 			// https://github.com/uber/NullAway
 			warn("NullAway")
-			option("NullAway:AnnotatedPackages", "com.hedera.demo.auction.node.app")
+			option("NullAway:AnnotatedPackages", "com.hedera.demo.auction")
 			option("NullAway:TreatGeneratedAsUnannotated", "true")
 
 			// Enable _all_ error prone checks then selectively disable
@@ -155,6 +156,7 @@ dependencies {
 	runtimeOnly 'io.grpc:grpc-netty-shaded:1.35.0'
 
 	def vertxVersion = "4.0.3"
+	def jooqVersion = "3.14.11"
 
 	implementation "io.vertx:vertx-web:$vertxVersion"
 	implementation "io.vertx:vertx-pg-client:$vertxVersion"
@@ -162,8 +164,8 @@ dependencies {
 	implementation "io.github.jklingsporn:vertx-jooq-classic-reactive:5.2.0"
 	implementation 'commons-codec:commons-codec:1.9'
 	// jOOQ
-	implementation 'org.jooq:jooq:3.13.4'
-	runtimeOnly 'org.jooq:jooq-meta:3.13.4'
+	implementation "org.jooq:jooq:$jooqVersion"
+	runtimeOnly "org.jooq:jooq-meta:$jooqVersion"
 	runtimeOnly 'org.postgresql:postgresql:42.2.14'
 
 	// jOOQ database driver
@@ -231,7 +233,7 @@ jacocoTestReport {
 	// remove generated db files from report
 	afterEvaluate {
 		classDirectories.setFrom(files(classDirectories.files.collect {
-			fileTree(dir: it, exclude: '**/app/db/**')
+			fileTree(dir: it, exclude: ['**/app/db/**','com.hedera.demo.auction.exerciser/**'])
 		}))
 	}
 
@@ -262,22 +264,22 @@ check.dependsOn testIntegration
 task testSystem(type: Test) {
 	description = 'Runs the system tests.'
 	group = 'verification'
-	dependsOn 'dockerBuildImage'
+//	dependsOn 'dockerBuildImage'
 
 	testClassesDirs = sourceSets.testSystem.output.classesDirs
 	classpath = sourceSets.testSystem.runtimeClasspath
 	outputs.upToDateWhen { false }
 }
 
-docker {
-	println "Building docker image"
-	javaApplication {
-		baseImage = 'adoptopenjdk:14-jre-hotspot'
-		ports = [8081, 8082]
-		images = ["hedera/${rootProject.name}:latest"]
-		mainClassName = "com.hedera.demo.auction.node.app.App"
-	}
-}
+//docker {
+//	println "Building docker image"
+//	javaApplication {
+//		baseImage = 'adoptopenjdk:14-jre-hotspot'
+//		ports = [8081, 8082]
+//		images = ["hedera/${rootProject.name}:latest"]
+//		mainClassName = "com.hedera.demo.auction.app.App"
+//	}
+//}
 
 flyway {
 	def dbURL = System.getenv("DATABASE_URL") ?: "postgresql://localhost:5432/postgres"
@@ -299,7 +301,7 @@ task jooqGenerate {
 		def writer = new StringWriter()
 
 		new MarkupBuilder(writer)
-				.configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.13.0.xsd') {
+				.configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.14.0.xsd') {
 					jdbc {
 						driver('org.postgresql.Driver')
 						url("jdbc:${dbURL}")
@@ -321,7 +323,7 @@ task jooqGenerate {
 							daos(false)
 						}
 						target() {
-							packageName('com.hedera.demo.auction.node.app.db')
+							packageName('com.hedera.demo.auction.app.db')
 							directory("$projectDir/src/main/java")
 						}
 						strategy {
@@ -346,7 +348,7 @@ task runNode(type: JavaExec) {
 	group = "Execution"
 	description = "Runs the application"
 	classpath = sourceSets.main.runtimeClasspath
-	main = "com.hedera.demo.auction.node.app.App"
+	main = "com.hedera.demo.auction.app.App"
 	args cmdargs.split()
 }
 
@@ -354,7 +356,7 @@ task createTopic(type: JavaExec) {
 	group = "Execution"
 	description = "Creates a topic id and updates the .env file with the result"
 	classpath = sourceSets.main.runtimeClasspath
-	main = "com.hedera.demo.auction.node.app.CreateTopic"
+	main = "com.hedera.demo.auction.app.CreateTopic"
 	args cmdargs.split()
 }
 
@@ -362,7 +364,7 @@ task createAuction(type: JavaExec) {
 	group = "Execution"
 	description = "Creates an auction from a file which is submitted to a Topic"
 	classpath = sourceSets.main.runtimeClasspath
-	main = "com.hedera.demo.auction.node.app.CreateAuction"
+	main = "com.hedera.demo.auction.app.CreateAuction"
 	args cmdargs.split()
 }
 
@@ -370,7 +372,7 @@ task createAuctionAccount(type: JavaExec) {
 	group = "Execution"
 	description = "Creates an auction account with threshold keys"
 	classpath = sourceSets.main.runtimeClasspath
-	main = "com.hedera.demo.auction.node.app.CreateAuctionAccount"
+	main = "com.hedera.demo.auction.app.CreateAuctionAccount"
 	args cmdargs.split()
 }
 
@@ -378,7 +380,7 @@ task createToken(type: JavaExec) {
 	group = "Execution"
 	description = "Creates a token"
 	classpath = sourceSets.main.runtimeClasspath
-	main = "com.hedera.demo.auction.node.app.CreateToken"
+	main = "com.hedera.demo.auction.app.CreateToken"
 	args cmdargs.split()
 }
 
@@ -386,7 +388,7 @@ task createTokenTransfer(type: JavaExec) {
 	group = "Execution"
 	description = "Creates a token"
 	classpath = sourceSets.main.runtimeClasspath
-	main = "com.hedera.demo.auction.node.app.CreateTokenTransfer"
+	main = "com.hedera.demo.auction.app.CreateTokenTransfer"
 	args cmdargs.split()
 }
 
@@ -394,18 +396,26 @@ task easySetup(type: JavaExec) {
 	group = "Execution"
 	description = "Sets up the demo with default parameters"
 	classpath = sourceSets.main.runtimeClasspath
-	main = "com.hedera.demo.auction.node.app.EasySetup"
+	main = "com.hedera.demo.auction.app.EasySetup"
+	args cmdargs.split()
+}
+
+task generateKey(type: JavaExec) {
+	group = "Execution"
+	description = "Generates a public / private key pair"
+	classpath = sourceSets.main.runtimeClasspath
+	main = "com.hedera.demo.auction.app.GenerateKey"
 	args cmdargs.split()
 }
 
 application {
-	mainClassName = 'com.hedera.demo.auction.node.app.App'
+	mainClassName = 'com.hedera.demo.auction.app.App'
 }
 
 jar {
 	enabled = false
 	manifest {
-		attributes 'Main-Class': 'com.hedera.demo.auction.node.app.App'
+		attributes 'Main-Class': 'com.hedera.demo.auction.app.App'
 	}
 }
 

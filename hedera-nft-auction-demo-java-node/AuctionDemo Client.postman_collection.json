@@ -1,0 +1,264 @@
+{
+	"info": {
+		"_postman_id": "f0be0540-7715-4af8-b1d6-cbb449d2bb71",
+		"name": "AuctionDemo Client",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "/v1/auctions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://35.192.157.136:8081/v1/auctions",
+					"protocol": "https",
+					"host": [
+						"35",
+						"192",
+						"157",
+						"136"
+					],
+					"port": "8081",
+					"path": [
+						"v1",
+						"auctions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/v1/environment",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/environment",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"environment"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/v1/reservenotmetauctions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/reservenotmetauctions",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"reservenotmetauctions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/v1/closedauctions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/closedauctions",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"closedauctions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/v1/endedauctions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/endedauctions",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"endedauctions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/v1/activeauctions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/activeauctions",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"activeauctions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/v1/pendingauctions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/pendingauctions",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"pendingauctions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/v1/auctions/:id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/auctions/:id",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"auctions",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "12"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/v1/lastbid/:auctionid/:bidderaccountid",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/lastbid/:auctionid/:bidderaccountid",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"lastbid",
+						":auctionid",
+						":bidderaccountid"
+					],
+					"variable": [
+						{
+							"key": "auctionid",
+							"value": "0"
+						},
+						{
+							"key": "bidderaccountid",
+							"value": "0.0.123"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/v1/bids/:auctionid",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/bids/:auctionid",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"bids",
+						":auctionid"
+					],
+					"variable": [
+						{
+							"key": "auctionid",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/v1/generatekey",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/v1/generatekey",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"generatekey"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8081"
+		}
+	]
+}

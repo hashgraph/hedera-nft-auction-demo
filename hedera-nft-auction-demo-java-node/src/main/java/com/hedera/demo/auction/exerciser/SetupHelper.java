@@ -61,36 +61,27 @@ public final class SetupHelper {
 
     // create auction account
     // Account create JSON
-    String createAccountString = "    {" +
-            "      \"keyList\" : {" +
-            "      \"keys\": [" +
+    String createAccountString =
+            "{" +
+            "  \"keyList\": {" +
+            "    \"keys\": [" +
             "      {" +
-            "        \"key\" : \"302a300506032b6570032100362c7be3137d0c6f53b9d89cb591c8bfb0ce4d28e8b0549948da5a7db9b9d768\"" +
+            "        \"key\": \"302a300506032b6570032100130044fa6c178739733d525210d2965cb89420255335349e50c8b329e4732c75\"" +
             "      }," +
             "      {" +
-            "        \"keyList\": {" +
-            "        \"keys\": [" +
-            "        {" +
-            "          \"key\": \"302a300506032b6570032100130044fa6c178739733d525210d2965cb89420255335349e50c8b329e4732c75\"" +
-            "        }," +
-            "        {" +
-            "          \"key\": \"302a300506032b65700321008ba273d242fb1ebd3c66c26d88c5c433876d5cffdfd6e5520a151034eb9eabff\"" +
-            "        }" +
-            "          ]," +
-            "        \"threshold\": 1" +
-            "      }" +
+            "        \"key\": \"302a300506032b65700321008ba273d242fb1ebd3c66c26d88c5c433876d5cffdfd6e5520a151034eb9eabff\"" +
             "      }" +
             "    ]," +
-            "      \"threshold\" : 1" +
-            "    }," +
-            "      \"initialBalance\": 100" +
-            "    }    ";
+            "    \"threshold\": 2" +
+            "  }," +
+            "  \"initialBalance\": 10" +
+            "}";
     JsonObject createAccountJson = new JsonObject(createAccountString);// .mapFrom(createAccountString);
 
     System.out.println("Creating auction account");
 
     @Var HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create("http://hedera-nft-auction:8082/v1/admin/auctionaccount"))
+            .uri(URI.create("http://localhost:8082/v1/admin/auctionaccount"))
             .header("Content-Type", "application/json")
             .POST(BodyPublishers.ofString(createAccountJson.toString()))
             .build();
@@ -134,6 +125,7 @@ public final class SetupHelper {
     System.out.println("Start the containers so that the auction account associates with the token");
     System.out.println("Press a key to transfer the token to the auction");
     pressAnyKeyToContinue();
+
 
     response = new TransferTransaction()
             .addTokenTransfer(tokenId, testOperator, -1)

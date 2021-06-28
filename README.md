@@ -470,35 +470,23 @@ __Create an auction account with a key list__
 
 This command will create an auction account with an initial balance of `100` hbar and a key list for scheduled transactions.
 
-_Note: the first key should be the "master key" which can sign transactions on behalf of the auction account for transaction types that can't be scheduled for now such as TokenAssociate and CryptoUpdate.
-In the example below, we have a key list with a threshold of 1. The key list contains the master key and another list of keys with its own threshold.
-_
+_Note: if the environment file contains an entry for `MASTER_KEY`, it will automatically be added to the keylist below with a threshold of 1, resulting in an auction account having a threshold key of 1 of 2, one of the keys being the master key, the other being the threshold key supplied in the JSON._
 
 _Note: all keys are *public* keys_
 
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '
 {
-  "keyList" : {
+  "keyList": {
     "keys": [
       {
-        "key" : "302a300506032b65700321001481572a21874fb9da18b49f0265aca8d94f435a879c0d6631b8ce54d96dc58c"
+        "key": "302a300506032b657003210090ec5045925d37b358ee0c60f858dc79c3b4370cbf7e0c5dad882f1171265cb3"
       },
       {
-        "keyList": {
-          "keys": [
-            {
-              "key": "302a300506032b657003210090ec5045925d37b358ee0c60f858dc79c3b4370cbf7e0c5dad882f1171265cb3"
-            },
-            {
-              "key": "302a300506032b657003210076045799d169c6b6fc2bf45f779171a1cb10fd239b4f758bc556cb0de6799105"
-            }
-          ],
-          "threshold": 1
-        }
+        "key": "302a300506032b657003210076045799d169c6b6fc2bf45f779171a1cb10fd239b4f758bc556cb0de6799105"
       }
     ],
-    "threshold" : 1
+    "threshold": 2
   },
   "initialBalance": 100
 }' http://localhost:8082/v1/admin/auctionaccount
@@ -798,10 +786,7 @@ This action needs to be performed for every new token to be auctioned, the same 
 
 This command will create an auction account with an initial balance of `100` hbar, and a key list for scheduled transactions.
 
-_Note: the first key should be the "master key" which can sign transactions on behalf of the auction account for transaction types that can't be scheduled for now such as TokenAssociate and CryptoUpdate.
-In the example below, we have a key list with a threshold of 1. The key list contains the master key and another list of keys with its own threshold of 2._
-
-* Replace "public master key" with the appropriate value
+_Note: if the environment file contains an entry for `MASTER_KEY`, it will automatically be added to the keylist below with a threshold of 1, resulting in an auction account having a threshold key of 1 of 2, one of the keys being the master key, the other being the threshold key supplied in the JSON._
 
 * Replace and add "validator n public key" as required
 
@@ -812,29 +797,19 @@ _Note: all keys are *public* keys_
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '
 {
-  "keyList" : {
+  "keyList": {
     "keys": [
       {
-        "key" : "public master key"
+        "key": "validator 1 public key"
       },
       {
-        "keyList": {
-          "keys": [
-            {
-              "key": "validator 1 public key"
-            },
-            {
-              "key": "validator 2 public key"
-            },
-            {
-              "key": "validator 3 public key"
-            }
-          ],
-          "threshold": 2
-        }
+        "key": "validator 2 public key"
+      },
+      {
+        "key": "validator 3 public key"
       }
     ],
-    "threshold" : 1
+    "threshold": 2
   },
   "initialBalance": 100
 }' http://localhost:8082/v1/admin/auctionaccount

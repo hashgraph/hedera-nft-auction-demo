@@ -21,7 +21,7 @@ public class HederaClient {
     private final Client client;
     private String network;
 
-    public HederaClient(AccountId operatorId, PrivateKey operatorKey, String network, String mirrorProvider, String mirrorUrl, String mirrorAddress) throws Exception {
+    public HederaClient(AccountId operatorId, PrivateKey operatorKey, String network, String mirrorProvider, String mirrorUrl) throws Exception {
         this.operatorId = operatorId;
         this.operatorKey = operatorKey;
         this.mirrorProvider = mirrorProvider.toUpperCase();
@@ -46,7 +46,7 @@ public class HederaClient {
             this.mirrorUrl = env.get(envVariable);
         }
         if (StringUtils.isBlank(this.mirrorUrl)) {
-            throw new Exception("NETWORK and/or MIRROR_PROVIDER environment variables not set");
+            throw new Exception("NEXT_PUBLIC_NETWORK and/or MIRROR_PROVIDER environment variables not set");
         }
     }
 
@@ -55,7 +55,7 @@ public class HederaClient {
     }
 
     public static HederaClient emptyTestClient() throws Exception {
-        return new HederaClient(AccountId.fromString("0.0.1"), PrivateKey.generate(), "TESTNET", "hedera", "", "");
+        return new HederaClient(AccountId.fromString("0.0.1"), PrivateKey.generate(), "TESTNET", "hedera", "");
     }
 
     public Client auctionClient(Auction auction, PrivateKey operatorKey) throws Exception {

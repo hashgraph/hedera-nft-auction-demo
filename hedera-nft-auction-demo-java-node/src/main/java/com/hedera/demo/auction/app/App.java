@@ -68,6 +68,7 @@ public final class App {
     }
 
     public static void main(String[] args) throws Exception {
+        log.info("Starting app");
         App app = new App();
         app.runApp();
     }
@@ -93,6 +94,7 @@ public final class App {
 
     public void runApp() throws Exception {
 
+        log.info("applying database migrations");
         Flyway flyway = Flyway
                 .configure()
                 .dataSource("jdbc:".concat(postgresUrl), postgresUser, postgresPassword)
@@ -102,6 +104,7 @@ public final class App {
         flyway.migrate();
 
         if (restAPI) {
+            log.info("starting client REST api");
             JsonObject config = new JsonObject()
                     .put("envFile",".env")
                     .put("envPath",".")
@@ -111,6 +114,7 @@ public final class App {
         }
 
         if (adminAPI) {
+            log.info("starting admin REST api");
             JsonObject config = new JsonObject()
                     .put("envFile",".env")
                     .put("envPath",".");
@@ -125,18 +129,12 @@ public final class App {
 
             // perform a one off check for new auctions and bids
             startSubscription(auctionsRepository, /* runOnce= */ true);
-            // check for bids (one off)
-//            startBidWatchers(auctionsRepository, /* runOnce= */ true);
             // check for completed refunds (one off)
             startRefundChecker(auctionsRepository, bidsRepository, /* runOnce= */ true);
-
 
             // now subscribe for new events
             // subscribe to topic to get new auction notifications
             startSubscription(auctionsRepository, /* runOnce= */ false);
-
-//            RefundChecker oneOffRefundChecker = new RefundChecker(hederaClient, auctionsRepository, bidsRepository, mirrorQueryFrequency, /* runOnce= */true);
-//            oneOffRefundChecker.run();
 
             startAuctionReadinessWatchers(auctionsRepository);
             startAuctionsClosureWatcher(auctionsRepository);

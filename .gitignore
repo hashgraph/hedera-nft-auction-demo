@@ -43,6 +43,5 @@ docker-files/sample-files/initDemo.json
 hedera-nft-auction-demo-java-node/src/integration-test/resources/.env.integration
 hedera-nft-auction-demo-java-node/src/testIntegration/resources/.env.integration
 hedera-nft-auction-demo-java-node/src/testSystem/resources/.env.system
-hedera-nft-auction-demo-javascript-client/package-lock.json
 hedera-nft-auction-demo-javascript-client/.next
 hedera-nft-auction-demo-java-node/accountsFile.txt

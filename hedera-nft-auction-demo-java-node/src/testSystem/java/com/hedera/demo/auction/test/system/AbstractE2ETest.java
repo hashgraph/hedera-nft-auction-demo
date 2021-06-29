@@ -80,9 +80,9 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
 //
 //        addToEnvFromEnv("OPERATOR_ID");
 //        addToEnvFromEnv("OPERATOR_KEY");
-//        addToEnvFromEnv("VUE_APP_NETWORK");
+//        addToEnvFromEnv("NEXT_PUBLIC_NETWORK");
 //        addToEnvFromEnv("REST_API");
-//        addToEnvFromEnv("VUE_APP_API_PORT");
+//        addToEnvFromEnv("API_PORT");
 //        addToEnvFromEnv("API_VERTICLE_COUNT");
 //
 //        addToEnvFromEnv("ADMIN_API");
@@ -99,7 +99,7 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
 //        addToEnvFromEnv("REST_HEDERA_TESTNET");
 //        addToEnvFromEnv("REST_HEDERA_PREVIEWNET");
 //
-//        environment.put("VUE_APP_TOPIC_ID", topicId);
+//        environment.put("TOPIC_ID", topicId);
 //        environment.put("MIRROR_PROVIDER", mirrorProvider);
 //        environment.put("DATABASE_URL", "postgresql://pgdb:5432/postgres");
 //        environment.put("DATABASE_USERNAME", postgreSQLContainer.getUsername());

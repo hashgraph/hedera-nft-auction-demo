@@ -7,7 +7,7 @@ import java.util.Optional;
 public abstract class AbstractCreate {
     protected static Dotenv env = Dotenv.configure().ignoreIfMissing().load();
     protected HederaClient hederaClient;
-    protected static String topicId = Optional.ofNullable(env.get("VUE_APP_TOPIC_ID")).orElse("");
+    protected static String topicId = Optional.ofNullable(env.get("TOPIC_ID")).orElse("");
 
     AbstractCreate() throws Exception {
         hederaClient = new HederaClient(env);

@@ -73,8 +73,8 @@ public class GetEnvironmentIntegrationTest extends AbstractIntegrationTest {
                     assertNotNull(body);
 
                     assertEquals("ATopicId", body.getString("topicId"));
-                    assertEquals(env.get("VUE_APP_NODE_OWNER"), body.getString("nodeOperator"));
-                    assertEquals(env.get("VUE_APP_NETWORK"), body.getString("network"));
+                    assertEquals(env.get("NODE_OWNER"), body.getString("nodeOperator"));
+                    assertEquals(env.get("NEXT_PUBLIC_NETWORK"), body.getString("network"));
 
                     testContext.completeNow();
                 })));

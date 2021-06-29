@@ -1,7 +1,7 @@
 version: "3"
 services:
-  postgres-development:
-    container_name: nft-auction-postgres-dev
+  postgres-compiled:
+    container_name: nft-auction-postgres-compiled
     build:
       context: docker-postgres
     restart: unless-stopped
@@ -18,8 +18,8 @@ services:
     profiles:
       - compile
 
-  postgres-production:
-    container_name: nft-auction-postgres-prod
+  postgres-image:
+    container_name: nft-auction-postgres-image
     image: ghcr.io/hashgraph/hedera-nft-auction-demo/nft-auction-postgres:latest
     pull_policy: always
     restart: unless-stopped
@@ -36,14 +36,14 @@ services:
     profiles:
       - image
 
-  node-development:
-    container_name: nft-auction-node-dev
+  node-compiled:
+    container_name: nft-auction-node-compiled
     build:
       context: hedera-nft-auction-demo-java-node
     restart: unless-stopped
     environment:
       # Database connection
-      - DATABASE_URL=postgresql://postgres-development:5433/postgres
+      - DATABASE_URL=postgresql://postgres-compiled:5433/postgres
       - DATABASE_USERNAME=postgres
       - DATABASE_PASSWORD=password
       - POOL_SIZE=10
@@ -54,20 +54,20 @@ services:
     env_file:
       - docker-files/.env
     depends_on:
-      - postgres-development
+      - postgres-compiled
     volumes:
       - ./docker-files:/demo
     profiles:
       - compile
 
-  node-production:
-    container_name: nft-auction-node-prod
+  node-image:
+    container_name: nft-auction-node-image
     image: ghcr.io/hashgraph/hedera-nft-auction-demo/hedera_nft_auction_java_node:latest
     pull_policy: always
     restart: unless-stopped
     environment:
       # Database connection
-      - DATABASE_URL=postgresql://postgres-production:5433/postgres
+      - DATABASE_URL=postgresql://postgres-image:5433/postgres
       - DATABASE_USERNAME=postgres
       - DATABASE_PASSWORD=password
       - POOL_SIZE=10
@@ -78,14 +78,14 @@ services:
     env_file:
       - docker-files/.env
     depends_on:
-      - postgres-production
+      - postgres-image
     volumes:
       - ./docker-files:/demo
     profiles:
       - image
 
-  rest-development:
-    container_name: nft-auction-node-api-dev
+  rest-compiled:
+    container_name: nft-auction-node-api-compiled
     build:
       context: hedera-nft-auction-demo-java-node
     restart: unless-stopped
@@ -95,12 +95,12 @@ services:
       - ADMIN_API=true
       - AUCTION_NODE=false
       # Database connection
-      - DATABASE_URL=postgresql://postgres-development:5433/postgres
+      - DATABASE_URL=postgresql://postgres-compiled:5433/postgres
       - DATABASE_USERNAME=postgres
       - DATABASE_PASSWORD=password
       - POOL_SIZE=10
       # REST API Ports
-      - VUE_APP_API_PORT=8081
+      - API_PORT=8081
       - API_VERTICLE_COUNT=16
       - ADMIN_API_PORT=8082
       - ADMIN_API_VERTICLE_COUNT=1
@@ -111,14 +111,14 @@ services:
 # comment to hide the admin api outside the docker component (recommended in production)
       - "8082:8082"
     depends_on:
-      - postgres-development
+      - postgres-compiled
     volumes:
       - ./docker-files:/demo
     profiles:
       - compile
 
-  rest-production:
-    container_name: nft-auction-node-api-prod
+  rest-image:
+    container_name: nft-auction-node-api-image
     image: ghcr.io/hashgraph/hedera-nft-auction-demo/hedera_nft_auction_java_node:latest
     pull_policy: always
     restart: unless-stopped
@@ -128,12 +128,12 @@ services:
       - ADMIN_API=true
       - AUCTION_NODE=false
       # Database connection
-      - DATABASE_URL=postgresql://postgres-production:5433/postgres
+      - DATABASE_URL=postgresql://postgres-image:5433/postgres
       - DATABASE_USERNAME=postgres
       - DATABASE_PASSWORD=password
       - POOL_SIZE=10
       # REST API Ports
-      - VUE_APP_API_PORT=8081
+      - API_PORT=8081
       - API_VERTICLE_COUNT=16
       - ADMIN_API_PORT=8082
       - ADMIN_API_VERTICLE_COUNT=1
@@ -144,34 +144,34 @@ services:
       # comment to hide the admin api outside the docker component (recommended in production)
       - "8082:8082"
     depends_on:
-      - postgres-production
+      - postgres-image
     volumes:
       - ./docker-files:/demo
     profiles:
       - image
 
-  ui-development:
-    container_name: nft-auction-ui-dev
+  ui-compiled:
+    container_name: nft-auction-ui-compiled
     build:
-      context: hedera-nft-auction-demo-javascript-client-legacy
+      context: hedera-nft-auction-demo-javascript-client
     restart: unless-stopped
     env_file:
       - docker-files/.env
     ports:
-      - "8080:8080"
+      - "8080:3000"
     depends_on:
-      - rest-development
+      - rest-compiled
     profiles:
       - compile
 
-  ui-production:
-    container_name: nft-auction-ui-prod
+  ui-image:
+    container_name: nft-auction-ui-image
     image: ghcr.io/hashgraph/hedera-nft-auction-demo/nft-auction-demo-ui:latest
     pull_policy: always
     restart: unless-stopped
     ports:
       - "8080:8080"
     depends_on:
-      - rest-production
+      - rest-image
     profiles:
       - image

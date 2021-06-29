@@ -11,7 +11,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://35.192.157.136:8081/v1/auctions",
+					"raw": "{{base_url}}/v1/auctions",
 					"protocol": "https",
 					"host": [
 						"35",

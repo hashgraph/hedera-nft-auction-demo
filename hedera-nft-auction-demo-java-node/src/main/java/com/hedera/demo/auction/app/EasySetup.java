@@ -43,7 +43,7 @@ public class EasySetup extends AbstractCreate {
     final static ScheduledOperationsRepository scheduledOperationsRepository = new ScheduledOperationsRepository(connectionManager);
     final static ScheduledOperationsLogRepository scheduledOperationsLogRepository = new ScheduledOperationsLogRepository(connectionManager);
 
-    static String topicId = Optional.ofNullable(env.get("VUE_APP_TOPIC_ID")).orElse("");
+    static String topicId = Optional.ofNullable(env.get("TOPIC_ID")).orElse("");
 
     public String setup(String[] args) throws Exception {
         Client client = hederaClient.client();

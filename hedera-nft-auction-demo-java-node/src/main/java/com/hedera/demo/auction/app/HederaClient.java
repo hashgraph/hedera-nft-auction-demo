@@ -36,7 +36,7 @@ public class HederaClient {
         this.mirrorProvider = Optional.ofNullable(env.get("MIRROR_PROVIDER")).orElse("KABUTO");
         this.mirrorProvider = this.mirrorProvider.toUpperCase();
 
-        this.network = Optional.ofNullable(env.get("VUE_APP_NETWORK")).orElse("");
+        this.network = Optional.ofNullable(env.get("NEXT_PUBLIC_NETWORK")).orElse("");
         this.network = this.network.toUpperCase();
         this.client = clientForNetwork(this.network);
         String envVariable = "REST_".concat(this.mirrorProvider.toUpperCase()).concat("_")
@@ -46,7 +46,7 @@ public class HederaClient {
             this.mirrorUrl = env.get(envVariable);
         }
         if (StringUtils.isBlank(this.mirrorUrl)) {
-            throw new Exception("VUE_APP_NETWORK and/or MIRROR_PROVIDER environment variables not set");
+            throw new Exception("NETWORK and/or MIRROR_PROVIDER environment variables not set");
         }
     }
 

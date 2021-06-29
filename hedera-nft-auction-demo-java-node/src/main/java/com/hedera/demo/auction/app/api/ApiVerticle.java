@@ -36,7 +36,7 @@ public class ApiVerticle extends AbstractVerticle {
         String username = Optional.ofNullable(config().getString("DATABASE_USERNAME")).orElse(Optional.ofNullable(env.get("DATABASE_USERNAME")).orElse(""));
         String password = Optional.ofNullable(config().getString("DATABASE_PASSWORD")).orElse(Optional.ofNullable(env.get("DATABASE_PASSWORD")).orElse(""));
         int poolSize = Integer.parseInt(Optional.ofNullable(config().getString("POOL_SIZE")).orElse(Optional.ofNullable(env.get("POOL_SIZE")).orElse("1")));
-        int httpPort = Integer.parseInt(Optional.ofNullable(config().getString("VUE_APP_API_PORT")).orElse(Optional.ofNullable(env.get("VUE_APP_API_PORT")).orElse("9005")));
+        int httpPort = Integer.parseInt(Optional.ofNullable(config().getString("API_PORT")).orElse(Optional.ofNullable(env.get("API_PORT")).orElse("9005")));
 
         if (StringUtils.isEmpty(url)) {
             throw new Exception("missing environment variable DATABASE_URL");
@@ -69,7 +69,7 @@ public class ApiVerticle extends AbstractVerticle {
         GetPendingAuctionsHandler getPendingAuctionsHandler = new GetPendingAuctionsHandler(pgPool);
         GetGeneratedKeysHandler getGeneratedKeysHandler = new GetGeneratedKeysHandler();
 
-        GetEnvironmentHandler getEnvironmentHandler = new GetEnvironmentHandler(env.get("VUE_APP_NETWORK"), config().getString("topicId"), env.get("VUE_APP_NODE_OWNER", ""));
+        GetEnvironmentHandler getEnvironmentHandler = new GetEnvironmentHandler(env.get("NEXT_PUBLIC_NETWORK"), config().getString("topicId"), env.get("NODE_OWNER", ""));
         RootHandler rootHandler = new RootHandler();
 
         Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.GET));

@@ -87,17 +87,17 @@ public class CreateTopic extends AbstractCreate {
 
             @Var boolean bFoundTopicId = false;
             for (@Var String line : dotEnvLines) {
-                if (line.trim().startsWith("VUE_APP_TOPIC_ID")) {
-                    line = "VUE_APP_TOPIC_ID=" + topicId;
+                if (line.trim().startsWith("TOPIC_ID")) {
+                    line = "TOPIC_ID=" + topicId;
                     bFoundTopicId = true;
-                } else if (line.trim().startsWith("#VUE_APP_TOPIC_ID")) {
-                    line = "VUE_APP_TOPIC_ID=" + topicId;
+                } else if (line.trim().startsWith("#TOPIC_ID")) {
+                    line = "TOPIC_ID=" + topicId;
                     bFoundTopicId = true;
                 }
                 printWriter.println(line);
             }
             if (!bFoundTopicId) {
-                String line = "VUE_APP_TOPIC_ID=" + topicId;
+                String line = "TOPIC_ID=" + topicId;
                 printWriter.println(line);
             }
 

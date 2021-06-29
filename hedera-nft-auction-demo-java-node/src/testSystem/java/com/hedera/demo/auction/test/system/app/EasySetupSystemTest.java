@@ -4,7 +4,6 @@ import com.hedera.demo.auction.app.SqlConnectionManager;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
-import com.hedera.demo.auction.app.repository.ScheduledOperationsRepository;
 import com.hedera.demo.auction.app.subscriber.TopicSubscriber;
 import com.hedera.demo.auction.test.system.AbstractSystemTest;
 import com.hedera.hashgraph.sdk.TopicId;
@@ -38,7 +37,6 @@ public class EasySetupSystemTest extends AbstractSystemTest {
         SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
-        scheduledOperationsRepository = new ScheduledOperationsRepository(connectionManager);
     }
 
     @AfterAll

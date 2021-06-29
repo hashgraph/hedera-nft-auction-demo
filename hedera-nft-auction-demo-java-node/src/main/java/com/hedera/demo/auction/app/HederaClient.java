@@ -36,7 +36,7 @@ public class HederaClient {
         this.mirrorProvider = Optional.ofNullable(env.get("MIRROR_PROVIDER")).orElse("KABUTO");
         this.mirrorProvider = this.mirrorProvider.toUpperCase();
 
-        this.network = Optional.ofNullable(env.get("NETWORK")).orElse("");
+        this.network = Optional.ofNullable(env.get("NEXT_PUBLIC_NETWORK")).orElse("");
         this.network = this.network.toUpperCase();
         this.client = clientForNetwork(this.network);
         String envVariable = "REST_".concat(this.mirrorProvider.toUpperCase()).concat("_")

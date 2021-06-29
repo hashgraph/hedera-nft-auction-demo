@@ -69,7 +69,7 @@ public class ApiVerticle extends AbstractVerticle {
         GetPendingAuctionsHandler getPendingAuctionsHandler = new GetPendingAuctionsHandler(pgPool);
         GetGeneratedKeysHandler getGeneratedKeysHandler = new GetGeneratedKeysHandler();
 
-        GetEnvironmentHandler getEnvironmentHandler = new GetEnvironmentHandler(env.get("NETWORK"), config().getString("topicId"), env.get("NODE_OWNER", ""));
+        GetEnvironmentHandler getEnvironmentHandler = new GetEnvironmentHandler(env.get("NEXT_PUBLIC_NETWORK"), config().getString("topicId"), env.get("NODE_OWNER", ""));
         RootHandler rootHandler = new RootHandler();
 
         Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.GET));

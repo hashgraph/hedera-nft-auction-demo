@@ -80,7 +80,7 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
 //
 //        addToEnvFromEnv("OPERATOR_ID");
 //        addToEnvFromEnv("OPERATOR_KEY");
-//        addToEnvFromEnv("NETWORK");
+//        addToEnvFromEnv("NEXT_PUBLIC_NETWORK");
 //        addToEnvFromEnv("REST_API");
 //        addToEnvFromEnv("API_PORT");
 //        addToEnvFromEnv("API_VERTICLE_COUNT");

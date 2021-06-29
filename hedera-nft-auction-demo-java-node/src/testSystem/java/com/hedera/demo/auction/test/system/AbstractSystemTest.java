@@ -11,7 +11,6 @@ import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.domain.Bid;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
-import com.hedera.demo.auction.app.repository.ScheduledOperationsRepository;
 import com.hedera.hashgraph.sdk.AccountBalance;
 import com.hedera.hashgraph.sdk.AccountBalanceQuery;
 import com.hedera.hashgraph.sdk.AccountCreateTransaction;
@@ -52,6 +51,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 @Log4j2
 public abstract class AbstractSystemTest {
     protected static final Dotenv dotenv = Dotenv.configure().filename(".env.system").ignoreIfMissing().load();
@@ -64,7 +65,6 @@ public abstract class AbstractSystemTest {
     protected PostgreSQLContainer postgres;
     protected AuctionsRepository auctionsRepository;
     protected BidsRepository bidsRepository;
-    protected ScheduledOperationsRepository scheduledOperationsRepository;
     protected Auction auction;
 
     protected CreateTopic createTopic;
@@ -252,6 +252,8 @@ public abstract class AbstractSystemTest {
 
         TransactionReceipt accountCreateResponseReceipt = accountCreateResponse.getReceipt(hederaClient.client());
 
+        assertNotNull(accountCreateResponseReceipt);
+        assertNotNull(accountCreateResponseReceipt.accountId);
         tokenOwnerAccountId = accountCreateResponseReceipt.accountId;
 
         tokenOwnerClient = Client.forTestnet();

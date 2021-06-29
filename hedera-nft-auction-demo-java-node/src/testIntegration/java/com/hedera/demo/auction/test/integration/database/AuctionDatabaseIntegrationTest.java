@@ -20,6 +20,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -249,6 +250,8 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void getAuctionByAccountIdTest() throws Exception {
         Auction testAuction = auctionsRepository.getAuction(auction.getAuctionaccountid());
+        assertNotNull(testAuction);
+        assertNotNull(testAuction.getAuctionaccountid());
         assertEquals(auction.getAuctionaccountid(), testAuction.getAuctionaccountid());
     }
 

@@ -1,0 +1,33 @@
+createTopic: true
+
+setupOperator:
+  accountId: 0.0.xxxxx
+  privateKey: 302.....
+
+token:
+  name: Token Name
+  symbol: Symbol
+
+auctionAccount:
+  publicKeys:
+    - 302a300506032b6570032100130044fa6c178739733d525210d2965cb89420255335349e50c8b329e4732c75
+    - 302a300506032b65700321008ba273d242fb1ebd3c66c26d88c5c433876d5cffdfd6e5520a151034eb9eabff
+  threshold: 2
+  balance: 10
+
+auction:
+  reserve: 0
+  minimumbid: 10
+  endtimestamp: 2d
+  winnercanbid: true
+  title: auction title
+  description: auction description
+
+adminApiHost: http://localhost:8082
+
+exerciser:
+  auctionAccount = 0.0.xxxx
+  numAccounts = 10
+  numThreads = 4
+  numTransfers = 4
+

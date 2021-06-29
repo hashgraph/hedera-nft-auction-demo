@@ -21,7 +21,7 @@ plugins {
 	id 'idea'
 	id "nebula.lint" version "16.9.0"
 	id 'com.github.johnrengelman.shadow' version '6.0.0' apply false
-	id "net.ltgt.errorprone" version "1.3.0" apply false
+	id "net.ltgt.errorprone" version "2.0.2" apply false
 	id "com.github.ben-manes.versions" version "0.29.0" apply false
 	id "org.flywaydb.flyway" version "6.5.5"
 	id 'nu.studer.jooq' version '5.2.1'
@@ -96,11 +96,11 @@ allprojects {
 
 		// https://github.com/google/error-prone
 		// https://errorprone.info/
-		errorprone "com.google.errorprone:error_prone_core:2.5.1"
-		compileOnly "com.google.errorprone:error_prone_annotations:2.5.1"
+		errorprone "com.google.errorprone:error_prone_core:2.4.0"
+		compileOnly "com.google.errorprone:error_prone_annotations:2.4.0"
 
 		// https://github.com/uber/NullAway
-		errorprone "com.uber.nullaway:nullaway:0.7.9"
+		errorprone "com.uber.nullaway:nullaway:0.9.1"
 
 		// https://github.com/eclipse-ee4j/common-annotations-api
 		implementation "jakarta.annotation:jakarta.annotation-api:2.0.0-RC1"
@@ -179,6 +179,9 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok:1.18.16'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
 	testSystemAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+
+	// https://mvnrepository.com/artifact/org.yaml/snakeyaml
+	implementation 'org.yaml:snakeyaml:1.29'
 
 	// flyway
 	compile "org.flywaydb:flyway-core:7.7.0"
@@ -413,6 +416,24 @@ task generateKey(type: JavaExec) {
 	classpath = sourceSets.main.runtimeClasspath
 	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
 	main = "com.hedera.demo.auction.app.GenerateKey"
+	args cmdargs.split()
+}
+
+task setupHelper(type: JavaExec) {
+	group = "Execution"
+	description = "Sets up a topic (optional), auction account, token, auction...."
+	classpath = sourceSets.main.runtimeClasspath
+	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
+	main = "com.hedera.demo.auction.exerciser.SetupHelper"
+	args cmdargs.split()
+}
+
+task exerciseAuction(type: JavaExec) {
+	group = "Execution"
+	description = "Sends bids to an auction"
+	classpath = sourceSets.main.runtimeClasspath
+	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
+	main = "com.hedera.demo.auction.exerciser.ExerciseAuction"
 	args cmdargs.split()
 }
 

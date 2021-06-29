@@ -849,3 +849,103 @@ This will submit a HCS message on the application network's topic id so that all
 ## Transfer the token to the auction account
 
 This has to be done by the token creator so that the auction for the token can start. At the end of the auction, the token will be transferred to the winner and the hbar proceeds transferred to the token owner. In the event there are no bids, the token is transferred back to the owner.
+
+## Alternative with gradle
+
+Copy the sample yaml file and edit
+
+```shell
+cd hedera-nft-auction-demo-java-node
+cp AuctionSetup.yaml.sample AuctionSetup.yaml
+nano AuctionSetup.yaml
+```
+
+specify whether a new topic should be created or not
+
+```yaml
+createTopic: true
+```
+
+specify the account to use to create the token
+
+```yaml
+setupOperator:
+  accountId: 0.0.xxxxx
+  privateKey: 302.....
+```
+
+specify the token details
+
+```yaml
+token:
+  name: Token Name
+  symbol: Symbol
+```
+
+
+specify the public keys, threshold and initial balance to use for the auction account
+
+```yaml
+auctionAccount:
+  publicKeys:
+    - 302a300506032b6570032100130044fa6c178739733d525210d2965cb89420255335349e50c8b329e4732c75
+    - 302a300506032b65700321008ba273d242fb1ebd3c66c26d88c5c433876d5cffdfd6e5520a151034eb9eabff
+  threshold: 2
+  balance: 10
+```
+
+specify the auction's details
+
+```yaml
+auction:
+  reserve: 0
+  minimumbid: 10
+  endtimestamp: 2d
+  winnercanbid: true
+  title: auction title
+  description: auction description
+```
+
+and the host for the admin api calls
+
+```yaml
+adminApiHost: http://localhost:8082
+```
+
+then run the setup
+
+```shell
+./gradlew setupHelper
+```
+
+## Sending bids to the auction
+
+_Note: This uses `.env` to read the operator keys_
+
+The exerciser creates a number of pre-defined accounts and funds them with 10 hbar from the operator's account as specified in the `.env` file, if these accounts already exist (they are saved in a file), the code checks their balance is sufficient and if not, tops them up to 10 hbar.
+
+When run, the exerciser starts a number of threads and within each thread sends a number of bids.
+
+Finally, the exerciser outputs the highest bid (or bids if several equal bids were sent).
+
+Copy the sample yaml file and edit
+
+```shell
+cd hedera-nft-auction-demo-java-node
+cp AuctionSetup.yaml.sample AuctionSetup.yaml
+AuctionSetup.yaml
+```
+
+specify the auction account to send bids to, the number of accounts to send from, the number of threads and transfers to run.
+
+```yaml
+exerciser:
+  auctionAccount = 0.0.xxxx
+  numAccounts = 10
+  numThreads = 4
+  numTransfers = 4
+```
+
+```shell
+./gradlew exerciseAuction 
+```

@@ -22,6 +22,7 @@ import java.util.List;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Testcontainers
@@ -134,6 +135,26 @@ class BidDatabaseIntegrationTest extends AbstractIntegrationTest {
         assertEquals(transactionHash, bids.get(0).getRefundtxhash());
 
     }
+
+@Test
+public void setRefundError() throws SQLException {
+
+    @Var boolean updated = bidsRepository.setRefundError(bid.getTransactionid());
+    assertTrue(updated);
+
+    List<Bid> bids = bidsRepository.getBidsList();
+    assertNotNull(bids);
+    assertEquals(1, bids.size());
+    assertEquals(Bid.REFUND_ERROR, bids.get(0).getRefundstatus());
+    assertEquals("", bids.get(0).getScheduleId());
+    assertEquals("", bids.get(0).getRefundtxhash());
+    assertEquals("", bids.get(0).getRefundtxid());
+
+    updated = bidsRepository.setRefundError("dummy transaction id");
+
+    assertFalse(updated);
+}
+
 
     @Test
     public void firstBidToRefundTest() throws SQLException {

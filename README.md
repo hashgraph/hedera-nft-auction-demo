@@ -9,13 +9,13 @@
 
 * A testnet or mainnet account
 * git command line installed on your computer
-  
+
 * To build from code
   * PostgreSQL version 12
-  * Node.js v14.9.0
-  * Yarn 1.22.10
+  * Node.js v14.15.0
+  * NPM 6.14.8
   * Java 14
-  
+
 * To run from docker images  
   * Docker and docker-compose (optional)
 
@@ -65,14 +65,14 @@ This section assumes you have `docker` and `docker-compose` installed, if not, p
 cd hedera-nft-auction-demo
 cd docker-files
 cp .env.sample .env
-nano .env 
+nano .env
 ```
 
 setup the `.env` properties as follows
 
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
-* `NETWORK=` (mainnet, testnet or previewnet)
+* `NEXT_PUBLIC_NETWORK=` (mainnet, testnet or previewnet)
 * `REFUND=` true to participate in refund issuance, false otherwise
 * `MASTER_KEY=` (set only for one node which has additional authority over the auction accounts, can be the same as operator key only, else must be different)
 * `NFT_STORAGE_API_KEY=` (We use IPFS storage using [nft.storage](https://nft.storage) to store NFT metadata. You can create your API key on https://nft.storage and add it to your .env file to enable IPFS upload, this is only required if your node will be involved in token creation through the API or command line)
@@ -174,7 +174,7 @@ nano .env
 
 set the following properties according to your Hedera account details
 
-_Note: 
+_Note:
 The operator id/key is used to query the hedera network for the token's metadata if present (FileId in memo) and issue or sign scheduled transactions._
 * _It is also used by the auction administrator to set the submit key for the auction topic and also for creating the auction account and submitting auction creation messages to the topic._
 * _And optionally creating a token to auction, then transferring it to the auction account_
@@ -191,13 +191,6 @@ You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish
 
 _Note: The UI assumes it is served from the same server as the client REST api (The Java Appnet Node above)_
 
-```shell
-cd hedera-nft-auction-demo
-cd hedera-nft-auction-demo-javascript-client
-# Build the code
-./yarn install
-```
-
 Edit environment variables
 
 ```shell
@@ -205,8 +198,15 @@ cp .env.sample .env
 nano .env
 ```
 
-* `API_PORT=8081` this is the port of the `Java REST API` above
-* `PORT=8080` the port you want to run the UI on
+* `NEXT_PUBLIC_BASE_API_URL=` this is the url of the client API (e.g. http://localhost:8081). Note that if not specified, the UI will assume the REST API is served from the same server as the UI on port 8081.
+* `NEXT_PUBLIC_NETWORK=` `Testnet` or `Mainnet`. If not specified, the UI will default to `Testnet`.
+
+```shell
+cd hedera-nft-auction-demo
+cd hedera-nft-auction-demo-javascript-client
+npm install
+npm run-script build
+```
 
 #### Setting up an auction
 
@@ -232,13 +232,13 @@ This command takes a number of parameters runs all the necessary steps to create
 
 __Parameters__
 
-The following parameter are optional and defaulted if not supplied 
+The following parameter are optional and defaulted if not supplied
 
 *note, the database will be cleared and a new topic created unless `--no-clean` is provided*
 
 * --name, token's name
-* --symbol, this will determine the symbol for the token, if the symbol refers to a file path, the file must contain the specification of the token and be reachable by the application. See [Token Specification](#token-specification) 
-* --no-clean, do no create a new topic and do not delete data from the database 
+* --symbol, this will determine the symbol for the token, if the symbol refers to a file path, the file must contain the specification of the token and be reachable by the application. See [Token Specification](#token-specification)
+* --no-clean, do no create a new topic and do not delete data from the database
 
 __Command line__
 
@@ -356,7 +356,7 @@ _Note: This command will transfer the token using the `OPERATOR_ID` defined in t
 
 #### Step by step via REST API
 
-This requires that the REST api and database are up and running. 
+This requires that the REST api and database are up and running.
 
 The examples below show curl commands, however the `hedera-nft-auction-demo-java-node` project includes `postman` files for the admin and client APIS which you can import into Postman instead.
 
@@ -508,11 +508,11 @@ be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the va
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '
 {
-  "tokenid": "{{tokenId}}", 
-  "auctionaccountid": "{{accountId}}", 
-  "reserve": "", 
-  "minimumbid": "1000000", 
-  "endtimestamp": "", 
+  "tokenid": "{{tokenId}}",
+  "auctionaccountid": "{{accountId}}",
+  "reserve": "",
+  "minimumbid": "1000000",
+  "endtimestamp": "",
   "winnercanbid": true,
   "title": "Auction title",
   "description": "Auction description"
@@ -532,7 +532,7 @@ _Note: If the token has been created with the REST api call above, it will alrea
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '
 {
-  "tokenid" : "{{tokenId}}", 
+  "tokenid" : "{{tokenId}}",
   "auctionaccountid" : "{{accountId}}"
 }' http://localhost:8082/v1/admin/transfer
 ```
@@ -556,7 +556,7 @@ __Web UI__
 
 ```shell
 cd hedera-nft-auction-demo-javascript-client
-yarn serve
+npm start
 ```
 
 ## Developing new features requiring database changes
@@ -581,7 +581,7 @@ The project contains a number of tests suites which are described below
 
 ### Unit testing
 
-Unit testing is run automatically when you `./gradlew build`, you can run these independently with `./gradlew test`. 
+Unit testing is run automatically when you `./gradlew build`, you can run these independently with `./gradlew test`.
 
 There are no interactions with the database or the Hedera network in these tests.
 
@@ -731,7 +731,7 @@ A helper function is available to generate keys as follows
 ./gradlew generateKey
 ```
 
-or 
+or
 
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8081/v1/generatekey
@@ -739,14 +739,14 @@ curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8081/v
 
 _Note: this runs on the client REST API port (8081), not the admin API port (8082)
 
-## Environment setup 
+## Environment setup
 
 ### All node types
 
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
 * `REFUND=` true to participate in refund issuance, false otherwise
-* `NETWORK=` (mainnet, testnet or previewnet)
+* `NEXT_PUBLIC_NETWORK=` (mainnet, testnet or previewnet)
 * `NODE_OWNER=` (an identifier, e.g. `ACMEAuctions` to be rendered in the UI to show which node the UI is connected to)
 * `TOPIC_ID=` (the topic id provided by whoever is setting up the application network, leave blank if you're setting up a new application network)
 
@@ -831,11 +831,11 @@ be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the va
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '
 {
-  "tokenid": "{{tokenId}}", 
-  "auctionaccountid": "{{accountId}}", 
-  "reserve": "", 
-  "minimumbid": "1000000", 
-  "endtimestamp": "", 
+  "tokenid": "{{tokenId}}",
+  "auctionaccountid": "{{accountId}}",
+  "reserve": "",
+  "minimumbid": "1000000",
+  "endtimestamp": "",
   "winnercanbid": true,
   "title": "Auction title",
   "description": "Auction description"
@@ -849,4 +849,3 @@ This will submit a HCS message on the application network's topic id so that all
 ## Transfer the token to the auction account
 
 This has to be done by the token creator so that the auction for the token can start. At the end of the auction, the token will be transferred to the winner and the hbar proceeds transferred to the token owner. In the event there are no bids, the token is transferred back to the owner.
-

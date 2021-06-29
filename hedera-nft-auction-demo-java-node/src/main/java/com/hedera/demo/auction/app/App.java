@@ -68,6 +68,7 @@ public final class App {
     }
 
     public static void main(String[] args) throws Exception {
+        log.info("Starting app");
         App app = new App();
         app.runApp();
     }

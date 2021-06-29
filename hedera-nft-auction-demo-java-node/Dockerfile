@@ -29,4 +29,4 @@ COPY --from=build /opt/hedera-nft-auction-demo-java-node/build/libs/hedera-nft-a
 
 WORKDIR /demo
 
-CMD "java" "-Dlogging.config=/demo/log4j2.xml" "-jar" "/srv/hedera-nft-auction-demo-node.jar"
+CMD "java" "-Dlog4j.configurationFile=/demo/log4j2.xml" "-jar" "/srv/hedera-nft-auction-demo-node.jar"

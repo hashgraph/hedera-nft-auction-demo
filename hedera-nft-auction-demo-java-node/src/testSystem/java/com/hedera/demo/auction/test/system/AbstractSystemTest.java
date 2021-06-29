@@ -52,6 +52,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 @Log4j2
 public abstract class AbstractSystemTest {
     protected static final Dotenv dotenv = Dotenv.configure().filename(".env.system").ignoreIfMissing().load();
@@ -252,6 +254,7 @@ public abstract class AbstractSystemTest {
 
         TransactionReceipt accountCreateResponseReceipt = accountCreateResponse.getReceipt(hederaClient.client());
 
+        assertNotNull(accountCreateResponseReceipt.accountId);
         tokenOwnerAccountId = accountCreateResponseReceipt.accountId;
 
         tokenOwnerClient = Client.forTestnet();

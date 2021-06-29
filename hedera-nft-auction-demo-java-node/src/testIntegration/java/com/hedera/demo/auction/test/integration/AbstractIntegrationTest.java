@@ -112,6 +112,7 @@ public class AbstractIntegrationTest {
     String title() { return stringPlusIndex("title");}
     String description() { return stringPlusIndex("description");}
 
+    @SuppressWarnings("FieldMissingNullable")
     protected String masterKey = Optional.ofNullable(env.get("MASTER_KEY")).orElse(""); //TODO: Handle tests where masterNode = false
 
     protected Auction testAuctionObject(int index) {

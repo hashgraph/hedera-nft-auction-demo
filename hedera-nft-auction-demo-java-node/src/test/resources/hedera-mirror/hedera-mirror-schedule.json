@@ -1,0 +1,14 @@
+{
+  "consensus_timestamp": "consensus_timestamp",
+  "executed_timestamp": "executed_timestamp",
+  "signatures": [
+    {
+      "consensus_timestamp" : "signature 1 timestamp",
+      "public_key_prefix" : "EwBE+mwXhzlzPVJSENKWXLiUICVTNTSeUMizKeRzLHU="
+    },
+    {
+      "consensus_timestamp" : "signature 2 timestamp",
+      "public_key_prefix" : "ewLtPUzNs23NnDV83HZJ1FhJldJ0tgzflblTlsL95Po="
+    }
+  ]
+}

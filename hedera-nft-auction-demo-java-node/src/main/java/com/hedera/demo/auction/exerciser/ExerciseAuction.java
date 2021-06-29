@@ -15,9 +15,14 @@ import com.hedera.hashgraph.sdk.TransactionResponse;
 import com.hedera.hashgraph.sdk.TransferTransaction;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -42,17 +47,9 @@ public final class ExerciseAuction {
     HederaClient hederaClient = new HederaClient();
     Client client = hederaClient.client();
 
-//    String auctionAccount = args[0];
-//    int numAccounts = Integer.parseInt(args[1]);
-//    int numThreads = Integer.parseInt(args[2]);
-//    int numTransfers = Integer.parseInt(args[3]);
-    //    String auctionAccount = args[0];
-    String auctionAccount = "0.0.1976700";
-    int numAccounts = 10;
-    int numThreads = 4;
-    int numTransfers = 4;
-//    int numThreads = 1;
-//    int numTransfers = 10;
+    InputStream inputStream = new FileInputStream(new File("./AuctionSetup.yaml"));
+    Yaml yaml = new Yaml(new Constructor(SetupProperties.class));
+    SetupProperties setupProperties = yaml.load(inputStream);
 
     log.info("starting exerciser");
 
@@ -68,10 +65,10 @@ public final class ExerciseAuction {
     List<String> accounts = Files.readAllLines(accountFile);
 
     int totalAccounts = accounts.size();
-    if (totalAccounts < numAccounts) {
+    if (totalAccounts < setupProperties.getExerciser().getNumAccounts()) {
       log.info("creating new accounts");
       PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(ACCOUNTS_FILE, StandardCharsets.UTF_8, /* append= */true)));
-      for (int i=1; i <= numAccounts - totalAccounts; i++) {
+      for (int i=1; i <= setupProperties.getExerciser().getNumAccounts() - totalAccounts; i++) {
         // add a new account to the file
         PrivateKey privateKey = PrivateKey.generate();
         TransactionResponse transactionResponse = new AccountCreateTransaction()
@@ -120,10 +117,10 @@ public final class ExerciseAuction {
 
     ExecutorService executor = Executors.newCachedThreadPool();
     Collection<ExerciseWinner> results = new ConcurrentLinkedQueue<>();
-    CompletableFuture<?>[] allFutures = new CompletableFuture[numThreads];
-    for (int i = 0; i < numThreads; i++) {
+    CompletableFuture<?>[] allFutures = new CompletableFuture[setupProperties.getExerciser().getNumThreads()];
+    for (int i = 0; i < setupProperties.getExerciser().getNumThreads(); i++) {
       CompletableFuture<ExerciseWinner> future = CompletableFuture.supplyAsync(()->
-        new ExerciseTransfer(AccountId.fromString(auctionAccount), accountsIds, privateKeys, numTransfers).get()
+        new ExerciseTransfer(AccountId.fromString(setupProperties.getExerciser().getAuctionAccount()), accountsIds, privateKeys, setupProperties.getExerciser().getNumTransfers()).get()
               , executor);
       allFutures[i] = future.thenAccept(results::add);
     }

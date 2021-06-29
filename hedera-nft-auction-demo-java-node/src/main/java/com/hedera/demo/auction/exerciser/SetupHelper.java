@@ -2,6 +2,8 @@ package com.hedera.demo.auction.exerciser;
 
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.CreateTopic;
+import com.hedera.hashgraph.sdk.AccountBalance;
+import com.hedera.hashgraph.sdk.AccountBalanceQuery;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.TokenCreateTransaction;
@@ -115,12 +117,23 @@ public final class SetupHelper {
 
     System.out.println(httpResponse.body());
 
-    // transfer token
-    System.out.println("Start the containers so that the auction account associates with the token");
-    System.out.println("Check auction has associated with token then");
-    System.out.println("Press a key to transfer the token to the auction");
-    pressAnyKeyToContinue();
+    @Var String output = "Waiting for token association from auction account";
+    @Var boolean keepChecking = true;
+    while (keepChecking) {
+      System.out.println(output);
+      AccountBalance balance = new AccountBalanceQuery()
+              .setAccountId(accountId)
+              .execute(client);
 
+      if (balance.token.containsKey(tokenId)) {
+        keepChecking = false;
+      } else {
+        Thread.sleep(5000);
+        output += " +5s";
+      }
+    }
+    System.out.println("");
+    System.out.println("Transferring token to auction account");
 
     response = new TransferTransaction()
             .addTokenTransfer(tokenId, setupProperties.getSetupOperator().accountId(), -1)

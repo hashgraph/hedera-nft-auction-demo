@@ -72,7 +72,7 @@ public class PostAuctionHandler implements Handler<RoutingContext> {
 
             CreateAuction createAuction = new CreateAuction();
             createAuction.setEnv(env);
-            @Var String localTopicId = env.get("VUE_APP_TOPIC_ID");
+            @Var String localTopicId = env.get("TOPIC_ID");
             if (! StringUtils.isEmpty(data.topicId)) {
                 localTopicId = data.topicId;
             }

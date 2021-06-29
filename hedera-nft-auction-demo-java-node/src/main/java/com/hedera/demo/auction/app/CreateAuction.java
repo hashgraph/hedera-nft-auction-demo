@@ -75,7 +75,7 @@ public class CreateAuction extends AbstractCreate {
         if (args.length != 1) {
             log.error("Invalid number of arguments supplied");
         } else if (StringUtils.isEmpty(topicId)) {
-            log.error("No VUE_APP_TOPIC_ID in .env file");
+            log.error("No TOPIC_ID in .env file");
         } else {
             log.info("Creating auction");
             CreateAuction createAuction = new CreateAuction();

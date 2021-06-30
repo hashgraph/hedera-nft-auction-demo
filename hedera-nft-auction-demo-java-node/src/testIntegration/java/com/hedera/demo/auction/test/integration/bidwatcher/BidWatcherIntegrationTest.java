@@ -190,9 +190,6 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         MirrorTransactions mirrorTransactions = response.mapTo(MirrorTransactions.class);
         bidsWatcher.handleResponse(mirrorTransactions);
 
-        Auction updatedAuction = auctionsRepository.getAuction(auction.getId());
-        assertTrue(updatedAuction.isClosed());
-
         List<Bid> bids = bidsRepository.getBidsList();
         assertEquals(1, bids.size());
         testBidValues("Auction is closed", bidAmount, auction, fromAccount, transaction, bids.get(0));
@@ -259,7 +256,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         assertEquals(fromAccount, winnerCantBidAuction.getWinningaccount());
         assertEquals(bidAmount-10, winnerCantBidAuction.getWinningbid());
         assertEquals(transaction1.getString("transaction_id"), winnerCantBidAuction.getWinningtxid());
-        String txHash = Utils.base64toString(transaction1.getString("transaction_hash"));
+        String txHash = Utils.base64toStringHex(transaction1.getString("transaction_hash"));
         assertEquals(txHash, winnerCantBidAuction.getWinningtxhash());
     }
 
@@ -299,7 +296,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         assertEquals(fromAccount, winnerCanBidAuction.getWinningaccount());
         assertEquals(bidAmount, winnerCanBidAuction.getWinningbid());
         assertEquals(transaction2.getString("transaction_id"), winnerCanBidAuction.getWinningtxid());
-        String txHash = Utils.base64toString(transaction2.getString("transaction_hash"));
+        String txHash = Utils.base64toStringHex(transaction2.getString("transaction_hash"));
         assertEquals(txHash, winnerCanBidAuction.getWinningtxhash());
     }
 
@@ -372,7 +369,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         assertEquals(fromAccount, smallIncreaseAuction.getWinningaccount());
         assertEquals(bidAmount, smallIncreaseAuction.getWinningbid());
         assertEquals(transaction1.getString("transaction_id"), smallIncreaseAuction.getWinningtxid());
-        String txHash = Utils.base64toString(transaction1.getString("transaction_hash"));
+        String txHash = Utils.base64toStringHex(transaction1.getString("transaction_hash"));
         assertEquals(txHash, smallIncreaseAuction.getWinningtxhash());
     }
 
@@ -446,7 +443,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         assertEquals(fromAccount, smallIncreaseAuction.getWinningaccount());
         assertEquals(bidAmount, smallIncreaseAuction.getWinningbid());
         assertEquals(transaction1.getString("transaction_id"), smallIncreaseAuction.getWinningtxid());
-        String txHash = Utils.base64toString(transaction1.getString("transaction_hash"));
+        String txHash = Utils.base64toStringHex(transaction1.getString("transaction_hash"));
         assertEquals(txHash, smallIncreaseAuction.getWinningtxhash());
     }
 
@@ -490,7 +487,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         assertEquals("winner", priorBidUpdateAuction.getWinningaccount());
         assertEquals(bidAmount, priorBidUpdateAuction.getWinningbid());
         assertEquals(transaction2.getString("transaction_id"), priorBidUpdateAuction.getWinningtxid());
-        String txHash = Utils.base64toString(transaction2.getString("transaction_hash"));
+        String txHash = Utils.base64toStringHex(transaction2.getString("transaction_hash"));
         assertEquals(txHash, priorBidUpdateAuction.getWinningtxhash());
     }
 

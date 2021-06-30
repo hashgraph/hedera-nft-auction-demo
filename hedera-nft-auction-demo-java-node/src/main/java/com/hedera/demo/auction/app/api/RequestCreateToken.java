@@ -17,11 +17,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
 
-@SuppressWarnings("unused")
-@Log4j2
 /**
  * Data class to map incoming REST JSON to a java object
  */
+@SuppressWarnings("unused")
+@Log4j2
 public class RequestCreateToken {
 
     public String name = "Token";

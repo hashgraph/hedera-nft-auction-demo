@@ -74,7 +74,7 @@ public class RefundCheckerIntegrationTest extends AbstractIntegrationTest {
         bidTransactions = HederaJson.mirrorTransactions(bidTransaction);
 
         transactionId = bidTransaction.getString("transaction_id");
-        transactionHash = Utils.base64toString(bidTransaction.getString("transaction_hash"));
+        transactionHash = Utils.base64toStringHex(bidTransaction.getString("transaction_hash"));
 
         bid = testBidObject(1, auction.getId());
         bidsRepository.add(bid);

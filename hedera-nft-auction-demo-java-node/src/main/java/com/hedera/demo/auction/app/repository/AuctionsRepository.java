@@ -37,7 +37,7 @@ public class AuctionsRepository {
     /**
      * Returns all auctions ordered by auction id
      *
-     * @return Result<Record> records of auctions
+     * @return {@code Result<Record>} records of auctions
      * @throws SQLException in the event of an error
      */
     @Nullable
@@ -95,7 +95,7 @@ public class AuctionsRepository {
     /**
      * Gets all the auctions in a List
      *
-     * @return List<Auction> list of Auction objects
+     * @return {@code List<Auction>} list of Auction objects
      * @throws SQLException in the event of an error
      */
     public List<Auction> getAuctionsList() throws SQLException {
@@ -287,6 +287,21 @@ public class AuctionsRepository {
     }
 
     /**
+     * Updates the last consensus timestamp of an auction
+     *
+     * @param auctionId the id of the auction to update
+     * @param lastConsensusTimestamp the consensus timestamp
+     * @throws SQLException in the event of an error
+     */
+    public void setLastConsensusTimestamp(int auctionId, String lastConsensusTimestamp) throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+        cx.update(AUCTIONS)
+                .set(AUCTIONS.LASTCONSENSUSTIMESTAMP, lastConsensusTimestamp)
+                .where(AUCTIONS.ID.eq(auctionId))
+                .execute();
+    }
+
+    /**
      * Partially updates an auction object in the database
      *
      * @param auction the auction object
@@ -354,7 +369,7 @@ public class AuctionsRepository {
     /**
      * Gets all open and pending auctions from the database
      *
-     * @return Map<String, Integer> hashmap of auctionId and EndTimeStamp
+     * @return {@code Map<String, Integer>} hashmap of auctionId and EndTimeStamp
      * @throws SQLException in the event of an error
      */
     public Map<String, Integer> openAndPendingAuctions() throws SQLException {
@@ -455,8 +470,9 @@ public class AuctionsRepository {
                     .and(Tables.BIDS.REFUNDSTATUS.eq("")) // don't overwrite refund status if already set
                     .execute();
             log.debug("Updated {} bids", rows);
+        }
 
-            cx.update(AUCTIONS)
+        cx.update(AUCTIONS)
                 .set(AUCTIONS.LASTCONSENSUSTIMESTAMP, auction.getLastconsensustimestamp())
                 .set(AUCTIONS.WINNINGACCOUNT, auction.getWinningaccount())
                 .set(AUCTIONS.WINNINGBID, auction.getWinningbid())
@@ -465,7 +481,7 @@ public class AuctionsRepository {
                 .set(AUCTIONS.WINNINGTXHASH, auction.getWinningtxhash())
                 .where(AUCTIONS.AUCTIONACCOUNTID.eq(auction.getAuctionaccountid()))
                 .execute();
-        }
+
         if (bidAmount> 0) {
             try {
                 cx.insertInto(Tables.BIDS,

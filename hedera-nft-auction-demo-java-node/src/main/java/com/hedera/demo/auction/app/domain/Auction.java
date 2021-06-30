@@ -327,7 +327,7 @@ public class Auction implements VertxPojo, Serializable {
 
     /**
      * Convert the Auction to a String
-     * @return
+     * @return String representing the Auction object
      */
     @Override
     public String toString() {

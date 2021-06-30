@@ -38,7 +38,7 @@ public class BidsRepository {
     /**
      * Gets all the bids from the database ordered by timestamp
      *
-     * @return Result<Record> resultset containing bid records
+     * @return {@code Result<Record>} resultset containing bid records
      * @throws SQLException in the event of an error
      */
     @Nullable
@@ -131,7 +131,7 @@ public class BidsRepository {
     /**
      * Gets a list of bids
      *
-     * @return List<Bid> list of bids
+     * @return {@code List<Bid>} list of bids
      * @throws SQLException in the event of an error
      */
     public List<Bid> getBidsList() throws SQLException {
@@ -307,7 +307,7 @@ public class BidsRepository {
      * Gets list of bids that are awaiting a refund (REFUND PENDING)
      *
      * @param auctionId the auction id to query bids for
-     * @return List<Bid> list of Bid objects
+     * @return {@code List<Bid>} list of Bid objects
      * @throws SQLException in the event of an error
      */
     public List<Bid> getBidsToRefund(int auctionId) throws SQLException {

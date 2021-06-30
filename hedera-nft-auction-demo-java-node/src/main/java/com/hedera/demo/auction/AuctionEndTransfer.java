@@ -121,7 +121,8 @@ public class AuctionEndTransfer implements Runnable {
                         // transfer already occurred and the checkTransferInProgress should have updated the auction
                         // status accordingly
                         switch (result) {
-                            case FAILED, NOT_FOUND:
+                            case FAILED:
+                            case NOT_FOUND:
                                 log.debug("result FAILED, NOT_FOUND");
                                 if (!StringUtils.isEmpty(this.operatorKey)) {
                                     log.debug("Transferring token");
@@ -129,8 +130,8 @@ public class AuctionEndTransfer implements Runnable {
                                     log.debug("Token transfer started");
                                 }
                                 break;
-                        case SUCCESS:
-                            log.debug("result SUCCESS");
+                            case SUCCESS:
+                                log.debug("result SUCCESS");
                         }
                     }
                 }

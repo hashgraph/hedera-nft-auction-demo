@@ -41,7 +41,7 @@ public class MirrorTransaction {
      * @return String representation of a base64 transaction hash
      */
     public String getTransactionHashString() {
-        return Utils.base64toString(transactionHash);
+        return Utils.base64toStringHex(transactionHash);
     }
 
     @JsonProperty("transaction_id")

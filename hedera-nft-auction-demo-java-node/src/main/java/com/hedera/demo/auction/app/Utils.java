@@ -14,6 +14,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.jooq.tools.StringUtils;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -91,16 +92,16 @@ public class Utils {
      */
     public static String base64toString(String base64) {
         byte[] bytes = Base64.getDecoder().decode(base64);
-        return base64toString(bytes);
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 
     /**
-     * Given Base64 data, return a string
+     * Given Base64 data, return a string encoded in Hex
      *
-     * @param base64 the base64 data to decode
+     * @param base64 the base64 string to decode
      * @return String the decoded base64
      */
-    public static String base64toString(byte[] base64) {
+    public static String base64toStringHex(String base64) {
         byte[] bytes = Base64.getDecoder().decode(base64);
         return Hex.encodeHexString(bytes);
     }

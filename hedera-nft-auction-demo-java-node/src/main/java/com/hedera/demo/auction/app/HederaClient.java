@@ -10,19 +10,18 @@ import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Sets up a client for the Hedera network
  */
 @Log4j2
 public class HederaClient {
-    private AccountId operatorId;
-    private PrivateKey operatorKey;
+    private final AccountId operatorId;
+    private final PrivateKey operatorKey;
     private String mirrorProvider;
     private String mirrorUrl = "";
     private final Client client;
-    private String network;
+    private final String network;
 
     /** Constructor
      *
@@ -51,17 +50,27 @@ public class HederaClient {
     public HederaClient(Dotenv env) throws Exception {
         this.operatorId = AccountId.fromString(Objects.requireNonNull(env.get("OPERATOR_ID")));
         this.operatorKey = PrivateKey.fromString(Objects.requireNonNull(env.get("OPERATOR_KEY")));
-        this.mirrorProvider = Optional.ofNullable(env.get("MIRROR_PROVIDER")).orElse("KABUTO");
-        this.mirrorProvider = this.mirrorProvider.toUpperCase();
+        if (StringUtils.isEmpty(env.get("MIRROR_PROVIDER"))) {
+            throw new Exception("MIRROR_PROVIDER environment variable not set");
+        } else {
+            this.mirrorProvider = env.get("MIRROR_PROVIDER").toUpperCase();
+        }
 
-        this.network = Optional.ofNullable(env.get("NEXT_PUBLIC_NETWORK")).orElse("");
-        this.network = this.network.toUpperCase();
+        if (StringUtils.isEmpty(env.get("NEXT_PUBLIC_NETWORK"))) {
+            throw new Exception("NEXT_PUBLIC_NETWORK environment variable not set");
+        } else {
+            this.network = env.get("NEXT_PUBLIC_NETWORK").toUpperCase();
+        }
         this.client = clientForNetwork(this.network);
         String envVariable = "REST_".concat(this.mirrorProvider.toUpperCase()).concat("_")
                 .concat(this.network);
         this.mirrorUrl = "";
         if (env != null) {
-            this.mirrorUrl = env.get(envVariable);
+            if (StringUtils.isEmpty(env.get(envVariable))) {
+                throw new Exception(envVariable + " environment variable not set");
+            } else {
+                this.mirrorUrl = env.get(envVariable, "");
+            }
         }
         if (StringUtils.isBlank(this.mirrorUrl)) {
             throw new Exception("NEXT_PUBLIC_NETWORK and/or MIRROR_PROVIDER environment variables not set");

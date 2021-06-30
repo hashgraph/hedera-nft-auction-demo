@@ -83,7 +83,8 @@ public class AuctionsClosureWatcher implements Runnable {
      *
      * In order to ensure no further bids can be placed against the auction account, the auction account's
      * receiver signature required flag is set to true if a master key is supplied.
-     * @param consensusTimestamp
+     *
+     * @param consensusTimestamp the timestamp to use to check auction end dates
      */
     private void closeAuctionIfPastEnd(String consensusTimestamp) {
         try {
@@ -123,7 +124,7 @@ public class AuctionsClosureWatcher implements Runnable {
     /**
      * Runs a cryptoupdate transaction against Hedera to update the auction account's
      * receiver signature required flag to true
-     * @param auctionId
+     * @param auctionId the auction id to set signature required on
      */
     private void setSignatureRequiredOnAuctionAccount(int auctionId) {
         @Var Auction auction = null;

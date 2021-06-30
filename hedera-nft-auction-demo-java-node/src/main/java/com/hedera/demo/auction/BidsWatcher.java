@@ -29,13 +29,13 @@ import java.util.concurrent.Future;
 public class BidsWatcher implements Runnable {
 
     private final int auctionId;
-    private Auction auction;
     private final AuctionsRepository auctionsRepository;
     private final int mirrorQueryFrequency;
     private final HederaClient hederaClient;
     protected boolean runThread = true;
     protected boolean testing = false;
-    protected boolean runOnce = false;
+    protected boolean runOnce;
+    protected Auction watchedAuction = new Auction();
 
     /**
      * Constructor
@@ -51,12 +51,6 @@ public class BidsWatcher implements Runnable {
         this.auctionId = auctionId;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.hederaClient = hederaClient;
-
-        try {
-            this.auction = auctionsRepository.getAuction(auctionId);
-        } catch (Exception e) {
-            log.error("unable to get auction id {}", auctionId, e);
-        }
         this.runOnce = runOnce;
     }
 
@@ -80,7 +74,6 @@ public class BidsWatcher implements Runnable {
      */
     @Override
     public void run() {
-
         @Var String nextLink = "";
         String uri = "/api/v1/transactions";
 
@@ -88,7 +81,7 @@ public class BidsWatcher implements Runnable {
         while (runThread) {
             try {
                 // reload auction from database
-                Auction watchedAuction = auctionsRepository.getAuction(auctionId);
+                watchedAuction = auctionsRepository.getAuction(auctionId);
 
                 log.debug("Checking for bids on account {} and token {}", watchedAuction.getAuctionaccountid(), watchedAuction.getTokenid());
 
@@ -138,14 +131,16 @@ public class BidsWatcher implements Runnable {
      *
      * @param mirrorTransactions a list of transactions from mirror node
      */
-    public void handleResponse(MirrorTransactions mirrorTransactions) {
+    public void handleResponse(MirrorTransactions mirrorTransactions) throws Exception {
+        if (this.watchedAuction.getId() == 0) {
+            watchedAuction = auctionsRepository.getAuction(auctionId);
+        }
         try {
             for (MirrorTransaction transaction : mirrorTransactions.transactions) {
                 if (transaction.isSuccessful()) {
                     handleTransaction(transaction);
                 }
-                this.auction.setLastconsensustimestamp(transaction.consensusTimestamp);
-                auctionsRepository.save(this.auction);
+                auctionsRepository.setLastConsensusTimestamp(this.watchedAuction.getId(), transaction.consensusTimestamp);
             }
         } catch (Exception e) {
             log.error(e, e);
@@ -176,7 +171,7 @@ public class BidsWatcher implements Runnable {
     public void handleTransaction(MirrorTransaction transaction) throws SQLException {
         @Var String rejectReason = "";
         @Var boolean refund = false;
-        String auctionAccountId = this.auction.getAuctionaccountid();
+        String auctionAccountId = this.watchedAuction.getAuctionaccountid();
         @Var long bidAmount = 0;
 
         if (transaction.payer().equals(auctionAccountId)) {
@@ -191,19 +186,19 @@ public class BidsWatcher implements Runnable {
             }
 
             // check the timestamp to verify if auction should end
-            if (transaction.consensusTimestamp.compareTo(this.auction.getEndtimestamp()) > 0) {
+            if (transaction.consensusTimestamp.compareTo(this.watchedAuction.getEndtimestamp()) > 0) {
                 // find payment amount
                 refund = true;
                 rejectReason = Bid.AUCTION_CLOSED;
-            } else if (transaction.consensusTimestamp.compareTo(this.auction.getStarttimestamp()) <= 0) {
+            } else if (transaction.consensusTimestamp.compareTo(this.watchedAuction.getStarttimestamp()) <= 0) {
                 refund = true;
                 rejectReason = Bid.AUCTION_NOT_STARTED;
             }
 
             if ( ! refund) {
                 // check if paying account is different to the current winner
-                if (transaction.payer().equals(this.auction.getWinningaccount())) {
-                    if (! this.auction.getWinnerCanBid()) {
+                if (transaction.payer().equals(this.watchedAuction.getWinningaccount())) {
+                    if (! this.watchedAuction.getWinnerCanBid()) {
                         // same account as winner, not allowed
                         rejectReason = Bid.WINNER_CANT_BID;
                         refund = true;
@@ -222,17 +217,17 @@ public class BidsWatcher implements Runnable {
 
             if ( ! refund) {
 
-                long bidDelta = (bidAmount - this.auction.getWinningbid());
-                if ((bidDelta > 0) && (bidDelta < this.auction.getMinimumbid())) {
+                long bidDelta = (bidAmount - this.watchedAuction.getWinningbid());
+                if ((bidDelta > 0) && (bidDelta < this.watchedAuction.getMinimumbid())) {
                     rejectReason = Bid.INCREASE_TOO_SMALL;
                     refund = true;
                 }
                 if (bidAmount != 0) { // if bid !=0, no refund is expected at this stage
                     // we have a bid, check it against bidding rules
-                    if (bidAmount < this.auction.getReserve()) {
+                    if (bidAmount < this.watchedAuction.getReserve()) {
                         rejectReason = Bid.BELOW_RESERVE;
                         refund = true;
-                    } else if (bidAmount <= this.auction.getWinningbid()) {
+                    } else if (bidAmount <= this.watchedAuction.getWinningbid()) {
                         rejectReason = Bid.UNDER_BID;
                         refund = true;
                     }
@@ -247,30 +242,30 @@ public class BidsWatcher implements Runnable {
                 // update prior winning bid
                 // setting the timestamp for refund to match the winning timestamp
                 // will accelerate the refund (avoids repeated EXPIRED_TRANSACTIONS when refunding)
-                if ( StringUtils.isEmpty(this.auction.getWinningaccount())) {
+                if ( StringUtils.isEmpty(this.watchedAuction.getWinningaccount())) {
                     // do not refund the very first bid !!!
 //                    priorBid.setRefundstatus("");
                     refund = false;
                 } else {
-                    priorBid.setTimestamp(this.auction.getWinningtimestamp());
+                    priorBid.setTimestamp(this.watchedAuction.getWinningtimestamp());
                     priorBid.setStatus(Bid.HIGHER_BID);
                     priorBid.setRefundstatus(Bid.REFUND_PENDING);
                     updatePriorBid = true;
                 }
 
                 // update the auction
-                this.auction.setWinningtimestamp(transaction.consensusTimestamp);
-                this.auction.setWinningaccount(transaction.payer());
-                this.auction.setWinningbid(bidAmount);
-                this.auction.setWinningtxid(transaction.transactionId);
-                this.auction.setWinningtxhash(transaction.getTransactionHashString());
+                this.watchedAuction.setWinningtimestamp(transaction.consensusTimestamp);
+                this.watchedAuction.setWinningaccount(transaction.payer());
+                this.watchedAuction.setWinningbid(bidAmount);
+                this.watchedAuction.setWinningtxid(transaction.transactionId);
+                this.watchedAuction.setWinningtxhash(transaction.getTransactionHashString());
             }
 
             Bid newBid = new Bid();
             if (bidAmount > 0) {
                 // store the bid
                 newBid.setBidamount(bidAmount);
-                newBid.setAuctionid(this.auction.getId());
+                newBid.setAuctionid(this.watchedAuction.getId());
                 newBid.setBidderaccountid(transaction.payer());
                 newBid.setTimestamp(transaction.consensusTimestamp);
                 newBid.setStatus(rejectReason);
@@ -283,7 +278,7 @@ public class BidsWatcher implements Runnable {
                 log.info("Bid amount {} less than or equal to 0, not recording bid", bidAmount);
             }
 
-            auctionsRepository.commitBidAndAuction(updatePriorBid, bidAmount, priorBid, auction, newBid);
+            auctionsRepository.commitBidAndAuction(updatePriorBid, bidAmount, priorBid, watchedAuction, newBid);
         } else {
             log.debug("Transaction Id {} status not SUCCESS.", transaction.transactionId);
         }

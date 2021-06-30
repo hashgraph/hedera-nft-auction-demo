@@ -12,6 +12,9 @@ import org.jooq.Record;
 
 import java.io.Serializable;
 
+/**
+ * Domain definition for database interactions in the context of bids
+ */
 public class Bid implements VertxPojo, Serializable {
 
     public static final String HIGHER_BID = "Higher bid received";
@@ -45,6 +48,10 @@ public class Bid implements VertxPojo, Serializable {
 
     public Bid() {}
 
+    /**
+     * Constructor from a database Row
+     * @param row Row from the database
+     */
     public Bid(Row row) {
         this.auctionid = row.getInteger(Tables.BIDS.AUCTIONID.getName());
         this.bidamount = row.getLong(Tables.BIDS.BIDAMOUNT.getName());
@@ -59,6 +66,10 @@ public class Bid implements VertxPojo, Serializable {
         this.scheduleId = row.getString(Tables.BIDS.SCHEDULEID.getName());
     }
 
+    /**
+     * Constructor from a Record
+     * @param record Record from the database
+     */
     public Bid(Record record) {
         this.auctionid = record.get(Tables.BIDS.AUCTIONID);
         this.bidamount = record.get(Tables.BIDS.BIDAMOUNT);
@@ -73,6 +84,10 @@ public class Bid implements VertxPojo, Serializable {
         this.scheduleId = record.get(Tables.BIDS.SCHEDULEID);
     }
 
+    /**
+     * Constructor from json
+     * @param json the json to construct from
+     */
     public Bid(io.vertx.core.json.JsonObject json) {
         this();
         fromJson(json);
@@ -186,6 +201,11 @@ public class Bid implements VertxPojo, Serializable {
         this.scheduleId = scheduleId;
     }
 
+    /**
+     * Populates this object's properties from Json
+     * @param json the Json representation of this object
+     * @return Bid from the json data
+     */
     @Override
     public Bid fromJson(io.vertx.core.json.JsonObject json) {
         this.setTimestamp(json.getString("timestamp"));
@@ -202,6 +222,10 @@ public class Bid implements VertxPojo, Serializable {
         return this;
     }
 
+    /**
+     * Converts this object to a json representation
+     * @return JsonObject representation of this Bid object
+     */
     @Override
     public JsonObject toJson() {
         JsonObject json = new io.vertx.core.json.JsonObject();

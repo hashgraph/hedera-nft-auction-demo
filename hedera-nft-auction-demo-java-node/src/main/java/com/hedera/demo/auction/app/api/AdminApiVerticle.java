@@ -15,9 +15,16 @@ import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * REST API verticle for the admin API
+ */
 @Log4j2
 public class AdminApiVerticle extends AbstractVerticle {
 
+    /**
+     * Starts the verticle and sets up the necessary handlers for each available endpoint
+     * @param startPromise the Promise to callback when complete
+     */
     @Override
     public void start(Promise<Void> startPromise) {
 
@@ -70,6 +77,11 @@ public class AdminApiVerticle extends AbstractVerticle {
                 });
     }
 
+    /**
+     * Generic failure handler for REST API calls
+     *
+     * @param routingContext the RoutingContext for which the failure occurred
+     */
     private static void failureHandler(RoutingContext routingContext) {
         var response = routingContext.response();
 

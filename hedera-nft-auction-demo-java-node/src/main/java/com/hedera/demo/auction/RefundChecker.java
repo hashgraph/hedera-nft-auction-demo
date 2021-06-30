@@ -22,6 +22,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+/**
+ * Checks if bids that are due a refund have been refunded successfully
+ */
 @Log4j2
 public class RefundChecker implements Runnable {
 
@@ -33,16 +36,12 @@ public class RefundChecker implements Runnable {
     protected Map<Integer, String> queryTimestamps = new HashMap<Integer, String>();
     protected boolean runOnce = false;
 
-    public RefundChecker(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int mirrorQueryFrequency) {
+    public RefundChecker(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int mirrorQueryFrequency, boolean runOnce) {
         this.auctionsRepository = auctionsRepository;
         this.bidsRepository = bidsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.hederaClient = hederaClient;
-    }
-
-    public RefundChecker(HederaClient hederaClient, AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int mirrorQueryFrequency, boolean runOnce) {
-        this(hederaClient, auctionsRepository, bidsRepository, mirrorQueryFrequency);
-        this.runOnce = runOnce;
+            this.runOnce = runOnce;
     }
 
     /**

@@ -8,12 +8,20 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
+/**
+ * Creates a new token
+ */
 public class PostCreateToken implements Handler<RoutingContext> {
     private final Dotenv env;
     public PostCreateToken(Dotenv env) {
         this.env = env;
     }
 
+    /**
+     * Given token details, create a new token
+     *
+     * @param routingContext the RoutingContext
+     */
     @Override
     public void handle(RoutingContext routingContext) {
         var body = routingContext.getBodyAsJson();

@@ -19,14 +19,28 @@ import java.util.List;
 
 import static org.jooq.impl.DSL.min;
 
+/**
+ * Repository to manage bids in the database
+ */
 @Log4j2
 public class BidsRepository {
     private final SqlConnectionManager connectionManager;
 
+    /**
+     * Constructor
+     *
+     * @param connectionManager the SqlConnectionManager to the database
+     */
     public BidsRepository(SqlConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
     }
 
+    /**
+     * Gets all the bids from the database ordered by timestamp
+     *
+     * @return Result<Record> resultset containing bid records
+     * @throws SQLException in the event of an error
+     */
     @Nullable
     private Result<Record> getBids () throws SQLException {
         DSLContext cx = connectionManager.dsl();
@@ -37,6 +51,18 @@ public class BidsRepository {
         return rows;
     }
 
+    /**
+     * Gets a bid from the database (used for testing)
+     * Note: Technically this would fail to return bids if several bids for the same amount, bidding account and auction exist.
+     * In the context of the usage of this method in integration testing, this is not an issue
+     *
+     * @param auctionId the auction id the bid pertains to
+     * @param accountId the bid account id
+     * @param bidAmount the bid amount
+     * @return Bid object matching the query parameters
+     *
+     * @throws SQLException in the event of an error
+     */
     @Nullable
     public Bid getBid (int auctionId, String accountId, long bidAmount) throws SQLException {
         DSLContext cx = connectionManager.dsl();
@@ -53,6 +79,13 @@ public class BidsRepository {
         }
     }
 
+    /**
+     * Gets a bid given a timestamp
+     *
+     * @param timestamp the timestamp to get the bid for
+     * @return Bid object matching the query parameters
+     * @throws SQLException in the event of an error
+     */
     @Nullable
     public Bid getBidForTimestamp (String timestamp) throws SQLException {
         DSLContext cx = connectionManager.dsl();
@@ -70,6 +103,7 @@ public class BidsRepository {
     /**
      * Gets the minimum timestamp for bids which have a status
      * which is neither empty, "REFUNDED" or "ERROR" for a given auction
+     *
      * @param auctionId the id of the auction
      * @return String lowest timestamp of all bids matching query
      * @throws SQLException in the event of an error
@@ -94,6 +128,12 @@ public class BidsRepository {
         }
     }
 
+    /**
+     * Gets a list of bids
+     *
+     * @return List<Bid> list of bids
+     * @throws SQLException in the event of an error
+     */
     public List<Bid> getBidsList() throws SQLException {
         List<Bid> bids = new ArrayList<>();
         Result<Record> bidsData = getBids();
@@ -106,12 +146,25 @@ public class BidsRepository {
         return bids;
     }
 
+    /**
+     * Deletes all bids from the database
+     *
+     * @throws SQLException in the event of an error
+     */
     public void deleteAllBids() throws SQLException {
         DSLContext cx = connectionManager.dsl();
         cx.deleteFrom(Tables.BIDS)
             .execute();
     }
 
+    /**
+     * Sets the refund status of a bid to REFUND ISSUED
+     *
+     * @param consensusTimestamp the timestamp of the bid to update
+     * @param transactionId the refund transaction id
+     * @param scheduleId the refund schedule id
+     * @throws SQLException in the event of an error
+     */
     public void setRefundIssued(String consensusTimestamp, String transactionId, String scheduleId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
 
@@ -133,6 +186,13 @@ public class BidsRepository {
         }
     }
 
+    /**
+     * Sets the bid's refund status to ISSUING
+     *
+     * @param consensusTimestamp the timestamp of the bid to update
+     * @return boolean indicating if a bid was updated or not
+     * @throws SQLException in the event of an error
+     */
     public boolean setRefundIssuing(String consensusTimestamp) throws SQLException {
         DSLContext cx = connectionManager.dsl();
 
@@ -145,6 +205,13 @@ public class BidsRepository {
         return (rows == 1);
     }
 
+    /**
+     * Sets the bid's refund status to REFUND PENDING
+     *
+     * @param bidTransactionId the transaction id of the bid to update
+     * @return boolean indicating if a bid was updated or not
+     * @throws SQLException in the event of an error
+     */
     public boolean setRefundPending(String bidTransactionId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
         int rowsUpdated = cx.update(Tables.BIDS)
@@ -157,6 +224,13 @@ public class BidsRepository {
         return (rowsUpdated != 0);
     }
 
+    /**
+     * Sets the bid's refund status to REFUND ERROR
+     *
+     * @param bidTransactionId the transaction id of the bid to update
+     * @return boolean to indicate if a bid was updated or not
+     * @throws SQLException in the event of an error
+     */
     public boolean setRefundError(String bidTransactionId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
         int rowsUpdated = cx.update(Tables.BIDS)
@@ -169,6 +243,15 @@ public class BidsRepository {
         return (rowsUpdated != 0);
     }
 
+    /**
+     * Sets the bid's refund status to REFUNDED, along with the refund transaction id and hash
+     *
+     * @param bidTransactionId the transaction is of the bid to update
+     * @param refundTransactionId the refund transaction id
+     * @param refundTransactionHash the refund transaction hash
+     * @return boolean indicating if a bid was updated
+     * @throws SQLException in the event of an error
+     */
     public boolean setRefunded(String bidTransactionId, String refundTransactionId, String refundTransactionHash) throws SQLException {
         DSLContext cx = connectionManager.dsl();
         int rowsUpdated = cx.update(Tables.BIDS)
@@ -182,6 +265,12 @@ public class BidsRepository {
         return (rowsUpdated != 0);
    }
 
+    /**
+     * Adds a bid to the database
+     *
+     * @param bid Bid object to add to the database
+     * @throws SQLException in the event of an error
+     */
     public void add(Bid bid) throws SQLException {
         @Var DSLContext cx = null;
         try {
@@ -214,6 +303,13 @@ public class BidsRepository {
         }
     }
 
+    /**
+     * Gets list of bids that are awaiting a refund (REFUND PENDING)
+     *
+     * @param auctionId the auction id to query bids for
+     * @return List<Bid> list of Bid objects
+     * @throws SQLException in the event of an error
+     */
     public List<Bid> getBidsToRefund(int auctionId) throws SQLException {
 
         List<Bid> bids = new ArrayList<>();
@@ -235,6 +331,7 @@ public class BidsRepository {
 
     /**
      * Gets the list of bids that are either refund ISSUING, ISSUED or ERROR
+     *
      * @return List of Bid objects
      * @throws SQLException in the event of an error
      */

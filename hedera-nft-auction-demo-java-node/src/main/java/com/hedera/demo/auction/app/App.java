@@ -27,6 +27,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * This is the starting point for the application
+ */
 @Log4j2
 public final class App {
     Vertx vertx = Vertx.vertx();
@@ -58,21 +61,46 @@ public final class App {
     private final List<AuctionReadinessWatcher> auctionReadinessWatchers = new ArrayList<>(0);
     @Nullable
     private AuctionEndTransfer auctionEndTransfer = null;
-//    @Nullable
-//    private ScheduleExecutor scheduleExecutor = null;
     @Nullable
     private Refunder refunder = null;
 
+    /**
+     * Constructor
+     * Sets up the Hedera client from the environment variables
+     *
+     * @throws Exception in the event of an exception
+     */
     public App() throws Exception {
         hederaClient = new HederaClient(env);
     }
 
+    /**
+     * Starts the application
+     * @param args arguments for starting the application (none required)
+     *
+     * @throws Exception in the event of an exception
+     */
     public static void main(String[] args) throws Exception {
         log.info("Starting app");
         App app = new App();
         app.runApp();
     }
 
+    /**
+     * Overrides the environment variables for testing purposes
+     *
+     * @param hederaClient the HederaClient to use for connecting to Hedera
+     * @param restAPI whether to enable the REST api or not
+     * @param adminAPI whether to enable the admin REST api or not
+     * @param auctionNode whether to process auction bids or not
+     * @param topicId the topicId to use
+     * @param refund whether this instance processes refunds or not
+     * @param postgresUrl the details of the connection to the database
+     * @param postgresUser the details of the connection to the database
+     * @param postgresPassword the details of the connection to the database
+     * @param transferOnWin whether to transfer the token to the winner on auction closure
+     * @param masterKey the master key
+     */
     public void overrideEnv(HederaClient hederaClient, boolean restAPI, boolean adminAPI, boolean auctionNode, String topicId, boolean refund, String postgresUrl, String postgresUser, String postgresPassword, boolean transferOnWin, String masterKey) {
         this.hederaClient = hederaClient;
 
@@ -92,6 +120,28 @@ public final class App {
         this.masterKey = masterKey;
     }
 
+    /**
+     * Starts the various components of the application depending on environment variables
+     *
+     * Applies migrations to the database for seamless upgrades
+     * If the client REST API is required, it is started
+     * If the admin REST API is required, it is started
+     *
+     * If this is an auction node, open a connection to the database and initialise the necessary repositories
+     * - Query the mirror node for messages on the topic id once in order to add any new auctions to the database
+     * - Check for any refunds that have already been completed once
+     *
+     * - Start the topic subscriber thread
+     * - Start the threads to watch for auction readiness
+     * - Start the thread to watch for auction closure
+     * - Start the threads to watch for bids on auctions
+     * - Start the refund checkere thread
+     * If refunding, start the refunding thread
+     * If transferring tokens on auction end, start the thread to do so
+     *
+     *
+     * @throws Exception in the event of an error
+     */
     public void runApp() throws Exception {
 
         log.info("applying database migrations");
@@ -150,12 +200,24 @@ public final class App {
         }
     }
 
+    /**
+     * Starts the thread to watch for auction closures
+     *
+     * @param auctionsRepository the repository for auctions on the database
+     */
     private void startAuctionsClosureWatcher(AuctionsRepository auctionsRepository) {
         // start a thread to monitor auction closures
         auctionsClosureWatcher = new AuctionsClosureWatcher(hederaClient, auctionsRepository, mirrorQueryFrequency, transferOnWin, masterKey);
         Thread auctionsClosureWatcherThread = new Thread(auctionsClosureWatcher);
         auctionsClosureWatcherThread.start();
     }
+
+    /**
+     * Starts a subscription to a topic id, optionally once only
+     *
+     * @param auctionsRepository the repository for auctions on the database
+     * @param runOnce true to run the subscription once and not loop
+     */
     private void startSubscription(AuctionsRepository auctionsRepository, boolean runOnce) {
         if (StringUtils.isEmpty(topicId)) {
             log.warn("No topic Id found in environment variables, not subscribing");
@@ -171,6 +233,14 @@ public final class App {
             }
         }
     }
+
+    /**
+     * Starts a thread for each open auction to watch for bids
+     *
+     * @param auctionsRepository the repository of auctions on the database
+     * @param runOnce true to check for new bids only once
+     * @throws SQLException in the event of a database error
+     */
     private void startBidWatchers(AuctionsRepository auctionsRepository, boolean runOnce) throws SQLException {
         for (Auction auction : auctionsRepository.getAuctionsList()) {
             if (! auction.isPending()) {
@@ -189,6 +259,13 @@ public final class App {
         }
     }
 
+    /**
+     * Starts a thread to check for refund completion
+     *
+     * @param auctionsRepository the repository of auctions on the database
+     * @param bidsRepository the repository of bids on the database
+     * @param runOnce true to check for refunds only once
+     */
     private void startRefundChecker(AuctionsRepository auctionsRepository, BidsRepository bidsRepository, boolean runOnce) {
         // start the thread to monitor bids
         refundChecker = new RefundChecker(hederaClient, auctionsRepository, bidsRepository, mirrorQueryFrequency, runOnce);
@@ -201,11 +278,17 @@ public final class App {
         }
     }
 
+    /**
+     * Starts threads to watch for auction readiness if an auction is pending
+     *
+     * @param auctionsRepository the repository of auctions on the database
+     * @throws SQLException in the event of a database error
+     */
     private void startAuctionReadinessWatchers(AuctionsRepository auctionsRepository) throws SQLException {
         for (Auction auction : auctionsRepository.getAuctionsList()) {
             if (auction.isPending()) {
                 // start the thread to monitor token transfers to the auction account
-                AuctionReadinessWatcher auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, auctionsRepository, auction, mirrorQueryFrequency);
+                AuctionReadinessWatcher auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, auctionsRepository, auction, mirrorQueryFrequency, /*runOnce= */ false);
                 Thread t = new Thread(auctionReadinessWatcher);
                 t.start();
                 auctionReadinessWatchers.add(auctionReadinessWatcher);
@@ -213,20 +296,33 @@ public final class App {
         }
     }
 
+    /**
+     * Starts a thread to monitor winning account association with a token
+     *
+     * @param auctionsRepository the repository of auctions on the database
+     */
     private void startAuctionEndTransfers(AuctionsRepository auctionsRepository) {
-        // start the thread to monitor winning account association with token
         auctionEndTransfer = new AuctionEndTransfer(hederaClient, auctionsRepository, operatorKey, mirrorQueryFrequency);
         Thread auctionEndTransferThread = new Thread(auctionEndTransfer);
         auctionEndTransferThread.start();
     }
 
+    /**
+     * Starts threads to refund bids that are due for refund
+     *
+     * @param auctionsRepository the repository of auctions on the database
+     * @param bidsRepository the repository of bids on the database
+     * @param refundThreads the number of threads to run in parallel
+     */
     private void startRefunder(AuctionsRepository auctionsRepository, BidsRepository bidsRepository, int refundThreads) {
-        // start the thread to monitor winning account association with token
         refunder = new Refunder(hederaClient, auctionsRepository, bidsRepository, mirrorQueryFrequency, refundThreads);
         Thread refunderThread = new Thread(refunder);
         refunderThread.start();
     }
 
+    /**
+     * Stops all the threads cleanly
+     */
     public void stop() {
         for (String verticle : vertx.deploymentIDs()) {
             vertx.undeploy(verticle);
@@ -238,9 +334,6 @@ public final class App {
         if (auctionsClosureWatcher != null) {
             auctionsClosureWatcher.stop();
         }
-//        if (scheduleExecutor != null) {
-//            scheduleExecutor.stop();
-//        }
         if (refundChecker != null) {
             refundChecker.stop();
         }

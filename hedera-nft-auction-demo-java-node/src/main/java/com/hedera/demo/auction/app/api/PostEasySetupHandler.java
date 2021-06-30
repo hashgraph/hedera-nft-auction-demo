@@ -7,10 +7,18 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
+/**
+ * API to invoke the easySetup method
+ */
 public class PostEasySetupHandler implements Handler<RoutingContext> {
     public PostEasySetupHandler() {
     }
 
+    /**
+     * Runs easy setup given the input parameters for the token's name, symbol and whether to clean up the database
+     *
+     * @param routingContext the RoutingContext
+     */
     @Override
     public void handle(RoutingContext routingContext) {
         var body = routingContext.getBodyAsJson();

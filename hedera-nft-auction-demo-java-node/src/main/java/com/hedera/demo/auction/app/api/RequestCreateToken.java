@@ -19,6 +19,9 @@ import java.util.Base64;
 
 @SuppressWarnings("unused")
 @Log4j2
+/**
+ * Data class to map incoming REST JSON to a java object
+ */
 public class RequestCreateToken {
 
     public String name = "Token";
@@ -49,6 +52,16 @@ public class RequestCreateToken {
         saveImageToIPFS(nftStorageKey, this.certificate);
     }
 
+    /**
+     * Stores binary data to IPFS using fileCoin
+     *
+     * @param nftStorageKey the fileCoin authentication key
+     * @param data the data to store
+     *
+     * @return String reference to the stored data on fileCoin
+     * @throws IOException in the event of an error
+     * @throws InterruptedException in the event of an error
+     */
     private static String saveBinaryToIPFS(String nftStorageKey, byte[] data) throws IOException, InterruptedException {
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -79,6 +92,13 @@ public class RequestCreateToken {
         }
     }
 
+    /**
+     * Given metadata about the token, optionally store it on IPFS using fileCoin
+     *
+     * @param nftStorageKey the authentication key for fileCoin
+     * @param requestCreateTokenMetaData the metdata to store
+     * @throws Exception in the event of an error
+     */
     private static void saveImageToIPFS(String nftStorageKey, RequestCreateTokenMetaData requestCreateTokenMetaData) throws Exception {
         if (!StringUtils.isEmpty(requestCreateTokenMetaData.type)) {
             @Var byte[] imageBytes = new byte[0];

@@ -27,6 +27,9 @@ import java.sql.SQLException;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * Schedules a transaction for execution on Hedera, alternatively if the transaction is already scheduled, adds a signature to the schedule
+ */
 @Log4j2
 public class TransactionScheduler {
     private final AccountId auctionAccountId;
@@ -36,18 +39,41 @@ public class TransactionScheduler {
     private Transaction transaction;
     private final Dotenv env = Dotenv.load();
 
+    /**
+     * Constructor
+     *
+     * @param auctionAccountId the auction account id
+     * @param transactionId the transaction id
+     * @param transaction the transaction to schedule
+     */
     public TransactionScheduler(AccountId auctionAccountId, TransactionId transactionId, Transaction transaction) {
         this.auctionAccountId = auctionAccountId;
         this.transactionId = transactionId;
         this.transaction = transaction;
     }
 
+    /**
+     * Constructor
+     *
+     * @param auctionAccountId the auction account id
+     */
     public TransactionScheduler(AccountId auctionAccountId) {
         this.auctionAccountId = auctionAccountId;
         this.transactionId = null;
         this.transaction = null;
     }
 
+    /**
+     * Issues a scheduled transaction in the context of a bid refund.
+     *
+     * If the creation of the scheduled transaction is successful, has no new valid signatures or is a duplicate, sets the Bid's refund status to REFUND ISSUED if a scheduled id is known
+     * Otherwise, the bid's refund status is set to ERROR
+     * If the creation of the scheduled transaction fails, the bid's refund status is set to ERROR
+     *
+     * @param bid the Bid object to refund
+     * @param bidsRepository the repository for bids on the database
+     * @param memo the memo to associate with the scheduled transaction
+     */
     public void issueScheduledTransactionForRefund(Bid bid, BidsRepository bidsRepository, String memo) {
         // Create a transfer transaction for the refund
         // check the status of the bid isn't already refunded, issued or in error
@@ -96,6 +122,13 @@ public class TransactionScheduler {
         }
     }
 
+    /**
+     * Issues a generic transaction to be scheduled
+     *
+     * @param scheduleMemo the memo of the scheduled transaction
+     * @return TransactionSchedulerResult the result of the scheduling operation
+     * @throws Exception in the event of an error
+     */
     public TransactionSchedulerResult issueScheduledTransaction(String scheduleMemo) throws Exception {
 
         if (this.transaction == null) {
@@ -136,6 +169,14 @@ public class TransactionScheduler {
         }
     }
 
+    /**
+     * Adds a signature to an existing schedule id
+     *
+     * @param hederaClient the HederaClient to use
+     * @param existingReceipt the receipt of the scheduleCreate transaction
+     * @return TransactionSchedulerResult the result of the operation
+     * @throws TimeoutException in the event of an error
+     */
     private TransactionSchedulerResult scheduleSignTransaction(HederaClient hederaClient, TransactionReceipt existingReceipt) throws TimeoutException {
         // the same tx has already been submitted, submit just the signature
         // get the receipt for the transaction
@@ -171,6 +212,20 @@ public class TransactionScheduler {
         }
     }
 
+    /**
+     * Processes the scheduling or signing transaction result
+     * If the receipt status is SUCCESS, ALREADY EXECUTED or NO NEW VALID SIGNATURES, return a positive response
+     * If the receipt status is SCHEDULE ALREADY CREATED, send a transaction to add a new signature to the schedule
+     * If the receipt status is DUPLICATE TRANSACTION, return a negative response
+     * In all other cases, return a negative response
+     *
+     * @param hederaClient the hederaClient to use
+     * @param receipt the receipt of the operation to process
+     * @param scheduleId the schedule id of the operation to process
+     * @return TransactionSchedulerResult containing the result of the processing
+     * @throws TimeoutException in the event of an error
+     */
+
     private TransactionSchedulerResult handleResponse(HederaClient hederaClient, TransactionReceipt receipt, ScheduleId scheduleId) throws TimeoutException {
         log.debug(receipt.status);
         switch (receipt.status) {
@@ -187,10 +242,23 @@ public class TransactionScheduler {
         }
     }
 
+    /**
+     * Handles a response given a receipt
+     * @param hederaClient the HederaClient to use
+     * @param receipt the receipt to process
+     * @return TransactionSchedulerResult containing the result of the receipt processing
+     * @throws TimeoutException in the event of an error
+     */
     private TransactionSchedulerResult handleResponse(HederaClient hederaClient, TransactionReceipt receipt) throws TimeoutException {
         return handleResponse(hederaClient, receipt, receipt.scheduleId);
     }
 
+    /**
+     * Shortens a public key to the last 4 characters for logging purposes
+     *
+     * @param publicKey the public key to shorten
+     * @return String containing the last 4 characters of the public key
+     */
     private static String shortKey(PublicKey publicKey) {
         return publicKey.toString().substring(publicKey.toString().length() - 4);
     }

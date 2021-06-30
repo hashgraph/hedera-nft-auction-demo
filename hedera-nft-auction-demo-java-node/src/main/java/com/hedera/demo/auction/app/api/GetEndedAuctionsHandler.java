@@ -8,6 +8,9 @@ import io.vertx.pgclient.PgPool;
 
 import java.util.ArrayList;
 
+/**
+ * Gets auctions that have ended
+ */
 public class GetEndedAuctionsHandler implements Handler<RoutingContext> {
     private final PgPool pgPool;
 
@@ -15,6 +18,11 @@ public class GetEndedAuctionsHandler implements Handler<RoutingContext> {
         this.pgPool = pgPool;
     }
 
+    /**
+     * Query the database for all auctions which have a status of ENDED
+     *
+     * @param routingContext the RoutingContext
+     */
     @Override
     public void handle(RoutingContext routingContext) {
 

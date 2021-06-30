@@ -22,6 +22,15 @@ import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+/**
+ * Automates the creation of test data including
+ * - Topic
+ * - Auction account
+ * - Token
+ * - Transfer of token to the auction account
+ *
+ * Optionally deletes the contents of the database (for testing purposes)
+ */
 @Log4j2
 public class EasySetup extends AbstractCreate {
 

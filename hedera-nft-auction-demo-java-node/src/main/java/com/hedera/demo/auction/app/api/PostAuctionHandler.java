@@ -21,6 +21,9 @@ import java.util.concurrent.TimeoutException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+/**
+ * Creates a new auction
+ */
 @Log4j2
 public class PostAuctionHandler implements Handler<RoutingContext> {
     private final Dotenv env;
@@ -28,6 +31,11 @@ public class PostAuctionHandler implements Handler<RoutingContext> {
         this.env = env;
     }
 
+    /**
+     * Given auction details, create a new auction
+     *
+     * @param routingContext the RoutingContext
+     */
     @Override
     public void handle(RoutingContext routingContext) {
         var body = routingContext.getBodyAsJson();

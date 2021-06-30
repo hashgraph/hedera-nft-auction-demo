@@ -4,6 +4,9 @@ import io.github.cdimascio.dotenv.Dotenv;
 
 import java.util.Optional;
 
+/**
+ * Abstract class to support creation of accounts, topics, etc...
+ */
 public abstract class AbstractCreate {
     protected static Dotenv env = Dotenv.configure().ignoreIfMissing().load();
     protected HederaClient hederaClient;

@@ -6,6 +6,9 @@ import com.hedera.hashgraph.sdk.Key;
 import com.hedera.hashgraph.sdk.PublicKey;
 import org.jooq.tools.StringUtils;
 
+/**
+ * Data class to map JSON to java Key objects
+ */
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class AuctionKey {
     @JsonProperty("key")

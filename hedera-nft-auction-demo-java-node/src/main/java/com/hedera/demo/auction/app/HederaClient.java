@@ -12,6 +12,9 @@ import org.jooq.tools.StringUtils;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Sets up a client for the Hedera network
+ */
 @Log4j2
 public class HederaClient {
     private AccountId operatorId;
@@ -21,6 +24,15 @@ public class HederaClient {
     private final Client client;
     private String network;
 
+    /** Constructor
+     *
+     * @param operatorId the account id of the operator
+     * @param operatorKey the private key of the operator
+     * @param network the network to use
+     * @param mirrorProvider the mirror provider to use
+     * @param mirrorUrl the base url to the mirror node to use
+     * @throws Exception in the event of an error
+     */
     public HederaClient(AccountId operatorId, PrivateKey operatorKey, String network, String mirrorProvider, String mirrorUrl) throws Exception {
         this.operatorId = operatorId;
         this.operatorKey = operatorKey;
@@ -30,6 +42,12 @@ public class HederaClient {
         this.network = network;
     }
 
+    /**
+     * Constructor from environment variables
+     *
+     * @param env the container for the environment variables
+     * @throws Exception in the event of an error
+     */
     public HederaClient(Dotenv env) throws Exception {
         this.operatorId = AccountId.fromString(Objects.requireNonNull(env.get("OPERATOR_ID")));
         this.operatorKey = PrivateKey.fromString(Objects.requireNonNull(env.get("OPERATOR_KEY")));
@@ -50,30 +68,37 @@ public class HederaClient {
         }
     }
 
+    /**
+     * Default constructor
+     *
+     * @throws Exception in the event of an error
+     */
     public HederaClient() throws Exception {
         this(Dotenv.load());
     }
 
+    /**
+     * Creates a client with dummy operator information for testing purposes
+     * @return a HederaClient
+     * @throws Exception in the event of an error
+     */
     public static HederaClient emptyTestClient() throws Exception {
         return new HederaClient(AccountId.fromString("0.0.1"), PrivateKey.generate(), "TESTNET", "hedera", "");
     }
 
+    /**
+     * Creates a client for the auction's auction account
+     *
+     * @param auction the auction to create the client for
+     * @param operatorKey a private key for the account
+     * @return Client a client to the Hedera network
+     * @throws Exception in the event of an error
+     */
     public Client auctionClient(Auction auction, PrivateKey operatorKey) throws Exception {
         Client newClient = clientForNetwork(this.network);
         newClient.setOperator(AccountId.fromString(auction.getAuctionaccountid()), operatorKey);
 
         return newClient;
-    }
-
-    public Client auctionClient(AccountId auctionAccountId, PrivateKey operatorKey) throws Exception {
-        Client newClient = clientForNetwork(this.network);
-        newClient.setOperator(auctionAccountId, operatorKey);
-
-        return newClient;
-    }
-
-    public void setTestingMirrorURL(String testUrl) {
-        this.mirrorUrl = testUrl;
     }
 
     public PrivateKey operatorPrivateKey() {
@@ -89,12 +114,14 @@ public class HederaClient {
     }
     public String mirrorUrl() {return this.mirrorUrl;}
     public Client client() {return this.client;}
-    public void setOperator(AccountId operatorId, PrivateKey operatorKey) {
-        this.operatorId = operatorId;
-        this.operatorKey = operatorKey;
-        client.setOperator(this.operatorId, this.operatorKey);
-    }
 
+    /**
+     * Sets up a client for the given network
+     *
+     * @param network the network to use
+     * @return Client a client for Hedera
+     * @throws Exception in the event of an error
+     */
     private Client clientForNetwork(String network) throws Exception {
         Client client;
         switch (network) {

@@ -7,12 +7,20 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
+/**
+ * Transfers a token from one account to another
+ */
 public class PostTransferHandler implements Handler<RoutingContext> {
     private final Dotenv env;
     public PostTransferHandler(Dotenv env) {
         this.env = env;
     }
 
+    /**
+     * Transfer the specified token from the operator specified in .env to the specified auction account id
+     *
+     * @param routingContext the RoutingContext
+     */
     @Override
     public void handle(RoutingContext routingContext) {
         var body = routingContext.getBodyAsJson();

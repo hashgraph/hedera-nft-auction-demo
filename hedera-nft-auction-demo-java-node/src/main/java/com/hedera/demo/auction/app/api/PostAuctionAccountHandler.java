@@ -8,12 +8,20 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
+/**
+ * Creates a new auction account
+ */
 public class PostAuctionAccountHandler implements Handler<RoutingContext> {
     private final Dotenv env;
     public PostAuctionAccountHandler(Dotenv env) {
         this.env = env;
     }
 
+    /**
+     * Given auction account details, create a new auction account
+     *
+     * @param routingContext the RoutingContext
+     */
     @Override
     public void handle(RoutingContext routingContext) {
         var body = routingContext.getBodyAsJson();

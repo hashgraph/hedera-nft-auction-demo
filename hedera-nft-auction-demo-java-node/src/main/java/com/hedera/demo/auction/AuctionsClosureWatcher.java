@@ -19,6 +19,9 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * Watches auctions that may have reached the end of the bidding period
+ */
 @Log4j2
 public class AuctionsClosureWatcher implements Runnable {
 
@@ -29,6 +32,15 @@ public class AuctionsClosureWatcher implements Runnable {
     private final String masterKey;
     protected boolean runThread = true;
 
+    /**
+     * Constructor
+     *
+     * @param hederaClient the HederaClient to use to connect to Hedera
+     * @param auctionsRepository the auctions repository for database interactions
+     * @param mirrorQueryFrequency the frequency at which to query mirror node
+     * @param transferOnWin boolean to indicate if the token should be transferred to the winner upon closure of the auction
+     * @param masterKey the master key for the auction account
+     */
     public AuctionsClosureWatcher(HederaClient hederaClient, AuctionsRepository auctionsRepository, int mirrorQueryFrequency, boolean transferOnWin, String masterKey) {
         this.auctionsRepository = auctionsRepository;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
@@ -37,6 +49,10 @@ public class AuctionsClosureWatcher implements Runnable {
         this.masterKey = masterKey;
     }
 
+    /**
+     * Runs a thread that queries a mirror node for the last consensus timestamp and compares that with auction
+     * end dates
+     */
     @Override
     public void run() {
 
@@ -52,10 +68,23 @@ public class AuctionsClosureWatcher implements Runnable {
         }
     }
 
+    /**
+     * Stops the thread cleanly
+     */
     public void stop() {
         runThread = false;
     }
 
+    /**
+     * Looks for auctions with a status of OPEN or PENDING
+     * if the endTimestamp of an auction is prior to the last mirror reported consensus timestamp
+     * sets the auction status to CLOSED if transferring the token to the winner
+     * else sets the auction status to ENDED
+     *
+     * In order to ensure no further bids can be placed against the auction account, the auction account's
+     * receiver signature required flag is set to true if a master key is supplied.
+     * @param consensusTimestamp
+     */
     private void closeAuctionIfPastEnd(String consensusTimestamp) {
         try {
             for (Map.Entry<String, Integer> auctions : auctionsRepository.openAndPendingAuctions().entrySet()) {
@@ -91,6 +120,11 @@ public class AuctionsClosureWatcher implements Runnable {
         }
     }
 
+    /**
+     * Runs a cryptoupdate transaction against Hedera to update the auction account's
+     * receiver signature required flag to true
+     * @param auctionId
+     */
     private void setSignatureRequiredOnAuctionAccount(int auctionId) {
         @Var Auction auction = null;
         try {

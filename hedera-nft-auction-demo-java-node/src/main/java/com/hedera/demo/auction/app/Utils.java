@@ -31,9 +31,16 @@ import java.util.concurrent.Future;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+/**
+ * Utilities used throughout the application
+ */
+
 @Log4j2
 public class Utils {
 
+    /**
+     * Web client for use to make REST API calls
+     */
     private static final WebClientOptions webClientOptions = new WebClientOptions()
             .setUserAgent("HederaAuction/1.0")
             .setKeepAlive(false);
@@ -42,6 +49,12 @@ public class Utils {
     private Utils() {
     }
 
+    /**
+     * Reads a file and returns a string containing the file contents
+     *
+     * @param filePath the path to the file
+     * @return String the contents of the file in a string
+     */
     public static String readFileIntoString(String filePath)
     {
         @Var String content = "";
@@ -57,6 +70,12 @@ public class Utils {
         return content;
     }
 
+    /**
+     * Given a transaction id, return a modified string which is compatible with the mirror REST API
+     *
+     * @param transactionId the transaction id to transform
+     * @return String the transformed transaction id
+     */
     public static String hederaMirrorTransactionId(String transactionId) {
         @Var String mirrorTransactionId = transactionId.replace("@",".");
         mirrorTransactionId = mirrorTransactionId.replace(".", "-");
@@ -64,24 +83,58 @@ public class Utils {
         return mirrorTransactionId;
     }
 
+    /**
+     * Given Base64 data, return a string
+     *
+     * @param base64 the base64 data to decode
+     * @return String the decoded base64
+     */
     public static String base64toString(String base64) {
         byte[] bytes = Base64.getDecoder().decode(base64);
-        return Hex.encodeHexString(bytes);
-
+        return base64toString(bytes);
     }
 
+    /**
+     * Given Base64 data, return a string
+     *
+     * @param base64 the base64 data to decode
+     * @return String the decoded base64
+     */
+    public static String base64toString(byte[] base64) {
+        byte[] bytes = Base64.getDecoder().decode(base64);
+        return Hex.encodeHexString(bytes);
+    }
+
+    /**
+     * Encode a string to base64
+     *
+     * @param stringToConvert the string to encode to base64
+     * @return String containing base64 encoded data
+     */
     public static String stringToBase64(String stringToConvert) {
         String bytes = Base64.getEncoder().encodeToString(stringToConvert.getBytes(UTF_8));
 
         return bytes;
     }
 
+    /**
+     * Adds a number of seconds to a timestamp expressed as a string
+     *
+     * @param timestamp the timestamp to add to
+     * @param secondstoAdd the number of seconds to add to the timestamp
+     * @return String the provided timestamp plus the specified number of seconds
+     */
     public static String addToTimestamp(String timestamp, long secondstoAdd) {
         List<String> timeStampParts = Splitter.on('.').splitToList(timestamp);
         long seconds = Long.parseLong(timeStampParts.get(0)) + secondstoAdd;
         return String.valueOf(seconds).concat(".").concat(timeStampParts.get(1));
     }
 
+    /**
+     * Converts a timestamp expressed as a string to a printable date string
+     * @param timestamp the timestamp to convert
+     * @return String formatted date from the timestamp
+     */
     public static String timestampToDate(String timestamp) {
         List<String> timeStampParts = Splitter.on('.').splitToList(timestamp);
         long seconds = Long.parseLong(timeStampParts.get(0));
@@ -89,6 +142,12 @@ public class Utils {
         return instant.toString().concat(" (UTC)");
     }
 
+    /**
+     * Converts a string timestamp to an Instant
+     *
+     * @param timestamp the timestamp to convert
+     * @return Instant the timestamp converted to an Instant
+     */
     public static Instant timestampToInstant(String timestamp) {
         List<String> timeStampParts = Splitter.on('.').splitToList(timestamp);
         long seconds = Long.parseLong(timeStampParts.get(0));
@@ -100,6 +159,12 @@ public class Utils {
         return instant;
     }
 
+    /**
+     * Given a link from a mirror node response, return the timestamp part of the link
+     *
+     * @param link the link to analyze
+     * @return String containing the timestamp part of the link
+     */
     public static String getTimestampFromMirrorLink(String link) {
         if (! StringUtils.isEmpty(link)) {
             // extract the timestamp from the link
@@ -117,6 +182,11 @@ public class Utils {
         return "";
     }
 
+    /**
+     * Pauses a thread for a give number of milliseconds
+     *
+     * @param milliseconds the number of milliseconds to sleep
+     */
     public static void sleep(int milliseconds) {
         try {
             Thread.sleep(milliseconds);
@@ -126,6 +196,14 @@ public class Utils {
         }
     }
 
+    /**
+     * Generic method for calling a mirror node REST api
+     *
+     * @param hederaClient the HederaClient
+     * @param url the url of the mirror node to query
+     * @param queryParameters the map of parameters to supply to the query
+     * @return JsonObject containing the response from the mirror node
+     */
     public static Callable<JsonObject> queryMirror(HederaClient hederaClient, String url, Map<String, String> queryParameters) {
         String mirrorURL = hederaClient.mirrorUrl();
 
@@ -157,6 +235,12 @@ public class Utils {
         };
     }
 
+    /**
+     * Method to query a mirror node for the latest consensus timestamp
+     *
+     * @param hederaClient the HederaClient
+     * @return String containing the consensus timestamp of the very last transaction known to the mirror node
+     */
     public static String getLastConsensusTimeFromMirror(HederaClient hederaClient) {
         @Var String lastTimestamp = "";
         String uri = "/api/v1/transactions";
@@ -185,6 +269,13 @@ public class Utils {
         return lastTimestamp;
     }
 
+    /**
+     * Queries a mirror node to check if a particular ScheduleId has executed
+     *
+     * @param hederaClient the HederaClient
+     * @param scheduleId the ScheduleId to query against
+     * @return true if the schedule executed
+     */
     public static boolean scheduleHasExecuted(HederaClient hederaClient, String scheduleId) {
         @Var boolean hasExecuted = false;
         String uri = "/api/v1/schedules/".concat(scheduleId);

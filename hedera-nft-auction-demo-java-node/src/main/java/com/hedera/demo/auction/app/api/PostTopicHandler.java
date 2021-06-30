@@ -14,6 +14,9 @@ import lombok.extern.log4j.Log4j2;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * Creates a new topic
+ */
 @Log4j2
 public class PostTopicHandler implements Handler<RoutingContext> {
 
@@ -22,6 +25,11 @@ public class PostTopicHandler implements Handler<RoutingContext> {
         this.env = env;
     }
 
+    /**
+     * Create a new topic on Hedera
+     *
+     * @param routingContext the RoutingContext
+     */
     @Override
     public void handle(RoutingContext routingContext) {
 

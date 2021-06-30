@@ -4,11 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hedera.demo.auction.app.Utils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
+/**
+ * Data class to map JSON to a java object
+ */
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class MirrorTransaction {
 
@@ -18,9 +19,12 @@ public class MirrorTransaction {
     @JsonProperty("memo_base64")
     public String memo = "";
 
+    /**
+     * Gets the memo as a string from base64
+     * @return String representation of a base64 memo
+     */
     public String getMemoString() {
-        byte[] transactionMemoBytes = Base64.getDecoder().decode(memo);
-        return new String(transactionMemoBytes, StandardCharsets.UTF_8);
+        return Utils.base64toString(memo);
     }
 
     @JsonProperty("name")
@@ -32,6 +36,10 @@ public class MirrorTransaction {
     @JsonProperty("transaction_hash")
     public String transactionHash = "";
 
+    /**
+     * Gets the transaction hash as a string from base64
+     * @return String representation of a base64 transaction hash
+     */
     public String getTransactionHashString() {
         return Utils.base64toString(transactionHash);
     }
@@ -45,6 +53,10 @@ public class MirrorTransaction {
     @JsonProperty("token_transfers")
     public List<MirrorTokenTransfer> tokenTransfers = new ArrayList<>();
 
+    /**
+     * Extracts the payer account id from the transaction id
+     * @return String payer account id
+     */
     public String payer() {
         String id = this.transactionId;
         return id.substring(0, id.indexOf("-"));

@@ -9,6 +9,9 @@ import io.vertx.sqlclient.Tuple;
 
 import java.util.ArrayList;
 
+/**
+ * Gets all the bids for a given auction id
+ */
 public class GetBidsHandler implements Handler<RoutingContext> {
 
     private final PgPool pgPool;
@@ -17,6 +20,11 @@ public class GetBidsHandler implements Handler<RoutingContext> {
         this.pgPool = pgPool;
     }
 
+    /**
+     * Given an auction id, get the last 50 bids from the database
+     *
+     * @param routingContext the RoutingContext
+     */
     @Override
     public void handle(RoutingContext routingContext) {
 

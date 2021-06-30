@@ -8,6 +8,9 @@ import io.vertx.pgclient.PgPool;
 
 import java.util.ArrayList;
 
+/**
+ * Gets the list of auctions that are pending
+ */
 public class GetPendingAuctionsHandler implements Handler<RoutingContext> {
     private final PgPool pgPool;
 
@@ -15,6 +18,11 @@ public class GetPendingAuctionsHandler implements Handler<RoutingContext> {
         this.pgPool = pgPool;
     }
 
+    /**
+     * Query the database for auctions which have a status of PENDING
+     *
+     * @param routingContext the RoutingContext
+     */
     @Override
     public void handle(RoutingContext routingContext) {
 

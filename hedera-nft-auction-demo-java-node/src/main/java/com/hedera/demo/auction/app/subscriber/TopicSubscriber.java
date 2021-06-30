@@ -42,6 +42,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+/**
+ * Periodically queries mirror node for messages on a topic Id
+ */
 @Log4j2
 public class TopicSubscriber implements Runnable{
     private final AuctionsRepository auctionsRepository;
@@ -57,19 +60,28 @@ public class TopicSubscriber implements Runnable{
     private final String masterKey;
     private boolean runOnce = false;
 
-    public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, TopicId topicId, int mirrorQueryFrequency, String masterKey) {
+    /**
+     * Constructor
+     *
+     * @param hederaClient the Hedera Client to use
+     * @param auctionsRepository the database auction repository
+     * @param topicId the topicId to get messages for
+     * @param mirrorQueryFrequency the frequency at which to query the mirror node
+     * @param masterKey the master key
+     * @param runOnce boolean to indicate if the thread should exit after one round of queries
+     */
+    public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, TopicId topicId, int mirrorQueryFrequency, String masterKey, boolean runOnce) {
         this.auctionsRepository = auctionsRepository;
         this.topicId = topicId;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.hederaClient = hederaClient;
         this.masterKey = masterKey;
-    }
-
-    public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, TopicId topicId, int mirrorQueryFrequency, String masterKey, boolean runOnce) {
-        this(hederaClient, auctionsRepository, topicId, mirrorQueryFrequency, masterKey);
         this.runOnce = runOnce;
     }
 
+    /**
+     * Stops the thread cleanly
+     */
     public void stop() {
         runThread = false;
         if (auctionReadinessWatcher != null) {
@@ -77,14 +89,27 @@ public class TopicSubscriber implements Runnable{
         }
     }
 
+    /**
+     * Sets up boolean for unit and integration testing
+     */
     public void setTesting() {
         testing = true;
     }
 
+    /**
+     * Detrmines if the readiness watcher startup should be skipped for unit and integration testing purposes
+     */
     public void setSkipReadinessWatcher() {
         skipReadinessWatcher = true;
     }
 
+    /**
+     * Queries the mirror node for messages on topic
+     * if messages are available, process them
+     * keep querying until no new messages are available
+     * pause
+     * loop
+     */
     @Override
     public void run() {
         if (this.topicId == null) {
@@ -138,6 +163,26 @@ public class TopicSubscriber implements Runnable{
         executor.shutdown();
     }
 
+    /**
+     * Processes consensus messages
+     * For each message,
+     * - creates an Auction object from the json data present in the message
+     * - calculates the auction's end timestamp if a time unit is specified
+     * - sets the auction's end timestamp to be 48h after the consensus message's consensus timestamp if no end time is specified
+     *
+     * If the auction's account id doesn't exist in the database yet
+     * - query the token information from Hedera
+     * - set the auction's token metadata from the token's symbol if it contains the "ipfs" string
+     * - get the auction account's details
+     * - if the operator key is present in the auction account's threshold key, set the processRefunds flag to true for the auction
+     * - add the new auction to the database
+     * - start the auction's readiness watcher if applicable
+     *
+     * If an auction has been added to the database and a master key is defined
+     * - associate the auction's account with the token
+     *
+     * @param mirrorTopicMessages consensus messages to process
+     */
     public void handle(MirrorTopicMessages mirrorTopicMessages) {
         try {
             for (MirrorTopicMessage mirrorTopicMessage : mirrorTopicMessages.messages) {

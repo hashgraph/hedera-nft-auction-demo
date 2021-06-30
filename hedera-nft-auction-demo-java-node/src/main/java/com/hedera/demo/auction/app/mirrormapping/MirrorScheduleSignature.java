@@ -6,6 +6,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
+/**
+ * Data class to map JSON to a java object
+ */
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class MirrorScheduleSignature {
 

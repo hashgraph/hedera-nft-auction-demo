@@ -22,6 +22,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+/**
+ * Watches for bids against an auction
+ */
 @Log4j2
 public class BidsWatcher implements Runnable {
 
@@ -34,7 +37,16 @@ public class BidsWatcher implements Runnable {
     protected boolean testing = false;
     protected boolean runOnce = false;
 
-    public BidsWatcher(HederaClient hederaClient, AuctionsRepository auctionsRepository, int auctionId, int mirrorQueryFrequency) {
+    /**
+     * Constructor
+     *
+     * @param hederaClient the HederaClient to use to connect to Hedera
+     * @param auctionsRepository the auction repository for database access
+     * @param auctionId the id of the auction to check bids for
+     * @param mirrorQueryFrequency the frequency at which to query a mirror node
+     * @param runOnce runs the check only once
+     */
+    public BidsWatcher(HederaClient hederaClient, AuctionsRepository auctionsRepository, int auctionId, int mirrorQueryFrequency, boolean runOnce) {
         this.auctionsRepository = auctionsRepository;
         this.auctionId = auctionId;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
@@ -45,21 +57,27 @@ public class BidsWatcher implements Runnable {
         } catch (Exception e) {
             log.error("unable to get auction id {}", auctionId, e);
         }
-    }
-
-    public BidsWatcher(HederaClient hederaClient, AuctionsRepository auctionsRepository, int auctionId, int mirrorQueryFrequency, boolean runOnce) {
-        this(hederaClient, auctionsRepository, auctionId, mirrorQueryFrequency);
         this.runOnce = runOnce;
     }
 
+    /**
+     * sets the class up for unit or integration testing
+     */
     public void setTesting() {
         this.testing = true;
     }
 
+    /**
+     * Stops the thread cleanly
+     */
     public void stop() {
         runThread = false;
     }
 
+    /**
+     * For the given auction id, repeatedly query the mirror node for CRYPTOTRANSFER transactions involving the auction's account id
+     * process the transactions
+     */
     @Override
     public void run() {
 
@@ -113,6 +131,13 @@ public class BidsWatcher implements Runnable {
         executor.shutdown();
     }
 
+    /**
+     * For each of the transactions, if successful, handle the transaction details
+     * Record the timestamp of the transaction in the database so that future
+     * mirror queries are performed from this timestamp onwards
+     *
+     * @param mirrorTransactions a list of transactions from mirror node
+     */
     public void handleResponse(MirrorTransactions mirrorTransactions) {
         try {
             for (MirrorTransaction transaction : mirrorTransactions.transactions) {
@@ -127,6 +152,27 @@ public class BidsWatcher implements Runnable {
         }
     }
 
+    /**
+     * For a given transaction
+     * * If the payer of the transaction is the auction account, skip it
+     * * Pattern match the memo and return if memo matches
+     * * Check the transaction timestamp against the auction's end date, if the timestamp is greater
+     * than the auction end, reject the bid and set it to be refunded
+     * * If the transaction timestamp is less or equal to the auction's start timestamp, reject the bid and set it to be refunded
+     * * If the transaction payer is the current auction winner and the winner is not allowed to bid, reject the bid and set it to be refunded
+     * * Look for the paid amount in the transaction
+     * * If the delta between the paid amount and the current winning bid is lower than the minimum bid, reject the bid and set it to be refunded
+     * * If the bid is below reserve, reject and set it to be refunded
+     * * If the bid is below the current winning bid, reject and set it to be refunded
+     *
+     * If the bid has not been rejected and is not the first bid, set the prior winning bid to be refunded
+     * Update the auction with the new winning bid, winning account, transaction id and hash and bid timestamp
+     *
+     * Store the new bid in the database
+     *
+     * @param transaction the transaction to analyze
+     * @throws SQLException thrown in the event of a database connection error
+     */
     public void handleTransaction(MirrorTransaction transaction) throws SQLException {
         @Var String rejectReason = "";
         @Var boolean refund = false;
@@ -146,10 +192,6 @@ public class BidsWatcher implements Runnable {
 
             // check the timestamp to verify if auction should end
             if (transaction.consensusTimestamp.compareTo(this.auction.getEndtimestamp()) > 0) {
-                // payment past auctions end, close it, but continue processing
-                if (!this.auction.isClosed()) {
-                    this.auction = auctionsRepository.setClosed(this.auction);
-                }
                 // find payment amount
                 refund = true;
                 rejectReason = Bid.AUCTION_CLOSED;
@@ -247,6 +289,12 @@ public class BidsWatcher implements Runnable {
         }
     }
 
+    /**
+     * Checks a transaction's memo for certain values to avoid processing unnecessary transactions
+     *
+     * @param memo the transaction's memo
+     * @return true if the transaction's memo matches one of the defined memos
+     */
     public boolean checkMemos(String memo) {
         if (StringUtils.isEmpty(memo)) {
             return false;

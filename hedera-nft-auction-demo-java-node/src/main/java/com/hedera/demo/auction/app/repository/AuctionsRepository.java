@@ -19,14 +19,27 @@ import java.util.Map;
 
 import static com.hedera.demo.auction.app.db.Tables.AUCTIONS;
 
+/**
+ * Repository to manage auctions in the database
+ */
 @Log4j2
 public class AuctionsRepository {
     private final SqlConnectionManager connectionManager;
 
+    /**
+     * Constructor
+     * @param connectionManager connection manager to the database
+     */
     public AuctionsRepository(SqlConnectionManager connectionManager) {
         this.connectionManager = connectionManager;
     }
 
+    /**
+     * Returns all auctions ordered by auction id
+     *
+     * @return Result<Record> records of auctions
+     * @throws SQLException in the event of an error
+     */
     @Nullable
     private Result<Record> getAuctions () throws SQLException {
         DSLContext cx = connectionManager.dsl();
@@ -35,6 +48,13 @@ public class AuctionsRepository {
         return rows;
     }
 
+    /**
+     * Returns a complete auction given an auction id
+     *
+     * @param auctionId the id of the auction
+     * @return Record containing the auction
+     * @throws SQLException in the event of an error
+     */
     @Nullable
     private Record getAuctionData (int auctionId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
@@ -45,6 +65,12 @@ public class AuctionsRepository {
         return auctionRecord;
     }
 
+    /**
+     * For testing purposes, enables the end timestamp of the auction to be set for an auction id
+     *
+     * @param auctionId the auction id to set the end timestamp for
+     * @throws SQLException in the event of an error
+     */
     public void setEndTimestampForTesting(int auctionId) throws SQLException {
         // get last consensus timestamp from auction and use to set end timestamp
 
@@ -55,12 +81,23 @@ public class AuctionsRepository {
                 .execute();
     }
 
+    /**
+     * Deletes all the auctions from the database
+     *
+     * @throws SQLException in the event of an error
+     */
     public void deleteAllAuctions() throws SQLException {
         DSLContext cx = connectionManager.dsl();
         cx.deleteFrom(AUCTIONS)
                 .execute();
     }
 
+    /**
+     * Gets all the auctions in a List
+     *
+     * @return List<Auction> list of Auction objects
+     * @throws SQLException in the event of an error
+     */
     public List<Auction> getAuctionsList() throws SQLException {
         List<Auction> auctions = new ArrayList<>();
         Result<Record> auctionsData = getAuctions();
@@ -73,6 +110,13 @@ public class AuctionsRepository {
         return auctions;
     }
 
+    /**
+     * Gets an Auction for a given auction id
+     *
+     * @param auctionId the id of the auction to get
+     * @return Auction object matching the auction id
+     * @throws Exception in the event of an error
+     */
     public Auction getAuction(int auctionId) throws Exception {
         Record auctionData = getAuctionData(auctionId);
 
@@ -83,6 +127,13 @@ public class AuctionsRepository {
         }
     }
 
+    /**
+     * Gets an auction given an auction account id as a string
+     *
+     * @param accountId the account id in string format
+     * @return Auction object matching the account id
+     * @throws SQLException in the event of an error
+     */
     @Nullable
     public Auction getAuction(String accountId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
@@ -95,6 +146,15 @@ public class AuctionsRepository {
         }
     }
 
+    /**
+     * Sets an auction's status to ACTIVE, updates the tokenOwner and startTimestamp
+     *
+     * @param auction the Auction object being updated
+     * @param tokenOwnerAccount the token owner's account id
+     * @param timestamp the start time stamp of the auction
+     * @return an updated Auction object
+     * @throws SQLException in the event of an error
+     */
     public Auction setActive(Auction auction, String tokenOwnerAccount, String timestamp) throws SQLException {
         DSLContext cx = connectionManager.dsl();
 
@@ -106,9 +166,17 @@ public class AuctionsRepository {
                 .execute();
 
         auction.setStatus(Auction.ACTIVE);
+        auction.setStarttimestamp(timestamp);
+        auction.setTokenowneraccount(tokenOwnerAccount);
         return auction;
     }
 
+    /**
+     * Sets an auction's transfer status to TRANSFER_PENDING
+     *
+     * @param tokenId the token id of the auction to update
+     * @throws SQLException in the event of an error
+     */
     public void setTransferPending(String tokenId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
         log.debug("Setting auction transfer status to {} for token id {}", Auction.TRANSFER_STATUS_PENDING, tokenId);
@@ -118,6 +186,12 @@ public class AuctionsRepository {
                 .execute();
     }
 
+    /**
+     * Sets an auction's transfer status to IN_PROGRESS
+     *
+     * @param tokenId the token id of the auction to update
+     * @throws SQLException in the event of an error
+     */
     public void setTransferInProgress(String tokenId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
         log.debug("setTransferInProgress {} for token id {}", Auction.TRANSFER_STATUS_IN_PROGRESS, tokenId);
@@ -128,6 +202,14 @@ public class AuctionsRepository {
                 .execute();
     }
 
+    /**
+     * Sets the auction's transfer transaction id and hash given a token id
+     *
+     * @param tokenId the token id of the auction to update
+     * @param transactionId the transaction id
+     * @param transactionHash the transaction hash
+     * @throws SQLException in the event of an error
+     */
     public void setTransferTransactionByTokenId(String tokenId, String transactionId, String transactionHash) throws SQLException {
         DSLContext cx = connectionManager.dsl();
         log.debug("setTransferTransactionByTokenId {}, transactionId {}, hash {}", tokenId, transactionId, transactionHash);
@@ -141,6 +223,14 @@ public class AuctionsRepository {
                 .execute();
     }
 
+    /**
+     * Sets the auction's transfer transaction id and hash given an auction id
+     *
+     * @param auctionId the auction id to update
+     * @param transactionId the transaction id
+     * @param transactionHash the transaction hash
+     * @throws SQLException in the event of an error
+     */
     public void setTransferTransactionByAuctionId(int auctionId, String transactionId, String transactionHash) throws SQLException {
         DSLContext cx = connectionManager.dsl();
 
@@ -154,6 +244,12 @@ public class AuctionsRepository {
                 .execute();
     }
 
+    /**
+     * Sets the auction's status to ENDED
+     *
+     * @param auctionId the auction id to update
+     * @throws SQLException in the event of an error
+     */
     public void setEnded(int auctionId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
 
@@ -163,6 +259,12 @@ public class AuctionsRepository {
                 .execute();
     }
 
+    /**
+     * Sets the auction's status to CLOSED given an auction id
+     *
+     * @param auctionId the auction id to update
+     * @throws SQLException in the event of an error
+     */
     public void setClosed(int auctionId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
         cx.update(AUCTIONS)
@@ -171,12 +273,25 @@ public class AuctionsRepository {
                 .execute();
     }
 
+    /**
+     * Sets the auction's status to CLOSED given an auction object
+     *
+     * @param auction the auction object to update
+     * @return Auction object
+     * @throws SQLException in the event of an error
+     */
     public Auction setClosed(Auction auction) throws SQLException {
         setClosed(auction.getId());
         auction.setStatus(Auction.CLOSED);
         return auction;
     }
 
+    /**
+     * Partially updates an auction object in the database
+     *
+     * @param auction the auction object
+     * @throws SQLException in the event of an error
+     */
     public void save(Auction auction) throws SQLException {
         DSLContext cx = connectionManager.dsl();
         cx.update(AUCTIONS)
@@ -190,6 +305,13 @@ public class AuctionsRepository {
                 .execute();
     }
 
+    /**
+     * Adds a partial auction to the database
+     *
+     * @param auction the auction object to add to the database
+     * @return Auction object including the newly created auction's unique identifier
+     * @throws SQLException in the event of an error
+     */
     public Auction add(Auction auction) throws SQLException {
         @Var DSLContext cx = null;
         try {
@@ -229,6 +351,12 @@ public class AuctionsRepository {
         return auction;
     }
 
+    /**
+     * Gets all open and pending auctions from the database
+     *
+     * @return Map<String, Integer> hashmap of auctionId and EndTimeStamp
+     * @throws SQLException in the event of an error
+     */
     public Map<String, Integer> openAndPendingAuctions() throws SQLException {
         DSLContext cx = connectionManager.dsl();
         Map<String, Integer> rows = cx.select(AUCTIONS.ID, AUCTIONS.ENDTIMESTAMP)
@@ -240,7 +368,13 @@ public class AuctionsRepository {
         return rows;
     }
 
-    // for testing
+    /**
+     * Creates a complete auction object in the database for the purpose of testing
+     *
+     * @param auction the auction object to add to the database
+     * @return Auction object including the newly created auction's unique identifier
+     * @throws SQLException in the event of an error
+     */
     public Auction createComplete(Auction auction) throws SQLException{
         @Var DSLContext cx = null;
         try {
@@ -299,6 +433,16 @@ public class AuctionsRepository {
         return auction;
     }
 
+    /**
+     * Updates an auction and one or two bids depending on supplied parameters
+     *
+     * @param updatePriorBid true if the prior bid should be updated in the database
+     * @param bidAmount the bid amount
+     * @param priorBid the prior bid object
+     * @param auction the auction to update
+     * @param newBid the new bid object
+     * @throws SQLException in the event of an error
+     */
     public void commitBidAndAuction(boolean updatePriorBid, long bidAmount, Bid priorBid, Auction auction, Bid newBid) throws SQLException {
         DSLContext cx = connectionManager.dsl();
 

@@ -8,6 +8,9 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.Tuple;
 
+/**
+ * Returns the last bid for a given auction and bidding account
+ */
 public class GetLastBidderBidHandler implements Handler<RoutingContext> {
 
     private final PgPool pgPool;
@@ -16,6 +19,11 @@ public class GetLastBidderBidHandler implements Handler<RoutingContext> {
         this.pgPool = pgPool;
     }
 
+    /**
+     * Query the database for the last bid for the provided auction id and bidder account id
+     *
+     * @param routingContext the RoutingContext
+     */
     @Override
     public void handle(RoutingContext routingContext) {
         int auctionid = Integer.parseInt(routingContext.pathParam("auctionid"));

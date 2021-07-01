@@ -7,11 +7,19 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
+/**
+ * Generates a new private/public key pair and returns it in a JSON response
+ */
 public class GetGeneratedKeysHandler implements Handler<RoutingContext> {
 
     public GetGeneratedKeysHandler() {
     }
 
+    /**
+     * Generates a private key and returns the key and its public key in a JSON payload
+     *
+     * @param routingContext the RoutingContext
+     */
     @Override
     public void handle(RoutingContext routingContext) {
         GenerateKey generateKey = new GenerateKey();

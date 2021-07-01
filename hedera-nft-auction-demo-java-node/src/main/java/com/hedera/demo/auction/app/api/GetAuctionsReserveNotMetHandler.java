@@ -8,6 +8,9 @@ import io.vertx.pgclient.PgPool;
 
 import java.util.ArrayList;
 
+/**
+ * Gets auctions for which the reserve was not met regardless of status
+ */
 public class GetAuctionsReserveNotMetHandler implements Handler<RoutingContext> {
     private final PgPool pgPool;
 
@@ -15,6 +18,11 @@ public class GetAuctionsReserveNotMetHandler implements Handler<RoutingContext> 
         this.pgPool = pgPool;
     }
 
+    /**
+     * Query the database for all auctions where the winning bid is below reserve
+     *
+     * @param routingContext the RoutingContext
+     */
     @Override
     public void handle(RoutingContext routingContext) {
 

@@ -3,6 +3,9 @@
  */
 package com.hedera.demo.auction.app.domain;
 
+/**
+ * Domain definition for database interactions in the context of auctions
+ */
 
 import io.github.jklingsporn.vertx.jooq.shared.internal.VertxPojo;
 import io.vertx.core.json.JsonObject;
@@ -42,6 +45,11 @@ public class Auction implements VertxPojo, Serializable {
 
     public Auction() {}
 
+    /**
+     * Constructor from a Record
+     *
+     * @param record Record to construct the Auction object from
+     */
     public Auction(Record record) {
         this.id = record.get(AUCTIONS.ID);
         this.lastconsensustimestamp = record.get(AUCTIONS.LASTCONSENSUSTIMESTAMP);
@@ -68,6 +76,10 @@ public class Auction implements VertxPojo, Serializable {
         this.processrefunds = record.get(AUCTIONS.PROCESSREFUNDS);
     }
 
+    /**
+     * Constructor from a Row
+     * @param row Row to construct the Auction object from
+     */
     public Auction (Row row) {
         this.id = row.getInteger(AUCTIONS.ID.getName());
         this.lastconsensustimestamp = row.getString(AUCTIONS.LASTCONSENSUSTIMESTAMP.getName());
@@ -94,6 +106,10 @@ public class Auction implements VertxPojo, Serializable {
         this.processrefunds = row.getBoolean(AUCTIONS.PROCESSREFUNDS.getName());
     }
 
+    /**
+     * Constructor from json
+     * @param json the json to construct the Auction object from
+     */
     public Auction(io.vertx.core.json.JsonObject json) {
         this();
         fromJson(json);
@@ -309,6 +325,10 @@ public class Auction implements VertxPojo, Serializable {
         return this.processrefunds;
     }
 
+    /**
+     * Convert the Auction to a String
+     * @return String representing the Auction object
+     */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("Auctions (");
@@ -341,6 +361,11 @@ public class Auction implements VertxPojo, Serializable {
         return sb.toString();
     }
 
+    /**
+     * Create an Auction object from json
+     * @param json the json representation of an Auction
+     * @return the Auction object
+     */
     @Override
     public Auction fromJson(io.vertx.core.json.JsonObject json) {
         this.setId(json.getInteger("id"));
@@ -369,7 +394,10 @@ public class Auction implements VertxPojo, Serializable {
         return this;
     }
 
-
+    /**
+     * Convert this Auction object to json
+     * @return JsonObject representation of the auction
+     */
     @Override
     public JsonObject toJson() {
         JsonObject json = new io.vertx.core.json.JsonObject();

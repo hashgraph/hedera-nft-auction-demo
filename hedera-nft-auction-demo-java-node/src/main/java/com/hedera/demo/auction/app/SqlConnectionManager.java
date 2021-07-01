@@ -9,36 +9,48 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+/**
+ * Connection manager for the database
+ */
 public class SqlConnectionManager {
     private final String url;
-
     private final String username;
-
     private final String password;
-
     @Nullable
     private Connection connection;
 
-    // Blank SqlConnectionManager for testing
+    /**
+     * Constructor
+     *
+     * @param url the url to the database
+     * @param username the username
+     * @param password the password
+     */
     public SqlConnectionManager(String url, String username, String password) {
         this.url = url.replaceAll("jdbc:", "");
         this.username = username;
         this.password = password;
     }
 
+    /**
+     * Returns a context to the databsae
+     * @return DSLContext a database context
+     * @throws SQLException in the event of a database error
+     */
     public DSLContext dsl() throws SQLException {
         return DSL.using(getConnection(), SQLDialect.POSTGRES);
     }
 
+    /**
+     * Gets a connection to the database if not already established, else returns the current connection
+     * @return Connection a connection to the database
+     * @throws SQLException in the event of an error
+     */
     public synchronized Connection getConnection() throws SQLException {
         if (connection == null) {
-            connection = newConnection();
+            connection = DriverManager.getConnection("jdbc:" + url, username, password);
         }
 
         return connection;
-    }
-
-    private Connection newConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:" + url, username, password);
     }
 }

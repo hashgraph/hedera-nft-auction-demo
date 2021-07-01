@@ -22,6 +22,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 @Log4j2
+/**
+ * Checks if an auction is ready to accept bids.
+ */
 public class AuctionReadinessWatcher implements Runnable {
 
     protected final Auction auction;
@@ -37,23 +40,34 @@ public class AuctionReadinessWatcher implements Runnable {
     protected String nextTimestamp = "0.0";
     protected boolean runOnce = false;
 
-    public AuctionReadinessWatcher(HederaClient hederaClient, AuctionsRepository auctionsRepository, Auction auction, int mirrorQueryFrequency) {
+    /**
+     * Constructor
+     *
+     * @param hederaClient the HederaClient to use to connect to Hedera
+     * @param auctionsRepository the auctionrepository for database interaction
+     * @param auction the auction to watch
+     * @param mirrorQueryFrequency the frequency at which the mirror should be polled
+     * @param runOnce specifies whether this should run once or in a loop
+     */
+    public AuctionReadinessWatcher(HederaClient hederaClient, AuctionsRepository auctionsRepository, Auction auction, int mirrorQueryFrequency, boolean runOnce) {
         this.auctionsRepository = auctionsRepository;
         this.auction = auction;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.hederaClient = hederaClient;
         this.mirrorProvider = hederaClient.mirrorProvider();
-    }
-
-    public AuctionReadinessWatcher(HederaClient hederaClient, AuctionsRepository auctionsRepository, Auction auction, int mirrorQueryFrequency, boolean runOnce) {
-        this(hederaClient, auctionsRepository, auction, mirrorQueryFrequency);
         this.runOnce = runOnce;
     }
 
+    /**
+     * Sets the class up for unit or integration testing
+     */
     public void setTesting() {
         this.testing = true;
     }
 
+    /**
+     * Stops the thread cleanly
+     */
     public void stop() {
         if (bidsWatcher != null) {
             bidsWatcher.stop();
@@ -129,6 +143,17 @@ public class AuctionReadinessWatcher implements Runnable {
         executor.shutdown();
     }
 
+    /**
+     * Given a list of transactions from the mirror node, looks for a token transfer from the token owner and to the
+     * auction account if the transaction was successful
+     *
+     * In the event the token transfer succeeded, the status of the auction is changed to "ACTIVE" and the owner of the token
+     * recorded against the auction in the database along with the timestamp of the transfer transaction.
+     * Finally, a bidwatcher thread is started for this auction
+     *
+     * @param mirrorTransactions a list of mirror transactions
+     * @return boolean true if the token has been transferred successfully
+     */
     public boolean handleResponse(MirrorTransactions mirrorTransactions) {
         try {
             if (mirrorTransactions.transactions != null) {

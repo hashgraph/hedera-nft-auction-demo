@@ -22,23 +22,34 @@ import java.util.Optional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+/**
+ * Automates the creation of test data including
+ * - Topic
+ * - Auction account
+ * - Token
+ * - Transfer of token to the auction account
+ *
+ * Optionally deletes the contents of the database (for testing purposes)
+ */
 @Log4j2
 public class EasySetup extends AbstractCreate {
 
     public EasySetup() throws Exception {
         super();
     }
-
+    @SuppressWarnings("FieldMissingNullable")
     final static String url = Objects.requireNonNull(env.get("DATABASE_URL"), "missing environment variable DATABASE_URL");
+    @SuppressWarnings("FieldMissingNullable")
     final static String username = Objects.requireNonNull(
             env.get("DATABASE_USERNAME"), "missing environment variable DATABASE_USERNAME");
+    @SuppressWarnings("FieldMissingNullable")
     final static String password = Objects.requireNonNull(
             env.get("DATABASE_PASSWORD"), "missing environment variable DATABASE_PASSWORD");
 
     final static SqlConnectionManager connectionManager = new SqlConnectionManager(url, username, password);
     final static AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
     final static BidsRepository bidsRepository = new BidsRepository(connectionManager);
-
+    @SuppressWarnings("FieldMissingNullable")
     static String topicId = Optional.ofNullable(env.get("TOPIC_ID")).orElse("");
 
     public String setup(String[] args) throws Exception {

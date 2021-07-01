@@ -8,6 +8,9 @@ import com.hedera.hashgraph.sdk.KeyList;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Data class to map JSON to java KeyList objects
+ */
 @JsonIgnoreProperties(ignoreUnknown=true)
 public class AuctionKeyList {
     @JsonProperty("keys")

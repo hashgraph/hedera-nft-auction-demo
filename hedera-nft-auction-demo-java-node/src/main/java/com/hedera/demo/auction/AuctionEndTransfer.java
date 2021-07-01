@@ -34,6 +34,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
 @Log4j2
+/**
+ * This class deals with the transferring of the auctioned token to the auction winner
+ * or the original owner of the token in the event the auction's reserve was not met or
+ * no winning bids were received.
+ */
 public class AuctionEndTransfer implements Runnable {
 
     private final AuctionsRepository auctionsRepository;
@@ -58,13 +63,31 @@ public class AuctionEndTransfer implements Runnable {
         this.operatorId = hederaClient.operatorId();
     }
 
+    /**
+     * Sets testing flag to true for unit and integration testing
+     */
     public void setTesting() {
         this.testing = true;
     }
+
+    /**
+     * Stops the thread cleanly
+     */
     public void stop() {
         runThread = false;
     }
 
+    /**
+     * For each of the auctions:
+     *
+     * If the auction is closed and its transfer status is empty, look for the winning account,
+     * if the winning account is empty, set the auction status to TRANSFER_PENDING,
+     * if the winning account is not empty, check the token is associated to the winning account if so, set the auction's
+     * status to TRANSFER_PENDING
+     *
+     * If the auction's status is TRANSFER_PENDING or TRANSFER_IN_PROGRESS, check if the transfer was successful.
+     * if not successful or not found, attempt to transfer
+     */
     @Override
     public void run() {
         while (runThread) {
@@ -98,7 +121,8 @@ public class AuctionEndTransfer implements Runnable {
                         // transfer already occurred and the checkTransferInProgress should have updated the auction
                         // status accordingly
                         switch (result) {
-                            case FAILED, NOT_FOUND:
+                            case FAILED:
+                            case NOT_FOUND:
                                 log.debug("result FAILED, NOT_FOUND");
                                 if (!StringUtils.isEmpty(this.operatorKey)) {
                                     log.debug("Transferring token");
@@ -106,8 +130,8 @@ public class AuctionEndTransfer implements Runnable {
                                     log.debug("Token transfer started");
                                 }
                                 break;
-                        case SUCCESS:
-                            log.debug("result SUCCESS");
+                            case SUCCESS:
+                                log.debug("result SUCCESS");
                         }
                     }
                 }
@@ -118,6 +142,11 @@ public class AuctionEndTransfer implements Runnable {
         }
     }
 
+    /**
+     * Checks if an auction's token is associated with the winning account, if the association exists, set the
+     * auction's transfer status to "PENDING"
+     * @param auction the auction for which to check the association
+     */
     protected void setTransferringIfAssociated(Auction auction) {
 
         // Query the account balance
@@ -140,6 +169,12 @@ public class AuctionEndTransfer implements Runnable {
         }
     }
 
+    /**
+     * Schedules a transaction to transfer the token to the winning account (or the original owner if the auction
+     * failed to meet reserve or didn't receive qualifying bids
+     *
+     * @param auction the auction to transfer the token from
+     */
     public void transferToken(Auction auction) {
         @Var boolean transferInProgress = false;
 
@@ -155,7 +190,6 @@ public class AuctionEndTransfer implements Runnable {
 
             if (! testing) {
                 try {
-//                    Client client = hederaClient.auctionClient(auctionAccountId, PrivateKey.fromString(operatorKey));
                     String memo = "Token transfer from auction";
 
                     TransactionId transactionId = TransactionId.generate(operatorId);
@@ -204,6 +238,13 @@ public class AuctionEndTransfer implements Runnable {
         }
     }
 
+    /**
+     * Checks a mirror node for a token transfer, when a successful transfer is found, updates the auction
+     * with the transfer transaction id and transaction hash
+     * @param mirrorTransactions a list of transactions from the mirror node
+     * @param tokenId the token id to look for a transaction for
+     * @return a TransferResult indicating success, failure or not found.
+     */
     private  TransferResult transferOccurredAlready(MirrorTransactions mirrorTransactions, String tokenId) {
         @Var TransferResult result = TransferResult.NOT_FOUND;
         for (MirrorTransaction mirrorTransaction : mirrorTransactions.transactions) {
@@ -227,6 +268,13 @@ public class AuctionEndTransfer implements Runnable {
         return result;
     }
 
+    /**
+     * Checks mirror node for token transfer transactions, for each response from mirror node
+     * check if any of the transactions contained within the response are successful or failed transactions
+     * If the response contains data, keep querying mirror node for later transactions.
+     * @param auction the auction to check transfers for
+     * @return a TransferResult
+     */
     private TransferResult checkTransferInProgress(Auction auction) {
         String uri = "/api/v1/transactions";
 

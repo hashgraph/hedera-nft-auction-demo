@@ -8,6 +8,9 @@ import io.vertx.pgclient.PgPool;
 
 import java.util.ArrayList;
 
+/**
+ * Gets the closed auctions from the database
+ */
 public class GetClosedAuctionsHandler implements Handler<RoutingContext> {
     private final PgPool pgPool;
 
@@ -15,6 +18,11 @@ public class GetClosedAuctionsHandler implements Handler<RoutingContext> {
         this.pgPool = pgPool;
     }
 
+    /**
+     * Query the database for auctions which have a CLOSED status
+     *
+     * @param routingContext the RoutingContext
+     */
     @Override
     public void handle(RoutingContext routingContext) {
 

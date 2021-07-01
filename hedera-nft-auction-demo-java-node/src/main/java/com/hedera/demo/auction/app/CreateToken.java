@@ -70,7 +70,16 @@ public class CreateToken extends AbstractCreate {
         }
     }
 
-
+    /**
+     * Stores json data on ipfs via fileCoin
+     *
+     * @param nftStorageKey the storage key to use to authenticate with fileCoin
+     * @param imageJson the json to store
+     *
+     * @return String the fileCoin reference to the stored file
+     * @throws IOException in the event of an exception
+     * @throws InterruptedException in the event of an exception
+     */
     protected String storeTokenOnIPFS(String nftStorageKey, JsonObject imageJson) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.nft.storage/upload"))
@@ -100,6 +109,17 @@ public class CreateToken extends AbstractCreate {
         }
     }
 
+    /**
+     * Creates the token on Hedera
+     *
+     * @param name the name of the token
+     * @param symbol the symbol for the token
+     * @param initialSupply the token's initial supply
+     * @param decimals the number of decimals for the token
+     * @param memo the memo for the token
+     * @return TokenId the unique identifier for the token
+     * @throws Exception in the event of an error
+     */
     private TokenId createToken(String name, String symbol, long initialSupply, int decimals, String memo) throws Exception {
 
         try {

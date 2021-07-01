@@ -2,6 +2,8 @@
 
 This document explains how the Hedera Auction Demo works at a high level, it is not intended to be a design document, rather a description of the end to end solution.
 
+For additional detail, please refer to the JavaDocs.
+
 ## Description
 
 The Hedera Auction demo enables Hedera Tokens to be auctioned and bids to be placed on auctioned tokens. Once the auction completes (time based), the token is transferred to the auction's winner and the winning bid is transferred to the previous owner of the token.
@@ -197,51 +199,3 @@ In the event the auction ends without bids, or all bid were below reserve, a `cr
 ### Ending the auction
 
 Once the nodes are satisfied the atomic transfer of the token + hbar to the winner and original token owner has completed, the auction status changes to "ENDED".
-
-## Code walk through
-
-### Main app
-
-_Class: com.hedera.demo.auction.app.App_
-
-The application applies any new migrations to the database.
-
-If specified in the environment variables, it starts the Client and Admin REST APIs.
-
-If the application configuration specifies it is an auction node (not just a REST API endpoint), it kicks off a number of threads:
-
-* Subscribes to the specified `Topic Id` to receive new auctions notifications
-* Runs a check for refunds as a one-off, this essentially ensures that in the event the node was down for a period of time, it is able to catch up with any previously successful refunds so that it does not attempt them again.
-* Starts a watcher thread for auction readiness for any auction that is "PENDING"
-* Starts a watcher thread for auction closure
-* Starts a watcher thread for bids for any auction that is not "PENDING"
-* If the node knows of a refund key (one of the keys associated with an auction account), it starts a thread to issue refunds and scheduled transactions.
-* Starts a thread to check for refund success
-* If the configuration specifies that the auction should transfer the token upon the auction being won (this may not be desirable for regulatory reasons in which case the final transfer of the token + hbar is a manual process), it kicks off a thread to manage these transfers.
-
-### Topic subscriber
-
-_Class: com.hedera.demo.auction.app.subscriber.TopicSubscriber_
-
-The topic subscriber subscribes to the configured `Topic Id`, in the event of a failure in the subscription, it waits 5s before attempting a new subscription.
-
-The subscription initially starts from the beginning of time, whenever a message is received, the start time for the subscription is set to the consensus timestamp of that message such that in the event of a subscription failure, the subscription restarts from the last known message.
-
-When a message is received on the topic, its contents are decoded to a an `Auction` object which is added to the database if it doesn't already exist.
-
-Before adding the auction to the database, the auctioned token's properties are read from the Hedera network and if the token's symbol contains a url to `ipfs`, the auction's token metadata property is set to that URL. This is to enable browser based UIs to render the token's details (such as image, description, etc...).
-
-If the auction is successfully added to the database, an `AuctionReadinessWatcher` thread is started for the auction.
-
-If the application node is a master node, it associates with the token being auctioned.
-
-
-
-### One off refund checker
-### Auction readiness thread
-### Auction closure thread
-### Bid watcher thread
-### Refund issuing thread
-### Scheduled transactions executor
-### Refund checker thread
-### Auction end transfer thread

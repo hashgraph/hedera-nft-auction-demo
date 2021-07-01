@@ -8,6 +8,9 @@ import io.vertx.pgclient.PgPool;
 
 import java.util.ArrayList;
 
+/**
+ * Gets all the auctions from the database
+ */
 public class GetAuctionsHandler implements Handler<RoutingContext> {
     private final PgPool pgPool;
 
@@ -15,6 +18,11 @@ public class GetAuctionsHandler implements Handler<RoutingContext> {
         this.pgPool = pgPool;
     }
 
+    /**
+     * Query the database for all the auctions
+     *
+     * @param routingContext the RoutingContext
+     */
     @Override
     public void handle(RoutingContext routingContext) {
 

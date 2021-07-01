@@ -8,6 +8,9 @@ import io.vertx.pgclient.PgPool;
 
 import java.util.ArrayList;
 
+/**
+ * Handler for active auctions
+ */
 public class GetActiveAuctionsHandler implements Handler<RoutingContext> {
     private final PgPool pgPool;
 
@@ -15,6 +18,10 @@ public class GetActiveAuctionsHandler implements Handler<RoutingContext> {
         this.pgPool = pgPool;
     }
 
+    /**
+     * Gets the auctions that have an ACTIVE status from the database
+     * @param routingContext the RoutingContext
+     */
     @Override
     public void handle(RoutingContext routingContext) {
 

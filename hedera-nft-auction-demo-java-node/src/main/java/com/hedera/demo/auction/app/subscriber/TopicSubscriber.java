@@ -8,6 +8,7 @@ import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTopicMessage;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTopicMessages;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
+import com.hedera.demo.auction.app.repository.ValidatorsRepository;
 import com.hedera.hashgraph.sdk.AccountBalance;
 import com.hedera.hashgraph.sdk.AccountBalanceQuery;
 import com.hedera.hashgraph.sdk.AccountId;
@@ -25,6 +26,7 @@ import com.hedera.hashgraph.sdk.TokenInfoQuery;
 import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.sdk.TransactionReceipt;
 import com.hedera.hashgraph.sdk.TransactionResponse;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
@@ -48,6 +50,7 @@ import java.util.concurrent.Future;
 @Log4j2
 public class TopicSubscriber implements Runnable{
     private final AuctionsRepository auctionsRepository;
+    private final ValidatorsRepository validatorsRepository;
     @Nullable
     private final TopicId topicId;
     private final int mirrorQueryFrequency;
@@ -65,13 +68,15 @@ public class TopicSubscriber implements Runnable{
      *
      * @param hederaClient the Hedera Client to use
      * @param auctionsRepository the database auction repository
+     * @param validatorsRepository the database validators repository
      * @param topicId the topicId to get messages for
      * @param mirrorQueryFrequency the frequency at which to query the mirror node
      * @param masterKey the master key
      * @param runOnce boolean to indicate if the thread should exit after one round of queries
      */
-    public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, TopicId topicId, int mirrorQueryFrequency, String masterKey, boolean runOnce) {
+    public TopicSubscriber(HederaClient hederaClient, AuctionsRepository auctionsRepository, ValidatorsRepository validatorsRepository, TopicId topicId, int mirrorQueryFrequency, String masterKey, boolean runOnce) {
         this.auctionsRepository = auctionsRepository;
+        this.validatorsRepository = validatorsRepository;
         this.topicId = topicId;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.hederaClient = hederaClient;
@@ -165,6 +170,87 @@ public class TopicSubscriber implements Runnable{
 
     /**
      * Processes consensus messages
+     * For each message, determines if the message is an auction or validator message then handle accordingly
+
+     * @param mirrorTopicMessages consensus messages to process
+     */
+    public void handle(MirrorTopicMessages mirrorTopicMessages) {
+        for (MirrorTopicMessage mirrorTopicMessage : mirrorTopicMessages.messages) {
+            log.debug("Got HCS Message");
+            String mirrorMessageData = mirrorTopicMessage.message();
+            JsonObject messageJson = new JsonObject(mirrorMessageData);
+            // is it an auction message
+            Auction newAuction = new Auction().fromJson(messageJson);
+            if (! StringUtils.isEmpty(newAuction.getAuctionaccountid())) {
+                // it's an auction
+                handleAuction(newAuction, mirrorTopicMessage.consensusTimestamp);
+            } else {
+                if (messageJson.containsKey("validators")) {
+                    JsonArray validators = messageJson.getJsonArray("validators");
+                    handleValidators(validators);
+                } else {
+                    log.warn("invalid consensus message contents");
+                }
+            }
+        }
+    }
+
+    /**
+     * Processes validators consensus messages
+     * If the provided array is valid and contains a valid add, delete or update operation, perform the necessary
+     * operation against the database
+     *
+     * @param validators a json array of validator objects
+     */
+    public void handleValidators(JsonArray validators) {
+        if (validators != null) {
+            for (Object validatorObject : validators.getList()) {
+                JsonObject validator = JsonObject.mapFrom(validatorObject);
+                String operation = validator.getString("operation", "add");
+                String name = validator.getString("name");
+                String url = validator.getString("url", "");
+                String publicKey = validator.getString("publicKey", "");
+                String nameToUpdate = validator.getString("nameToUpdate", "");
+
+                try {
+                    switch (operation) {
+                        case "add":
+                            if (StringUtils.isEmpty(name)) {
+                                log.warn("invalid consensus message contents - validator object {} has empty name", validator.encode());
+                            } else {
+                                validatorsRepository.add(name, url, publicKey);
+                            }
+                            break;
+                        case "delete":
+                            if (StringUtils.isEmpty(name)) {
+                                log.warn("invalid consensus message contents - validator object {} has empty name", validator.encode());
+                            } else {
+                                validatorsRepository.delete(name);
+                            }
+                            break;
+                        case "update":
+                            if (StringUtils.isEmpty(name)) {
+                                log.warn("invalid consensus message contents - validator object {} has empty name", validator.encode());
+                            } else if (StringUtils.isEmpty(nameToUpdate)) {
+                                log.warn("invalid consensus message contents - validator object {} has empty nameToUpdate", validator.encode());
+                            } else {
+                                validatorsRepository.update(nameToUpdate, name, url, publicKey);
+                            }
+                            break;
+                        default:
+                            log.warn("invalid consensus message contents - validator object {} has invalid value combinations", validator.encode());
+                    }
+                } catch (SQLException e) {
+                    log.error(e, e);
+                }
+            }
+        } else {
+            log.warn("invalid consensus message contents - validators is not an array");
+        }
+    }
+
+    /**
+     * Processes auction consensus messages
      * For each message,
      * - creates an Auction object from the json data present in the message
      * - calculates the auction's end timestamp if a time unit is specified
@@ -181,134 +267,129 @@ public class TopicSubscriber implements Runnable{
      * If an auction has been added to the database and a master key is defined
      * - associate the auction's account with the token
      *
-     * @param mirrorTopicMessages consensus messages to process
+     * @param newAuction the auction to add to the database
+     * @param consensusTimestamp the consensus timestamp of the transaction
      */
-    public void handle(MirrorTopicMessages mirrorTopicMessages) {
+    public void handleAuction(Auction newAuction, String consensusTimestamp) {
         try {
-            for (MirrorTopicMessage mirrorTopicMessage : mirrorTopicMessages.messages) {
-                log.debug("Got HCS Message");
-                String auctionData = mirrorTopicMessage.message();
-                JsonObject auctionJson = new JsonObject(auctionData);
-                Auction newAuction = new Auction().fromJson(auctionJson);
-                Instant consensusTime = Utils.timestampToInstant(mirrorTopicMessage.consensusTimestamp);
-                @Var String endTimeStamp = newAuction.getEndtimestamp().toLowerCase();
+            Instant consensusTime = Utils.timestampToInstant(consensusTimestamp);
+            @Var String endTimeStamp = newAuction.getEndtimestamp().toLowerCase();
 
-                if (endTimeStamp.contains("m")) {
-                    int timeDelta = Integer.parseInt(endTimeStamp.replace("m", ""));
-                    endTimeStamp = String.valueOf(consensusTime.plus(timeDelta, ChronoUnit.MINUTES).getEpochSecond());
-                } else if (endTimeStamp.contains("h")) {
-                    int timeDelta = Integer.parseInt(endTimeStamp.replace("h", ""));
-                    endTimeStamp = String.valueOf(consensusTime.plus(timeDelta, ChronoUnit.HOURS).getEpochSecond());
-                } else if (endTimeStamp.contains("d")) {
-                    int timeDelta = Integer.parseInt(endTimeStamp.replace("d", ""));
-                    endTimeStamp = String.valueOf(consensusTime.plus(timeDelta, ChronoUnit.DAYS).getEpochSecond());
-                } else if (StringUtils.isEmpty(endTimeStamp)) {
-                    // no end timestamp, use consensus timestamp + 2 days
-                    endTimeStamp = String.valueOf(consensusTime.plus(2, ChronoUnit.DAYS).getEpochSecond());
-                }
+            if (endTimeStamp.contains("m")) {
+                int timeDelta = Integer.parseInt(endTimeStamp.replace("m", ""));
+                endTimeStamp = String.valueOf(consensusTime.plus(timeDelta, ChronoUnit.MINUTES).getEpochSecond());
+            } else if (endTimeStamp.contains("h")) {
+                int timeDelta = Integer.parseInt(endTimeStamp.replace("h", ""));
+                endTimeStamp = String.valueOf(consensusTime.plus(timeDelta, ChronoUnit.HOURS).getEpochSecond());
+            } else if (endTimeStamp.contains("d")) {
+                int timeDelta = Integer.parseInt(endTimeStamp.replace("d", ""));
+                endTimeStamp = String.valueOf(consensusTime.plus(timeDelta, ChronoUnit.DAYS).getEpochSecond());
+            } else if (StringUtils.isEmpty(endTimeStamp)) {
+                // no end timestamp, use consensus timestamp + 2 days
+                endTimeStamp = String.valueOf(consensusTime.plus(2, ChronoUnit.DAYS).getEpochSecond());
+            }
 
-                newAuction.setEndtimestamp(endTimeStamp.concat(".000000000")); // add nanoseconds
-                newAuction.setWinningbid(0L);
-                newAuction.setProcessrefunds(false);
+            newAuction.setEndtimestamp(endTimeStamp.concat(".000000000")); // add nanoseconds
+            newAuction.setWinningbid(0L);
+            newAuction.setProcessrefunds(false);
 
-                @Var Auction auction;
-                try {
-                    log.debug("Adding auction to database");
-                    auction = auctionsRepository.getAuction(newAuction.getAuctionaccountid());
-                    // auction doesn't exist, create it
-                    if (auction == null) {
-                        if (!testing) {
-                            // get token info
-                            Client client = hederaClient.client();
-                            try {
-                                log.debug("Getting token info");
-                                TokenInfo tokenInfo = new TokenInfoQuery()
-                                        .setTokenId(TokenId.fromString(newAuction.getTokenid()))
-                                        .execute(client);
-
-                                // store the IPFS url against the auction
-                                if (tokenInfo.symbol.contains("ipfs")) {
-                                    // set token image data
-                                    newAuction.setTokenmetadata(tokenInfo.symbol);
-                                }
-                            } catch (Exception e) {
-                                log.error("error getting token info", e);
-                                throw e;
-                            }
-                            // get auction account info
-                            log.debug("getting auction account info");
-                            AccountInfo accountInfo = new AccountInfoQuery()
-                                    .setAccountId(AccountId.fromString(newAuction.getAuctionaccountid()))
+            @Var Auction auction;
+            try {
+                log.debug("Adding auction to database");
+                auction = auctionsRepository.getAuction(newAuction.getAuctionaccountid());
+                // auction doesn't exist, create it
+                if (auction == null) {
+                    if (!testing) {
+                        // get token info
+                        Client client = hederaClient.client();
+                        try {
+                            log.debug("Getting token info");
+                            TokenInfo tokenInfo = new TokenInfoQuery()
+                                    .setTokenId(TokenId.fromString(newAuction.getTokenid()))
                                     .execute(client);
 
-                            // only process refunds for this auction if the auction's key contains the operator's public key
-                            newAuction.setProcessrefunds(accountInfo.key.toString().toUpperCase().contains(hederaClient.operatorPublicKey().toString().toUpperCase()));
-                        }
-
-                        auction = auctionsRepository.add(newAuction);
-
-                        if ((auction.getId() != 0) && !testing) {
-                            log.info("Auction for token {} added", newAuction.getTokenid());
-                        }
-
-                        if (!skipReadinessWatcher) {
-                            auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, auctionsRepository, auction, mirrorQueryFrequency, runOnce);
-                            if (this.runOnce) {
-                                // don't run as a thread
-                                auctionReadinessWatcher.run();
-                            } else {
-                                // Start a thread to watch this new auction for readiness
-                                Thread t = new Thread(auctionReadinessWatcher);
-                                t.start();
+                            // store the IPFS url against the auction
+                            if (tokenInfo.symbol.contains("ipfs")) {
+                                // set token image data
+                                newAuction.setTokenmetadata(tokenInfo.symbol);
                             }
+                        } catch (Exception e) {
+                            log.error("error getting token info", e);
+                            throw e;
                         }
-
-                    }
-
-                    // do we need to associate
-                    // If refund key and master node, associate with the token
-                    //TODO: Currently only available to the master node, this feature should eventually
-                    // transition to use scheduled transactions
-                    if (!StringUtils.isEmpty(masterKey)) {
-
-                        Client client = hederaClient.auctionClient(auction, PrivateKey.fromString(masterKey));
-
-                        AccountBalance accountBalance = new AccountBalanceQuery()
-                                .setAccountId(AccountId.fromString(auction.getAuctionaccountid()))
+                        // get auction account info
+                        log.debug("getting auction account info");
+                        AccountInfo accountInfo = new AccountInfoQuery()
+                                .setAccountId(AccountId.fromString(newAuction.getAuctionaccountid()))
                                 .execute(client);
 
-                        Map<TokenId, Long> tokens = accountBalance.token;
-                        if (!tokens.containsKey(TokenId.fromString(auction.getTokenid()))) {
-                            // not associated yet, try association
-                            client.setMaxTransactionFee(Hbar.from(100));
-                            TokenAssociateTransaction tokenAssociateTransaction = new TokenAssociateTransaction();
-                            List<TokenId> tokenIds = new ArrayList<>();
-                            tokenIds.add(TokenId.fromString(auction.getTokenid()));
-                            tokenAssociateTransaction.setTokenIds(tokenIds);
-                            tokenAssociateTransaction.setTransactionMemo("Associate");
-                            tokenAssociateTransaction.setAccountId(AccountId.fromString(auction.getAuctionaccountid()));
-
-                            try {
-                                TransactionResponse response = tokenAssociateTransaction.execute(client);
-
-                                TransactionReceipt receipt = response.getReceipt(client);
-                                if (receipt.status != Status.SUCCESS) {
-                                    log.error("Token association failed {}", receipt.status);
-                                } else {
-                                    log.info("Scheduled transaction to associate token {} with auction account {}", auction.getTokenid(), auction.getAuctionaccountid());
-                                }
-                            } catch (PrecheckStatusException e) {
-                                if (e.status != Status.TOKEN_ALREADY_ASSOCIATED_TO_ACCOUNT) {
-                                    log.error("Error during association", e);
-                                }
-                            }
-                        }
-                        client.close();
+                        // only process refunds for this auction if the auction's key contains the operator's public key
+                        newAuction.setProcessrefunds(accountInfo.key.toString().toUpperCase().contains(hederaClient.operatorPublicKey().toString().toUpperCase()));
                     }
 
-                } catch (SQLException e) {
-                    log.error("unable to determine if auction already exists", e);
+                    auction = auctionsRepository.add(newAuction);
+
+                    if ((auction.getId() != 0) && !testing) {
+                        log.info("Auction for token {} added", newAuction.getTokenid());
+                    }
+
+                    if (!skipReadinessWatcher) {
+                        auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, auctionsRepository, auction, mirrorQueryFrequency, runOnce);
+                        if (this.runOnce) {
+                            // don't run as a thread
+                            auctionReadinessWatcher.run();
+                        } else {
+                            // Start a thread to watch this new auction for readiness
+                            Thread t = new Thread(auctionReadinessWatcher);
+                            t.start();
+                        }
+                    }
+
                 }
+
+                // do we need to associate
+                // If refund key and master node, associate with the token
+                //TODO: Currently only available to the master node, this feature should eventually
+                // transition to use scheduled transactions
+                if (!StringUtils.isEmpty(masterKey)) {
+
+                    Client client = hederaClient.auctionClient(auction, PrivateKey.fromString(masterKey));
+
+                    AccountBalance accountBalance = new AccountBalanceQuery()
+                            .setAccountId(AccountId.fromString(auction.getAuctionaccountid()))
+                            .execute(client);
+
+                    Map<TokenId, Long> tokens = accountBalance.token;
+                    if (!tokens.containsKey(TokenId.fromString(auction.getTokenid()))) {
+                        // not associated yet, try association
+                        client.setMaxTransactionFee(Hbar.from(100));
+                        TokenAssociateTransaction tokenAssociateTransaction = new TokenAssociateTransaction();
+                        List<TokenId> tokenIds = new ArrayList<>();
+                        tokenIds.add(TokenId.fromString(auction.getTokenid()));
+                        tokenAssociateTransaction.setTokenIds(tokenIds);
+                        tokenAssociateTransaction.setTransactionMemo("Associate");
+                        tokenAssociateTransaction.setAccountId(AccountId.fromString(auction.getAuctionaccountid()));
+
+                        try {
+                            TransactionResponse response = tokenAssociateTransaction.execute(client);
+
+                            TransactionReceipt receipt = response.getReceipt(client);
+                            if (receipt.status != Status.SUCCESS) {
+                                log.error("Token association failed {}", receipt.status);
+                            } else {
+                                log.info("Scheduled transaction to associate token {} with auction account {}", auction.getTokenid(), auction.getAuctionaccountid());
+                            }
+                        } catch (PrecheckStatusException e) {
+                            if (e.status != Status.TOKEN_ALREADY_ASSOCIATED_TO_ACCOUNT) {
+                                log.error("Error during association", e);
+                            }
+                        }
+                    }
+                    client.close();
+                }
+
+            } catch (SQLException e) {
+                log.error("unable to determine if auction already exists", e);
             }
         } catch (Exception e) {
             log.error(e, e);

@@ -39,7 +39,7 @@ public class PostCreateToken implements Handler<RoutingContext> {
                         .end(Json.encodeToBuffer(response));
             }
         } catch (Exception e) {
-            routingContext.fail(400, e);
+            routingContext.fail(500, e);
             return;
         }
     }

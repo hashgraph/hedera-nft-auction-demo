@@ -4,6 +4,7 @@
 package com.hedera.demo.auction.app.db.tables;
 
 
+import com.hedera.demo.auction.app.db.Indexes;
 import com.hedera.demo.auction.app.db.Keys;
 import com.hedera.demo.auction.app.db.Public;
 
@@ -12,6 +13,7 @@ import java.util.List;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Schema;
@@ -136,6 +138,11 @@ public class Bids extends TableImpl<Record> {
     @Override
     public Schema getSchema() {
         return Public.PUBLIC;
+    }
+
+    @Override
+    public List<Index> getIndexes() {
+        return Arrays.<Index>asList(Indexes.BIDS_REFUNDSTATUS_INDEX, Indexes.BIDS_TRANSACTIONID_INDEX);
     }
 
     @Override

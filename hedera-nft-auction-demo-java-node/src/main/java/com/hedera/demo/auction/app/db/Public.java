@@ -7,8 +7,7 @@ package com.hedera.demo.auction.app.db;
 import com.hedera.demo.auction.app.db.tables.Auctions;
 import com.hedera.demo.auction.app.db.tables.Bids;
 import com.hedera.demo.auction.app.db.tables.FlywaySchemaHistory;
-import com.hedera.demo.auction.app.db.tables.Scheduledoperations;
-import com.hedera.demo.auction.app.db.tables.Scheduledoperationslog;
+import com.hedera.demo.auction.app.db.tables.Validators;
 
 import java.util.Arrays;
 import java.util.List;
@@ -48,14 +47,9 @@ public class Public extends SchemaImpl {
     public final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
 
     /**
-     * The table <code>public.scheduledoperations</code>.
+     * The table <code>public.validators</code>.
      */
-    public final Scheduledoperations SCHEDULEDOPERATIONS = Scheduledoperations.SCHEDULEDOPERATIONS;
-
-    /**
-     * The table <code>public.scheduledoperationslog</code>.
-     */
-    public final Scheduledoperationslog SCHEDULEDOPERATIONSLOG = Scheduledoperationslog.SCHEDULEDOPERATIONSLOG;
+    public final Validators VALIDATORS = Validators.VALIDATORS;
 
     /**
      * No further instances allowed
@@ -82,7 +76,6 @@ public class Public extends SchemaImpl {
             Auctions.AUCTIONS,
             Bids.BIDS,
             FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY,
-            Scheduledoperations.SCHEDULEDOPERATIONS,
-            Scheduledoperationslog.SCHEDULEDOPERATIONSLOG);
+            Validators.VALIDATORS);
     }
 }

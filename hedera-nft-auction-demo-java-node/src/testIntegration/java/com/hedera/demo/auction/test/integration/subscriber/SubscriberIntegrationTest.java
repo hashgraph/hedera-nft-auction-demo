@@ -4,12 +4,15 @@ import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.HederaClient;
 import com.hedera.demo.auction.app.SqlConnectionManager;
 import com.hedera.demo.auction.app.domain.Auction;
+import com.hedera.demo.auction.app.domain.Validator;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTopicMessage;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTopicMessages;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
+import com.hedera.demo.auction.app.repository.ValidatorsRepository;
 import com.hedera.demo.auction.app.subscriber.TopicSubscriber;
 import com.hedera.demo.auction.test.integration.AbstractIntegrationTest;
 import com.hedera.hashgraph.sdk.TopicId;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -37,6 +40,7 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
     private PostgreSQLContainer postgres;
     private AuctionsRepository auctionsRepository;
+    private ValidatorsRepository validatorsRepository;
     private final HederaClient hederaClient = HederaClient.emptyTestClient();
     private final static String tokenId = "0.0.10";
     private final static String auctionAccountId = "0.0.20";
@@ -58,8 +62,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         migrate(this.postgres);
         SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
+        validatorsRepository = new ValidatorsRepository(connectionManager);
 
-        topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, topicId, 5000, masterKey, /*runOnce= */ false);
+        topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, validatorsRepository, topicId, 5000, masterKey, /*runOnce= */ false);
         topicSubscriber.setSkipReadinessWatcher();
         topicSubscriber.setTesting();
 
@@ -86,12 +91,13 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
     @AfterEach
     public void afterEach() throws SQLException {
         auctionsRepository.deleteAllAuctions();
+        validatorsRepository.deleteAllValidators();
     }
 
     @Test
     public void testAuctionNoEndTimestamp() throws Exception {
 
-        createTopicMessage();
+        createTopicMessage(auctionJson);
 
         topicSubscriber.handle(mirrorTopicMessages);
 
@@ -115,7 +121,7 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
         consensusTimestamp = consensusTimestamp.plus(5, ChronoUnit.DAYS);
         auctionJson.put("endtimestamp", String.valueOf(consensusTimestamp.getEpochSecond()));
-        createTopicMessage();
+        createTopicMessage(auctionJson);
 
         topicSubscriber.handle(mirrorTopicMessages);
 
@@ -134,7 +140,7 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
     public void testWinnerCantBid() throws Exception {
 
         auctionJson.put("winnercanbid", false);
-        createTopicMessage();
+        createTopicMessage(auctionJson);
 
         topicSubscriber.handle(mirrorTopicMessages);
 
@@ -156,7 +162,7 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         auctionJson.remove("endtimestamp");
         auctionJson.remove("reserve");
         auctionJson.remove("winnercanbid");
-        createTopicMessage();
+        createTopicMessage(auctionJson);
 
         topicSubscriber.handle(mirrorTopicMessages);
 
@@ -172,9 +178,286 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         assertFalse(auctions.get(0).getWinnerCanBid());
     }
 
-    private void createTopicMessage() {
+    @Test
+    public void testAddValidator() throws SQLException {
+        JsonObject validatorJson = new JsonObject();
+        JsonArray validators = new JsonArray();
+        JsonObject validator = new JsonObject();
+        validator.put("name", "validatorName");
+        validator.put("url", "validatorUrl");
+        validator.put("publicKey", "validatorPublicKey");
+        validator.put("operation", "add");
+        validators.add(validator);
+        validatorJson.put("validators", validators);
 
-        byte[] contents = auctionJson.toString().getBytes(StandardCharsets.UTF_8);
+        createTopicMessage(validatorJson);
+
+        topicSubscriber.handle(mirrorTopicMessages);
+
+        List<Validator> dbValidators = validatorsRepository.getValidatorsList();
+
+        assertEquals(1, dbValidators.size());
+        assertEquals("validatorName", dbValidators.get(0).getName());
+        assertEquals("validatorUrl", dbValidators.get(0).getUrl());
+        assertEquals("validatorPublicKey", dbValidators.get(0).getPublicKey());
+    }
+
+    @Test
+    public void testAddValidators() throws SQLException {
+        JsonObject validatorJson = new JsonObject();
+        JsonArray validators = new JsonArray();
+        JsonObject validator = new JsonObject();
+        validator.put("name", "validatorName");
+        validator.put("url", "validatorUrl");
+        validator.put("publicKey", "validatorPublicKey");
+        validator.put("operation", "add");
+        validators.add(validator);
+
+        JsonObject validator2 = new JsonObject();
+        validator2.put("name", "validatorName2");
+        validator2.put("url", "validatorUrl2");
+        validator2.put("publicKey", "validatorPublicKey2");
+        validator2.put("operation", "add");
+        validators.add(validator2);
+
+        validatorJson.put("validators", validators);
+
+        createTopicMessage(validatorJson);
+
+        topicSubscriber.handle(mirrorTopicMessages);
+
+        List<Validator> dbValidators = validatorsRepository.getValidatorsList();
+
+        assertEquals(2, dbValidators.size());
+        assertEquals("validatorName", dbValidators.get(0).getName());
+        assertEquals("validatorUrl", dbValidators.get(0).getUrl());
+        assertEquals("validatorPublicKey", dbValidators.get(0).getPublicKey());
+
+        assertEquals("validatorName2", dbValidators.get(1).getName());
+        assertEquals("validatorUrl2", dbValidators.get(1).getUrl());
+        assertEquals("validatorPublicKey2", dbValidators.get(1).getPublicKey());
+    }
+
+    @Test
+    public void testDeleteValidator() throws SQLException {
+        JsonObject validatorJson = new JsonObject();
+        JsonArray validators = new JsonArray();
+        JsonObject validator = new JsonObject();
+        validator.put("name", "validatorName");
+        validator.put("url", "validatorUrl");
+        validator.put("publicKey", "validatorPublicKey");
+        validator.put("operation", "add");
+        validators.add(validator);
+        validatorJson.put("validators", validators);
+
+        createTopicMessage(validatorJson);
+
+        topicSubscriber.handle(mirrorTopicMessages);
+
+        JsonObject deleteValidatorJson = new JsonObject();
+        JsonArray deleteValidators = new JsonArray();
+        JsonObject deleteValidator = new JsonObject();
+        deleteValidator.put("name", "validatorName");
+        deleteValidator.put("operation", "delete");
+        deleteValidators.add(deleteValidator);
+        deleteValidatorJson.put("validators", deleteValidators);
+
+        createTopicMessage(deleteValidatorJson);
+
+        topicSubscriber.handle(mirrorTopicMessages);
+
+        List<Validator> dbValidators = validatorsRepository.getValidatorsList();
+
+        assertEquals(0, dbValidators.size());
+    }
+
+    @Test
+    public void testUpdateValidator() throws SQLException {
+        JsonObject validatorJson = new JsonObject();
+        JsonArray validators = new JsonArray();
+        JsonObject validator = new JsonObject();
+        validator.put("name", "validatorName");
+        validator.put("url", "validatorUrl");
+        validator.put("publicKey", "validatorPublicKey");
+        validator.put("operation", "add");
+        validators.add(validator);
+        validatorJson.put("validators", validators);
+
+        createTopicMessage(validatorJson);
+
+        topicSubscriber.handle(mirrorTopicMessages);
+
+        JsonObject updateValidatorJson = new JsonObject();
+        JsonArray updateValidators = new JsonArray();
+        JsonObject updateValidator = new JsonObject();
+        updateValidator.put("nameToUpdate", "validatorName");
+        updateValidator.put("name", "validatorName2");
+        updateValidator.put("url", "validatorUrl2");
+        updateValidator.put("publicKey", "validatorPublicKey2");
+        updateValidator.put("operation", "update");
+
+        updateValidators.add(updateValidator);
+        updateValidatorJson.put("validators", updateValidators);
+
+        createTopicMessage(updateValidatorJson);
+
+        topicSubscriber.handle(mirrorTopicMessages);
+
+        List<Validator> dbValidators = validatorsRepository.getValidatorsList();
+
+        assertEquals(1, dbValidators.size());
+
+        assertEquals("validatorName2", dbValidators.get(0).getName());
+        assertEquals("validatorUrl2", dbValidators.get(0).getUrl());
+        assertEquals("validatorPublicKey2", dbValidators.get(0).getPublicKey());
+    }
+
+    @Test
+    public void testInvalidValidatorOperation() throws SQLException {
+        // invalid operation
+        JsonObject validatorJson = new JsonObject();
+        JsonArray validators = new JsonArray();
+        JsonObject validator = new JsonObject();
+        validator.put("name", "validatorName");
+        validator.put("url", "validatorUrl");
+        validator.put("publicKey", "validatorPublicKey");
+        validator.put("operation", "invalid");
+        validators.add(validator);
+        validatorJson.put("validators", validators);
+
+        createTopicMessage(validatorJson);
+        topicSubscriber.handle(mirrorTopicMessages);
+        List<Validator> dbValidators = validatorsRepository.getValidatorsList();
+        assertEquals(0, dbValidators.size());
+    }
+    @Test
+    public void testInvalidValidatorAdd() throws SQLException {
+        // add empty name
+        JsonObject validatorJson = new JsonObject();
+        JsonArray validators = new JsonArray();
+        JsonObject validator = new JsonObject();
+        validator.put("name", "");
+        validator.put("url", "validatorUrl");
+        validator.put("publicKey", "validatorPublicKey");
+        validator.put("operation", "add");
+        validators.add(validator);
+        validatorJson.put("validators", validators);
+
+        createTopicMessage(validatorJson);
+        topicSubscriber.handle(mirrorTopicMessages);
+        List<Validator> dbValidators = validatorsRepository.getValidatorsList();
+        assertEquals(0, dbValidators.size());
+    }
+    @Test
+    public void testInvalidValidatorDelete() throws SQLException {
+        JsonObject validatorJson = new JsonObject();
+        JsonArray validators = new JsonArray();
+        JsonObject validator = new JsonObject();
+        validator.put("name", "validatorName");
+        validator.put("url", "validatorUrl");
+        validator.put("publicKey", "validatorPublicKey");
+        validator.put("operation", "add");
+        validators.add(validator);
+        validatorJson.put("validators", validators);
+
+        createTopicMessage(validatorJson);
+
+        topicSubscriber.handle(mirrorTopicMessages);
+
+        JsonObject deleteValidatorJson = new JsonObject();
+        JsonArray deleteValidators = new JsonArray();
+        JsonObject deleteValidator = new JsonObject();
+        deleteValidator.put("name", "");
+        deleteValidator.put("operation", "delete");
+        deleteValidators.add(deleteValidator);
+        deleteValidatorJson.put("validators", deleteValidators);
+
+        createTopicMessage(deleteValidatorJson);
+
+        topicSubscriber.handle(mirrorTopicMessages);
+
+        List<Validator> dbValidators = validatorsRepository.getValidatorsList();
+
+        assertEquals(1, dbValidators.size());
+    }
+
+    @Test
+    public void testInvalidValidatorUpdateEmptyName() throws SQLException {
+        JsonObject validatorJson = new JsonObject();
+        JsonArray validators = new JsonArray();
+        JsonObject validator = new JsonObject();
+        validator.put("name", "validatorName");
+        validator.put("url", "validatorUrl");
+        validator.put("publicKey", "validatorPublicKey");
+        validator.put("operation", "add");
+        validators.add(validator);
+        validatorJson.put("validators", validators);
+
+        createTopicMessage(validatorJson);
+
+        topicSubscriber.handle(mirrorTopicMessages);
+
+        JsonObject deleteValidatorJson = new JsonObject();
+        JsonArray deleteValidators = new JsonArray();
+        JsonObject deleteValidator = new JsonObject();
+        deleteValidator.put("nameToUpdate", "validatorName");
+        deleteValidator.put("name", "");
+        deleteValidator.put("operation", "update");
+        deleteValidators.add(deleteValidator);
+        deleteValidatorJson.put("validators", deleteValidators);
+
+        createTopicMessage(deleteValidatorJson);
+
+        topicSubscriber.handle(mirrorTopicMessages);
+
+        List<Validator> dbValidators = validatorsRepository.getValidatorsList();
+
+        assertEquals(1, dbValidators.size());
+        assertEquals("validatorName", dbValidators.get(0).getName());
+        assertEquals("validatorUrl", dbValidators.get(0).getUrl());
+        assertEquals("validatorPublicKey", dbValidators.get(0).getPublicKey());
+    }
+
+    @Test
+    public void testInvalidValidatorUpdateEmptyNameToUpdate() throws SQLException {
+        JsonObject validatorJson = new JsonObject();
+        JsonArray validators = new JsonArray();
+        JsonObject validator = new JsonObject();
+        validator.put("name", "validatorName");
+        validator.put("url", "validatorUrl");
+        validator.put("publicKey", "validatorPublicKey");
+        validator.put("operation", "add");
+        validators.add(validator);
+        validatorJson.put("validators", validators);
+
+        createTopicMessage(validatorJson);
+
+        topicSubscriber.handle(mirrorTopicMessages);
+
+        JsonObject deleteValidatorJson = new JsonObject();
+        JsonArray deleteValidators = new JsonArray();
+        JsonObject deleteValidator = new JsonObject();
+        deleteValidator.put("nameToUpdate", "");
+        deleteValidator.put("name", "validatorName2");
+        deleteValidator.put("operation", "update");
+        deleteValidators.add(deleteValidator);
+        deleteValidatorJson.put("validators", deleteValidators);
+
+        createTopicMessage(deleteValidatorJson);
+
+        topicSubscriber.handle(mirrorTopicMessages);
+
+        List<Validator> dbValidators = validatorsRepository.getValidatorsList();
+
+        assertEquals(1, dbValidators.size());
+        assertEquals("validatorName", dbValidators.get(0).getName());
+        assertEquals("validatorUrl", dbValidators.get(0).getUrl());
+        assertEquals("validatorPublicKey", dbValidators.get(0).getPublicKey());
+    }
+
+    private void createTopicMessage(JsonObject messageJson) {
+
+        byte[] contents = messageJson.toString().getBytes(StandardCharsets.UTF_8);
         String base64Contents = Base64.getEncoder().encodeToString(contents);
         JsonObject topicMessage = new JsonObject();
         @Var String timeStamp = String.valueOf(consensusTimestamp.getEpochSecond());

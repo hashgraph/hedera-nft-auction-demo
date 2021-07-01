@@ -11,6 +11,7 @@ import com.hedera.demo.auction.app.api.ApiVerticle;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
+import com.hedera.demo.auction.app.repository.ValidatorsRepository;
 import com.hedera.demo.auction.app.subscriber.TopicSubscriber;
 import com.hedera.hashgraph.sdk.TopicId;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -189,15 +190,16 @@ public final class App {
             SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgresUrl, this.postgresUser, this.postgresPassword);
             AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
             BidsRepository bidsRepository = new BidsRepository(connectionManager);
+            ValidatorsRepository validatorsRepository = new ValidatorsRepository(connectionManager);
 
             // perform a one off check for new auctions and bids
-            startSubscription(auctionsRepository, /* runOnce= */ true);
+            startSubscription(auctionsRepository, validatorsRepository, /* runOnce= */ true);
             // check for completed refunds (one off)
             startRefundChecker(auctionsRepository, bidsRepository, /* runOnce= */ true);
 
             // now subscribe for new events
             // subscribe to topic to get new auction notifications
-            startSubscription(auctionsRepository, /* runOnce= */ false);
+            startSubscription(auctionsRepository, validatorsRepository, /* runOnce= */ false);
 
             startAuctionReadinessWatchers(auctionsRepository);
             startAuctionsClosureWatcher(auctionsRepository);
@@ -229,13 +231,14 @@ public final class App {
      * Starts a subscription to a topic id, optionally once only
      *
      * @param auctionsRepository the repository for auctions on the database
+     * @param validatorsRepository the repository for validators on the database
      * @param runOnce true to run the subscription once and not loop
      */
-    private void startSubscription(AuctionsRepository auctionsRepository, boolean runOnce) {
+    private void startSubscription(AuctionsRepository auctionsRepository, ValidatorsRepository validatorsRepository, boolean runOnce) {
         if (StringUtils.isEmpty(topicId)) {
             log.warn("No topic Id found in environment variables, not subscribing");
         } else {
-            topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository,TopicId.fromString(topicId), mirrorQueryFrequency, masterKey, runOnce);
+            topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, validatorsRepository, TopicId.fromString(topicId), mirrorQueryFrequency, masterKey, runOnce);
             if (runOnce) {
                 // don't run as a thread
                 topicSubscriber.run();

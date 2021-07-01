@@ -3,6 +3,7 @@ package com.hedera.demo.auction.app;
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
+import com.hedera.demo.auction.app.repository.ValidatorsRepository;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.Status;
@@ -49,6 +50,7 @@ public class EasySetup extends AbstractCreate {
     final static SqlConnectionManager connectionManager = new SqlConnectionManager(url, username, password);
     final static AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
     final static BidsRepository bidsRepository = new BidsRepository(connectionManager);
+    final static ValidatorsRepository validatorsRepository = new ValidatorsRepository(connectionManager);
     @SuppressWarnings("FieldMissingNullable")
     static String topicId = Optional.ofNullable(env.get("TOPIC_ID")).orElse("");
 
@@ -74,6 +76,7 @@ public class EasySetup extends AbstractCreate {
             log.info("Deleting existing auctions and bids and creating new topic");
             bidsRepository.deleteAllBids();
             auctionsRepository.deleteAllAuctions();
+            validatorsRepository.deleteAllValidators();
             CreateTopic createTopic = new CreateTopic();
             topicId = createTopic.create().toString();
         }

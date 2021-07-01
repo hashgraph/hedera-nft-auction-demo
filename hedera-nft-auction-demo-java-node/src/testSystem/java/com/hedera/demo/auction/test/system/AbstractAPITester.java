@@ -174,4 +174,20 @@ public class AbstractAPITester extends AbstractE2ETest {
 
                 })));
     }
+
+  public void validatorAPICall(VertxTestContext testContext, String host, JsonObject validatorJson) throws Exception {
+    webClient.post(adminPort, host, "/v1/admin/validators")
+            .as(BodyCodec.jsonObject())
+            .sendJson(validatorJson, testContext.succeeding(response -> testContext.verify(() -> {
+
+              assertNotNull(response.body());
+              JsonObject body = JsonObject.mapFrom(response.body());
+              assertNotNull(body);
+
+              assertEquals("success", body.getString("status"));
+
+              testContext.completeNow();
+
+            })));
+  }
 }

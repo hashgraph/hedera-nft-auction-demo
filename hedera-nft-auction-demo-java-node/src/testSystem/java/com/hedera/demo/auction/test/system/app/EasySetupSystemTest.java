@@ -4,6 +4,7 @@ import com.hedera.demo.auction.app.SqlConnectionManager;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
+import com.hedera.demo.auction.app.repository.ValidatorsRepository;
 import com.hedera.demo.auction.app.subscriber.TopicSubscriber;
 import com.hedera.demo.auction.test.system.AbstractSystemTest;
 import com.hedera.hashgraph.sdk.TopicId;
@@ -37,6 +38,7 @@ public class EasySetupSystemTest extends AbstractSystemTest {
         SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
+        validatorsRepository = new ValidatorsRepository(connectionManager);
     }
 
     @AfterAll
@@ -57,7 +59,7 @@ public class EasySetupSystemTest extends AbstractSystemTest {
 
         hederaClient.setMirrorProvider("hedera");
         assertNotNull(topicId);
-        TopicSubscriber topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, topicId, 5000, masterKey.toString(), /*runOnce= */ false);
+        TopicSubscriber topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, validatorsRepository, topicId, 5000, masterKey.toString(), /*runOnce= */ false);
 
         topicSubscriber.setSkipReadinessWatcher();
         // start the thread to monitor bids

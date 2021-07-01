@@ -4,6 +4,7 @@
 package com.hedera.demo.auction.app.db;
 
 
+import com.hedera.demo.auction.app.db.tables.Bids;
 import com.hedera.demo.auction.app.db.tables.FlywaySchemaHistory;
 
 import org.jooq.Index;
@@ -22,5 +23,7 @@ public class Indexes {
     // INDEX definitions
     // -------------------------------------------------------------------------
 
+    public static final Index BIDS_REFUNDSTATUS_INDEX = Internal.createIndex(DSL.name("bids_refundstatus_index"), Bids.BIDS, new OrderField[] { Bids.BIDS.REFUNDSTATUS }, false);
+    public static final Index BIDS_TRANSACTIONID_INDEX = Internal.createIndex(DSL.name("bids_transactionid_index"), Bids.BIDS, new OrderField[] { Bids.BIDS.TRANSACTIONID }, false);
     public static final Index FLYWAY_SCHEMA_HISTORY_S_IDX = Internal.createIndex(DSL.name("flyway_schema_history_s_idx"), FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, new OrderField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.SUCCESS }, false);
 }

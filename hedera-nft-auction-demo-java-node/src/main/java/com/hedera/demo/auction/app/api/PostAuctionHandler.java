@@ -41,7 +41,7 @@ public class PostAuctionHandler implements Handler<RoutingContext> {
         var body = routingContext.getBodyAsJson();
 
         if (body == null) {
-            routingContext.fail(400);
+            routingContext.fail(500);
             return;
         }
 
@@ -93,14 +93,14 @@ public class PostAuctionHandler implements Handler<RoutingContext> {
                     .putHeader("content-type", "application/json")
                     .end(Json.encodeToBuffer(response));
         } catch (InterruptedException e) {
-            routingContext.fail(400, e);
+            routingContext.fail(500, e);
             Thread.currentThread().interrupt();
         } catch (TimeoutException | PrecheckStatusException | ReceiptStatusException | IOException e) {
-            routingContext.fail(400, e);
+            routingContext.fail(500, e);
             return;
         } catch (Exception e) {
             log.error(e, e);
-            routingContext.fail(400, e);
+            routingContext.fail(500, e);
         }
     }
 }

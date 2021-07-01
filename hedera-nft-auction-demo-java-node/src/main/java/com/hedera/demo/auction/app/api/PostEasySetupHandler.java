@@ -48,7 +48,7 @@ public class PostEasySetupHandler implements Handler<RoutingContext> {
                     .putHeader("content-type", "application/json")
                     .end(Json.encodeToBuffer(response));
         } catch (Exception e) {
-            routingContext.fail(400, e);
+            routingContext.fail(500, e);
             return;
         }
     }

@@ -7,8 +7,7 @@ package com.hedera.demo.auction.app.db;
 import com.hedera.demo.auction.app.db.tables.Auctions;
 import com.hedera.demo.auction.app.db.tables.Bids;
 import com.hedera.demo.auction.app.db.tables.FlywaySchemaHistory;
-import com.hedera.demo.auction.app.db.tables.Scheduledoperations;
-import com.hedera.demo.auction.app.db.tables.Scheduledoperationslog;
+import com.hedera.demo.auction.app.db.tables.Validators;
 
 
 /**
@@ -33,12 +32,7 @@ public class Tables {
     public static final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
 
     /**
-     * The table <code>public.scheduledoperations</code>.
+     * The table <code>public.validators</code>.
      */
-    public static final Scheduledoperations SCHEDULEDOPERATIONS = Scheduledoperations.SCHEDULEDOPERATIONS;
-
-    /**
-     * The table <code>public.scheduledoperationslog</code>.
-     */
-    public static final Scheduledoperationslog SCHEDULEDOPERATIONSLOG = Scheduledoperationslog.SCHEDULEDOPERATIONSLOG;
+    public static final Validators VALIDATORS = Validators.VALIDATORS;
 }

@@ -7,7 +7,7 @@ package com.hedera.demo.auction.app.db;
 import com.hedera.demo.auction.app.db.tables.Auctions;
 import com.hedera.demo.auction.app.db.tables.Bids;
 import com.hedera.demo.auction.app.db.tables.FlywaySchemaHistory;
-import com.hedera.demo.auction.app.db.tables.Scheduledoperations;
+import com.hedera.demo.auction.app.db.tables.Validators;
 
 import org.jooq.ForeignKey;
 import org.jooq.Record;
@@ -33,8 +33,7 @@ public class Keys {
     public static final UniqueKey<Record> AUCTIONS_TOKENID_KEY = Internal.createUniqueKey(Auctions.AUCTIONS, DSL.name("auctions_tokenid_key"), new TableField[] { Auctions.AUCTIONS.TOKENID }, true);
     public static final UniqueKey<Record> BIDS_PKEY = Internal.createUniqueKey(Bids.BIDS, DSL.name("bids_pkey"), new TableField[] { Bids.BIDS.TIMESTAMP }, true);
     public static final UniqueKey<Record> FLYWAY_SCHEMA_HISTORY_PK = Internal.createUniqueKey(FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY, DSL.name("flyway_schema_history_pk"), new TableField[] { FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY.INSTALLED_RANK }, true);
-    public static final UniqueKey<Record> SCHEDULEDOPERATIONS_TRANSACTIONID_KEY = Internal.createUniqueKey(Scheduledoperations.SCHEDULEDOPERATIONS, DSL.name("scheduledoperations_transactionid_key"), new TableField[] { Scheduledoperations.SCHEDULEDOPERATIONS.TRANSACTIONID }, true);
-    public static final UniqueKey<Record> SCHEDULEDOPERATIONS_TRANSACTIONTIMESTAMP_KEY = Internal.createUniqueKey(Scheduledoperations.SCHEDULEDOPERATIONS, DSL.name("scheduledoperations_transactiontimestamp_key"), new TableField[] { Scheduledoperations.SCHEDULEDOPERATIONS.TRANSACTIONTIMESTAMP }, true);
+    public static final UniqueKey<Record> VALIDATORS_NAME_KEY = Internal.createUniqueKey(Validators.VALIDATORS, DSL.name("validators_name_key"), new TableField[] { Validators.VALIDATORS.NAME }, true);
 
     // -------------------------------------------------------------------------
     // FOREIGN KEY definitions

@@ -2,6 +2,7 @@ package com.hedera.demo.auction.test.integration;
 
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.domain.Bid;
+import com.hedera.demo.auction.app.domain.Validator;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -112,6 +113,10 @@ public class AbstractIntegrationTest {
     String title() { return stringPlusIndex("title");}
     String description() { return stringPlusIndex("description");}
 
+    String validatorName() { return stringPlusIndex("validatorName");}
+    String validatorUrl() { return stringPlusIndex("validatorUrl");}
+    String validatorPublicKey() { return stringPlusIndex("validatorPublicKey");}
+
     @SuppressWarnings("FieldMissingNullable")
     protected String masterKey = Optional.ofNullable(env.get("MASTER_KEY")).orElse(""); //TODO: Handle tests where masterNode = false
 
@@ -144,6 +149,17 @@ public class AbstractIntegrationTest {
         return auction;
     }
 
+    protected Validator testValidatorObject(int index) {
+        this.index = index;
+        Validator validator = new Validator();
+
+        validator.setName(validatorName());
+        validator.setUrl(validatorUrl());
+        validator.setPublicKey(validatorPublicKey());
+
+        return validator;
+    }
+
     public void testNewAuction(Auction auction, Auction getAuction) {
         assertEquals(auction.getTokenid(),getAuction.getTokenid());
         assertEquals("0.0",getAuction.getLastconsensustimestamp());
@@ -156,6 +172,12 @@ public class AbstractIntegrationTest {
         assertEquals(auction.getMinimumbid(),getAuction.getMinimumbid());
         assertEquals(auction.getTitle(), getAuction.getTitle());
         assertEquals(auction.getDescription(), getAuction.getDescription());
+    }
+
+    public void testNewValidator(Validator validator, Validator getValidator) {
+        assertEquals(validator.getName(), getValidator.getName());
+        assertEquals(validator.getUrl(), getValidator.getUrl());
+        assertEquals(validator.getPublicKey(), getValidator.getPublicKey());
     }
 
     protected Bid testBidObject(int index, int auctionId) {
@@ -226,6 +248,12 @@ public class AbstractIntegrationTest {
         assertEquals(bid.getTransactionid(), body.getString("transactionid"));
         assertEquals(bid.getTransactionhash(), body.getString("transactionhash"));
         assertEquals(bid.getRefundstatus(), body.getString("refundstatus"));
+    }
+
+    protected void verifyValidator(Validator validator, JsonObject body) {
+        assertEquals(validator.getName(), body.getString("name"));
+        assertEquals(validator.getUrl(), body.getString("url"));
+        assertEquals(validator.getPublicKey(), body.getString("publicKey"));
     }
 
     protected void verifyAuction(Auction auction, JsonObject body) {

@@ -16,7 +16,6 @@ import io.vertx.core.json.JsonObject;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URI;
@@ -33,7 +32,7 @@ public final class SetupHelper {
 
   public static void main(String[] args) throws Exception {
 
-    InputStream inputStream = new FileInputStream(new File("./AuctionSetup.yaml"));
+    InputStream inputStream = new FileInputStream("./AuctionSetup.yaml");
     Yaml yaml = new Yaml(new Constructor(SetupProperties.class));
     SetupProperties setupProperties = yaml.load(inputStream);
 

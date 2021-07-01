@@ -26,8 +26,8 @@ auction:
 adminApiHost: http://localhost:8082
 
 exerciser:
-  auctionAccount = 0.0.xxxx
-  numAccounts = 10
-  numThreads = 4
-  numTransfers = 4
+  auctionAccount: 0.0.xxxx
+  numAccounts: 10
+  numThreads: 4
+  numTransfers: 4
 

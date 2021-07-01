@@ -44,7 +44,9 @@ The Docker deployment runs two instances, one for bid processing, the other for 
 
 The admin API runs on a separate port to the UI REST API to ensure it can be firewalled separately and protected from malicious execution.
 
-## Setup, compilation, execution
+Additional detailed documentation on how the system is architected may be found in the `docs` folder of this project.
+
+## Setup, compilation, execution for developer testing
 
 Pull the repository from github
 
@@ -948,4 +950,55 @@ exerciser:
 
 ```shell
 ./gradlew exerciseAuction 
+```
+
+## Validators information for rendering in the UI
+
+You may list the validators who participate in the network in the UI by adding them to the database via the REST API.
+
+After sending the request to the admin API, a message will be sent to the TOPIC ID so that any other participants' list of validators will be updated automatically.
+
+```shell script
+curl -H "Content-Type: application/json" -X POST -d '
+{
+    "validators": [
+    {
+      "name": "name of the validator",
+      "url": "url of the company or of the location where their UI is hosted",
+      "publicKey": "optional, may be used later",
+      "operation" : "add"
+    }
+  ]
+}' http://localhost:8082/v1/admin/validators
+```
+
+You may modify the details of a validator as follows:
+
+```shell script
+curl -H "Content-Type: application/json" -X POST -d '
+{
+    "validators": [
+    {
+      "nameToUpdate": "name of the validator to update",
+      "name": "new name of the validator",
+      "url": "new url",
+      "publicKey": "new public key",
+      "operation" : "update"
+    }
+  ]
+}' http://localhost:8082/v1/admin/validators
+```
+
+And finally, you may delete details of a validator as follows:
+
+```shell script
+curl -H "Content-Type: application/json" -X POST -d '
+{
+  "validators": [
+    {
+      "name": "name of the validator to delete",
+      "operation" : "delete"
+    }
+  ]
+}' http://localhost:8082/v1/admin/validators
 ```

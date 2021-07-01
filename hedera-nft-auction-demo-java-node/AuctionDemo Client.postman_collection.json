@@ -11,13 +11,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/v1/auctions",
-					"protocol": "https",
+					"raw": "http://localhost:8081/v1/auctions",
+					"protocol": "http",
 					"host": [
-						"35",
-						"192",
-						"157",
-						"136"
+						"localhost"
 					],
 					"port": "8081",
 					"path": [

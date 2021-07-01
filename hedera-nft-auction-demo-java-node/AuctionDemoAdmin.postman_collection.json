@@ -243,6 +243,90 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "(optional) add validator details",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"validators\": [\n        {\n            \"name\": \"name of the validator\",\n            \"url\": \"url of the company or of the location where their UI is hosted\",\n            \"publicKey\": \"optional, may be used later\",\n            \"operation\" : \"add\"\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/admin/validators",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"admin",
+						"validators"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "(optional) update validator details",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"validators\": [\n        {\n        \"nameToUpdate\": \"name of the validator to update\",\n        \"name\": \"new name of the validator\",\n        \"url\": \"new url of the company or of the location where their UI is hosted\",\n        \"publicKey\": \"new optional, may be used later\",\n        \"operation\" : \"update\"\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/admin/validators",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"admin",
+						"validators"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "(optional) delete validator details",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"validators\": [\n        {\n          \"name\": \"name of the validator to delete\",\n          \"operation\" : \"delete\"\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/v1/admin/validators",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"v1",
+						"admin",
+						"validators"
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"event": [

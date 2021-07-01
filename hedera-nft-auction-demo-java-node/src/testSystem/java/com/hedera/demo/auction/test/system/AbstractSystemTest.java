@@ -9,8 +9,10 @@ import com.hedera.demo.auction.app.EasySetup;
 import com.hedera.demo.auction.app.HederaClient;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.domain.Bid;
+import com.hedera.demo.auction.app.domain.Validator;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
+import com.hedera.demo.auction.app.repository.ValidatorsRepository;
 import com.hedera.hashgraph.sdk.AccountBalance;
 import com.hedera.hashgraph.sdk.AccountBalanceQuery;
 import com.hedera.hashgraph.sdk.AccountCreateTransaction;
@@ -65,6 +67,7 @@ public abstract class AbstractSystemTest {
     protected PostgreSQLContainer postgres;
     protected AuctionsRepository auctionsRepository;
     protected BidsRepository bidsRepository;
+    protected ValidatorsRepository validatorsRepository;
     protected Auction auction;
 
     protected CreateTopic createTopic;
@@ -582,6 +585,28 @@ public abstract class AbstractSystemTest {
             String valueToCheck = getBidValue(testBid, parameter);
 
             return checkCondition(value, condition, valueToCheck);
+        };
+    }
+
+    protected Callable<Boolean> validatorAssert(String name, String url, String publicKey) {
+        return () -> {
+            log.info("checking validator {} {} {}", name, url, publicKey);
+            List<Validator> validators = validatorsRepository.getValidatorsList();
+            if (validators.size() == 0) {
+                return false;
+            }
+            Validator validator = validators.get(0);
+
+            boolean valid = name.equals(validator.getName()) && url.equals(validator.getUrl()) && publicKey.equals(validator.getPublicKey());
+            return valid;
+        };
+    }
+
+    protected Callable<Boolean> validatorsAssertCount(int count) {
+        return () -> {
+            log.info("checking validator count {}", count);
+            List<Validator> validators = validatorsRepository.getValidatorsList();
+            return validators.size() == count;
         };
     }
 

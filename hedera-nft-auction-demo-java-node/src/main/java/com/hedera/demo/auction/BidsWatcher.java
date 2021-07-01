@@ -294,7 +294,7 @@ public class BidsWatcher implements Runnable {
         if (StringUtils.isEmpty(memo)) {
             return false;
         }
-        String[] memos = new String[]{"CREATEAUCTION", "FUNDACCOUNT", "TRANSFERTOAUCTION", "ASSOCIATE", "AUCTION REFUND", "TOKEN TRANSFER FROM AUCTION", "SCHEDULED REFUND"};
+        String[] memos = new String[]{"CREATEAUCTION", "FUNDACCOUNT", "TRANSFERTOAUCTION", "ASSOCIATE", "AUCTION REFUND", "TOKEN TRANSFER FROM AUCTION", "SCHEDULED REFUND", "MANAGE VALIDATORS"};
         return Arrays.stream(memos).anyMatch(memo.toUpperCase()::startsWith);
     }
 }

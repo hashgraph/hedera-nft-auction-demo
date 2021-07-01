@@ -203,6 +203,7 @@ public class TopicSubscriber implements Runnable{
      * @param validators a json array of validator objects
      */
     public void handleValidators(JsonArray validators) {
+        log.debug("consensus message for validators management");
         if (validators != null) {
             for (Object validatorObject : validators.getList()) {
                 JsonObject validator = JsonObject.mapFrom(validatorObject);
@@ -218,6 +219,7 @@ public class TopicSubscriber implements Runnable{
                             if (StringUtils.isEmpty(name)) {
                                 log.warn("invalid consensus message contents - validator object {} has empty name", validator.encode());
                             } else {
+                                log.debug("adding validator {}", name);
                                 validatorsRepository.add(name, url, publicKey);
                             }
                             break;
@@ -225,6 +227,7 @@ public class TopicSubscriber implements Runnable{
                             if (StringUtils.isEmpty(name)) {
                                 log.warn("invalid consensus message contents - validator object {} has empty name", validator.encode());
                             } else {
+                                log.debug("deleting validator {}", name);
                                 validatorsRepository.delete(name);
                             }
                             break;
@@ -234,6 +237,7 @@ public class TopicSubscriber implements Runnable{
                             } else if (StringUtils.isEmpty(nameToUpdate)) {
                                 log.warn("invalid consensus message contents - validator object {} has empty nameToUpdate", validator.encode());
                             } else {
+                                log.debug("updating validator {}", nameToUpdate);
                                 validatorsRepository.update(nameToUpdate, name, url, publicKey);
                             }
                             break;

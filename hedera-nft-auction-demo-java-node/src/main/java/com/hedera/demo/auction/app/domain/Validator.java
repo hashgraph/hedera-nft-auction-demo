@@ -7,6 +7,7 @@ package com.hedera.demo.auction.app.domain;
 import io.github.jklingsporn.vertx.jooq.shared.internal.VertxPojo;
 import io.vertx.core.json.JsonObject;
 import org.jooq.Record;
+import io.vertx.sqlclient.Row;
 
 import java.io.Serializable;
 
@@ -26,6 +27,12 @@ public class Validator implements VertxPojo, Serializable {
         this.name = record.get(VALIDATORS.NAME);
         this.url = record.get(VALIDATORS.URL);
         this.publicKey = record.get(VALIDATORS.PUBLICKEY);
+    }
+
+    public Validator(Row row) {
+        this.name = row.getString(VALIDATORS.NAME.getName());
+        this.url = row.getString(VALIDATORS.URL.getName());
+        this.publicKey = row.getString(VALIDATORS.PUBLICKEY.getName());
     }
 
     public Validator(JsonObject json) {

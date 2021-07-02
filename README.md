@@ -743,6 +743,23 @@ _Note: this runs on the client REST API port (8081), not the admin API port (808
 
 ## Environment setup
 
+### Creating accounts
+
+If you need to create accounts for testing purposes, you may use the following helper.
+
+```shell
+./gradlew createAccount --args="100"
+```
+
+which will create an account with the specified initial balance in hbar and will return if successful (the actual keys have been truncated here but will be output fully).
+
+```shell
+2021-07-02 13:27:16.026 INFO  com.hedera.demo.auction.exerciser.CreateAccount - Account created 0.0.2060215 (43)
+2021-07-02 13:27:16.029 INFO  com.hedera.demo.auction.exerciser.CreateAccount - Private key is 302e020.......83135bbb84cf17 (44)
+2021-07-02 13:27:16.030 INFO  com.hedera.demo.auction.exerciser.CreateAccount - Public key is 302a3005.......f06f311c60accc (45)
+```
+
+
 ### All node types
 
 * `OPERATOR_ID=` (input your account id for the Hedera network)

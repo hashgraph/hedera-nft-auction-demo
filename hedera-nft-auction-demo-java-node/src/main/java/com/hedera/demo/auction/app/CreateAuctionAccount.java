@@ -30,6 +30,7 @@ public class CreateAuctionAccount extends AbstractCreate {
      * Creates an auction account with an optional set of keys
      * @param initialBalance the initial balance for the new account
      * @param keys an array of public keys, if none supplied, the operator's public key is used
+     * @return AccountId the created account id
      * @throws Exception in the event of an exception
      */
     public AccountId create(long initialBalance, String keys) throws Exception {

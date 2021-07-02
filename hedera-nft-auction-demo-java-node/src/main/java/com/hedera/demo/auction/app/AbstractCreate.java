@@ -21,4 +21,8 @@ public abstract class AbstractCreate {
         env = overrideEnv;
         hederaClient = new HederaClient(env);
     }
+    //For testing to override topicId
+    public void setTopicId(String overrideTopicId) {
+        topicId = overrideTopicId;
+    }
 }

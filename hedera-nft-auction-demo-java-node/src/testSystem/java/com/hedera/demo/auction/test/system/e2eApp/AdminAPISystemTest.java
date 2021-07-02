@@ -1,12 +1,12 @@
 package com.hedera.demo.auction.test.system.e2eApp;
 
 import com.hedera.demo.auction.app.App;
+import com.hedera.demo.auction.app.ManageValidator;
 import com.hedera.demo.auction.app.SqlConnectionManager;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.demo.auction.app.repository.ValidatorsRepository;
 import com.hedera.demo.auction.test.system.AbstractAPITester;
-import com.hedera.hashgraph.sdk.TopicId;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -61,8 +61,10 @@ public class AdminAPISystemTest extends AbstractAPITester {
         bidsRepository.deleteAllBids();
         auctionsRepository.deleteAllAuctions();
         validatorsRepository.deleteAllValidators();
-        TopicId topicId = createTopic.create();
+        topicId = createTopic.create();
         hederaClient.setMirrorProvider("hedera");
+
+        new ManageValidator().setTopicId(topicId.toString());
 
         app.overrideEnv(hederaClient, /*restAPI= */ true, /*adminAPI= */true, /*auctionNode= */ true, topicId.toString(), /*refund= */true, postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /*transferOnWin= */true, masterKey.toString());
         app.runApp();

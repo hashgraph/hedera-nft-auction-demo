@@ -1,8 +1,6 @@
 package com.hedera.demo.auction.app;
 
 import com.google.errorprone.annotations.Var;
-import com.hedera.hashgraph.sdk.PrecheckStatusException;
-import com.hedera.hashgraph.sdk.ReceiptStatusException;
 import com.hedera.hashgraph.sdk.Status;
 import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.sdk.TopicMessageSubmitTransaction;
@@ -11,11 +9,9 @@ import com.hedera.hashgraph.sdk.TransactionResponse;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.TimeoutException;
 
 @Log4j2
 public class CreateAuction extends AbstractCreate {
@@ -27,11 +23,7 @@ public class CreateAuction extends AbstractCreate {
     /**
      * Sends a JSON file containing auction details as a HCS message
      * @param auctionFile the path of the JSON file name containing the auction details
-     * @throws TimeoutException in the event of an exception
-     * @throws ReceiptStatusException in the event of an exception
-     * @throws PrecheckStatusException in the event of an exception
-     * @throws InterruptedException in the event of an exception
-     * @throws IOException in the event of an exception
+     * @throws Exception in the event of an exception
      */
     public void create(String auctionFile, String overrideTopicId) throws Exception {
 

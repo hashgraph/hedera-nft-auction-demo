@@ -46,7 +46,7 @@ public class AdminApiVerticle extends AbstractVerticle {
         PostTransferHandler postTransferHandler = new PostTransferHandler(env);
         PostAuctionHandler postAuctionHandler = new PostAuctionHandler(env);
         PostEasySetupHandler postEasySetupHandler = new PostEasySetupHandler();
-        PostValidators postValidators = new PostValidators(env);
+        PostValidators postValidators = new PostValidators();
         RootHandler rootHandler = new RootHandler();
 
         Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.POST));

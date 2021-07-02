@@ -958,6 +958,8 @@ You may list the validators who participate in the network in the UI by adding t
 
 After sending the request to the admin API, a message will be sent to the TOPIC ID so that any other participants' list of validators will be updated automatically.
 
+_Note: in the event of a create or update, if a parameter such as `url` isn't specified, it will be set to an empty string._
+
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '
 {
@@ -970,6 +972,12 @@ curl -H "Content-Type: application/json" -X POST -d '
     }
   ]
 }' http://localhost:8082/v1/admin/validators
+```
+
+or
+
+```shell
+./gradlew manageValidator --args="--name=validatorName --url=url --publicKey=publicKey --operation=add"
 ```
 
 You may modify the details of a validator as follows:
@@ -989,6 +997,12 @@ curl -H "Content-Type: application/json" -X POST -d '
 }' http://localhost:8082/v1/admin/validators
 ```
 
+or
+
+```shell
+./gradlew manageValidator --args="--nameToUpdate=nameToUpdate --name=validatorName --url=url --publicKey=publicKey --operation=update"
+```
+
 And finally, you may delete details of a validator as follows:
 
 ```shell script
@@ -1001,4 +1015,10 @@ curl -H "Content-Type: application/json" -X POST -d '
     }
   ]
 }' http://localhost:8082/v1/admin/validators
+```
+
+or
+
+```shell
+./gradlew manageValidator --args="--name=validatorName --operation=delete"
 ```

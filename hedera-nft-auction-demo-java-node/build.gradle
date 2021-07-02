@@ -437,6 +437,15 @@ task exerciseAuction(type: JavaExec) {
 	args cmdargs.split()
 }
 
+task manageValidator(type: JavaExec) {
+	group = "Execution"
+	description = "Manages validator metadata"
+	classpath = sourceSets.main.runtimeClasspath
+	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
+	main = "com.hedera.demo.auction.app.ManageValidator"
+	args cmdargs.split()
+}
+
 application {
 	mainClassName = 'com.hedera.demo.auction.app.App'
 }

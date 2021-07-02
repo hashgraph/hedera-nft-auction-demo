@@ -1,28 +1,19 @@
 package com.hedera.demo.auction.app.api;
 
-import com.google.errorprone.annotations.Var;
-import com.hedera.demo.auction.app.HederaClient;
-import com.hedera.hashgraph.sdk.Status;
-import com.hedera.hashgraph.sdk.TopicId;
-import com.hedera.hashgraph.sdk.TopicMessageSubmitTransaction;
-import com.hedera.hashgraph.sdk.TransactionReceipt;
-import com.hedera.hashgraph.sdk.TransactionResponse;
-import io.github.cdimascio.dotenv.Dotenv;
+import com.hedera.demo.auction.app.ManageValidator;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.log4j.Log4j2;
-import org.jooq.tools.StringUtils;
 
 /**
- * Creates a new token
+ * Adds, deletes or modifies a validator
  */
 @Log4j2
 public class PostValidators implements Handler<RoutingContext> {
-    private final Dotenv env;
-    public PostValidators(Dotenv env) {
-        this.env = env;
+    public PostValidators() {
     }
 
     /**
@@ -38,38 +29,44 @@ public class PostValidators implements Handler<RoutingContext> {
             routingContext.fail(500);
             return;
         }
-        String topicId = env.get("TOPIC_ID");
-        if (StringUtils.isEmpty(topicId)) {
-            log.error("topicId is unknown");
-            routingContext.fail(500);
-            return;
-        }
 
-        @Var HederaClient hederaClient = null;
-        try {
-            hederaClient = new HederaClient(env);
+        if (body.containsKey("validators")) {
+            JsonArray validators = body.getJsonArray("validators");
+            if (validators != null) {
+                for (Object validatorObject : validators) {
+                    JsonObject validatorJson = JsonObject.mapFrom(validatorObject);
+                    String[] args = new String[5];
 
-            TopicMessageSubmitTransaction topicMessageSubmitTransaction = new TopicMessageSubmitTransaction()
-                    .setTopicId(TopicId.fromString(topicId))
-                    .setTransactionMemo("Manage Validators")
-                    .setMessage(body.encode());
+                    args[0] = "--name=".concat(validatorJson.getString("name", ""));
+                    args[1] = "--nameToUpdate=".concat(validatorJson.getString("nameToUpdate", ""));
+                    args[2] = "--operation=".concat(validatorJson.getString("operation", ""));
+                    args[3] = "--url=".concat(validatorJson.getString("url", ""));
+                    args[4] = "--publicKey=".concat(validatorJson.getString("publicKey", ""));
 
-            TransactionResponse transactionResponse = topicMessageSubmitTransaction.execute(hederaClient.client());
-            TransactionReceipt receipt = transactionResponse.getReceipt(hederaClient.client());
-            JsonObject response = new JsonObject();
-            if (receipt.status != Status.SUCCESS) {
-                log.error("validator request submission failed", receipt.status);
-                response.put("status", receipt.status);
+                    try {
+                        ManageValidator manageValidator = new ManageValidator();
+                        manageValidator.manage(args);
+
+                        JsonObject response = new JsonObject();
+                        log.info("validator request submission successful");
+                        response.put("status", "success");
+
+                        routingContext.response()
+                                .putHeader("content-type", "application/json")
+                                .end(Json.encodeToBuffer(response));
+                    } catch (Exception e) {
+                        log.error(e, e);
+                        routingContext.fail(500, e);
+                        return;
+                    }
+                }
             } else {
-                log.info("validator request submission successful");
-                response.put("status", "success");
+                log.error("message body does not contain validators array");
+                routingContext.fail(500);
+                return;
             }
-
-            routingContext.response()
-                    .putHeader("content-type", "application/json")
-                    .end(Json.encodeToBuffer(response));
-        } catch (Exception e) {
-            log.error(e, e);
+        } else {
+            log.error("message body does not contain validators attribute");
             routingContext.fail(500);
             return;
         }

@@ -35,6 +35,7 @@ jobs:
       env:
         OPERATOR_ID: ${{ secrets.OPERATOR_ID }}
         OPERATOR_KEY: ${{ secrets.OPERATOR_KEY }}
+        REFUND: true
         NETWORK: testnet
         #       Run the REST API true/false
         REST_API: true

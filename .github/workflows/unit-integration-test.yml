@@ -35,7 +35,6 @@ jobs:
       env:
         OPERATOR_ID: ${{ secrets.OPERATOR_ID }}
         OPERATOR_KEY: ${{ secrets.OPERATOR_KEY }}
-        REFUND_KEY: ${{ secrets.OPERATOR_KEY }}
         NETWORK: testnet
         #       Run the REST API true/false
         REST_API: true
@@ -66,10 +65,4 @@ jobs:
         REST_HEDERA_TESTNET: testnet.mirrornode.hedera.com
         #        REST_HEDERA_PREVIEWNET: previewnet.mirrornode.hedera.com
         REST_HEDERA_PREVIEWNET: 162.222.182.83
-        REST_KABUTO_MAINNET: api.kabuto.sh
-        REST_KABUTO_TESTNET: api.testnet.kabuto.sh
-        REST_KABUTO_PREVIEWNET:
-        REST_DRAGONGLASS_MAINNET:
-        REST_DRAGONGLASS_TESTNET:
-        REST_DRAGONGLASS_PREVIEWNET:
       run: cd hedera-nft-auction-demo-java-node && ./gradlew build testIntegration

@@ -108,8 +108,8 @@ services:
       - docker-files/.env
     ports:
       - "8081:8081"
-# comment to hide the admin api outside the docker component (recommended in production)
-      - "8082:8082"
+# uncomment to make the admin api visible outside the docker component (not recommended in production)
+#      - "8082:8082"
     depends_on:
       - postgres-compiled
     volumes:
@@ -141,8 +141,8 @@ services:
       - docker-files/.env
     ports:
       - "8081:8081"
-      # comment to hide the admin api outside the docker component (recommended in production)
-      - "8082:8082"
+# uncomment to make the admin api visible outside the docker component (not recommended in production)
+#      - "8082:8082"
     depends_on:
       - postgres-image
     volumes:

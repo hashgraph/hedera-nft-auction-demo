@@ -193,7 +193,7 @@ public class TransactionScheduler {
                 TransactionReceipt receipt = response.getReceipt(hederaClient.client());
                 return handleResponse(hederaClient, receipt, existingReceipt.scheduleId);
             } catch (ReceiptStatusException receiptStatusException) {
-                return handleResponse(hederaClient, receiptStatusException.receipt);
+                return handleResponse(hederaClient, receiptStatusException.receipt, existingReceipt.scheduleId);
             }
 
         } catch (TimeoutException e) {

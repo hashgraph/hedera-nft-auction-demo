@@ -94,7 +94,7 @@ public class AuctionEndTransfer implements Runnable {
             try {
                 List<Auction> auctionsList = auctionsRepository.getAuctionsList();
                 for (Auction auction: auctionsList) {
-                    if (auction.isClosed() && StringUtils.isEmpty(auction.getTransferstatus())) {
+                    if (auction.isClosed() && StringUtils.isEmpty(auction.getTransferstatus()) && auction.getProcessrefunds()) {
                         log.debug("auction closed {}", auction.getAuctionaccountid());
                         // auction is closed, check association between token and winner
 

@@ -48,7 +48,6 @@ public final class App {
     @SuppressWarnings("FieldMissingNullable")
     private String topicId = Optional.ofNullable(env.get("TOPIC_ID")).orElse("");
     private int mirrorQueryFrequency = Integer.parseInt(Optional.ofNullable(env.get("MIRROR_QUERY_FREQUENCY")).orElse("5000"));
-    private boolean refund = Optional.ofNullable(env.get("REFUND")).map(Boolean::parseBoolean).orElse(false);
     @SuppressWarnings("FieldMissingNullable")
     private String postgresUrl = Optional.ofNullable(env.get("DATABASE_URL")).orElse("postgresql://localhost:5432/postgres");
     @SuppressWarnings("FieldMissingNullable")
@@ -60,7 +59,7 @@ public final class App {
     @SuppressWarnings("FieldMissingNullable")
     private String masterKey = Optional.ofNullable(env.get("MASTER_KEY")).orElse("");
     @SuppressWarnings("FieldMissingNullable")
-    private final int refundThreads = Optional.ofNullable(env.get("REFUND_THREADS")).map(Integer::parseInt).orElse(10);
+    private final int refundThreads = Optional.ofNullable(env.get("REFUND_THREADS")).map(Integer::parseInt).orElse(20);
     @SuppressWarnings("FieldMissingNullable")
     private final String operatorKey = env.get("OPERATOR_KEY");
     private HederaClient hederaClient;
@@ -108,14 +107,13 @@ public final class App {
      * @param adminAPI whether to enable the admin REST api or not
      * @param auctionNode whether to process auction bids or not
      * @param topicId the topicId to use
-     * @param refund whether this instance processes refunds or not
      * @param postgresUrl the details of the connection to the database
      * @param postgresUser the details of the connection to the database
      * @param postgresPassword the details of the connection to the database
      * @param transferOnWin whether to transfer the token to the winner on auction closure
      * @param masterKey the master key
      */
-    public void overrideEnv(HederaClient hederaClient, boolean restAPI, boolean adminAPI, boolean auctionNode, String topicId, boolean refund, String postgresUrl, String postgresUser, String postgresPassword, boolean transferOnWin, String masterKey) {
+    public void overrideEnv(HederaClient hederaClient, boolean restAPI, boolean adminAPI, boolean auctionNode, String topicId, String postgresUrl, String postgresUser, String postgresPassword, boolean transferOnWin, String masterKey) {
         this.hederaClient = hederaClient;
 
         this.restAPI = restAPI;
@@ -126,7 +124,6 @@ public final class App {
 
         this.topicId = topicId;
         this.mirrorQueryFrequency = 10000;
-        this.refund = refund;
         this.postgresUrl = postgresUrl.replaceAll("jdbc:", "");
         this.postgresUser = postgresUser;
         this.postgresPassword = postgresPassword;
@@ -204,10 +201,7 @@ public final class App {
             startAuctionReadinessWatchers(auctionsRepository);
             startAuctionsClosureWatcher(auctionsRepository);
             startBidWatchers(auctionsRepository, /* runOnce= */ false);
-            if (refund) {
-                // validator node, start the refunder thread
-                startRefunder(auctionsRepository, bidsRepository, refundThreads);
-            }
+            startRefunder(auctionsRepository, bidsRepository, refundThreads);
             startRefundChecker(auctionsRepository, bidsRepository, /* runOnce= */ false);
             if (transferOnWin) {
                 startAuctionEndTransfers(auctionsRepository);

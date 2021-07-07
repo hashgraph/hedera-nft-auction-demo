@@ -3,6 +3,7 @@ package com.hedera.demo.auction;
 import com.google.common.base.Splitter;
 import com.hedera.demo.auction.app.HederaClient;
 import com.hedera.demo.auction.app.Utils;
+import com.hedera.demo.auction.app.Utils.ScheduledStatus;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.domain.Bid;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
@@ -217,7 +218,8 @@ public class Refunder implements Runnable {
                                                 // check status of schedule on mirror node
                                                 // if it has executed, the refund checker will pick it up
                                                 // else, reset to pending
-                                                if (!Utils.scheduleHasExecuted(hederaClient, bid.getScheduleId())) {
+                                                // note, unknown could also be returned in the event of an error, don't reschedule in that event
+                                                if (Utils.scheduleHasExecuted(hederaClient, bid.getScheduleId(), seconds) == ScheduledStatus.NOT_EXECUTED) {
                                                     bidsRepository.setRefundPending(bid.getTransactionid());
                                                 }
                                             } else {

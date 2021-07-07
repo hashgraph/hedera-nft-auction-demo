@@ -47,6 +47,12 @@ public class Utils {
             .setKeepAlive(false);
     private static final WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
 
+    public enum ScheduledStatus {
+        EXECUTED,
+        NOT_EXECUTED,
+        UNKNOWN
+    }
+
     private Utils() {
     }
 
@@ -272,13 +278,17 @@ public class Utils {
 
     /**
      * Queries a mirror node to check if a particular ScheduleId has executed
+     * First checks the schedule is more than 40 minutes old, otherwise it may still execute (schedules last 30 minutes max)
+     * Then, if the schedule's executedTimestamp is empty, it means the schedule has not executed
      *
      * @param hederaClient the HederaClient
      * @param scheduleId the ScheduleId to query against
-     * @return true if the schedule executed
+     * @param lastMirrorTimeStamp the last timestamp from the mirror node in seconds since epoch (latest transaction timestamp)
+     * @return ScheduledStatus determining if the schedule executed
      */
-    public static boolean scheduleHasExecuted(HederaClient hederaClient, String scheduleId) {
-        @Var boolean hasExecuted = false;
+    public static ScheduledStatus scheduleHasExecuted(HederaClient hederaClient, String scheduleId, long lastMirrorTimeStamp) {
+        long FOURTY_MINUTES = 40 * 60;
+        @Var ScheduledStatus scheduledStatus = ScheduledStatus.UNKNOWN;
         String uri = "/api/v1/schedules/".concat(scheduleId);
         ExecutorService executor = Executors.newFixedThreadPool(1);
         Map<String, String> queryParameters = new HashMap<>();
@@ -287,8 +297,22 @@ public class Utils {
             JsonObject response = future.get();
             if (response != null) {
                 MirrorSchedule mirrorSchedule = response.mapTo(MirrorSchedule.class);
-                hasExecuted = ! StringUtils.isEmpty(mirrorSchedule.executedTimestamp);
-                log.debug("schedule {} contains {} signatures", scheduleId, mirrorSchedule.getSignatureCount());
+
+                List<String> timeStampParts = Splitter.on('.').splitToList(mirrorSchedule.consensusTimestamp);
+                if (timeStampParts.size() > 0) {
+                    // get seconds since epoch
+                    long scheduleStart = Long.parseLong(timeStampParts.get(0));
+                    if (lastMirrorTimeStamp - scheduleStart > FOURTY_MINUTES) {
+                        if (StringUtils.isEmpty(mirrorSchedule.executedTimestamp)) {
+                            scheduledStatus = ScheduledStatus.NOT_EXECUTED;
+                        } else {
+                            scheduledStatus = ScheduledStatus.EXECUTED;
+                        }
+                    }
+                    log.debug("schedule {} contains {} signatures", scheduleId, mirrorSchedule.getSignatureCount());
+                } else {
+                    log.error("schedule consensus timestamp {} cannot be decoded to seconds.nanos", mirrorSchedule.consensusTimestamp);
+                }
             }
         } catch (InterruptedException e) {
             log.error(e, e);
@@ -298,7 +322,7 @@ public class Utils {
         } finally {
             executor.shutdown();
         }
-        log.debug("schedule {} has executed is {}", scheduleId, hasExecuted);
-        return hasExecuted;
+        log.debug("schedule {} has executed is {}", scheduleId, scheduledStatus);
+        return scheduledStatus;
     }
 }

@@ -66,7 +66,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
 
         new ManageValidator().setTopicId(topicId.toString());
 
-        app.overrideEnv(hederaClient, /*restAPI= */ true, /*adminAPI= */true, /*auctionNode= */ true, topicId.toString(), /*refund= */true, postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /*transferOnWin= */true, masterKey.toString());
+        app.overrideEnv(hederaClient, /*restAPI= */ true, /*adminAPI= */true, /*auctionNode= */ true, topicId.toString(), postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /*transferOnWin= */true, masterKey.toString());
         app.runApp();
         Thread.sleep(5000);
     }

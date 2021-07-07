@@ -287,7 +287,7 @@ public class Utils {
      * @return ScheduledStatus determining if the schedule executed
      */
     public static ScheduledStatus scheduleHasExecuted(HederaClient hederaClient, String scheduleId, long lastMirrorTimeStamp) {
-        long FOURTY_MINUTES = 40 * 60 * 60;
+        long FOURTY_MINUTES = 40 * 60;
         @Var ScheduledStatus scheduledStatus = ScheduledStatus.UNKNOWN;
         String uri = "/api/v1/schedules/".concat(scheduleId);
         ExecutorService executor = Executors.newFixedThreadPool(1);

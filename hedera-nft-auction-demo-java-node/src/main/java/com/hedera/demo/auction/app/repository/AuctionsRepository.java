@@ -6,14 +6,17 @@ import com.hedera.demo.auction.app.db.Tables;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.domain.Bid;
 import lombok.extern.log4j.Log4j2;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Record2;
 import org.jooq.Result;
 import org.jooq.exception.DataAccessException;
 
 import javax.annotation.Nullable;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -374,13 +377,19 @@ public class AuctionsRepository {
      */
     public Map<String, Integer> openAndPendingAuctions() throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        Map<String, Integer> rows = cx.select(AUCTIONS.ID, AUCTIONS.ENDTIMESTAMP)
+        Map<String, Integer> result = new HashMap<>();
+
+        @NotNull Result<Record2<String, Integer>> rows = cx.select(AUCTIONS.ENDTIMESTAMP, AUCTIONS.ID)
                 .from(AUCTIONS)
                 .where(AUCTIONS.STATUS.eq(Auction.ACTIVE))
                 .or(AUCTIONS.STATUS.eq(Auction.PENDING))
-                .fetchMap(AUCTIONS.ENDTIMESTAMP, AUCTIONS.ID);
+                .fetch();
 
-        return rows;
+        for (Record2<String, Integer> row : rows) {
+            result.put(row.value1(), row.value2());
+        }
+
+        return result;
     }
 
     /**

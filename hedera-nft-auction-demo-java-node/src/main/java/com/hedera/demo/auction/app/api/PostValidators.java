@@ -1,19 +1,29 @@
 package com.hedera.demo.auction.app.api;
 
 import com.hedera.demo.auction.app.ManageValidator;
+import com.hedera.demo.auction.app.Utils;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.json.schema.Schema;
+import io.vertx.json.schema.SchemaParser;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.validator.routines.UrlValidator;
+import org.jooq.tools.StringUtils;
+
+import static io.vertx.json.schema.common.dsl.Schemas.arraySchema;
+import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
 
 /**
  * Adds, deletes or modifies a validator
  */
 @Log4j2
 public class PostValidators implements Handler<RoutingContext> {
-    public PostValidators() {
+    private final SchemaParser schemaParser;
+    public PostValidators(SchemaParser schemaParser) {
+        this.schemaParser = schemaParser;
     }
 
     /**
@@ -24,15 +34,50 @@ public class PostValidators implements Handler<RoutingContext> {
     @Override
     public void handle(RoutingContext routingContext) {
         var body = routingContext.getBodyAsJson();
-        if (body == null) {
-            log.error("empty message body");
-            routingContext.fail(500);
-            return;
-        }
+
+        Schema validatorsSchemaBuilder = objectSchema()
+                .requiredProperty("validators", arraySchema()
+                        .items(objectSchema()
+                                .requiredProperty("name", Utils.LONG_STRING_MAX_SCHEMA)
+                                .optionalProperty("nameToUpdate", Utils.LONG_STRING_MAX_SCHEMA)
+                                .property("url", Utils.LONG_STRING_MAX_SCHEMA)
+                                .optionalProperty("publicKey", Utils.KEY_STRING_MAX_SCHEMA)
+                                .requiredProperty("operation", Utils.OPERATION_STRING_SCHEMA)
+                        )
+                )
+                .build(schemaParser);
+
+        validatorsSchemaBuilder.validateSync(body);
 
         if (body.containsKey("validators")) {
             JsonArray validators = body.getJsonArray("validators");
             if (validators != null) {
+                // check operations and contents are valid
+                String[] schemes = {"http","https"};
+                UrlValidator urlValidator = new UrlValidator(schemes);
+
+                for (Object validatorObject : validators) {
+                    JsonObject validatorJson = JsonObject.mapFrom(validatorObject);
+                    if ( ! validatorJson.getString("operation").contains("add")
+                            && ! validatorJson.getString("operation").contains("delete")
+                            && ! validatorJson.getString("operation").contains("update")) {
+                        // one of the operations is invalid
+                        String errorMessage = "invalid operation on one of the validators, should be one of add, update or delete";
+                        log.error(errorMessage);
+                        routingContext.fail(500, new Exception(errorMessage));
+                        return;
+                    }
+                    if (! StringUtils.isEmpty(validatorJson.getString("url", ""))) {
+                        if ( ! urlValidator.isValid(validatorJson.getString("url"))) {
+                            String errorMessage = "invalid url on one of the validators";
+                            log.error(errorMessage);
+                            routingContext.fail(500, new Exception(errorMessage));
+                            return;
+                        }
+                    }
+                }
+
+
                 for (Object validatorObject : validators) {
                     JsonObject validatorJson = JsonObject.mapFrom(validatorObject);
                     String[] args = new String[5];
@@ -61,13 +106,15 @@ public class PostValidators implements Handler<RoutingContext> {
                     }
                 }
             } else {
-                log.error("message body does not contain validators array");
-                routingContext.fail(500);
+                String errorMessage = "message body does not contain validators array";
+                log.error(errorMessage);
+                routingContext.fail(500, new Exception(errorMessage));
                 return;
             }
         } else {
-            log.error("message body does not contain validators attribute");
-            routingContext.fail(500);
+            String errorMessage = "message body does not contain validators attribute";
+            log.error(errorMessage);
+            routingContext.fail(500, new Exception(errorMessage));
             return;
         }
     }

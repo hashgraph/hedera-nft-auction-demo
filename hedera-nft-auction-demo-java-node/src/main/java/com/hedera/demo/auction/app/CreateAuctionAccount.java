@@ -47,6 +47,9 @@ public class CreateAuctionAccount extends AbstractCreate {
             JsonObject jsonObject = new JsonObject(keys);
             if (jsonObject.containsKey("keyList")) {
                 AuctionKey auctionKey = jsonObject.mapTo(AuctionKey.class);
+                if (auctionKey.auctionKeyList.auctionKeys.size() < auctionKey.auctionKeyList.threshold) {
+                    throw new Exception("auction account threshold greater than number of keys");
+                }
                 if (auctionKey.isValid()) {
                     keyList = auctionKey.toKeyList();
                 } else {

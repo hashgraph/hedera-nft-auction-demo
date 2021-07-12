@@ -6,7 +6,6 @@ import com.hedera.demo.auction.app.api.RequestCreateToken;
 import com.hedera.demo.auction.app.api.RequestTokenTransfer;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -36,7 +35,6 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
     protected Buffer createAuctionAccountBody() {
         RequestCreateAuctionAccount requestCreateAuctionAccount = new RequestCreateAuctionAccount();
         requestCreateAuctionAccount.initialBalance = initialBalance;
-        requestCreateAuctionAccount.keylist = new JsonArray();
 
         return JsonObject.mapFrom(requestCreateAuctionAccount).toBuffer();
     }

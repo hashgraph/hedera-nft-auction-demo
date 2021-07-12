@@ -2,13 +2,19 @@ package com.hedera.demo.auction.app.api;
 
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.CreateAuction;
+import com.hedera.demo.auction.app.Utils;
+import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.PrecheckStatusException;
 import com.hedera.hashgraph.sdk.ReceiptStatusException;
+import com.hedera.hashgraph.sdk.TokenId;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.json.schema.Schema;
+import io.vertx.json.schema.SchemaParser;
+import io.vertx.json.schema.common.dsl.Schemas;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
@@ -19,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeoutException;
 
+import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -27,8 +34,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 @Log4j2
 public class PostAuctionHandler implements Handler<RoutingContext> {
     private final Dotenv env;
-    public PostAuctionHandler(Dotenv env) {
+    private final SchemaParser schemaParser;
+    public PostAuctionHandler(SchemaParser schemaParser, Dotenv env) {
         this.env = env;
+        this.schemaParser = schemaParser;
     }
 
     /**
@@ -39,11 +48,20 @@ public class PostAuctionHandler implements Handler<RoutingContext> {
     @Override
     public void handle(RoutingContext routingContext) {
         var body = routingContext.getBodyAsJson();
+        String filesPath = Utils.filesPath(env);
 
-        if (body == null) {
-            routingContext.fail(500);
-            return;
-        }
+        Schema auctionSchemaBuilder = objectSchema()
+                .requiredProperty("tokenid", Utils.LONG_STRING_MAX_SCHEMA)
+                .requiredProperty("auctionaccountid", Utils.LONG_STRING_MAX_SCHEMA)
+                .requiredProperty("reserve", Utils.LONG_NUMBER_SCHEMA)
+                .requiredProperty("minimumbid", Utils.LONG_NUMBER_SCHEMA)
+                .optionalProperty("endtimestamp", Utils.SHORT_STRING_SCHEMA)
+                .requiredProperty("winnercanbid", Schemas.booleanSchema())
+                .requiredProperty("title", Utils.LONG_STRING_MAX_SCHEMA)
+                .requiredProperty("description", Utils.LONG_STRING_MAX_SCHEMA)
+                .build(schemaParser);
+
+        auctionSchemaBuilder.validateSync(body);
 
         var data = body.mapTo(RequestCreateAuction.class);
 
@@ -51,15 +69,28 @@ public class PostAuctionHandler implements Handler<RoutingContext> {
             @Var String fileName = data.auctionFile;
 
             if (StringUtils.isEmpty(fileName)) {
-                fileName = "./sample-files/initDemo.json";
 
-                if (!Files.exists(Path.of(fileName))) {
+                Path filePath = Path.of(filesPath, "initDemo.json");
+
+                if (!Files.exists(filePath)) {
                     try {
-                        Files.createDirectory(Path.of("./sample-files"));
+                        Files.createDirectory(Path.of(filesPath));
                     } catch (FileAlreadyExistsException e) {
-                        log.info("./sample-files already exists.");
+                        log.info("{} already exists.", filePath);
                     }
-                    Files.createFile(Path.of(fileName));
+                    Files.createFile(filePath);
+                }
+
+                try {
+                    TokenId.fromString(data.tokenid);
+                } catch (@SuppressWarnings("UnusedException") Exception e) {
+                    throw new Exception("invalid format for tokenid, should be 0.0.1234");
+                }
+
+                try {
+                    AccountId.fromString(data.auctionaccountid);
+                } catch (@SuppressWarnings("UnusedException") Exception e) {
+                    throw new Exception("invalid format for auctionaccountid, should be 0.0.1234");
                 }
 
                 JsonObject auction = new JsonObject();
@@ -73,7 +104,7 @@ public class PostAuctionHandler implements Handler<RoutingContext> {
                 auction.put("description", data.description);
 
                 // store auction data in initDemo.json file
-                FileWriter myWriter = new FileWriter(fileName, UTF_8);
+                FileWriter myWriter = new FileWriter(filesPath, UTF_8);
                 myWriter.write(auction.encodePrettily());
                 myWriter.close();
             }

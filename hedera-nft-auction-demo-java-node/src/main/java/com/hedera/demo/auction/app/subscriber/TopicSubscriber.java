@@ -29,6 +29,7 @@ import com.hedera.hashgraph.sdk.TransactionResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.jooq.tools.StringUtils;
 
 import javax.annotation.Nullable;
@@ -207,45 +208,52 @@ public class TopicSubscriber implements Runnable{
         if (validators != null) {
             for (Object validatorObject : validators.getList()) {
                 JsonObject validator = JsonObject.mapFrom(validatorObject);
-                String operation = validator.getString("operation", "add");
+                String operation = validator.getString("operation");
                 String name = validator.getString("name");
                 String url = validator.getString("url", "");
                 String publicKey = validator.getString("publicKey", "");
                 String nameToUpdate = validator.getString("nameToUpdate", "");
 
-                try {
-                    switch (operation) {
-                        case "add":
-                            if (StringUtils.isEmpty(name)) {
-                                log.warn("invalid consensus message contents - validator object {} has empty name", validator.encode());
-                            } else {
-                                log.debug("adding validator {}", name);
-                                validatorsRepository.add(name, url, publicKey);
-                            }
-                            break;
-                        case "delete":
-                            if (StringUtils.isEmpty(name)) {
-                                log.warn("invalid consensus message contents - validator object {} has empty name", validator.encode());
-                            } else {
-                                log.debug("deleting validator {}", name);
-                                validatorsRepository.delete(name);
-                            }
-                            break;
-                        case "update":
-                            if (StringUtils.isEmpty(name)) {
-                                log.warn("invalid consensus message contents - validator object {} has empty name", validator.encode());
-                            } else if (StringUtils.isEmpty(nameToUpdate)) {
-                                log.warn("invalid consensus message contents - validator object {} has empty nameToUpdate", validator.encode());
-                            } else {
-                                log.debug("updating validator {}", nameToUpdate);
-                                validatorsRepository.update(nameToUpdate, name, url, publicKey);
-                            }
-                            break;
-                        default:
-                            log.warn("invalid consensus message contents - validator object {} has invalid value combinations", validator.encode());
+                String[] schemes = {"http","https"};
+                UrlValidator urlValidator = new UrlValidator(schemes);
+
+                if ( ! StringUtils.isEmpty(url) && ! urlValidator.isValid(url)) {
+                    log.warn("invalid validator url");
+                } else {
+                    try {
+                        switch (operation) {
+                            case "add":
+                                if (StringUtils.isEmpty(name)) {
+                                    log.warn("invalid consensus message contents - validator object {} has empty name", validator.encode());
+                                } else {
+                                    log.debug("adding validator {}", name);
+                                    validatorsRepository.add(name, url, publicKey);
+                                }
+                                break;
+                            case "delete":
+                                if (StringUtils.isEmpty(name)) {
+                                    log.warn("invalid consensus message contents - validator object {} has empty name", validator.encode());
+                                } else {
+                                    log.debug("deleting validator {}", name);
+                                    validatorsRepository.delete(name);
+                                }
+                                break;
+                            case "update":
+                                if (StringUtils.isEmpty(name)) {
+                                    log.warn("invalid consensus message contents - validator object {} has empty name", validator.encode());
+                                } else if (StringUtils.isEmpty(nameToUpdate)) {
+                                    log.warn("invalid consensus message contents - validator object {} has empty nameToUpdate", validator.encode());
+                                } else {
+                                    log.debug("updating validator {}", nameToUpdate);
+                                    validatorsRepository.update(nameToUpdate, name, url, publicKey);
+                                }
+                                break;
+                            default:
+                                log.warn("invalid consensus message contents - validator object {} has invalid value combinations", validator.encode());
+                        }
+                    } catch (SQLException e) {
+                        log.error(e, e);
                     }
-                } catch (SQLException e) {
-                    log.error(e, e);
                 }
             }
         } else {

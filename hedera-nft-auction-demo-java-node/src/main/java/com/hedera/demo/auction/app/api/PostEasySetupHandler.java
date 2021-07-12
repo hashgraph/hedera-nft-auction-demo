@@ -1,17 +1,24 @@
 package com.hedera.demo.auction.app.api;
 
-import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.EasySetup;
+import com.hedera.demo.auction.app.Utils;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.json.schema.Schema;
+import io.vertx.json.schema.SchemaParser;
+
+import static io.vertx.json.schema.common.dsl.Schemas.booleanSchema;
+import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
 
 /**
  * API to invoke the easySetup method
  */
 public class PostEasySetupHandler implements Handler<RoutingContext> {
-    public PostEasySetupHandler() {
+    private final SchemaParser schemaParser;
+    public PostEasySetupHandler(SchemaParser schemaParser) {
+        this.schemaParser = schemaParser;
     }
 
     /**
@@ -22,11 +29,16 @@ public class PostEasySetupHandler implements Handler<RoutingContext> {
     @Override
     public void handle(RoutingContext routingContext) {
         var body = routingContext.getBodyAsJson();
-        @Var RequestEasySetup data = new RequestEasySetup();
 
-        if (body != null) {
-            data = body.mapTo(RequestEasySetup.class);
-        }
+        Schema easySetupSchemaBuilder = objectSchema()
+                .requiredProperty("symbol", Utils.HEDERA_STRING_MAX_SCHEMA)
+                .requiredProperty("name", Utils.HEDERA_STRING_MAX_SCHEMA)
+                .requiredProperty("clean", booleanSchema())
+                .build(schemaParser);
+
+        easySetupSchemaBuilder.validateSync(body);
+
+        RequestEasySetup data = body.mapTo(RequestEasySetup.class);
 
         try {
             String[] args = new String[3];

@@ -205,33 +205,33 @@ public abstract class AbstractSystemTest {
         return key;
     }
 
-    protected static JsonObject jsonThresholdKey(int threshold1, int threshold2, String masterPubKey, String pubKey2, String pubKey3) {
-        JsonObject masterKey = new JsonObject().put("key", masterPubKey);
-
-        JsonArray otherKeys = new JsonArray();
-        JsonObject key1 = new JsonObject().put("key", pubKey2);
-        JsonObject key2 = new JsonObject().put("key", pubKey3);
-        otherKeys.add(key1).add(key2);
-
-        JsonObject otherKeyList = new JsonObject();
-        otherKeyList.put("keys", otherKeys);
-        otherKeyList.put("threshold", threshold1);
-        JsonObject otherKeysObject = new JsonObject();
-        otherKeysObject.put("keyList", otherKeyList);
-
-        JsonArray keys = new JsonArray();
-        keys.add(masterKey);
-        keys.add(otherKeysObject);
-
-        JsonObject key = new JsonObject();
-        JsonObject keyList = new JsonObject();
-        keyList.put("keys", keys);
-        keyList.put("threshold", threshold2);
-        key.put("keyList", keyList);
-
-        return key;
-    }
-
+//    protected static JsonObject jsonThresholdKey(int threshold1, int threshold2, String masterPubKey, String pubKey2, String pubKey3) {
+//        JsonObject masterKey = new JsonObject().put("key", masterPubKey);
+//
+//        JsonArray otherKeys = new JsonArray();
+//        JsonObject key1 = new JsonObject().put("key", pubKey2);
+//        JsonObject key2 = new JsonObject().put("key", pubKey3);
+//        otherKeys.add(key1).add(key2);
+//
+//        JsonObject otherKeyList = new JsonObject();
+//        otherKeyList.put("keys", otherKeys);
+//        otherKeyList.put("threshold", threshold1);
+//        JsonObject otherKeysObject = new JsonObject();
+//        otherKeysObject.put("keyList", otherKeyList);
+//
+//        JsonArray keys = new JsonArray();
+//        keys.add(masterKey);
+//        keys.add(otherKeysObject);
+//
+//        JsonObject key = new JsonObject();
+//        JsonObject keyList = new JsonObject();
+//        keyList.put("keys", keys);
+//        keyList.put("threshold", threshold2);
+//        key.put("keyList", keyList);
+//
+//        return key;
+//    }
+//
     protected void createAccountAndGetInfo(String keys) throws Exception {
         auctionAccountId = createAuctionAccount.create(initialBalance, keys);
         getAccountInfo();

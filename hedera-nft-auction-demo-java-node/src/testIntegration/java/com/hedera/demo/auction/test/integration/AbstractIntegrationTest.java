@@ -10,6 +10,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.junit5.VertxExtension;
+import org.apache.commons.lang3.StringUtils;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -26,6 +27,8 @@ public class AbstractIntegrationTest {
             .setKeepAlive(false);
     protected WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
     protected final static Dotenv env = Dotenv.configure().filename(".env.integration.sample").ignoreIfMissing().load();
+    protected final static String LONG_KEY = StringUtils.repeat("*", 100);
+    protected final static String VERY_LONG_STRING = StringUtils.repeat("*", 70000);
 
     private int index;
 
@@ -114,7 +117,7 @@ public class AbstractIntegrationTest {
     String description() { return stringPlusIndex("description");}
 
     String validatorName() { return stringPlusIndex("validatorName");}
-    String validatorUrl() { return stringPlusIndex("validatorUrl");}
+    String validatorUrl() { return stringPlusIndex("https://hedera").concat(".com");}
     String validatorPublicKey() { return stringPlusIndex("validatorPublicKey");}
 
     @SuppressWarnings("FieldMissingNullable")

@@ -110,7 +110,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
         JsonObject validator = new JsonObject();
         validator.put("operation", "add");
         validator.put("name", "validatorName");
-        validator.put("url", "validatorUrl");
+        validator.put("url", "https://hedera.com");
         validator.put("publicKey", "validatorPublicKey");
 
         validators.add(validator);
@@ -123,7 +123,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
             .pollInterval(Duration.ofSeconds(5))
             .await()
             .atMost(Duration.ofSeconds(30))
-            .until(validatorAssert("validatorName", "validatorUrl","validatorPublicKey"));
+            .until(validatorAssert("validatorName", "https://hedera.com","validatorPublicKey"));
 
     }
 
@@ -131,7 +131,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
     public void testValidatorUpdate(VertxTestContext testContext) throws Exception {
 
         // create a validator directly in the database
-        validatorsRepository.add("validatorName", "validatorUrl", "validatorPublicKey");
+        validatorsRepository.add("validatorName", "https://hedera.com", "validatorPublicKey");
 
         JsonObject validatorJson = new JsonObject();
         JsonArray validators = new JsonArray();
@@ -140,7 +140,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
         updateValidator.put("operation", "update");
         updateValidator.put("nameToUpdate", "validatorName");
         updateValidator.put("name", "validatorName2");
-        updateValidator.put("url", "validatorUrl2");
+        updateValidator.put("url", "https://hedera2.com");
         updateValidator.put("publicKey", "validatorPublicKey2");
 
         validators.add(updateValidator);
@@ -154,7 +154,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
                 .pollInterval(Duration.ofSeconds(5))
                 .await()
                 .atMost(Duration.ofSeconds(30))
-                .until(validatorAssert("validatorName2", "validatorUrl2","validatorPublicKey2"));
+                .until(validatorAssert("validatorName2", "https://hedera2.com","validatorPublicKey2"));
 
     }
 
@@ -162,7 +162,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
     public void testValidatorDelete(VertxTestContext testContext) throws Exception {
 
         // create a validator directly in the database
-        validatorsRepository.add("validatorName", "validatorUrl", "validatorPublicKey");
+        validatorsRepository.add("validatorName", "https://hedera.com", "validatorPublicKey");
 
         JsonObject validatorJson = new JsonObject();
         JsonArray validators = new JsonArray();

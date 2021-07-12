@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.app.api;
 
+import com.hedera.demo.auction.app.Utils;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -8,6 +9,11 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.ext.web.validation.ValidationHandler;
+import io.vertx.ext.web.validation.builder.Parameters;
+import io.vertx.json.schema.SchemaParser;
+import io.vertx.json.schema.SchemaRouter;
+import io.vertx.json.schema.SchemaRouterOptions;
 import io.vertx.pgclient.PgConnectOptions;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.PoolOptions;
@@ -18,6 +24,9 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
+
+import static io.vertx.json.schema.common.dsl.Schemas.intSchema;
+import static io.vertx.json.schema.draft7.dsl.Keywords.minimum;
 
 /**
  * REST API verticle for the client API
@@ -88,16 +97,40 @@ public class ApiVerticle extends AbstractVerticle {
                         .allowedHeaders(allowedHeaders))
                 .failureHandler(ApiVerticle::failureHandler);
 
+        SchemaRouter schemaRouter = SchemaRouter.create(vertx, new SchemaRouterOptions());
+        SchemaParser schemaParser = SchemaParser.createOpenAPI3SchemaParser(schemaRouter);
+
         router.get("/v1/environment").handler(getEnvironmentHandler);
         router.get("/v1/reservenotmetauctions").handler(getAuctionsReserveNotMetHandler);
         router.get("/v1/closedauctions").handler(getClosedAuctionsHandler);
         router.get("/v1/endedauctions").handler(getEndedAuctionsHandler);
         router.get("/v1/activeauctions").handler(getActiveAuctionsHandler);
         router.get("/v1/pendingauctions").handler(getPendingAuctionsHandler);
-        router.get("/v1/auctions/:id").handler(getAuctionHandler);
+
+        router.get("/v1/auctions/:id")
+                .handler(ValidationHandler
+                    .builder(schemaParser)
+                    .pathParameter(Parameters.param("id", intSchema().with(minimum(1))))
+                    .build())
+                .handler(getAuctionHandler);
+
         router.get("/v1/auctions").handler(getAuctionsHandler);
-        router.get("/v1/lastbid/:auctionid/:bidderaccountid").handler(getLastBidderBidHandler);
-        router.get("/v1/bids/:auctionid").handler(getBidsHandler);
+
+        router.get("/v1/lastbid/:auctionid/:bidderaccountid")
+                .handler(ValidationHandler
+                        .builder(schemaParser)
+                        .pathParameter(Parameters.param("auctionid", intSchema().with(minimum(1))))
+                        .pathParameter(Parameters.param("bidderaccountid", Utils.LONG_STRING_MAX_SCHEMA))
+                        .build())
+                .handler(getLastBidderBidHandler);
+
+        router.get("/v1/bids/:auctionid")
+                .handler(ValidationHandler
+                        .builder(schemaParser)
+                        .pathParameter(Parameters.param("auctionid", intSchema().with(minimum(1))))
+                        .build())
+                .handler(getBidsHandler);
+
         router.get("/v1/generatekey").handler(getGeneratedKeysHandler);
         router.get("/").handler(rootHandler);
 

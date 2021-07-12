@@ -22,26 +22,28 @@ public class CreateAuction extends AbstractCreate {
 
     /**
      * Sends a JSON file containing auction details as a HCS message
-     * @param auctionFile the path of the JSON file name containing the auction details
+     * @param auctionFile the name the JSON file name containing the auction details
      * @throws Exception in the event of an exception
      */
     public void create(String auctionFile, String overrideTopicId) throws Exception {
 
         @Var String localTopicId = "";
+        String filesPath = Utils.filesPath(env);
 
         if (! overrideTopicId.isBlank()) {
             localTopicId = overrideTopicId;
         } else {
             localTopicId = topicId;
         }
-        if (! Files.exists(Path.of(auctionFile))) {
-            log.error("File {} not found", auctionFile);
+        Path filePath = Path.of(filesPath, auctionFile);
+        if (! Files.exists(filePath)) {
+            log.error("File {} not found", filePath);
         } else {
             // submit message with auction file contents
-            log.info("Loading {} file", auctionFile);
-            String auctionInitData = Files.readString(Path.of(auctionFile), StandardCharsets.US_ASCII);
+            log.info("Loading {} file", filePath);
+            String auctionInitData = Files.readString(filePath, StandardCharsets.UTF_8);
 
-            log.info("Submitting {} file contents to HCS on topic {}", auctionFile, localTopicId);
+            log.info("Submitting {} file contents to HCS on topic {}", filePath, localTopicId);
 
             try {
                 TopicMessageSubmitTransaction topicMessageSubmitTransaction = new TopicMessageSubmitTransaction()

@@ -89,7 +89,10 @@ public class EasySetup extends AbstractCreate {
         tokenData.put("decimals", 0);
         tokenData.put("memo", "");
 
-        if (Files.exists(Path.of(symbol))) {
+        String filesPath = Utils.filesPath(env);
+        Path filePath = Path.of(filesPath, symbol);
+
+        if (Files.exists(filePath)) {
             JsonObject meta = new JsonObject();
             meta.put("type", "file");
             meta.put("description", symbol);
@@ -125,15 +128,17 @@ public class EasySetup extends AbstractCreate {
             auction.put("description", "auction description");
 
             // store auction data in initDemo.json file
-            FileWriter myWriter = new FileWriter("./sample-files/initDemo.json", UTF_8);
+            Path initPath = Path.of(filesPath, "initDemo.json");
+
+            FileWriter myWriter = new FileWriter(initPath.toFile(), UTF_8);
             myWriter.write(auction.encodePrettily());
             myWriter.close();
 
             log.info("*************************");
-            log.info(" ./sample-files/initDemo.json file written");
+            log.info(" {} file written", initPath.toString());
 
             CreateAuction createAuction = new CreateAuction();
-            createAuction.create("./sample-files/initDemo.json", topicId);
+            createAuction.create("initDemo.json", topicId);
         } catch (Exception e) {
             log.error(e, e);
             throw e;

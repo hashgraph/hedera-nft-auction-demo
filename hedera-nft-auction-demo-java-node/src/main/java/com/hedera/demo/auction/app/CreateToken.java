@@ -32,21 +32,25 @@ public class CreateToken extends AbstractCreate {
 
     /**
      * Creates a simple token (no kyc, freeze, supply, etc...)
-     * @param tokenSpec Json Describing the token to create or the path to a file containing the json
+     * @param tokenSpec Json Describing the token to create or name of a file containing the json
      * @throws Exception in the event of an exception
      */
     public TokenId create(String tokenSpec) throws Exception {
 
+        String filesPath = Utils.filesPath(env);
+        Path filePath = Path.of(filesPath, tokenSpec);
+
         RequestCreateToken tokenData;
-        if (Files.exists(Path.of(tokenSpec))) {
+        if (Files.exists(filePath)) {
             // the spec is a valid file name, let's load it
-            String contents = Utils.readFileIntoString(tokenSpec);
+            String contents = Utils.readFileIntoString(filesPath);
             JsonObject contentsJson = new JsonObject(contents);
             tokenData = contentsJson.mapTo(RequestCreateToken.class);
         } else {
             JsonObject contentsJson = new JsonObject(tokenSpec);
             tokenData = contentsJson.mapTo(RequestCreateToken.class);
         }
+        tokenData.checkIsValid(filesPath);
 
         if (tokenData.hasMetaData()) {
             String nftStorageKey = Optional.ofNullable(env.get("NFT_STORAGE_API_KEY")).orElse("");
@@ -54,7 +58,7 @@ public class CreateToken extends AbstractCreate {
                 log.error("empty NFT_STORAGE_API_KEY, unable to store metadata");
                 throw new Exception("Empty NFT_STORAGE_API_KEY, unable to store metadata");
             }
-            tokenData.saveImagesToIPFS(nftStorageKey);
+            tokenData.saveImagesToIPFS(nftStorageKey, filesPath);
 
             // store the token Data on IPFS
             String response = storeTokenOnIPFS(nftStorageKey, JsonObject.mapFrom(tokenData));

@@ -108,8 +108,8 @@ public class E2EAppTest extends AbstractSystemTest {
         createTopicAndGetInfo();
 
         // create an auction account
-        io.vertx.core.json.JsonObject keysCreate = jsonThresholdKey(1, 1, masterKey.getPublicKey().toString(), hederaClient.operatorPublicKey().toString());
-        createAccountAndGetInfo(keysCreate.toString());
+        io.vertx.core.json.JsonObject keysCreate = jsonThresholdKey(1, hederaClient.operatorPublicKey().toString());
+        createAccountAndGetInfo(keysCreate);
         if (auctionAccountId == null) {
             throw new Exception ("auctionAccountId is null");
         }

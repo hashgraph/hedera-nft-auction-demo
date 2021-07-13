@@ -144,6 +144,9 @@ public class RequestCreateToken {
                 }
             } else if ("file".equals(certificate.type)) {
                 Path thisFile = Path.of(filesPath, certificate.description);
+                if (StringUtils.isEmpty(certificate.description)) {
+                    throw new Exception("certificate.description does not contain a file name");
+                }
                 if (!Files.exists(thisFile)) {
                     throw new Exception("certificate.description does not exist or is not accessible");
                 }
@@ -162,7 +165,10 @@ public class RequestCreateToken {
                     throw new Exception("image.description is not valid base64");
                 }
             } else if ("file".equals(image.type)) {
-                Path thisFile = Path.of(filesPath, certificate.description);
+                if (StringUtils.isEmpty(image.description)) {
+                    throw new Exception("image.description does not contain a file name");
+                }
+                Path thisFile = Path.of(filesPath, image.description);
                 if (! Files.exists(thisFile)) {
                     throw new Exception("image.description does not exist or is not accessible");
                 }

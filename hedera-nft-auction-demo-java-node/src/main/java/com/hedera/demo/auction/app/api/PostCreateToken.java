@@ -66,7 +66,7 @@ public class PostCreateToken implements Handler<RoutingContext> {
             RequestCreateToken tokenData = body.mapTo(RequestCreateToken.class);
             tokenData.checkIsValid(filesPath);
 
-            TokenId tokenId = createToken.create(body.encode());
+            TokenId tokenId = createToken.create(tokenData);
             JsonObject response = new JsonObject();
             response.put("tokenId", tokenId.toString());
 

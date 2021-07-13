@@ -87,10 +87,12 @@ public class PostAuctionAccountHandler implements Handler<RoutingContext> {
                 throw new Exception("duplicate keys detected.");
             }
 
-            keys.put("keyList", body.getJsonObject("keylist"));
+            keys.put("keylist", body.getJsonObject("keylist"));
+            RequestCreateAuctionAccount requestCreateAuctionAccount = body.mapTo(RequestCreateAuctionAccount.class);
+
             CreateAuctionAccount createAuctionAccount = new CreateAuctionAccount();
             createAuctionAccount.setEnv(env);
-            AccountId auctionAccount = createAuctionAccount.create(body.getLong("initialBalance"), keys.toString());
+            AccountId auctionAccount = createAuctionAccount.create(requestCreateAuctionAccount);
 
             JsonObject response = new JsonObject();
             response.put("accountId", auctionAccount.toString());

@@ -359,60 +359,6 @@ task runNode(type: JavaExec) {
 	args cmdargs.split()
 }
 
-task createTopic(type: JavaExec) {
-	group = "Execution"
-	description = "Creates a topic id and updates the .env file with the result"
-	classpath = sourceSets.main.runtimeClasspath
-	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
-	main = "com.hedera.demo.auction.app.CreateTopic"
-	args cmdargs.split()
-}
-
-task createAuction(type: JavaExec) {
-	group = "Execution"
-	description = "Creates an auction from a file which is submitted to a Topic"
-	classpath = sourceSets.main.runtimeClasspath
-	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
-	main = "com.hedera.demo.auction.app.CreateAuction"
-	args cmdargs.split()
-}
-
-task createAuctionAccount(type: JavaExec) {
-	group = "Execution"
-	description = "Creates an auction account with threshold keys"
-	classpath = sourceSets.main.runtimeClasspath
-	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
-	main = "com.hedera.demo.auction.app.CreateAuctionAccount"
-	args cmdargs.split()
-}
-
-task createToken(type: JavaExec) {
-	group = "Execution"
-	description = "Creates a token"
-	classpath = sourceSets.main.runtimeClasspath
-	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
-	main = "com.hedera.demo.auction.app.CreateToken"
-	args cmdargs.split()
-}
-
-task createTokenTransfer(type: JavaExec) {
-	group = "Execution"
-	description = "Creates a token"
-	classpath = sourceSets.main.runtimeClasspath
-	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
-	main = "com.hedera.demo.auction.app.CreateTokenTransfer"
-	args cmdargs.split()
-}
-
-task easySetup(type: JavaExec) {
-	group = "Execution"
-	description = "Sets up the demo with default parameters"
-	classpath = sourceSets.main.runtimeClasspath
-	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
-	main = "com.hedera.demo.auction.app.EasySetup"
-	args cmdargs.split()
-}
-
 task generateKey(type: JavaExec) {
 	group = "Execution"
 	description = "Generates a public / private key pair"
@@ -446,15 +392,6 @@ task createAccount(type: JavaExec) {
 	classpath = sourceSets.main.runtimeClasspath
 	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
 	main = "com.hedera.demo.auction.exerciser.CreateAccount"
-	args cmdargs.split()
-}
-
-task manageValidator(type: JavaExec) {
-	group = "Execution"
-	description = "Manages validator metadata"
-	classpath = sourceSets.main.runtimeClasspath
-	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
-	main = "com.hedera.demo.auction.app.ManageValidator"
 	args cmdargs.split()
 }
 

@@ -2,6 +2,7 @@ package com.hedera.demo.auction.test.system;
 
 import com.hedera.demo.auction.app.api.RequestCreateAuction;
 import com.hedera.demo.auction.app.api.RequestCreateAuctionAccount;
+import com.hedera.demo.auction.app.api.RequestCreateAuctionAccountKey;
 import com.hedera.demo.auction.app.api.RequestCreateToken;
 import com.hedera.demo.auction.app.api.RequestTokenTransfer;
 import io.vertx.core.Vertx;
@@ -34,6 +35,11 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
 
     protected Buffer createAuctionAccountBody() {
         RequestCreateAuctionAccount requestCreateAuctionAccount = new RequestCreateAuctionAccount();
+        RequestCreateAuctionAccountKey requestCreateAuctionAccountKey = new RequestCreateAuctionAccountKey();
+        requestCreateAuctionAccountKey.key = hederaClient.operatorPublicKey().toString();
+        requestCreateAuctionAccount.keylist.keys.add(requestCreateAuctionAccountKey);
+        requestCreateAuctionAccount.keylist.threshold = 1;
+
         requestCreateAuctionAccount.initialBalance = initialBalance;
 
         return JsonObject.mapFrom(requestCreateAuctionAccount).toBuffer();
@@ -62,7 +68,7 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
         }
         requestCreateAuction.endtimestamp = endTimeStamp;
         if (topicId != null) {
-            requestCreateAuction.topicId = topicId.toString();
+            requestCreateAuction.topicid = topicId.toString();
         }
         requestCreateAuction.winnercanbid = winnerCanBid;
         requestCreateAuction.minimumbid = minimumBid;

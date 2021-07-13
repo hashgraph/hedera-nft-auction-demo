@@ -3,6 +3,9 @@ package com.hedera.demo.auction.test.system;
 import com.hedera.demo.auction.app.CreateAuctionAccount;
 import com.hedera.demo.auction.app.CreateToken;
 import com.hedera.demo.auction.app.CreateTopic;
+import com.hedera.demo.auction.app.api.RequestCreateAuctionAccount;
+import com.hedera.demo.auction.app.api.RequestCreateAuctionAccountKey;
+import com.hedera.demo.auction.app.api.RequestCreateToken;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
 import com.hedera.hashgraph.sdk.TokenId;
@@ -102,7 +105,13 @@ public class AbstractAPITester extends AbstractE2ETest {
 
     public void adminRestAPITransferToken(VertxTestContext testContext, String host) throws Exception {
         CreateAuctionAccount createAuctionAccount = new CreateAuctionAccount();
-        auctionAccountId = createAuctionAccount.create(initialBalance, "");
+        RequestCreateAuctionAccount requestCreateAuctionAccount = new RequestCreateAuctionAccount();
+        requestCreateAuctionAccount.initialBalance = initialBalance;
+        requestCreateAuctionAccount.keylist.threshold = 1;
+        RequestCreateAuctionAccountKey requestCreateAuctionAccountKey = new RequestCreateAuctionAccountKey();
+        requestCreateAuctionAccountKey.key = hederaClient.client().getOperatorPublicKey().toString();
+        requestCreateAuctionAccount.keylist.keys.add(requestCreateAuctionAccountKey);
+        auctionAccountId = createAuctionAccount.create(requestCreateAuctionAccount);
 
         TransactionResponse txResponse = new TokenAssociateTransaction()
                 .setAccountId(auctionAccountId)
@@ -140,17 +149,24 @@ public class AbstractAPITester extends AbstractE2ETest {
         topicId = createTopic.create();
 
         CreateToken createToken = new CreateToken();
-        JsonObject tokenData = new JsonObject();
-        tokenData.put("name", tokenName);
-        tokenData.put("symbol", symbol);
-        tokenData.put("initialSupply", initialSupply);
-        tokenData.put("decimals", decimals);
-        tokenData.put("memo", tokenMemo);
 
-        tokenId = createToken.create(tokenData.toString());
+        RequestCreateToken requestCreateToken = new RequestCreateToken();
+        requestCreateToken.name = tokenName;
+        requestCreateToken.symbol = symbol;
+        requestCreateToken.initialSupply = initialSupply;
+        requestCreateToken.decimals = decimals;
+        requestCreateToken.memo = tokenMemo;
+
+        tokenId = createToken.create(requestCreateToken);
 
         CreateAuctionAccount createAuctionAccount = new CreateAuctionAccount();
-        auctionAccountId = createAuctionAccount.create(initialBalance, "");
+        RequestCreateAuctionAccount requestCreateAuctionAccount = new RequestCreateAuctionAccount();
+        requestCreateAuctionAccount.initialBalance = initialBalance;
+        requestCreateAuctionAccount.keylist.threshold = 1;
+        RequestCreateAuctionAccountKey requestCreateAuctionAccountKey = new RequestCreateAuctionAccountKey();
+        requestCreateAuctionAccountKey.key = hederaClient.client().getOperatorPublicKey().toString();
+        requestCreateAuctionAccount.keylist.keys.add(requestCreateAuctionAccountKey);
+        auctionAccountId = createAuctionAccount.create(requestCreateAuctionAccount);
 
         webClient.post(adminPort, host, "/v1/admin/auction")
                 .as(BodyCodec.jsonObject())

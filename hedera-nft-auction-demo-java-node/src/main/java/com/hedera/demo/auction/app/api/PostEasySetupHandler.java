@@ -38,20 +38,11 @@ public class PostEasySetupHandler implements Handler<RoutingContext> {
 
         easySetupSchemaBuilder.validateSync(body);
 
-        RequestEasySetup data = body.mapTo(RequestEasySetup.class);
+        RequestEasySetup requestEasySetup = body.mapTo(RequestEasySetup.class);
 
         try {
-            String[] args = new String[3];
-
-            args[0] = "--symbol=".concat(data.symbol);
-            args[1] = "--name=".concat(data.name);
-            args[2] = "";
-            if (! data.clean) {
-                args[2] = "--no-clean";
-            }
-
             EasySetup easySetup = new EasySetup();
-            easySetup.setup(args);
+            easySetup.setup(requestEasySetup);
 
             JsonObject response = new JsonObject();
             response.put("status", "auction setup");

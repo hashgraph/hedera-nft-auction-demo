@@ -19,8 +19,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Optional;
 
 @Log4j2
@@ -32,45 +30,32 @@ public class CreateToken extends AbstractCreate {
 
     /**
      * Creates a simple token (no kyc, freeze, supply, etc...)
-     * @param tokenSpec Json Describing the token to create or name of a file containing the json
+     * @param requestCreateToken object describing the token to create
      * @throws Exception in the event of an exception
      */
-    public TokenId create(String tokenSpec) throws Exception {
+    public TokenId create(RequestCreateToken requestCreateToken) throws Exception {
 
-        String filesPath = Utils.filesPath(env);
-        Path filePath = Path.of(filesPath, tokenSpec);
-
-        RequestCreateToken tokenData;
-        if (Files.exists(filePath)) {
-            // the spec is a valid file name, let's load it
-            String contents = Utils.readFileIntoString(filesPath);
-            JsonObject contentsJson = new JsonObject(contents);
-            tokenData = contentsJson.mapTo(RequestCreateToken.class);
-        } else {
-            JsonObject contentsJson = new JsonObject(tokenSpec);
-            tokenData = contentsJson.mapTo(RequestCreateToken.class);
-        }
-        tokenData.checkIsValid(filesPath);
-
-        if (tokenData.hasMetaData()) {
+        if (requestCreateToken.hasMetaData()) {
+            String filesPath = Utils.filesPath(env);
             String nftStorageKey = Optional.ofNullable(env.get("NFT_STORAGE_API_KEY")).orElse("");
             if (StringUtils.isEmpty(nftStorageKey)) {
                 log.error("empty NFT_STORAGE_API_KEY, unable to store metadata");
                 throw new Exception("Empty NFT_STORAGE_API_KEY, unable to store metadata");
             }
-            tokenData.saveImagesToIPFS(nftStorageKey, filesPath);
+            requestCreateToken.saveImagesToIPFS(nftStorageKey, filesPath);
 
             // store the token Data on IPFS
-            String response = storeTokenOnIPFS(nftStorageKey, JsonObject.mapFrom(tokenData));
+            String response = storeTokenOnIPFS(nftStorageKey, JsonObject.mapFrom(requestCreateToken));
 
             if (response.contains("ipfs")) {
                 // create the token
-                return createToken(tokenData.name, response, tokenData.initialSupply, tokenData.decimals, tokenData.memo);
+                requestCreateToken.symbol = response;
+                return createToken(requestCreateToken);
             } else {
-                throw new Exception(response);
+                throw new Exception("error saving token metadata to ipfs");
             }
         } else {
-            return createToken(tokenData.name, tokenData.symbol, tokenData.initialSupply, tokenData.decimals, tokenData.memo);
+            return createToken(requestCreateToken);
         }
     }
 
@@ -116,27 +101,23 @@ public class CreateToken extends AbstractCreate {
     /**
      * Creates the token on Hedera
      *
-     * @param name the name of the token
-     * @param symbol the symbol for the token
-     * @param initialSupply the token's initial supply
-     * @param decimals the number of decimals for the token
-     * @param memo the memo for the token
+     * @param requestCreateToken the object containing the token properties
      * @return TokenId the unique identifier for the token
      * @throws Exception in the event of an error
      */
-    private TokenId createToken(String name, String symbol, long initialSupply, int decimals, String memo) throws Exception {
+    private TokenId createToken(RequestCreateToken requestCreateToken) throws Exception {
 
         try {
             Client client = hederaClient.client();
             client.setMaxTransactionFee(Hbar.from(100));
 
             TokenCreateTransaction tokenCreateTransaction = new TokenCreateTransaction();
-            tokenCreateTransaction.setTokenName(name);
-            tokenCreateTransaction.setTokenSymbol(symbol);
-            tokenCreateTransaction.setInitialSupply(initialSupply);
-            tokenCreateTransaction.setDecimals(decimals);
+            tokenCreateTransaction.setTokenName(requestCreateToken.name);
+            tokenCreateTransaction.setTokenSymbol(requestCreateToken.symbol);
+            tokenCreateTransaction.setInitialSupply(requestCreateToken.initialSupply);
+            tokenCreateTransaction.setDecimals(requestCreateToken.decimals);
             tokenCreateTransaction.setTreasuryAccountId(hederaClient.operatorId());
-            tokenCreateTransaction.setTokenMemo(memo);
+            tokenCreateTransaction.setTokenMemo(requestCreateToken.memo);
 
             TransactionResponse response = tokenCreateTransaction.execute(client);
 
@@ -151,16 +132,6 @@ public class CreateToken extends AbstractCreate {
         } catch (Exception e) {
             log.error(e, e);
             throw e;
-        }
-    }
-
-    public static void main(String[] args) throws Exception {
-        if (args.length != 1) {
-            log.error("Invalid number of arguments supplied - should be one");
-        } else {
-            log.info("Creating token");
-            CreateToken createToken = new CreateToken();
-            createToken.create(args[0]);
         }
     }
 }

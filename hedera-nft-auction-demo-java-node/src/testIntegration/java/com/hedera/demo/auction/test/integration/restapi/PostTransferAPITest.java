@@ -6,11 +6,11 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,8 +18,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(VertxExtension.class)
@@ -28,6 +26,8 @@ public class PostTransferAPITest extends AbstractIntegrationTest {
 
     private PostgreSQLContainer postgres;
     Vertx vertx;
+    private JsonObject transfer;
+    private final static String url = "/v1/admin/transfer";
 
     @BeforeAll
     public void beforeAll(VertxTestContext testContext) throws Throwable {
@@ -48,6 +48,12 @@ public class PostTransferAPITest extends AbstractIntegrationTest {
         }
 
     }
+
+    @BeforeEach
+    public void beforeEach() {
+      basicTransfer();
+    }
+
     @AfterAll
     public void afterAll(VertxTestContext testContext) {
         this.vertx.close(testContext.completing());
@@ -56,28 +62,12 @@ public class PostTransferAPITest extends AbstractIntegrationTest {
 
     @Test
     public void createTransferWithoutBody(VertxTestContext testContext) {
-        webClient.post(8082, "localhost", "/v1/admin/transfer")
-                .as(BodyCodec.jsonObject())
-                .sendBuffer(new JsonObject().toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                    assertNull(response.body());
-                    assertEquals(500, response.statusCode());
-                    testContext.completeNow();
-                })));
+      failingAdminAPITest(testContext, url, new JsonObject());
     }
 
     private void createTransferWithMissingData(VertxTestContext testContext, String attributeToRemove) {
-      JsonObject auction = basicTransfer();
-      auction.remove(attributeToRemove);
-
-      webClient.post(8082, "localhost", "/v1/admin/transfer")
-              .as(BodyCodec.jsonObject())
-              .sendBuffer(JsonObject.mapFrom(auction).toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                assertNull(response.body());
-                assertEquals(500, response.statusCode());
-                testContext.completeNow();
-              })));
+      transfer.remove(attributeToRemove);
+      failingAdminAPITest(testContext, url, transfer);
     }
 
     @Test
@@ -91,17 +81,8 @@ public class PostTransferAPITest extends AbstractIntegrationTest {
     }
 
     private void createTransferWithLongString(VertxTestContext testContext, String attributeToUpdate) {
-      JsonObject auction = basicTransfer();
-      auction.put(attributeToUpdate, VERY_LONG_STRING);
-
-      webClient.post(8082, "localhost", "/v1/admin/transfer")
-              .as(BodyCodec.jsonObject())
-              .sendBuffer(JsonObject.mapFrom(auction).toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                assertNull(response.body());
-                assertEquals(500, response.statusCode());
-                testContext.completeNow();
-              })));
+      transfer.put(attributeToUpdate, VERY_LONG_STRING);
+      failingAdminAPITest(testContext, url, transfer);
     }
 
     @Test
@@ -116,41 +97,19 @@ public class PostTransferAPITest extends AbstractIntegrationTest {
 
     @Test
     public void createTransferWithInvalidTokenId(VertxTestContext testContext) {
-      JsonObject auction = basicTransfer();
-      auction.put("tokenid", "abcdef");
-
-      webClient.post(8082, "localhost", "/v1/admin/transfer")
-              .as(BodyCodec.jsonObject())
-              .sendBuffer(JsonObject.mapFrom(auction).toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                assertNull(response.body());
-                assertEquals(500, response.statusCode());
-                testContext.completeNow();
-              })));
-
+      transfer.put("tokenid", "abcdef");
+      failingAdminAPITest(testContext, url, transfer);
     }
 
   @Test
   public void createTransferWithInvalidAccountId(VertxTestContext testContext) {
-    JsonObject auction = basicTransfer();
-    auction.put("auctionaccountid", "abcdef");
-
-    webClient.post(8082, "localhost", "/v1/admin/transfer")
-            .as(BodyCodec.jsonObject())
-            .sendBuffer(JsonObject.mapFrom(auction).toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-              assertNull(response.body());
-              assertEquals(500, response.statusCode());
-              testContext.completeNow();
-            })));
-
+    transfer.put("auctionaccountid", "abcdef");
+    failingAdminAPITest(testContext, url, transfer);
   }
 
-    private static JsonObject basicTransfer() {
-      JsonObject setup = new JsonObject();
-      setup.put("tokenid", "0.0.1234");
-      setup.put("auctionaccountid", "0.0.1234");
-
-      return setup;
+    private void basicTransfer() {
+      transfer = new JsonObject();
+      transfer.put("tokenid", "0.0.1234");
+      transfer.put("auctionaccountid", "0.0.1234");
     }
 }

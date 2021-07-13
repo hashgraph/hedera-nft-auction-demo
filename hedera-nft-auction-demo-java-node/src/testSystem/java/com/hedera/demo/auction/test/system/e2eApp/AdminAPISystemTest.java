@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.test.system.e2eApp;
 
+import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.App;
 import com.hedera.demo.auction.app.ManageValidator;
 import com.hedera.demo.auction.app.SqlConnectionManager;
@@ -7,6 +8,7 @@ import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.demo.auction.app.repository.ValidatorsRepository;
 import com.hedera.demo.auction.test.system.AbstractAPITester;
+import com.hedera.hashgraph.sdk.PrivateKey;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -32,6 +34,8 @@ public class AdminAPISystemTest extends AbstractAPITester {
 
     Vertx vertx;
     App app = new App();
+    String publicKey;
+    String publicKey2;
 
     AdminAPISystemTest() throws Exception {
         super();
@@ -69,6 +73,11 @@ public class AdminAPISystemTest extends AbstractAPITester {
         app.overrideEnv(hederaClient, /*restAPI= */ true, /*adminAPI= */true, /*auctionNode= */ true, topicId.toString(), postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /*transferOnWin= */true, masterKey.toString());
         app.runApp();
         Thread.sleep(5000);
+
+        @Var PrivateKey privateKey = PrivateKey.generate();
+        publicKey = privateKey.getPublicKey().toString();
+        privateKey = PrivateKey.generate();
+        publicKey2 = privateKey.getPublicKey().toString();
     }
 
     @AfterEach
@@ -111,7 +120,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
         validator.put("operation", "add");
         validator.put("name", "validatorName");
         validator.put("url", "https://hedera.com");
-        validator.put("publicKey", "validatorPublicKey");
+        validator.put("publicKey", publicKey);
 
         validators.add(validator);
         validatorJson.put("validators", validators);
@@ -123,7 +132,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
             .pollInterval(Duration.ofSeconds(5))
             .await()
             .atMost(Duration.ofSeconds(30))
-            .until(validatorAssert("validatorName", "https://hedera.com","validatorPublicKey"));
+            .until(validatorAssert("validatorName", "https://hedera.com",publicKey));
 
     }
 
@@ -131,7 +140,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
     public void testValidatorUpdate(VertxTestContext testContext) throws Exception {
 
         // create a validator directly in the database
-        validatorsRepository.add("validatorName", "https://hedera.com", "validatorPublicKey");
+        validatorsRepository.add("validatorName", "https://hedera.com", publicKey);
 
         JsonObject validatorJson = new JsonObject();
         JsonArray validators = new JsonArray();
@@ -141,7 +150,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
         updateValidator.put("nameToUpdate", "validatorName");
         updateValidator.put("name", "validatorName2");
         updateValidator.put("url", "https://hedera2.com");
-        updateValidator.put("publicKey", "validatorPublicKey2");
+        updateValidator.put("publicKey", publicKey2);
 
         validators.add(updateValidator);
 
@@ -154,7 +163,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
                 .pollInterval(Duration.ofSeconds(5))
                 .await()
                 .atMost(Duration.ofSeconds(30))
-                .until(validatorAssert("validatorName2", "https://hedera2.com","validatorPublicKey2"));
+                .until(validatorAssert("validatorName2", "https://hedera2.com",publicKey2));
 
     }
 
@@ -162,7 +171,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
     public void testValidatorDelete(VertxTestContext testContext) throws Exception {
 
         // create a validator directly in the database
-        validatorsRepository.add("validatorName", "https://hedera.com", "validatorPublicKey");
+        validatorsRepository.add("validatorName", "https://hedera.com", publicKey);
 
         JsonObject validatorJson = new JsonObject();
         JsonArray validators = new JsonArray();

@@ -7,6 +7,10 @@ import com.hedera.demo.auction.app.CreateTokenTransfer;
 import com.hedera.demo.auction.app.CreateTopic;
 import com.hedera.demo.auction.app.EasySetup;
 import com.hedera.demo.auction.app.HederaClient;
+import com.hedera.demo.auction.app.api.RequestCreateAuction;
+import com.hedera.demo.auction.app.api.RequestCreateAuctionAccount;
+import com.hedera.demo.auction.app.api.RequestCreateAuctionAccountKey;
+import com.hedera.demo.auction.app.api.RequestTokenTransfer;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.domain.Bid;
 import com.hedera.demo.auction.app.domain.Validator;
@@ -43,10 +47,6 @@ import org.testcontainers.containers.Network;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
@@ -159,7 +159,7 @@ public abstract class AbstractSystemTest {
         keyList.put("threshold", threshold);
 
         JsonObject key = new JsonObject();
-        key.put("keyList", keyList);
+        key.put("keylist", keyList);
         return key;
     }
 
@@ -174,66 +174,25 @@ public abstract class AbstractSystemTest {
         keyList.put("threshold", threshold);
 
         JsonObject key = new JsonObject();
-        key.put("keyList", keyList);
+        key.put("keylist", keyList);
 
         return key;
     }
 
-    protected static JsonObject jsonThresholdKey(int threshold1, int threshold2, String masterPubKey, String pubKey2) {
-        JsonObject masterKey = new JsonObject().put("key", masterPubKey);
+    protected void createAccountAndGetInfo(JsonObject keys) throws Exception {
+        RequestCreateAuctionAccount requestCreateAuctionAccount = new RequestCreateAuctionAccount();
+        requestCreateAuctionAccount.initialBalance = initialBalance;
+        JsonObject keyList = keys.getJsonObject("keylist");
+        JsonArray keysArray = keyList.getJsonArray("keys");
+        for (Object keyObject : keysArray) {
+            JsonObject key = JsonObject.mapFrom(keyObject);
+            RequestCreateAuctionAccountKey requestCreateAuctionAccountKey = new RequestCreateAuctionAccountKey();
+            requestCreateAuctionAccountKey.key = key.getString("key");
+            requestCreateAuctionAccount.keylist.keys.add(requestCreateAuctionAccountKey);
+        }
 
-        JsonArray otherKeys = new JsonArray();
-        JsonObject key1 = new JsonObject().put("key", pubKey2);
-        otherKeys.add(key1);
-
-        JsonObject otherKeyList = new JsonObject();
-        otherKeyList.put("keys", otherKeys);
-        otherKeyList.put("threshold", threshold1);
-        JsonObject otherKeysObject = new JsonObject();
-        otherKeysObject.put("keyList", otherKeyList);
-
-        JsonArray keys = new JsonArray();
-        keys.add(masterKey);
-        keys.add(otherKeysObject);
-
-        JsonObject key = new JsonObject();
-        JsonObject keyList = new JsonObject();
-        keyList.put("keys", keys);
-        keyList.put("threshold", threshold2);
-        key.put("keyList", keyList);
-
-        return key;
-    }
-
-//    protected static JsonObject jsonThresholdKey(int threshold1, int threshold2, String masterPubKey, String pubKey2, String pubKey3) {
-//        JsonObject masterKey = new JsonObject().put("key", masterPubKey);
-//
-//        JsonArray otherKeys = new JsonArray();
-//        JsonObject key1 = new JsonObject().put("key", pubKey2);
-//        JsonObject key2 = new JsonObject().put("key", pubKey3);
-//        otherKeys.add(key1).add(key2);
-//
-//        JsonObject otherKeyList = new JsonObject();
-//        otherKeyList.put("keys", otherKeys);
-//        otherKeyList.put("threshold", threshold1);
-//        JsonObject otherKeysObject = new JsonObject();
-//        otherKeysObject.put("keyList", otherKeyList);
-//
-//        JsonArray keys = new JsonArray();
-//        keys.add(masterKey);
-//        keys.add(otherKeysObject);
-//
-//        JsonObject key = new JsonObject();
-//        JsonObject keyList = new JsonObject();
-//        keyList.put("keys", keys);
-//        keyList.put("threshold", threshold2);
-//        key.put("keyList", keyList);
-//
-//        return key;
-//    }
-//
-    protected void createAccountAndGetInfo(String keys) throws Exception {
-        auctionAccountId = createAuctionAccount.create(initialBalance, keys);
+        requestCreateAuctionAccount.keylist.threshold = keyList.getInteger("threshold");
+        auctionAccountId = createAuctionAccount.create(requestCreateAuctionAccount);
         getAccountInfo();
     }
 
@@ -291,7 +250,10 @@ public abstract class AbstractSystemTest {
         if (auctionAccountId == null) {
             throw new Exception("auctionAccountId is null");
         }
-        createTokenTransfer.transfer(tokenId.toString(), auctionAccountId.toString(), tokenOwnerAccountId, tokenOwnerPrivateKey);
+        RequestTokenTransfer requestTokenTransfer = new RequestTokenTransfer();
+        requestTokenTransfer.tokenid = tokenId.toString();
+        requestTokenTransfer.auctionaccountid = auctionAccountId.toString();
+        createTokenTransfer.transfer(requestTokenTransfer, tokenOwnerAccountId, tokenOwnerPrivateKey);
         getAccountBalance();
     }
 
@@ -321,24 +283,19 @@ public abstract class AbstractSystemTest {
         if (auctionAccountId == null) {
             throw new Exception("auctionAccountId is null");
         }
-
-        JsonObject auction = new JsonObject();
-        auction.put("tokenid", tokenId.toString());
-        auction.put("auctionaccountid", auctionAccountId.toString());
-        auction.put("reserve", reserve);
-        auction.put("minimumbid", minimumBid);
-        auction.put("winnercanbid", winnerCanBid);
-
-        // store auction data in temp.json file
-        File tempFile = File.createTempFile("test-", ".json");
-        PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(tempFile.toPath(), StandardCharsets.UTF_8));
-        printWriter.write(auction.encodePrettily());
-        printWriter.close();
-
         if (topicId == null) {
             throw new Exception("topicId is null");
         }
-        createAuction.create(tempFile.getAbsolutePath(), topicId.toString());
+
+        RequestCreateAuction requestCreateAuction = new RequestCreateAuction();
+        requestCreateAuction.tokenid = tokenId.toString();
+        requestCreateAuction.auctionaccountid = auctionAccountId.toString();
+        requestCreateAuction.reserve = reserve;
+        requestCreateAuction.minimumbid = minimumBid;
+        requestCreateAuction.winnercanbid = winnerCanBid;
+        requestCreateAuction.topicid = topicId.toString();
+
+        createAuction.create(requestCreateAuction);
     }
 
     protected void migrate(PostgreSQLContainer postgres) {
@@ -360,7 +317,10 @@ public abstract class AbstractSystemTest {
         if (auctionAccountId == null) {
             throw new Exception("auctionAccountId is null");
         }
-        createTokenTransfer.transfer(tokenId.toString(), auctionAccountId.toString(), tokenOwnerAccountId, tokenOwnerPrivateKey);
+        RequestTokenTransfer requestTokenTransfer = new RequestTokenTransfer();
+        requestTokenTransfer.tokenid = tokenId.toString();
+        requestTokenTransfer.auctionaccountid = auctionAccountId.toString();
+        createTokenTransfer.transfer(requestTokenTransfer, tokenOwnerAccountId, tokenOwnerPrivateKey);
     }
 
     protected Callable<Boolean> auctionsCountMatches(int matchCount, javax.json.JsonObject assertion) {

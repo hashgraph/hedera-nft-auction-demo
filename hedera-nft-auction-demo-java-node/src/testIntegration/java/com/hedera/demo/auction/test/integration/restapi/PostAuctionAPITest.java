@@ -6,11 +6,11 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,8 +18,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(VertxExtension.class)
@@ -28,6 +26,8 @@ public class PostAuctionAPITest extends AbstractIntegrationTest {
 
     private PostgreSQLContainer postgres;
     Vertx vertx;
+    private JsonObject auction;
+    private final static String url = "/v1/admin/auction";
 
     @BeforeAll
     public void beforeAll(VertxTestContext testContext) throws Throwable {
@@ -48,6 +48,12 @@ public class PostAuctionAPITest extends AbstractIntegrationTest {
         }
 
     }
+
+    @BeforeEach
+    public void beforeEach() {
+      basicAuction();
+    }
+
     @AfterAll
     public void afterAll(VertxTestContext testContext) {
         this.vertx.close(testContext.completing());
@@ -56,28 +62,12 @@ public class PostAuctionAPITest extends AbstractIntegrationTest {
 
     @Test
     public void createAuctionAuctionWithoutBody(VertxTestContext testContext) {
-        webClient.post(8082, "localhost", "/v1/admin/auction")
-                .as(BodyCodec.jsonObject())
-                .sendBuffer(new JsonObject().toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                    assertNull(response.body());
-                    assertEquals(500, response.statusCode());
-                    testContext.completeNow();
-                })));
+      failingAdminAPITest(testContext, url, new JsonObject());
     }
 
     private void createAuctionWithMissingData(VertxTestContext testContext, String attributeToRemove) {
-      JsonObject auction = basicAuction();
       auction.remove(attributeToRemove);
-
-      webClient.post(8082, "localhost", "/v1/admin/auction")
-              .as(BodyCodec.jsonObject())
-              .sendBuffer(JsonObject.mapFrom(auction).toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                assertNull(response.body());
-                assertEquals(500, response.statusCode());
-                testContext.completeNow();
-              })));
+      failingAdminAPITest(testContext, url, auction);
     }
 
     @Test
@@ -116,25 +106,21 @@ public class PostAuctionAPITest extends AbstractIntegrationTest {
     }
 
     private void createAuctionWithLongString(VertxTestContext testContext, String attributeToUpdate) {
-      JsonObject auction = basicAuction();
       auction.put(attributeToUpdate, VERY_LONG_STRING);
-
-      webClient.post(8082, "localhost", "/v1/admin/auction")
-              .as(BodyCodec.jsonObject())
-              .sendBuffer(JsonObject.mapFrom(auction).toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                assertNull(response.body());
-                assertEquals(500, response.statusCode());
-                testContext.completeNow();
-              })));
+      failingAdminAPITest(testContext, url, auction);
     }
 
-    @Test
-    public void createAuctionWithLongTokenId(VertxTestContext testContext) {
-      createAuctionWithLongString(testContext, "tokenid");
-    }
+  @Test
+  public void createAuctionWithLongTokenId(VertxTestContext testContext) {
+    createAuctionWithLongString(testContext, "tokenid");
+  }
 
-    @Test
+  @Test
+  public void createAuctionWithLongTopicId(VertxTestContext testContext) {
+    createAuctionWithLongString(testContext, "topicid");
+  }
+
+  @Test
     public void createAuctionWithLongAccountId(VertxTestContext testContext) {
       createAuctionWithLongString(testContext, "auctionaccountid");
     }
@@ -156,110 +142,54 @@ public class PostAuctionAPITest extends AbstractIntegrationTest {
 
     @Test
     public void createAuctionWithInvalidReserve(VertxTestContext testContext) {
-      JsonObject auction = basicAuction();
       auction.put("reserve", "abcdef");
-
-      webClient.post(8082, "localhost", "/v1/admin/auction")
-              .as(BodyCodec.jsonObject())
-              .sendBuffer(JsonObject.mapFrom(auction).toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                assertNull(response.body());
-                assertEquals(500, response.statusCode());
-                testContext.completeNow();
-              })));
+      failingAdminAPITest(testContext, url, auction);
     }
 
     @Test
     public void createAuctionWithNegativeReserve(VertxTestContext testContext) {
-      JsonObject auction = basicAuction();
       auction.put("reserve", -1);
-
-      webClient.post(8082, "localhost", "/v1/admin/auction")
-              .as(BodyCodec.jsonObject())
-              .sendBuffer(JsonObject.mapFrom(auction).toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                assertNull(response.body());
-                assertEquals(500, response.statusCode());
-                testContext.completeNow();
-              })));
+      failingAdminAPITest(testContext, url, auction);
     }
 
     @Test
     public void createAuctionWithInvalidMinimumBid(VertxTestContext testContext) {
-      JsonObject auction = basicAuction();
       auction.put("minimumbid", "abcdef");
-
-      webClient.post(8082, "localhost", "/v1/admin/auction")
-              .as(BodyCodec.jsonObject())
-              .sendBuffer(JsonObject.mapFrom(auction).toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                assertNull(response.body());
-                assertEquals(500, response.statusCode());
-                testContext.completeNow();
-              })));
+      failingAdminAPITest(testContext, url, auction);
     }
 
     @Test
     public void createAuctionWithNegativeMinimumBid(VertxTestContext testContext) {
-      JsonObject auction = basicAuction();
       auction.put("minimumbid", -1);
-
-      webClient.post(8082, "localhost", "/v1/admin/auction")
-              .as(BodyCodec.jsonObject())
-              .sendBuffer(JsonObject.mapFrom(auction).toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                assertNull(response.body());
-                assertEquals(500, response.statusCode());
-                testContext.completeNow();
-              })));
+      failingAdminAPITest(testContext, url, auction);
     }
 
     @Test
     public void createAuctionWithNonBoolean(VertxTestContext testContext) {
-      JsonObject auction = basicAuction();
       auction.put("winnercanbid", "yes they can");
-
-      webClient.post(8082, "localhost", "/v1/admin/auction")
-              .as(BodyCodec.jsonObject())
-              .sendBuffer(JsonObject.mapFrom(auction).toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                assertNull(response.body());
-                assertEquals(500, response.statusCode());
-                testContext.completeNow();
-              })));
+      failingAdminAPITest(testContext, url, auction);
     }
 
     @Test
     public void createAuctionWithInvalidTokenFormat(VertxTestContext testContext) {
-      JsonObject auction = basicAuction();
       auction.put("tokenid", "abcde");
-
-      webClient.post(8082, "localhost", "/v1/admin/auction")
-              .as(BodyCodec.jsonObject())
-              .sendBuffer(JsonObject.mapFrom(auction).toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                assertNull(response.body());
-                assertEquals(500, response.statusCode());
-                testContext.completeNow();
-              })));
+      failingAdminAPITest(testContext, url, auction);
     }
 
     @Test
     public void createAuctionWithInvalidAccountFormat(VertxTestContext testContext) {
-      JsonObject auction = basicAuction();
       auction.put("auctionaccountid", "abcde");
-
-      webClient.post(8082, "localhost", "/v1/admin/auction")
-              .as(BodyCodec.jsonObject())
-              .sendBuffer(JsonObject.mapFrom(auction).toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                assertNull(response.body());
-                assertEquals(500, response.statusCode());
-                testContext.completeNow();
-              })));
+      failingAdminAPITest(testContext, url, auction);
     }
-    private static JsonObject basicAuction() {
-      JsonObject auction = new JsonObject();
+
+  @Test
+  public void createAuctionWithInvalidTopicFormat(VertxTestContext testContext) {
+    auction.put("topicid", "abcde");
+    failingAdminAPITest(testContext, url, auction);
+  }
+
+    private void basicAuction() {
+      auction = new JsonObject();
       auction.put("tokenid", "0.0.1234");
       auction.put("auctionaccountid", "0.0.1234");
       auction.put("reserve", 0);
@@ -268,7 +198,5 @@ public class PostAuctionAPITest extends AbstractIntegrationTest {
       auction.put("winnercanbid", false);
       auction.put("title", "title");
       auction.put("description", "description");
-
-      return auction;
     }
 }

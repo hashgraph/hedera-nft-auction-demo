@@ -4,6 +4,7 @@ import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.AuctionReadinessWatcher;
 import com.hedera.demo.auction.app.HederaClient;
 import com.hedera.demo.auction.app.Utils;
+import com.hedera.demo.auction.app.api.RequestPostValidator;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTopicMessage;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTopicMessages;
@@ -29,7 +30,6 @@ import com.hedera.hashgraph.sdk.TransactionResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.validator.routines.UrlValidator;
 import org.jooq.tools.StringUtils;
 
 import javax.annotation.Nullable;
@@ -208,48 +208,24 @@ public class TopicSubscriber implements Runnable{
         if (validators != null) {
             for (Object validatorObject : validators.getList()) {
                 JsonObject validator = JsonObject.mapFrom(validatorObject);
-                String operation = validator.getString("operation");
-                String name = validator.getString("name");
-                String url = validator.getString("url", "");
-                String publicKey = validator.getString("publicKey", "");
-                String nameToUpdate = validator.getString("nameToUpdate", "");
-
-                String[] schemes = {"http","https"};
-                UrlValidator urlValidator = new UrlValidator(schemes);
-
-                if ( ! StringUtils.isEmpty(url) && ! urlValidator.isValid(url)) {
-                    log.warn("invalid validator url");
-                } else {
+                RequestPostValidator postValidator = validator.mapTo(RequestPostValidator.class);
+                if (StringUtils.isEmpty(postValidator.isValid())) {
                     try {
-                        switch (operation) {
+                        switch (postValidator.operation) {
                             case "add":
-                                if (StringUtils.isEmpty(name)) {
-                                    log.warn("invalid consensus message contents - validator object {} has empty name", validator.encode());
-                                } else {
-                                    log.debug("adding validator {}", name);
-                                    validatorsRepository.add(name, url, publicKey);
-                                }
+                                log.debug("adding validator");
+                                validatorsRepository.add(postValidator.name, postValidator.url, postValidator.publicKey);
                                 break;
                             case "delete":
-                                if (StringUtils.isEmpty(name)) {
-                                    log.warn("invalid consensus message contents - validator object {} has empty name", validator.encode());
-                                } else {
-                                    log.debug("deleting validator {}", name);
-                                    validatorsRepository.delete(name);
-                                }
+                                log.debug("deleting validator");
+                                validatorsRepository.delete(postValidator.name);
                                 break;
                             case "update":
-                                if (StringUtils.isEmpty(name)) {
-                                    log.warn("invalid consensus message contents - validator object {} has empty name", validator.encode());
-                                } else if (StringUtils.isEmpty(nameToUpdate)) {
-                                    log.warn("invalid consensus message contents - validator object {} has empty nameToUpdate", validator.encode());
-                                } else {
-                                    log.debug("updating validator {}", nameToUpdate);
-                                    validatorsRepository.update(nameToUpdate, name, url, publicKey);
-                                }
+                                log.debug("updating validator");
+                                validatorsRepository.update(postValidator.nameToUpdate, postValidator.name, postValidator.url, postValidator.publicKey);
                                 break;
                             default:
-                                log.warn("invalid consensus message contents - validator object {} has invalid value combinations", validator.encode());
+                                log.warn("invalid consensus message contents - validator object has invalid value combinations");
                         }
                     } catch (SQLException e) {
                         log.error(e, e);

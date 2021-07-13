@@ -6,11 +6,11 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,8 +18,6 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(VertxExtension.class)
@@ -27,7 +25,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class PostEasySetupAPITest extends AbstractIntegrationTest {
 
     private PostgreSQLContainer postgres;
+    private JsonObject setup;
     Vertx vertx;
+    private final static String url = "/v1/admin/easysetup";
 
     @BeforeAll
     public void beforeAll(VertxTestContext testContext) throws Throwable {
@@ -48,6 +48,12 @@ public class PostEasySetupAPITest extends AbstractIntegrationTest {
         }
 
     }
+
+    @BeforeEach
+    public void beforeEach() {
+      basicSetup();
+    }
+
     @AfterAll
     public void afterAll(VertxTestContext testContext) {
         this.vertx.close(testContext.completing());
@@ -56,28 +62,12 @@ public class PostEasySetupAPITest extends AbstractIntegrationTest {
 
     @Test
     public void createEasySetupWithoutBody(VertxTestContext testContext) {
-        webClient.post(8082, "localhost", "/v1/admin/easysetup")
-                .as(BodyCodec.jsonObject())
-                .sendBuffer(new JsonObject().toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                    assertNull(response.body());
-                    assertEquals(500, response.statusCode());
-                    testContext.completeNow();
-                })));
+      failingAdminAPITest(testContext, url, new JsonObject());
     }
 
     private void createEasySetupWithMissingData(VertxTestContext testContext, String attributeToRemove) {
-      JsonObject auction = basicSetup();
-      auction.remove(attributeToRemove);
-
-      webClient.post(8082, "localhost", "/v1/admin/easysetup")
-              .as(BodyCodec.jsonObject())
-              .sendBuffer(JsonObject.mapFrom(auction).toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                assertNull(response.body());
-                assertEquals(500, response.statusCode());
-                testContext.completeNow();
-              })));
+      setup.remove(attributeToRemove);
+      failingAdminAPITest(testContext, url, setup);
     }
 
     @Test
@@ -96,17 +86,8 @@ public class PostEasySetupAPITest extends AbstractIntegrationTest {
   }
 
     private void createEasySetupWithLongString(VertxTestContext testContext, String attributeToUpdate) {
-      JsonObject auction = basicSetup();
-      auction.put(attributeToUpdate, VERY_LONG_STRING);
-
-      webClient.post(8082, "localhost", "/v1/admin/easysetup")
-              .as(BodyCodec.jsonObject())
-              .sendBuffer(JsonObject.mapFrom(auction).toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                assertNull(response.body());
-                assertEquals(500, response.statusCode());
-                testContext.completeNow();
-              })));
+      setup.put(attributeToUpdate, VERY_LONG_STRING);
+      failingAdminAPITest(testContext, url, setup);
     }
 
     @Test
@@ -121,25 +102,14 @@ public class PostEasySetupAPITest extends AbstractIntegrationTest {
 
     @Test
     public void createEasySetupWithInvalidClean(VertxTestContext testContext) {
-      JsonObject auction = basicSetup();
-      auction.put("clean", "abcdef");
-
-      webClient.post(8082, "localhost", "/v1/admin/easysetup")
-              .as(BodyCodec.jsonObject())
-              .sendBuffer(JsonObject.mapFrom(auction).toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
-
-                assertNull(response.body());
-                assertEquals(500, response.statusCode());
-                testContext.completeNow();
-              })));
+      setup.put("clean", "abcdef");
+      failingAdminAPITest(testContext, url, setup);
     }
 
-    private static JsonObject basicSetup() {
-      JsonObject setup = new JsonObject();
+    private void basicSetup() {
+      setup = new JsonObject();
       setup.put("symbol", "symbol");
       setup.put("name", "name");
       setup.put("clean", false);
-
-      return setup;
     }
 }

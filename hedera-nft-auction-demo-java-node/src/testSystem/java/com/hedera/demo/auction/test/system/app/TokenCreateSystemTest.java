@@ -19,7 +19,7 @@ public class TokenCreateSystemTest extends AbstractSystemTest {
 
     @Test
     public void testCreateToken() throws Exception {
-        CreateToken createToken = new CreateToken();
+        CreateToken createToken = new CreateToken(filesPath);
         RequestCreateToken requestCreateToken = new RequestCreateToken();
         requestCreateToken.name = tokenName;
         requestCreateToken.symbol = symbol;

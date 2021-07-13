@@ -239,6 +239,16 @@ public class PostCreateTokenAPITest extends AbstractIntegrationTest {
   }
 
   @Test
+  public void createTokenWithImageFileContainingPath(VertxTestContext testContext) {
+    JsonObject image = new JsonObject();
+    image.put("type", "file");
+    image.put("description", "../folder/thisfiledoesnotexist.txt");
+    token.put("image", image);
+
+    failingAdminAPITest(testContext, url, token);
+  }
+
+  @Test
   public void createTokenWithImageInvalidURL(VertxTestContext testContext) {
     JsonObject image = new JsonObject();
     image.put("type", "string");
@@ -311,6 +321,16 @@ public class PostCreateTokenAPITest extends AbstractIntegrationTest {
     certificate.put("type", "file");
     certificate.put("description", "thisfiledoesnotexist.txt");
     token.put("certificate", certificate);
+
+    failingAdminAPITest(testContext, url, token);
+  }
+
+  @Test
+  public void createTokenWithCertificateFileContainingPath(VertxTestContext testContext) {
+    JsonObject image = new JsonObject();
+    image.put("type", "file");
+    image.put("description", "../folder/thisfiledoesnotexist.txt");
+    token.put("certificate", image);
 
     failingAdminAPITest(testContext, url, token);
   }

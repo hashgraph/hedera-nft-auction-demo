@@ -24,8 +24,16 @@ import java.util.Optional;
 @Log4j2
 public class CreateToken extends AbstractCreate {
 
-    public CreateToken() throws Exception {
+    private final String filesPath;
+
+    /**
+     * constructor
+     * @param filesPath location of token images, etc...
+     * @throws Exception in the event of an exception
+     */
+    public CreateToken(String filesPath) throws Exception {
         super();
+        this.filesPath = filesPath;
     }
 
     /**
@@ -36,7 +44,6 @@ public class CreateToken extends AbstractCreate {
     public TokenId create(RequestCreateToken requestCreateToken) throws Exception {
 
         if (requestCreateToken.hasMetaData()) {
-            String filesPath = Utils.filesPath(env);
             String nftStorageKey = Optional.ofNullable(env.get("NFT_STORAGE_API_KEY")).orElse("");
             if (StringUtils.isEmpty(nftStorageKey)) {
                 log.error("empty NFT_STORAGE_API_KEY, unable to store metadata");

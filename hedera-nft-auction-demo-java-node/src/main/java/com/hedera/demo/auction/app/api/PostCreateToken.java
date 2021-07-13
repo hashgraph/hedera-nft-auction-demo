@@ -23,9 +23,9 @@ public class PostCreateToken implements Handler<RoutingContext> {
     private final String filesPath;
     private final SchemaParser schemaParser;
 
-    public PostCreateToken(SchemaParser schemaParser, Dotenv env) {
+    public PostCreateToken(SchemaParser schemaParser, Dotenv env, String filesPath) {
         this.env = env;
-        this.filesPath = Utils.filesPath(env);
+        this.filesPath = filesPath;
         this.schemaParser = schemaParser;
     }
 
@@ -60,7 +60,7 @@ public class PostCreateToken implements Handler<RoutingContext> {
         tokenSchemaBuilder.validateSync(body);
 
         try {
-            CreateToken createToken = new CreateToken();
+            CreateToken createToken = new CreateToken(filesPath);
             createToken.setEnv(env);
 
             RequestCreateToken tokenData = body.mapTo(RequestCreateToken.class);

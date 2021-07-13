@@ -39,6 +39,7 @@ public class AdminApiVerticle extends AbstractVerticle {
                 .load();
 
         int httpPort = Integer.parseInt(Optional.ofNullable(config().getString("ADMIN_API_PORT")).orElse(Optional.ofNullable(env.get("ADMIN_API_PORT")).orElse("9006")));
+        String filesPath = config().getString("filesPath");
 
         var server = vertx.createHttpServer();
         var router = Router.router(vertx);
@@ -47,7 +48,7 @@ public class AdminApiVerticle extends AbstractVerticle {
         SchemaParser schemaParser = SchemaParser.createOpenAPI3SchemaParser(schemaRouter);
 
         PostTopicHandler postTopicHandler = new PostTopicHandler(env);
-        PostCreateToken postCreateToken = new PostCreateToken(schemaParser, env);
+        PostCreateToken postCreateToken = new PostCreateToken(schemaParser, env, filesPath);
         PostAuctionAccountHandler postAuctionAccountHandler = new PostAuctionAccountHandler(schemaParser, env);
         PostTransferHandler postTransferHandler = new PostTransferHandler(schemaParser, env);
         PostAuctionHandler postAuctionHandler = new PostAuctionHandler(schemaParser, env);

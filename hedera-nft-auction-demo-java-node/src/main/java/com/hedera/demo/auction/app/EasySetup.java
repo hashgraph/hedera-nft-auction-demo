@@ -52,6 +52,8 @@ public class EasySetup extends AbstractCreate {
     final static ValidatorsRepository validatorsRepository = new ValidatorsRepository(connectionManager);
     @SuppressWarnings("FieldMissingNullable")
     static String topicId = Optional.ofNullable(env.get("TOPIC_ID")).orElse("");
+    @SuppressWarnings("FieldMissingNullable")
+    private final String filesPath = Optional.ofNullable(env.get("FILES_LOCATION")).orElse("./sample-files");
 
     public String setup(RequestEasySetup requestEasySetup) throws Exception {
         Client client = hederaClient.client();
@@ -65,7 +67,7 @@ public class EasySetup extends AbstractCreate {
             topicId = createTopic.create().toString();
         }
 
-        CreateToken createToken = new CreateToken();
+        CreateToken createToken = new CreateToken(filesPath);
         RequestCreateToken requestCreateToken = new RequestCreateToken();
         requestCreateToken.name = requestEasySetup.name;
         requestCreateToken.symbol = requestEasySetup.symbol;

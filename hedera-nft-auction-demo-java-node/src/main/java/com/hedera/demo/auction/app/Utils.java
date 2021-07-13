@@ -4,7 +4,6 @@ import com.google.common.base.Splitter;
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.mirrormapping.MirrorSchedule;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTransactions;
-import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
@@ -19,6 +18,7 @@ import org.jooq.tools.StringUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Arrays;
@@ -353,16 +353,13 @@ public class Utils {
     }
 
     /**
-     * Gets the location of files from environment, returns default if not set
+     * verifies a file doesn't include a path
      *
-     * @param env the environment
-     * @return the environment value or default
+     * @param fileToCheck the name of the file to verify
+     * @return true if the file is "just a file"
      */
-    public static String filesPath(Dotenv env) {
-        @Var String path = env.get("FILES_LOCATION");
-        if (StringUtils.isEmpty(path)) {
-            path = "./sample-files";
-        }
-        return path;
+    public static boolean fileIsAFile(String fileToCheck) {
+        Path tempPath = Path.of(fileToCheck);
+        return fileToCheck.equals(tempPath.getFileName().toString());
     }
 }

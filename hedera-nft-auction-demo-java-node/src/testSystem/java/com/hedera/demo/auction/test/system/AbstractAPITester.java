@@ -148,7 +148,7 @@ public class AbstractAPITester extends AbstractE2ETest {
         CreateTopic createTopic = new CreateTopic();
         topicId = createTopic.create();
 
-        CreateToken createToken = new CreateToken();
+        CreateToken createToken = new CreateToken(filesPath);
 
         RequestCreateToken requestCreateToken = new RequestCreateToken();
         requestCreateToken.name = tokenName;

@@ -51,6 +51,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -115,7 +116,8 @@ public abstract class AbstractSystemTest {
     protected Map<String, AccountId> biddingAccounts = new HashMap<>();
     protected final PrivateKey bidAccountKey = PrivateKey.generate();
 
-    protected PrivateKey masterKey = PrivateKey.fromString(Dotenv.load().get("MASTER_KEY"));
+    protected PrivateKey masterKey = PrivateKey.fromString(dotenv.get("MASTER_KEY"));
+    protected final String filesPath = Optional.ofNullable(dotenv.get("FILES_LOCATION")).orElse("./sample-files");
 
     // test token owner
     PrivateKey tokenOwnerPrivateKey;
@@ -134,7 +136,7 @@ public abstract class AbstractSystemTest {
 
         createTopic = new CreateTopic();
         createAuctionAccount = new CreateAuctionAccount();
-        createToken = new CreateToken();
+        createToken = new CreateToken(filesPath);
         createTokenTransfer = new CreateTokenTransfer();
         createAuction = new CreateAuction();
         easySetup = new EasySetup();

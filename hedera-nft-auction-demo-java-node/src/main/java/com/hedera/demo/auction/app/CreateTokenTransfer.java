@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.app;
 
+import com.hedera.demo.auction.app.api.RequestTokenTransfer;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.Hbar;
@@ -20,22 +21,20 @@ public class CreateTokenTransfer extends AbstractCreate {
 
     /**
      * Transfers the token to the account using the default client account and key
-     * @param tokenId the name of the token
-     * @param accountId the symbol for the token
+     * @param requestTokenTransfer the token and account to use in the transfer
      * @throws Exception in the event of an exception
      */
-    public void transfer(String tokenId, String accountId) throws Exception {
-        transfer(tokenId, accountId, hederaClient.operatorId(), hederaClient.operatorPrivateKey());
+    public void transfer(RequestTokenTransfer requestTokenTransfer) throws Exception {
+        transfer(requestTokenTransfer, hederaClient.operatorId(), hederaClient.operatorPrivateKey());
     }
     /**
      * Transfers the token to the account
-     * @param tokenId the name of the token
-     * @param accountId the symbol for the token
+     * @param requestTokenTransfer the token and account to use in the transfer
      * @param tokenOwnerAccount the account id of the token owner
      * @param tokenOwnerKey the private key of the token owner
      * @throws Exception in the event of an exception
      */
-    public void transfer(String tokenId, String accountId, AccountId tokenOwnerAccount, PrivateKey tokenOwnerKey) throws Exception {
+    public void transfer(RequestTokenTransfer requestTokenTransfer, AccountId tokenOwnerAccount, PrivateKey tokenOwnerKey) throws Exception {
 
         Client client = hederaClient.client();
         client.setOperator(tokenOwnerAccount, tokenOwnerKey);
@@ -43,8 +42,8 @@ public class CreateTokenTransfer extends AbstractCreate {
 
         TransferTransaction transferTransaction = new TransferTransaction();
         transferTransaction.setTransactionMemo("TransferToAuction");
-        transferTransaction.addTokenTransfer(TokenId.fromString(tokenId), client.getOperatorAccountId(), -1);
-        transferTransaction.addTokenTransfer(TokenId.fromString(tokenId), AccountId.fromString(accountId), 1);
+        transferTransaction.addTokenTransfer(TokenId.fromString(requestTokenTransfer.tokenid), client.getOperatorAccountId(), -1);
+        transferTransaction.addTokenTransfer(TokenId.fromString(requestTokenTransfer.tokenid), AccountId.fromString(requestTokenTransfer.auctionaccountid), 1);
 
         try {
             TransactionResponse response = transferTransaction.execute(client);
@@ -54,21 +53,11 @@ public class CreateTokenTransfer extends AbstractCreate {
                 log.error("Token transfer failed {}", receipt.status);
                 throw new Exception("Token transfer failed ".concat(receipt.status.toString()));
             } else {
-                log.info("Token {} transferred to account {}", tokenId, accountId);
+                log.info("Token {} transferred to account {}", requestTokenTransfer.tokenid, requestTokenTransfer.auctionaccountid);
             }
         } catch (Exception e) {
             log.error(e, e);
             throw e;
-        }
-    }
-
-    public static void main(String[] args) throws Exception {
-        if (args.length < 2) {
-            log.error("Invalid number of arguments supplied - tokenId and accountId are required");
-        } else {
-            log.info("Transferring token to account");
-            CreateTokenTransfer createTokenTransfer = new CreateTokenTransfer();
-            createTokenTransfer.transfer(args[0], args[1]);
         }
     }
 }

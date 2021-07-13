@@ -1,8 +1,10 @@
 package com.hedera.demo.auction.app.api;
 
 import com.google.errorprone.annotations.Var;
+import com.hedera.demo.auction.app.Utils;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.jooq.tools.StringUtils;
 
 import java.io.IOException;
@@ -14,7 +16,6 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Base64;
 
 /**
@@ -46,10 +47,10 @@ public class RequestCreateToken {
         return hasDescription() || hasImage() || hasCertificate();
     }
 
-    public void saveImagesToIPFS(String nftStorageKey) throws Exception {
+    public void saveImagesToIPFS(String nftStorageKey, String filesPath) throws Exception {
         // does the metadata contain an image
-        saveImageToIPFS(nftStorageKey, this.image);
-        saveImageToIPFS(nftStorageKey, this.certificate);
+        saveImageToIPFS(nftStorageKey, this.image, filesPath);
+        saveImageToIPFS(nftStorageKey, this.certificate, filesPath);
     }
 
     /**
@@ -99,14 +100,15 @@ public class RequestCreateToken {
      * @param requestCreateTokenMetaData the metdata to store
      * @throws Exception in the event of an error
      */
-    private static void saveImageToIPFS(String nftStorageKey, RequestCreateTokenMetaData requestCreateTokenMetaData) throws Exception {
+    private static void saveImageToIPFS(String nftStorageKey, RequestCreateTokenMetaData requestCreateTokenMetaData, String filesPath) throws Exception {
         if (!StringUtils.isEmpty(requestCreateTokenMetaData.type)) {
             @Var byte[] imageBytes = new byte[0];
             if ("base64".equals(requestCreateTokenMetaData.type)) {
                 imageBytes = Base64.getDecoder().decode(requestCreateTokenMetaData.description);
             } else if ("file".equals(requestCreateTokenMetaData.type)) {
-                if (Files.exists(Path.of(requestCreateTokenMetaData.description))) {
-                    imageBytes = Files.readAllBytes(Paths.get(requestCreateTokenMetaData.description));
+                Path thisFile = Path.of(filesPath, requestCreateTokenMetaData.description);
+                if (Files.exists(thisFile)) {
+                    imageBytes = Files.readAllBytes(thisFile);
                 }
             }
 
@@ -122,6 +124,69 @@ public class RequestCreateToken {
                     log.error("an error occurred, response doesn't contain ipfs");
                     throw new Exception("response doesn't contain ipfs");
                 }
+            }
+        }
+    }
+
+    public void checkIsValid(String filesPath) throws Exception {
+        String response = "";
+        String[] schemes = {"http","https"};
+        UrlValidator urlValidator = new UrlValidator(schemes);
+        if (hasDescription()) {
+            if (! "string".equals(description.type)) {
+                throw new Exception("description type should be string");
+            }
+        }
+        if (hasCertificate()) {
+            if ("base64".equals(certificate.type)) {
+                if (!Utils.isBase64(certificate.description)) {
+                    throw new Exception("certificate.description is not valid base64");
+                }
+            } else if ("file".equals(certificate.type)) {
+                if (StringUtils.isEmpty(certificate.description)) {
+                    throw new Exception("certificate.description does not contain a file name");
+                }
+
+                if (! Utils.fileIsAFile(certificate.description)) {
+                    throw new Exception("certificate.description contains a path element");
+                }
+
+                Path thisFile = Path.of(filesPath, certificate.description);
+                if (!Files.exists(thisFile)) {
+                    throw new Exception("certificate.description does not exist or is not accessible");
+                }
+            } else if ("url".equals(certificate.type)) {
+                if (! urlValidator.isValid(certificate.description)) {
+                    throw new Exception("certificate.description is not a valid url");
+                }
+            } else {
+                throw new Exception("certificate.type is not valid, expecting string, base64 or file");
+            }
+        }
+
+        if (hasImage()) {
+            if ("base64".equals(image.type)) {
+                if (! Utils.isBase64(image.description)) {
+                    throw new Exception("image.description is not valid base64");
+                }
+            } else if ("file".equals(image.type)) {
+                if (StringUtils.isEmpty(image.description)) {
+                    throw new Exception("image.description does not contain a file name");
+                }
+                if (! Utils.fileIsAFile(image.description)) {
+                    throw new Exception("image.description contains a path element");
+                }
+
+                Path thisFile = Path.of(filesPath, image.description);
+                if (! Files.exists(thisFile)) {
+                    throw new Exception("image.description does not exist or is not accessible");
+                }
+            } else if ("string".equals(image.type)) {
+                if (! urlValidator.isValid(image.description)) {
+                    throw new Exception("image.description is not a valid url");
+                }
+            } else {
+                throw new Exception("image.type is not valid, expecting string, base64 or file");
             }
         }
     }

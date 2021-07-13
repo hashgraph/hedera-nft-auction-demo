@@ -112,11 +112,6 @@ public class CreateTopic extends AbstractCreate {
             throw e;
         }
     }
-
-    public static void main(String[] args) throws Exception {
-        CreateTopic createTopic = new CreateTopic();
-        createTopic.create();
-    }
 }
 
 

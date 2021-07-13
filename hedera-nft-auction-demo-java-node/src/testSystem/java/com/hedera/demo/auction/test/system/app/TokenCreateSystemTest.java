@@ -1,8 +1,8 @@
 package com.hedera.demo.auction.test.system.app;
 
 import com.hedera.demo.auction.app.CreateToken;
+import com.hedera.demo.auction.app.api.RequestCreateToken;
 import com.hedera.demo.auction.test.system.AbstractSystemTest;
-import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
@@ -18,16 +18,16 @@ public class TokenCreateSystemTest extends AbstractSystemTest {
     }
 
     @Test
-    public void testCreateTokenNoFile() throws Exception {
-        CreateToken createToken = new CreateToken();
-        JsonObject tokenData = new JsonObject();
-        tokenData.put("name", tokenName);
-        tokenData.put("symbol", symbol);
-        tokenData.put("initialSupply", initialSupply);
-        tokenData.put("decimals", decimals);
-        tokenData.put("memo", tokenMemo);
+    public void testCreateToken() throws Exception {
+        CreateToken createToken = new CreateToken(filesPath);
+        RequestCreateToken requestCreateToken = new RequestCreateToken();
+        requestCreateToken.name = tokenName;
+        requestCreateToken.symbol = symbol;
+        requestCreateToken.initialSupply = initialSupply;
+        requestCreateToken.decimals = decimals;
+        requestCreateToken.memo = tokenMemo;
 
-        tokenId = createToken.create(tokenData.toString());
+        tokenId = createToken.create(requestCreateToken);
 
         getTokenInfo();
 

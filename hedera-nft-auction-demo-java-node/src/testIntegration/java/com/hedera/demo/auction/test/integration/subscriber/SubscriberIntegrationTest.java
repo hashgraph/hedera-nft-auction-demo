@@ -11,6 +11,7 @@ import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.ValidatorsRepository;
 import com.hedera.demo.auction.app.subscriber.TopicSubscriber;
 import com.hedera.demo.auction.test.integration.AbstractIntegrationTest;
+import com.hedera.hashgraph.sdk.PrivateKey;
 import com.hedera.hashgraph.sdk.TopicId;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -49,6 +50,8 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
     private JsonObject auctionJson;
     private TopicSubscriber topicSubscriber;
     private Instant consensusTimestamp;
+    private String publicKey;
+    private String publicKey2;
 
     private MirrorTopicMessages mirrorTopicMessages = new MirrorTopicMessages();
 
@@ -86,6 +89,11 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         auctionJson.put("winnercanbid", true);
         auctionJson.put("title", "auction title");
         auctionJson.put("description", "auction description");
+
+        @Var PrivateKey privateKey = PrivateKey.generate();
+        publicKey = privateKey.getPublicKey().toString();
+        privateKey = PrivateKey.generate();
+        publicKey2 = privateKey.getPublicKey().toString();
     }
 
     @AfterEach
@@ -184,8 +192,8 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         JsonArray validators = new JsonArray();
         JsonObject validator = new JsonObject();
         validator.put("name", "validatorName");
-        validator.put("url", "validatorUrl");
-        validator.put("publicKey", "validatorPublicKey");
+        validator.put("url", "https://hedera.com");
+        validator.put("publicKey", publicKey);
         validator.put("operation", "add");
         validators.add(validator);
         validatorJson.put("validators", validators);
@@ -198,8 +206,8 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
         assertEquals(1, dbValidators.size());
         assertEquals("validatorName", dbValidators.get(0).getName());
-        assertEquals("validatorUrl", dbValidators.get(0).getUrl());
-        assertEquals("validatorPublicKey", dbValidators.get(0).getPublicKey());
+        assertEquals("https://hedera.com", dbValidators.get(0).getUrl());
+        assertEquals(publicKey, dbValidators.get(0).getPublicKey());
     }
 
     @Test
@@ -208,15 +216,15 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         JsonArray validators = new JsonArray();
         JsonObject validator = new JsonObject();
         validator.put("name", "validatorName");
-        validator.put("url", "validatorUrl");
-        validator.put("publicKey", "validatorPublicKey");
+        validator.put("url", "https://hedera.com");
+        validator.put("publicKey", publicKey);
         validator.put("operation", "add");
         validators.add(validator);
 
         JsonObject validator2 = new JsonObject();
         validator2.put("name", "validatorName2");
-        validator2.put("url", "validatorUrl2");
-        validator2.put("publicKey", "validatorPublicKey2");
+        validator2.put("url", "https://hedera2.com");
+        validator2.put("publicKey", publicKey2);
         validator2.put("operation", "add");
         validators.add(validator2);
 
@@ -230,12 +238,12 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
         assertEquals(2, dbValidators.size());
         assertEquals("validatorName", dbValidators.get(0).getName());
-        assertEquals("validatorUrl", dbValidators.get(0).getUrl());
-        assertEquals("validatorPublicKey", dbValidators.get(0).getPublicKey());
+        assertEquals("https://hedera.com", dbValidators.get(0).getUrl());
+        assertEquals(publicKey, dbValidators.get(0).getPublicKey());
 
         assertEquals("validatorName2", dbValidators.get(1).getName());
-        assertEquals("validatorUrl2", dbValidators.get(1).getUrl());
-        assertEquals("validatorPublicKey2", dbValidators.get(1).getPublicKey());
+        assertEquals("https://hedera2.com", dbValidators.get(1).getUrl());
+        assertEquals(publicKey2, dbValidators.get(1).getPublicKey());
     }
 
     @Test
@@ -244,8 +252,8 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         JsonArray validators = new JsonArray();
         JsonObject validator = new JsonObject();
         validator.put("name", "validatorName");
-        validator.put("url", "validatorUrl");
-        validator.put("publicKey", "validatorPublicKey");
+        validator.put("url", "https://hedera.com");
+        validator.put("publicKey", publicKey);
         validator.put("operation", "add");
         validators.add(validator);
         validatorJson.put("validators", validators);
@@ -277,8 +285,8 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         JsonArray validators = new JsonArray();
         JsonObject validator = new JsonObject();
         validator.put("name", "validatorName");
-        validator.put("url", "validatorUrl");
-        validator.put("publicKey", "validatorPublicKey");
+        validator.put("url", "https://hedera.com");
+        validator.put("publicKey", publicKey);
         validator.put("operation", "add");
         validators.add(validator);
         validatorJson.put("validators", validators);
@@ -292,8 +300,8 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         JsonObject updateValidator = new JsonObject();
         updateValidator.put("nameToUpdate", "validatorName");
         updateValidator.put("name", "validatorName2");
-        updateValidator.put("url", "validatorUrl2");
-        updateValidator.put("publicKey", "validatorPublicKey2");
+        updateValidator.put("url", "https://hedera2.com");
+        updateValidator.put("publicKey", publicKey2);
         updateValidator.put("operation", "update");
 
         updateValidators.add(updateValidator);
@@ -308,8 +316,8 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         assertEquals(1, dbValidators.size());
 
         assertEquals("validatorName2", dbValidators.get(0).getName());
-        assertEquals("validatorUrl2", dbValidators.get(0).getUrl());
-        assertEquals("validatorPublicKey2", dbValidators.get(0).getPublicKey());
+        assertEquals("https://hedera2.com", dbValidators.get(0).getUrl());
+        assertEquals(publicKey2, dbValidators.get(0).getPublicKey());
     }
 
     @Test
@@ -319,8 +327,8 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         JsonArray validators = new JsonArray();
         JsonObject validator = new JsonObject();
         validator.put("name", "validatorName");
-        validator.put("url", "validatorUrl");
-        validator.put("publicKey", "validatorPublicKey");
+        validator.put("url", "https://hedera.com");
+        validator.put("publicKey", publicKey);
         validator.put("operation", "invalid");
         validators.add(validator);
         validatorJson.put("validators", validators);
@@ -337,8 +345,8 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         JsonArray validators = new JsonArray();
         JsonObject validator = new JsonObject();
         validator.put("name", "");
-        validator.put("url", "validatorUrl");
-        validator.put("publicKey", "validatorPublicKey");
+        validator.put("url", "https://hedera.com");
+        validator.put("publicKey", publicKey);
         validator.put("operation", "add");
         validators.add(validator);
         validatorJson.put("validators", validators);
@@ -354,8 +362,7 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         JsonArray validators = new JsonArray();
         JsonObject validator = new JsonObject();
         validator.put("name", "validatorName");
-        validator.put("url", "validatorUrl");
-        validator.put("publicKey", "validatorPublicKey");
+        validator.put("url", "https://hedera.com");
         validator.put("operation", "add");
         validators.add(validator);
         validatorJson.put("validators", validators);
@@ -387,8 +394,8 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         JsonArray validators = new JsonArray();
         JsonObject validator = new JsonObject();
         validator.put("name", "validatorName");
-        validator.put("url", "validatorUrl");
-        validator.put("publicKey", "validatorPublicKey");
+        validator.put("url", "https://hedera.com");
+        validator.put("publicKey", publicKey);
         validator.put("operation", "add");
         validators.add(validator);
         validatorJson.put("validators", validators);
@@ -414,8 +421,8 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
         assertEquals(1, dbValidators.size());
         assertEquals("validatorName", dbValidators.get(0).getName());
-        assertEquals("validatorUrl", dbValidators.get(0).getUrl());
-        assertEquals("validatorPublicKey", dbValidators.get(0).getPublicKey());
+        assertEquals("https://hedera.com", dbValidators.get(0).getUrl());
+        assertEquals(publicKey, dbValidators.get(0).getPublicKey());
     }
 
     @Test
@@ -424,8 +431,8 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         JsonArray validators = new JsonArray();
         JsonObject validator = new JsonObject();
         validator.put("name", "validatorName");
-        validator.put("url", "validatorUrl");
-        validator.put("publicKey", "validatorPublicKey");
+        validator.put("url", "https://hedera.com");
+        validator.put("publicKey", publicKey);
         validator.put("operation", "add");
         validators.add(validator);
         validatorJson.put("validators", validators);
@@ -451,8 +458,50 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
         assertEquals(1, dbValidators.size());
         assertEquals("validatorName", dbValidators.get(0).getName());
-        assertEquals("validatorUrl", dbValidators.get(0).getUrl());
-        assertEquals("validatorPublicKey", dbValidators.get(0).getPublicKey());
+        assertEquals("https://hedera.com", dbValidators.get(0).getUrl());
+        assertEquals(publicKey, dbValidators.get(0).getPublicKey());
+    }
+
+    @Test
+    public void testInvalidOperation() throws SQLException {
+        JsonObject validatorJson = new JsonObject();
+        JsonArray validators = new JsonArray();
+        JsonObject validator = new JsonObject();
+        validator.put("name", "validatorName");
+        validator.put("url", "https://hedera.com");
+        validator.put("publicKey", publicKey);
+        validator.put("operation", "testing");
+        validators.add(validator);
+        validatorJson.put("validators", validators);
+
+        createTopicMessage(validatorJson);
+
+        topicSubscriber.handle(mirrorTopicMessages);
+
+        List<Validator> dbValidators = validatorsRepository.getValidatorsList();
+
+        assertEquals(0, dbValidators.size());
+    }
+
+    @Test
+    public void testInvalidURL() throws SQLException {
+        JsonObject validatorJson = new JsonObject();
+        JsonArray validators = new JsonArray();
+        JsonObject validator = new JsonObject();
+        validator.put("name", "validatorName");
+        validator.put("url", "not a valid url");
+        validator.put("publicKey", publicKey);
+        validator.put("operation", "add");
+        validators.add(validator);
+        validatorJson.put("validators", validators);
+
+        createTopicMessage(validatorJson);
+
+        topicSubscriber.handle(mirrorTopicMessages);
+
+        List<Validator> dbValidators = validatorsRepository.getValidatorsList();
+
+        assertEquals(0, dbValidators.size());
     }
 
     private void createTopicMessage(JsonObject messageJson) {

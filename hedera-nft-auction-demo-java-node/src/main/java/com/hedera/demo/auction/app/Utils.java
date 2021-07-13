@@ -9,6 +9,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
+import io.vertx.json.schema.common.dsl.NumberSchemaBuilder;
+import io.vertx.json.schema.common.dsl.StringSchemaBuilder;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.binary.Hex;
 import org.jooq.tools.StringUtils;
@@ -16,6 +18,7 @@ import org.jooq.tools.StringUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Arrays;
@@ -30,6 +33,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import static io.vertx.json.schema.common.dsl.Keywords.maxLength;
+import static io.vertx.json.schema.common.dsl.Schemas.numberSchema;
+import static io.vertx.json.schema.common.dsl.Schemas.stringSchema;
+import static io.vertx.json.schema.draft7.dsl.Keywords.maximum;
+import static io.vertx.json.schema.draft7.dsl.Keywords.minimum;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -46,6 +54,13 @@ public class Utils {
             .setUserAgent("HederaAuction/1.0")
             .setKeepAlive(false);
     private static final WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
+
+    public static final StringSchemaBuilder LONG_STRING_MAX_SCHEMA = stringSchema().with(maxLength(65535));
+    public static final StringSchemaBuilder KEY_STRING_MAX_SCHEMA = stringSchema().with(maxLength(88));
+    public static final StringSchemaBuilder HEDERA_STRING_MAX_SCHEMA = stringSchema().with(maxLength(100));
+    public static final StringSchemaBuilder OPERATION_STRING_SCHEMA = stringSchema().with(maxLength(6));
+    public static final StringSchemaBuilder SHORT_STRING_SCHEMA = stringSchema().with(maxLength(20));
+    public static final NumberSchemaBuilder LONG_NUMBER_SCHEMA = numberSchema().with(minimum(0)).with(maximum(Long.MAX_VALUE));
 
     public enum ScheduledStatus {
         EXECUTED,
@@ -324,5 +339,27 @@ public class Utils {
         }
         log.debug("schedule {} has executed is {}", scheduleId, scheduledStatus);
         return scheduledStatus;
+    }
+
+    /**
+     * Validates a string is valid base64
+     *
+     * @param base64String the base64 to validate
+     * @return true of false depending on validation result
+     */
+    public static boolean isBase64(String base64String) {
+        String regex = "^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$";
+        return base64String.matches(regex);
+    }
+
+    /**
+     * verifies a file doesn't include a path
+     *
+     * @param fileToCheck the name of the file to verify
+     * @return true if the file is "just a file"
+     */
+    public static boolean fileIsAFile(String fileToCheck) {
+        Path tempPath = Path.of(fileToCheck);
+        return fileToCheck.equals(tempPath.getFileName().toString());
     }
 }

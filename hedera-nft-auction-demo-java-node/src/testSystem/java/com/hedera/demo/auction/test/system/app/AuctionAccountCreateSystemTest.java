@@ -20,22 +20,9 @@ public class AuctionAccountCreateSystemTest extends AbstractSystemTest {
 
     String pk01 = PrivateKey.generate().getPublicKey().toString();
     String pk02 = PrivateKey.generate().getPublicKey().toString();
-    String pk03 = PrivateKey.generate().getPublicKey().toString();
 
     AuctionAccountCreateSystemTest() throws Exception {
         super();
-    }
-
-    @Test
-    public void testCreateAccountDefault() throws Exception {
-
-        createAccountAndGetInfo("");
-
-        assertNotNull(accountInfo);
-        assertEquals(hederaClient.operatorPublicKey().toString(), accountInfo.key.toString());
-
-        assertEquals(initialBalance * 100000000, accountInfo.balance.toTinybars());
-        assertFalse(accountInfo.isReceiverSignatureRequired);
     }
 
     @Test
@@ -43,7 +30,7 @@ public class AuctionAccountCreateSystemTest extends AbstractSystemTest {
 
         JsonObject keysCreate = jsonThresholdKey(2, pk01, pk02);
 
-        createAccountAndGetInfo(keysCreate.toString());
+        createAccountAndGetInfo(keysCreate);
 
         assertNotNull(accountInfo);
         KeyList accountKeyList = (KeyList) accountInfo.key;

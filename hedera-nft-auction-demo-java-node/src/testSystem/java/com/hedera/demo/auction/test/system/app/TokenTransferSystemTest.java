@@ -4,6 +4,7 @@ import com.hedera.demo.auction.test.system.AbstractSystemTest;
 import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
 import com.hedera.hashgraph.sdk.TokenId;
 import com.hedera.hashgraph.sdk.TransactionResponse;
+import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -25,7 +26,8 @@ public class TokenTransferSystemTest extends AbstractSystemTest {
     @BeforeAll
     public void beforeEach() throws Exception {
         createTokenAndGetInfo(symbol);
-        createAccountAndGetInfo("");
+        JsonObject keys = jsonThresholdKey(1, hederaClient.client().getOperatorPublicKey().toString());
+        createAccountAndGetInfo(keys);
 
         TransactionResponse response = new TokenAssociateTransaction()
                 .setAccountId(auctionAccountId)

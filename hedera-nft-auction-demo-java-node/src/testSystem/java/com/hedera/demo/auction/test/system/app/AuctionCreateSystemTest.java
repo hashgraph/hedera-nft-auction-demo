@@ -50,7 +50,7 @@ public class AuctionCreateSystemTest extends AbstractSystemTest {
         auctionsRepository.deleteAllAuctions();
         createTopicAndGetInfo();
         JsonObject key = jsonThresholdKey(1, auctionAccountKey.getPublicKey().toString());
-        createAccountAndGetInfo(key.toString());
+        createAccountAndGetInfo(key);
         createTokenAndGetInfo(symbol);
         createAuction(auctionReserve, minimumBid, winnerCanBid);
     }

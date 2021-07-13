@@ -9,7 +9,10 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
+import org.apache.commons.lang3.StringUtils;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -17,6 +20,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @ExtendWith(VertxExtension.class)
 public class AbstractIntegrationTest {
@@ -26,6 +30,8 @@ public class AbstractIntegrationTest {
             .setKeepAlive(false);
     protected WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
     protected final static Dotenv env = Dotenv.configure().filename(".env.integration.sample").ignoreIfMissing().load();
+    protected final static String LONG_KEY = StringUtils.repeat("*", 100);
+    protected final static String VERY_LONG_STRING = StringUtils.repeat("*", 70000);
 
     private int index;
 
@@ -114,7 +120,7 @@ public class AbstractIntegrationTest {
     String description() { return stringPlusIndex("description");}
 
     String validatorName() { return stringPlusIndex("validatorName");}
-    String validatorUrl() { return stringPlusIndex("validatorUrl");}
+    String validatorUrl() { return stringPlusIndex("https://hedera").concat(".com");}
     String validatorPublicKey() { return stringPlusIndex("validatorPublicKey");}
 
     @SuppressWarnings("FieldMissingNullable")
@@ -284,5 +290,16 @@ public class AbstractIntegrationTest {
         assertEquals(auction.getTransferstatus(), body.getString("transferstatus"));
         assertEquals(auction.getTitle(), body.getString("title"));
         assertEquals(auction.getDescription(), body.getString("description"));
+    }
+
+    protected void failingAdminAPITest(VertxTestContext testContext, String url, JsonObject body) {
+        webClient.post(8082, "localhost", url)
+                .as(BodyCodec.jsonObject())
+                .sendBuffer(body.toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
+
+                    assertNull(response.body());
+                    assertEquals(500, response.statusCode());
+                    testContext.completeNow();
+                })));
     }
 }

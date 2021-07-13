@@ -111,7 +111,11 @@ you may now navigate to [http://localhost:8080](http://localhost:8080) to verify
 #### Create a sample auction
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8082/v1/admin/easysetup
+curl -H "Content-Type: application/json" -X POST -d '{
+  "symbol":"MTT",
+  "name":"Test Token",
+  "clean":false
+}' http://localhost:8082/v1/admin/easysetup
 ```
 
 #### Restart the docker containers for the topic to be taken into account
@@ -180,12 +184,17 @@ The operator id/key is used to query the hedera network for the token's metadata
 * _It is also used by the auction administrator to set the submit key for the auction topic and also for creating the auction account and submitting auction creation messages to the topic._
 * _And optionally creating a token to auction, then transferring it to the auction account_
 
-
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
 * `TRANSFER_ON_WIN=`true
 
 You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish (although only the hedera mirror API is supported at this time).
+
+start the application
+
+```shell
+./gradlew runNode
+```
 
 #### Javascript UI
 
@@ -212,13 +221,6 @@ npm run-script build
 
 A number of helper functions are available from the project in order to get you started quickly.
 
-*Note, this section assumes you are running the commands from the `hedera-nft-auction-demo-java-node` directory.*
-
-```shell
-cd hedera-nft-auction-demo
-cd hedera-nft-auction-demo-java-node
-```
-
 #### Super simple
 
 This command takes a number of parameters runs all the necessary steps to create a demo auction:
@@ -226,137 +228,20 @@ This command takes a number of parameters runs all the necessary steps to create
 * create a HCS Topic
 * create a simple token
 * create an auction account
-* create an auction file
 * setup the auction
 * transfers the token to the auction
-
-__Parameters__
-
-The following parameter are optional and defaulted if not supplied
-
-*note, the database will be cleared and a new topic created unless `--no-clean` is provided*
-
-* --name, token's name
-* --symbol, this will determine the symbol for the token, if the symbol refers to a file path, the file must contain the specification of the token and be reachable by the application. See [Token Specification](#token-specification)
-* --no-clean, do no create a new topic and do not delete data from the database
-
-__Command line__
-
-```shell
-./gradlew easySetup
-```
-
-*Note: the application will need to be restarted to take the new topic into account*
-
-```shell
-./gradlew easySetup --args="--name=myToken --symbol=MTT --no-clean"
-```
-
-__REST API__
 
 This requires that the REST api and database are up and running
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -d '{}' http://localhost:8082/v1/admin/easysetup
+curl -H "Content-Type: application/json" -X POST -d '{
+  "symbol":"MTT",
+  "name":"Test Token",
+  "clean":false
+}' http://localhost:8082/v1/admin/easysetup
 ```
 
-or
-
-```shell script
-curl -H "Content-Type: application/json" -X POST -d '{"symbol":"MTT","name":"Test Token","clean":false, "title": "Auction Title", "description": "Auction description" }' http://localhost:8082/v1/admin/easysetup
-```
-
-#### Step by step via command line
-
-These steps will enable you to create an `initDemo.json` file (located in `./sample-files`) which you can finally use to setup a new auction.
-
-__Create a topic__
-
-This will create a new topic id and set the `TOPIC_ID` environment variable.
-
-_Note: This command will create the topic using the `OPERATOR_ID` defined in the `.env` file, you should be using the account that will run the auction node here._
-
-```shell
-./gradlew createTopic
-```
-
-__Create a simple token__
-
-This command will create a token named `test` with a symbol of `tst`, an initial supply of `1` and `0` decimals.
-
-_Note: This command will create the token using the `OPERATOR_ID` defined in the `.env` file, it may be desirable to use a separate account to create the token than that used to run the auction node._
-
-First, create a file containing the specification of the token [Token specification](#token-specification), save it somewhere such that the application has access to it.
-
-```shell
-./gradlew createToken --args="./sample-files/token-specification-sample.json"
-```
-
-set the resulting `Token Id` to the `tokenId` attribute in your `./sample-files/initDemo.json` file.
-
-__Create an auction account__
-
-This command will create an auction account with an initial balance of `100` hbar using the operator key for the account.
-
-_Note: This command will create the auction account using the `OPERATOR_ID` defined in the `.env` file, you should be using the account that will run the auction node here._
-
-```shell
-./gradlew createAuctionAccount --args="100"
-```
-
-_Note: For more complex key structures, use the REST admin api._
-
-set the resulting `Account Id` to the `auctionaccountid` attribute in your `./sample-files/initDemo.json` file.
-
-__Finalising the initDemo.json file__
-
-Your initDemo.json file should look like this (with your own values).
-
-You can change some of the attribute values if you wish
-
-_Note: if the `endtimestamp` (end of auction in seconds since Epoch) is left blank, the auction will run for 48 hours from now by default._
-
-You may also specify a time delta from the consensus time of the resulting HCS message such as:
-
-* `2d` for two days following the consensus time
-* `1h` for one hour
-* `10m` for ten minutes
-
-```json
-{
-  "tokenid": "0.0.xxxxxx",
-  "auctionaccountid": "0.0.yyyyyy",
-  "endtimestamp": "",
-  "reserve": 0,
-  "minimumbid": 0,
-  "title": "Auction title",
-  "description": "Auction description"
-}
-```
-
-_Note: the minimum bid and reserve are expressed in `tinybars`_
-
-__Create the auction__
-
-_Note: This command will create the auction using the `OPERATOR_ID` defined in the `.env` file, you should be using the account that will run the auction node here._
-
-```shell
-./gradlew createAuction --args="./sample-files/initDemo.json"
-```
-
-__Transfer the token to the auction account__
-
-This transfer the token from the account that created it to the `auctionaccountid`, supply the `tokenId` and `accountId` created above in the parameters.
-
-_Note: This command will transfer the token using the `OPERATOR_ID` defined in the `.env` file, you should use the same account as that used to create the token._
-
-```shell
-./gradlew createTokenTransfer --args="tokenId accountId"
-```
-
-#### Step by step via REST API
-
-This requires that the REST api and database are up and running.
+#### Step by step 
 
 The examples below show curl commands, however the `hedera-nft-auction-demo-java-node` project includes `postman` files for the admin and client APIS which you can import into Postman instead.
 
@@ -428,11 +313,11 @@ curl -H "Content-Type: application/json" -X POST -d '
   },
   "image": {
     "type": "file",
-    "description": "sample-files/GoldCoin.jpg"
+    "description": "GoldCoin.jpg"
   },
   "certificate": {
     "type": "file",
-    "description": "sample-files/silver.jpg"
+    "description": "silver.jpg"
   }
 }
 ' http://localhost:8082/v1/admin/token
@@ -453,6 +338,14 @@ This command will create an auction account with an initial balance of `100` hba
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '
   {
+    "keylist: {
+      "keys": [
+        {
+          "key": "your public key"
+        }
+      ],
+      "threshold": 1
+    },
     "initialBalance": 100
   }
 ' http://localhost:8082/v1/admin/auctionaccount
@@ -477,7 +370,7 @@ _Note: all keys are *public* keys_
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '
 {
-  "keyList": {
+  "keylist": {
     "keys": [
       {
         "key": "302a300506032b657003210090ec5045925d37b358ee0c60f858dc79c3b4370cbf7e0c5dad882f1171265cb3"
@@ -510,8 +403,8 @@ curl -H "Content-Type: application/json" -X POST -d '
 {
   "tokenid": "{{tokenId}}",
   "auctionaccountid": "{{accountId}}",
-  "reserve": "",
-  "minimumbid": "1000000",
+  "reserve": 0,
+  "minimumbid": 1000000,
   "endtimestamp": "",
   "winnercanbid": true,
   "title": "Auction title",
@@ -599,8 +492,6 @@ These tests include testing the outcome of various operations in the database an
 
 # Token Specification
 
-In order to simplify creating a token through the command line, a file may be created with the following JSON.
-
 ## Binaries from base64
 
 If you'd like to attach an image and optionally a certificate document to the token, convert the two binary files to base64 and include in the JSON below.
@@ -631,7 +522,9 @@ _Note: The `type` for the `image` and `certificate` is `base64`_
 
 ## Binaries from files
 
-If you'd like to attach an image and optionally a certificate document to the token using existing binary files, include the path of the files in the JSON below, the files must be accessible by the application.
+If you'd like to attach an image and optionally a certificate document to the token using existing binary files, include the name of the files in the JSON below.
+The path where the files should be located is defaulted to `sample-files/` and may be modified in the `.env` file.
+_Note: If the path contains a `.env` file, an error will be generated._
 
 _Note: The `type` for the `image` and `certificate` is `file`_
 
@@ -648,11 +541,11 @@ _Note: The `type` for the `image` and `certificate` is `file`_
   },
   "image": {
     "type": "file",
-    "description": "sample-files/GoldCoin.jpg"
+    "description": "GoldCoin.jpg"
   },
   "certificate": {
     "type": "file",
-    "description": "sample-files/silver.jpg"
+    "description": "silver.jpg"
   }
 }
 ```
@@ -667,22 +560,22 @@ For example, the above token specifications would result in a file on IPFS conta
 
 ```json
 {
-  "name":"Token Name",
-  "symbol":"Symbol",
-  "initialSupply":1,
-  "decimals":0,
-  "memo":"token memo",
+  "name": "Token Name",
+  "symbol": "Symbol",
+  "initialSupply": 1,
+  "decimals": 0,
+  "memo": "token memo",
   "description": {
-    "type":"string",
-    "description":"Describes the asset to which this token represents."
+    "type": "string",
+    "description": "Describes the asset to which this token represents."
   },
   "image": {
-    "type":"string",
-    "description":"https://cloudflare-ipfs.com/ipfs/bafkreieqtmwpcj75uff42bmmk3wldjdjmf2fpmi6zjkbdv67qsbzgs22qa"
+    "type": "string",
+    "description": "https://cloudflare-ipfs.com/ipfs/bafkreieqtmwpcj75uff42bmmk3wldjdjmf2fpmi6zjkbdv67qsbzgs22qa"
   },
   "certificate": {
-    "type":"string",
-    "description":"https://cloudflare-ipfs.com/ipfs/bafkreieqtmwpcj75uff42bmmk3wldjdjmf2fpmi6zjkbdv67qsbzgs22qa"
+    "type": "string",
+    "description": "https://cloudflare-ipfs.com/ipfs/bafkreieqtmwpcj75uff42bmmk3wldjdjmf2fpmi6zjkbdv67qsbzgs22qa"
   }
 }
 ```
@@ -757,7 +650,6 @@ which will create an account with the specified initial balance in hbar and will
 2021-07-02 13:27:16.030 INFO  com.hedera.demo.auction.exerciser.CreateAccount - Public key is 302a3005.......f06f311c60accc (45)
 ```
 
-
 ### All node types
 
 * `OPERATOR_ID=` (input your account id for the Hedera network)
@@ -813,7 +705,7 @@ _Note: all keys are *public* keys_
 ```shell script
 curl -H "Content-Type: application/json" -X POST -d '
 {
-  "keyList": {
+  "keylist": {
     "keys": [
       {
         "key": "validator 1 public key"
@@ -849,8 +741,8 @@ curl -H "Content-Type: application/json" -X POST -d '
 {
   "tokenid": "{{tokenId}}",
   "auctionaccountid": "{{accountId}}",
-  "reserve": "",
-  "minimumbid": "1000000",
+  "reserve": 0,
+  "minimumbid": 1000000,
   "endtimestamp": "",
   "winnercanbid": true,
   "title": "Auction title",
@@ -988,12 +880,6 @@ curl -H "Content-Type: application/json" -X POST -d '
 }' http://localhost:8082/v1/admin/validators
 ```
 
-or
-
-```shell
-./gradlew manageValidator --args="--name=validatorName --url=url --publicKey=publicKey --operation=add"
-```
-
 You may modify the details of a validator as follows:
 
 ```shell script
@@ -1011,12 +897,6 @@ curl -H "Content-Type: application/json" -X POST -d '
 }' http://localhost:8082/v1/admin/validators
 ```
 
-or
-
-```shell
-./gradlew manageValidator --args="--nameToUpdate=nameToUpdate --name=validatorName --url=url --publicKey=publicKey --operation=update"
-```
-
 And finally, you may delete details of a validator as follows:
 
 ```shell script
@@ -1029,10 +909,4 @@ curl -H "Content-Type: application/json" -X POST -d '
     }
   ]
 }' http://localhost:8082/v1/admin/validators
-```
-
-or
-
-```shell
-./gradlew manageValidator --args="--name=validatorName --operation=delete"
 ```

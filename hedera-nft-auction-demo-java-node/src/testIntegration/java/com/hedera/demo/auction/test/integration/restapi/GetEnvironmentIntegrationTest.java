@@ -70,8 +70,8 @@ public class GetEnvironmentIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void getEnvironmentTest(VertxTestContext testContext) throws SQLException {
-      validatorsRepository.add("validatorName", "validatorUrl", "validatorPublicKey");
-      validatorsRepository.add("validatorName1", "validatorUrl1", "validatorPublicKey1");
+      validatorsRepository.add("validatorName", "https://hedera.com", "validatorPublicKey");
+      validatorsRepository.add("validatorName1", "https://hedera.com1", "validatorPublicKey1");
 
         webClient.get(9005, "localhost", "/v1/environment/")
                 .as(BodyCodec.jsonObject())
@@ -90,12 +90,12 @@ public class GetEnvironmentIntegrationTest extends AbstractIntegrationTest {
                     assertEquals(2, validators.size());
                     JsonObject validator = validators.getJsonObject(0);
                     assertEquals("validatorName", validator.getString("name"));
-                    assertEquals("validatorUrl", validator.getString("url"));
+                    assertEquals("https://hedera.com", validator.getString("url"));
                     assertEquals("validatorPublicKey", validator.getString("publicKey"));
 
                     JsonObject validator2 = validators.getJsonObject(1);
                     assertEquals("validatorName1", validator2.getString("name"));
-                    assertEquals("validatorUrl1", validator2.getString("url"));
+                    assertEquals("https://hedera.com1", validator2.getString("url"));
                     assertEquals("validatorPublicKey1", validator2.getString("publicKey"));
 
                     testContext.completeNow();

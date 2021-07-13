@@ -1,19 +1,27 @@
 package com.hedera.demo.auction.app.api;
 
 import com.hedera.demo.auction.app.CreateTokenTransfer;
+import com.hedera.demo.auction.app.Utils;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.json.schema.Schema;
+import io.vertx.json.schema.SchemaParser;
+import org.jooq.tools.StringUtils;
+
+import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
 
 /**
  * Transfers a token from one account to another
  */
 public class PostTransferHandler implements Handler<RoutingContext> {
     private final Dotenv env;
-    public PostTransferHandler(Dotenv env) {
+    private final SchemaParser schemaParser;
+    public PostTransferHandler(SchemaParser schemaParser, Dotenv env) {
         this.env = env;
+        this.schemaParser = schemaParser;
     }
 
     /**
@@ -23,26 +31,35 @@ public class PostTransferHandler implements Handler<RoutingContext> {
      */
     @Override
     public void handle(RoutingContext routingContext) {
-        var body = routingContext.getBodyAsJson();
+        JsonObject body = routingContext.getBodyAsJson();
 
-        if (body == null) {
-            routingContext.fail(500);
-            return;
-        }
+        Schema transferSchemaBuilder = objectSchema()
+                .requiredProperty("tokenid", Utils.LONG_STRING_MAX_SCHEMA)
+                .requiredProperty("auctionaccountid", Utils.LONG_STRING_MAX_SCHEMA)
+                .build(schemaParser);
 
-        var data = body.mapTo(RequestTokenTransfer.class);
+        transferSchemaBuilder.validateSync(body);
 
+        RequestTokenTransfer requestTokenTransfer = body.mapTo(RequestTokenTransfer.class);
+
+        String isValid = requestTokenTransfer.isValid();
         try {
-            CreateTokenTransfer createTokenTransfer = new CreateTokenTransfer();
-            createTokenTransfer.setEnv(env);
-            createTokenTransfer.transfer(data.tokenid, data.auctionaccountid);
+            if (StringUtils.isEmpty(isValid)) {
+                CreateTokenTransfer createTokenTransfer = new CreateTokenTransfer();
+                createTokenTransfer.setEnv(env);
+                createTokenTransfer.transfer(requestTokenTransfer);
 
-            JsonObject response = new JsonObject();
-            response.put("status", "transferred");
+                JsonObject response = new JsonObject();
+                response.put("status", "transferred");
 
-            routingContext.response()
-                    .putHeader("content-type", "application/json")
-                    .end(Json.encodeToBuffer(response));
+                routingContext.response()
+                        .putHeader("content-type", "application/json")
+                        .end(Json.encodeToBuffer(response));
+
+            } else {
+                routingContext.fail(500, new Exception(isValid));
+                return;
+            }
         } catch (Exception e) {
             routingContext.fail(500, e);
             return;

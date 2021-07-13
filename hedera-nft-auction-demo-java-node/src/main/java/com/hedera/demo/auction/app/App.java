@@ -23,6 +23,8 @@ import org.flywaydb.core.Flyway;
 import org.jooq.tools.StringUtils;
 
 import javax.annotation.Nullable;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +64,9 @@ public final class App {
     private final int refundThreads = Optional.ofNullable(env.get("REFUND_THREADS")).map(Integer::parseInt).orElse(20);
     @SuppressWarnings("FieldMissingNullable")
     private final String operatorKey = env.get("OPERATOR_KEY");
+    @SuppressWarnings("FieldMissingNullable")
+    private final String filesPath = Optional.ofNullable(env.get("FILES_LOCATION")).orElse("./sample-files");
+
     private HederaClient hederaClient;
 
     @Nullable
@@ -85,6 +90,10 @@ public final class App {
      */
     public App() throws Exception {
         hederaClient = new HederaClient(env);
+        Path testPath = Path.of(filesPath, ".env");
+        if (Files.exists(testPath)) {
+            throw new Exception("FILES_LOCATION path contains a .env file");
+        }
     }
 
     /**
@@ -178,7 +187,8 @@ public final class App {
             log.info("starting admin REST api");
             JsonObject config = new JsonObject()
                     .put("envFile",".env")
-                    .put("envPath",".");
+                    .put("envPath",".")
+                    .put("filesPath", filesPath);
             DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(adminApiVerticleCount);
             vertx.deployVerticle(AdminApiVerticle.class.getName(), options);
         }

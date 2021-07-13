@@ -1,6 +1,7 @@
 package com.hedera.demo.auction.test.system.app;
 
 import com.hedera.demo.auction.app.SqlConnectionManager;
+import com.hedera.demo.auction.app.api.RequestEasySetup;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
@@ -21,6 +22,7 @@ import java.util.List;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -50,8 +52,11 @@ public class EasySetupSystemTest extends AbstractSystemTest {
     public void beforeEach() throws Exception {
         bidsRepository.deleteAllBids();
         auctionsRepository.deleteAllAuctions();
-        String[] args = new String[0];
-        String topic = easySetup.setup(args);
+        RequestEasySetup requestEasySetup = new RequestEasySetup();
+        requestEasySetup.clean = true;
+        requestEasySetup.name = tokenName;
+        requestEasySetup.symbol = symbol;
+        String topic = easySetup.setup(requestEasySetup);
         topicId = TopicId.fromString(topic);
     }
     @Test
@@ -88,7 +93,7 @@ public class EasySetupSystemTest extends AbstractSystemTest {
         assertEquals(0, auction.getReserve());
         assertEquals("0.0", auction.getLastconsensustimestamp());
         assertTrue(auction.getWinnerCanBid());
-        assertNotNull(auction.getTokenmetadata());
+        assertNull(auction.getTokenmetadata());
         assertEquals(0, auction.getWinningbid());
         assertEquals(1000000, auction.getMinimumbid());
 

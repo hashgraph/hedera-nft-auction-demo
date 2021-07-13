@@ -21,11 +21,11 @@ public class TokenCreateSystemTest extends AbstractSystemTest {
     public void testCreateToken() throws Exception {
         CreateToken createToken = new CreateToken(filesPath);
         RequestCreateToken requestCreateToken = new RequestCreateToken();
-        requestCreateToken.name = tokenName;
-        requestCreateToken.symbol = symbol;
+        requestCreateToken.setName(tokenName);
+        requestCreateToken.setSymbol(symbol);
         requestCreateToken.initialSupply = initialSupply;
         requestCreateToken.decimals = decimals;
-        requestCreateToken.memo = tokenMemo;
+        requestCreateToken.setMemo(tokenMemo);
 
         tokenId = createToken.create(requestCreateToken);
 

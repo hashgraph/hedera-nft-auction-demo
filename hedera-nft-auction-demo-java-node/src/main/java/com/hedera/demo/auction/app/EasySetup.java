@@ -69,11 +69,11 @@ public class EasySetup extends AbstractCreate {
 
         CreateToken createToken = new CreateToken(filesPath);
         RequestCreateToken requestCreateToken = new RequestCreateToken();
-        requestCreateToken.name = requestEasySetup.name;
-        requestCreateToken.symbol = requestEasySetup.symbol;
+        requestCreateToken.setName(requestEasySetup.getName());
+        requestCreateToken.setSymbol(requestEasySetup.getSymbol());
         requestCreateToken.initialSupply = 1L;
         requestCreateToken.decimals = 0;
-        requestCreateToken.memo = "";
+        requestCreateToken.setMemo("");
 
         TokenId tokenId = createToken.create(requestCreateToken);
 
@@ -109,8 +109,8 @@ public class EasySetup extends AbstractCreate {
             requestCreateAuction.reserve = 0;
             requestCreateAuction.minimumbid = 1000000;
             requestCreateAuction.winnercanbid = true;
-            requestCreateAuction.title = "auction title";
-            requestCreateAuction.description = "auction description";
+            requestCreateAuction.setTitle("auction title");
+            requestCreateAuction.setDescription("auction description");
             requestCreateAuction.topicid = topicId;
 
             CreateAuction createAuction = new CreateAuction();

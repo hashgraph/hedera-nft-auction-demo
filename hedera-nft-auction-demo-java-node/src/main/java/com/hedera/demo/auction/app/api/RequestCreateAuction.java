@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.app.api;
 
+import com.hedera.demo.auction.app.Utils;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.TokenId;
 import com.hedera.hashgraph.sdk.TopicId;
@@ -17,8 +18,22 @@ public class RequestCreateAuction {
     public String endtimestamp = "";
     public boolean winnercanbid = false;
     public String topicid = "";
-    public String description = "";
-    public String title = "";
+    private String description = "";
+    private String title = "";
+
+    public void setDescription(String description) {
+        this.description = Utils.normalize(description);
+    }
+    public String getDescription() {
+        return this.description;
+    }
+
+    public void setTitle(String title) {
+        this.title = Utils.normalize(title);
+    }
+    public String getTitle() {
+        return this.title;
+    }
 
     public String isValid() {
         try {

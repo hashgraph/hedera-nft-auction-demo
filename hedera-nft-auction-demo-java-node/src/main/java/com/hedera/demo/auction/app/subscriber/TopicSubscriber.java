@@ -214,15 +214,15 @@ public class TopicSubscriber implements Runnable{
                         switch (postValidator.operation) {
                             case "add":
                                 log.debug("adding validator");
-                                validatorsRepository.add(postValidator.name, postValidator.url, postValidator.publicKey);
+                                validatorsRepository.add(postValidator.getName(), postValidator.url, postValidator.publicKey);
                                 break;
                             case "delete":
                                 log.debug("deleting validator");
-                                validatorsRepository.delete(postValidator.name);
+                                validatorsRepository.delete(postValidator.getName());
                                 break;
                             case "update":
                                 log.debug("updating validator");
-                                validatorsRepository.update(postValidator.nameToUpdate, postValidator.name, postValidator.url, postValidator.publicKey);
+                                validatorsRepository.update(postValidator.getNameToUpdate(), postValidator.getName(), postValidator.url, postValidator.publicKey);
                                 break;
                             default:
                                 log.warn("invalid consensus message contents - validator object has invalid value combinations");

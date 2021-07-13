@@ -54,8 +54,8 @@ public class EasySetupSystemTest extends AbstractSystemTest {
         auctionsRepository.deleteAllAuctions();
         RequestEasySetup requestEasySetup = new RequestEasySetup();
         requestEasySetup.clean = true;
-        requestEasySetup.name = tokenName;
-        requestEasySetup.symbol = symbol;
+        requestEasySetup.setName(tokenName);
+        requestEasySetup.setSymbol(symbol);
         String topic = easySetup.setup(requestEasySetup);
         topicId = TopicId.fromString(topic);
     }

@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.app.api;
 
+import com.hedera.demo.auction.app.Utils;
 import com.hedera.hashgraph.sdk.PublicKey;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.jooq.tools.StringUtils;
@@ -10,10 +11,26 @@ import org.jooq.tools.StringUtils;
 @SuppressWarnings("unused")
 public class RequestPostValidator {
     public String operation = "";
-    public String name = "";
+    private String name = "";
     public String url = "";
     public String publicKey = "";
-    public String nameToUpdate = "";
+    private String nameToUpdate = "";
+
+    public void setName(String name) {
+        this.name = Utils.normalize(name);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setNameToUpdate(String nameToUpdate) {
+        this.nameToUpdate = Utils.normalize(nameToUpdate);
+    }
+
+    public String getNameToUpdate() {
+        return nameToUpdate;
+    }
 
     public String isValid() {
         String valid = "";

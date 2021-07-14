@@ -56,7 +56,7 @@ public class CreateToken extends AbstractCreate {
 
             if (response.contains("ipfs")) {
                 // create the token
-                requestCreateToken.symbol = response;
+                requestCreateToken.setSymbol(response);
                 return createToken(requestCreateToken);
             } else {
                 throw new Exception("error saving token metadata to ipfs");
@@ -119,12 +119,12 @@ public class CreateToken extends AbstractCreate {
             client.setMaxTransactionFee(Hbar.from(100));
 
             TokenCreateTransaction tokenCreateTransaction = new TokenCreateTransaction();
-            tokenCreateTransaction.setTokenName(requestCreateToken.name);
-            tokenCreateTransaction.setTokenSymbol(requestCreateToken.symbol);
+            tokenCreateTransaction.setTokenName(requestCreateToken.getName());
+            tokenCreateTransaction.setTokenSymbol(requestCreateToken.getSymbol());
             tokenCreateTransaction.setInitialSupply(requestCreateToken.initialSupply);
             tokenCreateTransaction.setDecimals(requestCreateToken.decimals);
             tokenCreateTransaction.setTreasuryAccountId(hederaClient.operatorId());
-            tokenCreateTransaction.setTokenMemo(requestCreateToken.memo);
+            tokenCreateTransaction.setTokenMemo(requestCreateToken.getMemo());
 
             TransactionResponse response = tokenCreateTransaction.execute(client);
 

@@ -25,23 +25,44 @@ import java.util.Base64;
 @Log4j2
 public class RequestCreateToken {
 
-    public String name = "Token";
-    public String symbol = "TT";
+    private String name = "Token";
+    private String symbol = "TT";
     public long initialSupply = 1;
     public int decimals = 0;
-    public String memo = "";
+    private String memo = "";
     public RequestCreateTokenMetaData description = new RequestCreateTokenMetaData();
     public RequestCreateTokenMetaData image = new RequestCreateTokenMetaData();
     public RequestCreateTokenMetaData certificate = new RequestCreateTokenMetaData();
 
+    public void setName(String name) {
+        this.name = Utils.normalize(name);
+    }
+    public String getName() {
+        return this.name;
+    }
+
+    public void setSymbol(String symbol) {
+        this.symbol = Utils.normalize(symbol);
+    }
+    public String getSymbol() {
+        return this.symbol;
+    }
+
+    public void setMemo(String memo) {
+        this.memo = Utils.normalize(memo);
+    }
+    public String getMemo() {
+        return this.memo;
+    }
+
     public boolean hasDescription() {
-        return !StringUtils.isEmpty(description.description);
+        return !StringUtils.isEmpty(description.getDescription());
     }
     public boolean hasImage() {
-        return !StringUtils.isEmpty(image.description);
+        return !StringUtils.isEmpty(image.getDescription());
     }
     public boolean hasCertificate() {
-        return !StringUtils.isEmpty(certificate.description);
+        return !StringUtils.isEmpty(certificate.getDescription());
     }
     public boolean hasMetaData() {
         return hasDescription() || hasImage() || hasCertificate();
@@ -104,9 +125,9 @@ public class RequestCreateToken {
         if (!StringUtils.isEmpty(requestCreateTokenMetaData.type)) {
             @Var byte[] imageBytes = new byte[0];
             if ("base64".equals(requestCreateTokenMetaData.type)) {
-                imageBytes = Base64.getDecoder().decode(requestCreateTokenMetaData.description);
+                imageBytes = Base64.getDecoder().decode(requestCreateTokenMetaData.getDescription());
             } else if ("file".equals(requestCreateTokenMetaData.type)) {
-                Path thisFile = Path.of(filesPath, requestCreateTokenMetaData.description);
+                Path thisFile = Path.of(filesPath, requestCreateTokenMetaData.getDescription());
                 if (Files.exists(thisFile)) {
                     imageBytes = Files.readAllBytes(thisFile);
                 }
@@ -118,7 +139,7 @@ public class RequestCreateToken {
 
                 // update the metadata
                 if (response.contains("ipfs")) {
-                    requestCreateTokenMetaData.description = response;
+                    requestCreateTokenMetaData.setDescription(response);
                     requestCreateTokenMetaData.type = "string";
                 } else {
                     log.error("an error occurred, response doesn't contain ipfs");
@@ -139,25 +160,25 @@ public class RequestCreateToken {
         }
         if (hasCertificate()) {
             if ("base64".equals(certificate.type)) {
-                if (!Utils.isBase64(certificate.description)) {
-                    throw new Exception("certificate.description is not valid base64");
+                if (!Utils.isBase64(certificate.getDescription())) {
+                    throw new Exception("certificate.getDescription() is not valid base64");
                 }
             } else if ("file".equals(certificate.type)) {
-                if (StringUtils.isEmpty(certificate.description)) {
-                    throw new Exception("certificate.description does not contain a file name");
+                if (StringUtils.isEmpty(certificate.getDescription())) {
+                    throw new Exception("certificate.getDescription() does not contain a file name");
                 }
 
-                if (! Utils.fileIsAFile(certificate.description)) {
-                    throw new Exception("certificate.description contains a path element");
+                if (! Utils.fileIsAFile(certificate.getDescription())) {
+                    throw new Exception("certificate.getDescription() contains a path element");
                 }
 
-                Path thisFile = Path.of(filesPath, certificate.description);
+                Path thisFile = Path.of(filesPath, certificate.getDescription());
                 if (!Files.exists(thisFile)) {
-                    throw new Exception("certificate.description does not exist or is not accessible");
+                    throw new Exception("certificate.getDescription() does not exist or is not accessible");
                 }
             } else if ("url".equals(certificate.type)) {
-                if (! urlValidator.isValid(certificate.description)) {
-                    throw new Exception("certificate.description is not a valid url");
+                if (! urlValidator.isValid(certificate.getDescription())) {
+                    throw new Exception("certificate.getDescription() is not a valid url");
                 }
             } else {
                 throw new Exception("certificate.type is not valid, expecting string, base64 or file");
@@ -166,24 +187,24 @@ public class RequestCreateToken {
 
         if (hasImage()) {
             if ("base64".equals(image.type)) {
-                if (! Utils.isBase64(image.description)) {
-                    throw new Exception("image.description is not valid base64");
+                if (! Utils.isBase64(image.getDescription())) {
+                    throw new Exception("image.getDescription() is not valid base64");
                 }
             } else if ("file".equals(image.type)) {
-                if (StringUtils.isEmpty(image.description)) {
-                    throw new Exception("image.description does not contain a file name");
+                if (StringUtils.isEmpty(image.getDescription())) {
+                    throw new Exception("image.getDescription() does not contain a file name");
                 }
-                if (! Utils.fileIsAFile(image.description)) {
-                    throw new Exception("image.description contains a path element");
+                if (! Utils.fileIsAFile(image.getDescription())) {
+                    throw new Exception("image.getDescription() contains a path element");
                 }
 
-                Path thisFile = Path.of(filesPath, image.description);
+                Path thisFile = Path.of(filesPath, image.getDescription());
                 if (! Files.exists(thisFile)) {
-                    throw new Exception("image.description does not exist or is not accessible");
+                    throw new Exception("image.getDescription() does not exist or is not accessible");
                 }
             } else if ("string".equals(image.type)) {
-                if (! urlValidator.isValid(image.description)) {
-                    throw new Exception("image.description is not a valid url");
+                if (! urlValidator.isValid(image.getDescription())) {
+                    throw new Exception("image.getDescription() is not a valid url");
                 }
             } else {
                 throw new Exception("image.type is not valid, expecting string, base64 or file");

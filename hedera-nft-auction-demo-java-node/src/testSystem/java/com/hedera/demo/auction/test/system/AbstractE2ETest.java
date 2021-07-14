@@ -25,8 +25,8 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
 
     protected Buffer createTokenBody() {
         RequestCreateToken requestCreateToken = new RequestCreateToken();
-        requestCreateToken.name = tokenName;
-        requestCreateToken.symbol = symbol;
+        requestCreateToken.setName(tokenName);
+        requestCreateToken.setSymbol(symbol);
         requestCreateToken.decimals = decimals;
         requestCreateToken.initialSupply = initialSupply;
 

@@ -20,6 +20,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.Normalizer;
+import java.text.Normalizer.Form;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Base64;
@@ -362,4 +364,15 @@ public class Utils {
         Path tempPath = Path.of(fileToCheck);
         return fileToCheck.equals(tempPath.getFileName().toString());
     }
+
+    /**
+     * normalizes text to NFKC
+     *
+     * @param textToNormalize the text to normalise
+     * @return the normalized string
+     */
+    public static String normalize(String textToNormalize) {
+        return Normalizer.normalize(textToNormalize, Form.NFKC);
+    }
+
 }

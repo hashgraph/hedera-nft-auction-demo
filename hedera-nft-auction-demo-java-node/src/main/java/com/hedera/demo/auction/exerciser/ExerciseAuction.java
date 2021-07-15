@@ -19,7 +19,6 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.InputStream;
@@ -47,7 +46,7 @@ public final class ExerciseAuction {
     HederaClient hederaClient = new HederaClient();
     Client client = hederaClient.client();
 
-    InputStream inputStream = new FileInputStream(new File("./AuctionSetup.yaml"));
+    InputStream inputStream = new FileInputStream("./AuctionSetup.yaml");
     Yaml yaml = new Yaml(new Constructor(SetupProperties.class));
     SetupProperties setupProperties = yaml.load(inputStream);
 

@@ -42,6 +42,7 @@ public class AdminApiVerticle extends AbstractVerticle {
 
         int httpPort = Integer.parseInt(Optional.ofNullable(config().getString("ADMIN_API_PORT")).orElse(Optional.ofNullable(env.get("ADMIN_API_PORT")).orElse("9006")));
         String filesPath = config().getString("filesPath");
+        String apiKey = config().getString("x-api-key");
 
         HttpServerOptions options = Utils.httpServerOptions(config());
         var server = vertx.createHttpServer(options);
@@ -50,6 +51,7 @@ public class AdminApiVerticle extends AbstractVerticle {
         SchemaRouter schemaRouter = SchemaRouter.create(vertx, new SchemaRouterOptions());
         SchemaParser schemaParser = SchemaParser.createOpenAPI3SchemaParser(schemaRouter);
 
+        AuthenticationHandler authenticationHandler = new AuthenticationHandler(apiKey);
         PostTopicHandler postTopicHandler = new PostTopicHandler(env);
         PostCreateToken postCreateToken = new PostCreateToken(schemaParser, env, filesPath);
         PostAuctionAccountHandler postAuctionAccountHandler = new PostAuctionAccountHandler(schemaParser, env);
@@ -62,11 +64,6 @@ public class AdminApiVerticle extends AbstractVerticle {
         Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.POST));
         Set<String> allowedHeaders = new LinkedHashSet<>(Arrays.asList("content-type"));
 
-//        MultiMap headers = request.headers();
-
-// Get the User-Agent:
-//        System.out.println("User agent is " + headers.get("user-agent"));
-
         router.route()
                 .handler(BodyHandler.create())
                 .handler(CorsHandler.create("*")
@@ -75,24 +72,31 @@ public class AdminApiVerticle extends AbstractVerticle {
                 .failureHandler(AdminApiVerticle::failureHandler);
 
         router.post("/v1/admin/topic")
+            .handler(authenticationHandler)
             .handler(postTopicHandler);
 
         router.post("/v1/admin/easysetup")
+                .handler(authenticationHandler)
                 .handler(postEasySetupHandler);
 
         router.post("/v1/admin/token")
+                .handler(authenticationHandler)
                 .handler(postCreateToken);
 
         router.post("/v1/admin/auctionaccount")
+                .handler(authenticationHandler)
                 .handler(postAuctionAccountHandler);
 
         router.post("/v1/admin/auction")
+                .handler(authenticationHandler)
                 .handler(postAuctionHandler);
 
         router.post("/v1/admin/transfer")
+                .handler(authenticationHandler)
                 .handler(postTransferHandler);
 
         router.post("/v1/admin/validators")
+                .handler(authenticationHandler)
                 .handler(postValidators);
 
         router.get("/").handler(rootHandler);

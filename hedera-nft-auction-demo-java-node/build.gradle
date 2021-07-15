@@ -356,7 +356,6 @@ task runNode(type: JavaExec) {
 	classpath = sourceSets.main.runtimeClasspath
 	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
 	main = "com.hedera.demo.auction.app.App"
-	args cmdargs.split()
 }
 
 task generateKey(type: JavaExec) {
@@ -365,7 +364,14 @@ task generateKey(type: JavaExec) {
 	classpath = sourceSets.main.runtimeClasspath
 	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
 	main = "com.hedera.demo.auction.app.GenerateKey"
-	args cmdargs.split()
+}
+
+task generateApiKey(type: JavaExec) {
+	group = "Execution"
+	description = "Generates a key for the admin api"
+	classpath = sourceSets.main.runtimeClasspath
+	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
+	main = "com.hedera.demo.auction.app.GenerateApiKey"
 }
 
 task setupHelper(type: JavaExec) {
@@ -374,7 +380,6 @@ task setupHelper(type: JavaExec) {
 	classpath = sourceSets.main.runtimeClasspath
 	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
 	main = "com.hedera.demo.auction.exerciser.SetupHelper"
-	args cmdargs.split()
 }
 
 task exerciseAuction(type: JavaExec) {
@@ -383,7 +388,6 @@ task exerciseAuction(type: JavaExec) {
 	classpath = sourceSets.main.runtimeClasspath
 	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
 	main = "com.hedera.demo.auction.exerciser.ExerciseAuction"
-	args cmdargs.split()
 }
 
 task createAccount(type: JavaExec) {

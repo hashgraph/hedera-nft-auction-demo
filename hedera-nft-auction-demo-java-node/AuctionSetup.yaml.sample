@@ -23,7 +23,8 @@ auction:
   title: auction title
   description: auction description
 
-adminApiHost: http://localhost:8082
+adminApiHost: https://localhost:8082
+xApiKey: yourapikeyhere
 
 exerciser:
   auctionAccount: 0.0.xxxx

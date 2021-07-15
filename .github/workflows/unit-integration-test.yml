@@ -16,6 +16,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
     - uses: actions/cache@v2
       with:
         path: |
@@ -24,13 +25,22 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-gradle-`
+
     - name: Set up JDK 14
       uses: actions/setup-java@v2
       with:
         java-version: '14'
         distribution: 'adopt'
+
     - name: Grant execute permission for gradlew
       run: cd hedera-nft-auction-demo-java-node && chmod +x gradlew
+
+    - name: Create certificates
+      run: |
+        cd docker-files
+        mkdir -p nginx-certs
+        openssl req -config certs.cnf -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
+
     - name: Build with Gradle
       env:
         OPERATOR_ID: ${{ secrets.OPERATOR_ID }}
@@ -44,6 +54,8 @@ jobs:
         ADMIN_API: true
         ADMIN_API_PORT: 8082
         ADMIN_API_VERTICLE_COUNT: 1
+        HTTPS_KEY_OR_PASS: ../docker-files/key.pem
+        HTTPS_CERTIFICATE: ../docker-files/cert.pem
         #       Run the Auction Node true/false
         AUCTION_NODE: true
         #       only if participating in refund transactions

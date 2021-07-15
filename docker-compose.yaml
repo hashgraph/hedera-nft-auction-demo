@@ -106,9 +106,9 @@ services:
       - ADMIN_API_VERTICLE_COUNT=1
     env_file:
       - docker-files/.env
-    expose:
-      - 8081
-      - 8082
+    ports:
+      - "8081:8081"
+      - "8082:8082"
     depends_on:
       - postgres-compiled
     volumes:
@@ -138,9 +138,9 @@ services:
       - ADMIN_API_VERTICLE_COUNT=1
     env_file:
       - docker-files/.env
-    expose:
-      - 8081
-      - 8082
+    ports:
+      - "8081:8081"
+      - "8082:8082"
     depends_on:
       - postgres-image
     volumes:
@@ -186,8 +186,8 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
-      - "8081:8081"
-      - "8082:8082"
+    depends_on:
+      - ui-compiled
     profiles:
       - compile
     volumes:
@@ -201,8 +201,8 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
-      - "8081:8081"
-      - "8082:8082"
+    depends_on:
+      - ui-image
     profiles:
       - image
     volumes:

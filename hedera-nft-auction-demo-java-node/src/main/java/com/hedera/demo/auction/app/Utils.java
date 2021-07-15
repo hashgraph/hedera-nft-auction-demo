@@ -387,6 +387,7 @@ public class Utils {
         @Var HttpServerOptions options = new HttpServerOptions();
         String serverPemKey = config.getString("server-key");
         String serverPemCert = config.getString("server-certificate");
+
         if (!StringUtils.isEmpty(serverPemCert)) {
             options.setSsl(true);
             options.setPemKeyCertOptions(

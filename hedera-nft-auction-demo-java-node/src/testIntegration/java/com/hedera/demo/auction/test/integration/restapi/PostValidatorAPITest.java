@@ -2,11 +2,9 @@ package com.hedera.demo.auction.test.integration.restapi;
 
 import com.hedera.demo.auction.app.api.AdminApiVerticle;
 import com.hedera.demo.auction.test.integration.AbstractIntegrationTest;
-import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.AfterAll;
@@ -16,10 +14,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.PostgreSQLContainer;
-
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(VertxExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -32,22 +26,10 @@ public class PostValidatorAPITest extends AbstractIntegrationTest {
 
     @BeforeAll
     public void beforeAll(VertxTestContext testContext) throws Throwable {
-        this.postgres = new PostgreSQLContainer("postgres:12.6");
-        this.postgres.start();
-        migrate(this.postgres);
+      this.postgres = new PostgreSQLContainer("postgres:12.6");
+      this.vertx = Vertx.vertx();
 
-        this.vertx = Vertx.vertx();
-
-        DeploymentOptions options = getVerticleDeploymentOptions(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
-        this.vertx.deployVerticle(new AdminApiVerticle(), options, testContext.completing());
-
-        this.webClient = WebClient.create(this.vertx);
-
-        assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-        if (testContext.failed()) {
-            throw testContext.causeOfFailure();
-        }
-
+      deployServerAndClient(postgres, this.vertx, testContext, new AdminApiVerticle());
     }
 
     @BeforeEach
@@ -59,6 +41,11 @@ public class PostValidatorAPITest extends AbstractIntegrationTest {
     public void afterAll(VertxTestContext testContext) {
         this.vertx.close(testContext.completing());
         this.postgres.close();
+    }
+
+    @Test
+    public void validatorWithoutKey(VertxTestContext testContext) {
+      failingAdminAPITest(testContext, url, new JsonObject(), "");
     }
 
     @Test

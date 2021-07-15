@@ -4,6 +4,7 @@ import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.domain.Bid;
 import com.hedera.demo.auction.app.domain.Validator;
 import io.github.cdimascio.dotenv.Dotenv;
+import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -18,20 +19,24 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(VertxExtension.class)
 public class AbstractIntegrationTest {
 
     private final WebClientOptions webClientOptions = new WebClientOptions()
             .setUserAgent("HederaAuction/1.0")
-            .setKeepAlive(false);
+            .setKeepAlive(false)
+            .setSsl(true).setVerifyHost(true).setTrustAll(true);
+
     protected WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
     protected final static Dotenv env = Dotenv.configure().filename(".env.integration.sample").ignoreIfMissing().load();
     protected final static String LONG_KEY = StringUtils.repeat("*", 100);
     protected final static String VERY_LONG_STRING = StringUtils.repeat("*", 70000);
+    @SuppressWarnings("FieldMissingNullable")
+    protected final static String apiKey = Optional.ofNullable(env.get("X_API_KEY")).orElse("");
 
     private int index;
 
@@ -238,7 +243,11 @@ public class AbstractIntegrationTest {
                 .put("DATABASE_USERNAME", username)
                 .put("DATABASE_PASSWORD", password)
                 .put("POOL_SIZE", "1")
-                .put("API_PORT","9005");
+                .put("API_PORT","9005")
+                .put("x-api-key", apiKey)
+                .put("server-key", "../docker-files/key.pem")
+                .put("server-certificate", "../docker-files/cert.pem");
+
         DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(1);
         return options;
     }
@@ -254,12 +263,6 @@ public class AbstractIntegrationTest {
         assertEquals(bid.getTransactionid(), body.getString("transactionid"));
         assertEquals(bid.getTransactionhash(), body.getString("transactionhash"));
         assertEquals(bid.getRefundstatus(), body.getString("refundstatus"));
-    }
-
-    protected void verifyValidator(Validator validator, JsonObject body) {
-        assertEquals(validator.getName(), body.getString("name"));
-        assertEquals(validator.getUrl(), body.getString("url"));
-        assertEquals(validator.getPublicKey(), body.getString("publicKey"));
     }
 
     protected void verifyAuction(Auction auction, JsonObject body) {
@@ -293,7 +296,11 @@ public class AbstractIntegrationTest {
     }
 
     protected void failingAdminAPITest(VertxTestContext testContext, String url, JsonObject body) {
+        failingAdminAPITest(testContext, url, body, apiKey);
+    }
+    protected void failingAdminAPITest(VertxTestContext testContext, String url, JsonObject body, String key) {
         webClient.post(8082, "localhost", url)
+                .putHeader("x-api-key", key)
                 .as(BodyCodec.jsonObject())
                 .sendBuffer(body.toBuffer(), testContext.succeeding(response -> testContext.verify(() -> {
 
@@ -301,5 +308,23 @@ public class AbstractIntegrationTest {
                     assertEquals(500, response.statusCode());
                     testContext.completeNow();
                 })));
+    }
+
+    protected void deployServerAndClient(PostgreSQLContainer postgreSQLContainer, Vertx vertx, VertxTestContext testContext, AbstractVerticle verticle) throws Throwable {
+        postgreSQLContainer.start();
+        migrate(postgreSQLContainer);
+
+        DeploymentOptions options = getVerticleDeploymentOptions(postgreSQLContainer.getJdbcUrl(), postgreSQLContainer.getUsername(), postgreSQLContainer.getPassword());
+        options.getConfig().put("topicId", "ATopicId");
+        vertx.deployVerticle(verticle, options, testContext.completing());
+
+        WebClientOptions webClientOptions = new WebClientOptions();
+        webClientOptions.setSsl(true).setVerifyHost(true).setTrustAll(true);
+        this.webClient = WebClient.create(vertx, webClientOptions);
+
+        assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
+        if (testContext.failed()) {
+            throw testContext.causeOfFailure();
+        }
     }
 }

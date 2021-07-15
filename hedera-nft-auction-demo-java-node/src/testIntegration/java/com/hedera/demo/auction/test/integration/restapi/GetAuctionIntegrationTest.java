@@ -9,6 +9,7 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -36,24 +37,12 @@ public class GetAuctionIntegrationTest extends AbstractIntegrationTest {
     @BeforeAll
     public void beforeAll(VertxTestContext testContext) throws Throwable {
         this.postgres = new PostgreSQLContainer("postgres:12.6");
-        this.postgres.start();
-        migrate(this.postgres);
-        SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
-
-        this.auctionsRepository = new AuctionsRepository(connectionManager);
-
         this.vertx = Vertx.vertx();
 
-        DeploymentOptions options = getVerticleDeploymentOptions(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
-        this.vertx.deployVerticle(new ApiVerticle(), options, testContext.completing());
+        deployServerAndClient(postgres, this.vertx, testContext, new ApiVerticle());
 
-        this.webClient = WebClient.create(this.vertx);
-
-        assertTrue(testContext.awaitCompletion(5, TimeUnit.SECONDS));
-        if (testContext.failed()) {
-            throw testContext.causeOfFailure();
-        }
-
+        SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
+        this.auctionsRepository = new AuctionsRepository(connectionManager);
     }
     @AfterAll
     public void afterAll(VertxTestContext testContext) {
@@ -62,7 +51,7 @@ public class GetAuctionIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void getAuctionTest(VertxTestContext testContext) throws SQLException {
+    public void getAuctionTest(VertxTestContext testContext) throws SQLException, InterruptedException {
         Auction auction = testAuctionObject(1);
         Auction newAuction = auctionsRepository.createComplete(auction);
         webClient.get(9005, "localhost", "/v1/auctions/".concat(String.valueOf(newAuction.getId())))

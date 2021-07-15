@@ -173,22 +173,52 @@ public final class App {
                 .load();
         flyway.migrate();
 
+        JsonObject config = new JsonObject()
+                .put("envFile",".env")
+                .put("envPath",".");
+
+        String serverPemKey = env.get("SERVER_PEM_KEY");
+        String serverPemCert = env.get("SERVER_PEM_CERT");
+
+        if ( ! StringUtils.isEmpty(serverPemKey)) {
+            if (!serverPemKey.endsWith(".pem")) {
+                String error = "SERVER_PEM_KEY should be a .pem file";
+                log.error(error);
+                throw new Exception(error);
+            }
+            if (StringUtils.isEmpty(serverPemCert)) {
+                String error = "SERVER_PEM_KEY provided without SERVER_PEM_CERT-PASSWORD";
+                log.error(error);
+                throw new Exception(error);
+            } else if (!serverPemCert.endsWith(".pem")) {
+                String error = "SERVER_PEM_CERT should be a .pem file";
+                log.error(error);
+                throw new Exception(error);
+            }
+
+            if (Files.exists(Path.of(serverPemKey)) && Files.exists(Path.of(serverPemCert))) {
+                log.info("setting up api servers to use https");
+                config.put("server-key", serverPemKey);
+                config.put("server-certificate", serverPemCert);
+            } else {
+                String error = ".pem files for server key or certificate cannot be read";
+                log.error(error);
+                throw new Exception(error);
+            }
+        } else {
+            log.info("setting up api servers to use http");
+        }
+
         if (restAPI) {
             log.info("starting client REST api");
-            JsonObject config = new JsonObject()
-                    .put("envFile",".env")
-                    .put("envPath",".")
-                    .put("topicId", this.topicId);
+            config.put("topicId", this.topicId);
             DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(restApiVerticleCount);
             vertx.deployVerticle(ApiVerticle.class.getName(), options);
         }
 
         if (adminAPI) {
             log.info("starting admin REST api");
-            JsonObject config = new JsonObject()
-                    .put("envFile",".env")
-                    .put("envPath",".")
-                    .put("filesPath", filesPath);
+            config.put("filesPath", filesPath);
             DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(adminApiVerticleCount);
             vertx.deployVerticle(AdminApiVerticle.class.getName(), options);
         }

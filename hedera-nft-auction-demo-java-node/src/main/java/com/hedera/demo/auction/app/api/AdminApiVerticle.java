@@ -1,9 +1,11 @@
 package com.hedera.demo.auction.app.api;
 
+import com.hedera.demo.auction.app.Utils;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -41,7 +43,8 @@ public class AdminApiVerticle extends AbstractVerticle {
         int httpPort = Integer.parseInt(Optional.ofNullable(config().getString("ADMIN_API_PORT")).orElse(Optional.ofNullable(env.get("ADMIN_API_PORT")).orElse("9006")));
         String filesPath = config().getString("filesPath");
 
-        var server = vertx.createHttpServer();
+        HttpServerOptions options = Utils.httpServerOptions(config());
+        var server = vertx.createHttpServer(options);
         var router = Router.router(vertx);
 
         SchemaRouter schemaRouter = SchemaRouter.create(vertx, new SchemaRouterOptions());
@@ -58,6 +61,11 @@ public class AdminApiVerticle extends AbstractVerticle {
 
         Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.POST));
         Set<String> allowedHeaders = new LinkedHashSet<>(Arrays.asList("content-type"));
+
+//        MultiMap headers = request.headers();
+
+// Get the User-Agent:
+//        System.out.println("User agent is " + headers.get("user-agent"));
 
         router.route()
                 .handler(BodyHandler.create())

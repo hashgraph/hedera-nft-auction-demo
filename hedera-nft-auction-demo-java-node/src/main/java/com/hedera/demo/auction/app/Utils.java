@@ -5,7 +5,9 @@ import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.mirrormapping.MirrorSchedule;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTransactions;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.PemKeyCertOptions;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
@@ -375,4 +377,24 @@ public class Utils {
         return Normalizer.normalize(textToNormalize, Form.NFKC);
     }
 
+    /**
+     * sets up options for the HTTP server, including https if applicable
+     *
+     * @param config a JSON object containing configuration details
+     * @return HttpServerOptions
+     */
+    public static HttpServerOptions httpServerOptions(JsonObject config) {
+        @Var HttpServerOptions options = new HttpServerOptions();
+        String serverPemKey = config.getString("server-key");
+        String serverPemCert = config.getString("server-certificate");
+        if (!StringUtils.isEmpty(serverPemCert)) {
+            options.setSsl(true);
+            options.setPemKeyCertOptions(
+                    new PemKeyCertOptions()
+                            .setKeyPath(serverPemKey)
+                            .setCertPath(serverPemCert)
+            );
+        }
+        return options;
+    }
 }

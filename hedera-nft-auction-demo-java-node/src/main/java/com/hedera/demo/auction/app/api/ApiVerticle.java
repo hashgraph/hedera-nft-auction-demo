@@ -5,6 +5,7 @@ import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -71,7 +72,8 @@ public class ApiVerticle extends AbstractVerticle {
 
         PgPool pgPool = PgPool.pool(vertx, pgConnectOptions, poolOptions);
 
-        var server = vertx.createHttpServer();
+        HttpServerOptions options = Utils.httpServerOptions(config());
+        var server = vertx.createHttpServer(options);
         var router = Router.router(vertx);
 
         GetAuctionsHandler getAuctionsHandler = new GetAuctionsHandler(pgPool);

@@ -17,20 +17,21 @@ import io.vertx.junit5.VertxTestContext;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class AbstractAPITester extends AbstractE2ETest {
 
+  @SuppressWarnings("FieldMissingNullable")
+  protected final static String apiKey = Optional.ofNullable(dotenv.get("X_API_KEY")).orElse("");
     protected AbstractAPITester() throws Exception {
         adminPort = Integer.parseInt(dotenv.get("ADMIN_API_PORT"));
     }
 
     public void adminRestAPITopic(VertxTestContext testContext, String host) {
         webClient.post(adminPort, host, "/v1/admin/topic")
+                .putHeader("x-api-key", apiKey)
                 .as(BodyCodec.jsonObject())
                 .send(testContext.succeeding(response -> testContext.verify(() -> {
 
@@ -54,6 +55,7 @@ public class AbstractAPITester extends AbstractE2ETest {
 
     public void adminRestAPIToken(VertxTestContext testContext, String host) {
         webClient.post(adminPort, host, "/v1/admin/token")
+                .putHeader("x-api-key", apiKey)
                 .as(BodyCodec.jsonObject())
                 .sendBuffer(createTokenBody(), testContext.succeeding(response -> testContext.verify(() -> {
 
@@ -81,6 +83,7 @@ public class AbstractAPITester extends AbstractE2ETest {
 
     public void adminRestAPIAuctionAccount(VertxTestContext testContext, String host) {
         webClient.post(adminPort, host, "/v1/admin/auctionaccount")
+                .putHeader("x-api-key", apiKey)
                 .as(BodyCodec.jsonObject())
                 .sendBuffer(createAuctionAccountBody(), testContext.succeeding(response -> testContext.verify(() -> {
 
@@ -121,6 +124,7 @@ public class AbstractAPITester extends AbstractE2ETest {
         txResponse.getReceipt(hederaClient.client());
 
         webClient.post(adminPort, host, "/v1/admin/transfer")
+                .putHeader("x-api-key", apiKey)
                 .as(BodyCodec.jsonObject())
                 .sendBuffer(createTokenTransferBody(), testContext.succeeding(response -> testContext.verify(() -> {
 
@@ -169,6 +173,7 @@ public class AbstractAPITester extends AbstractE2ETest {
         auctionAccountId = createAuctionAccount.create(requestCreateAuctionAccount);
 
         webClient.post(adminPort, host, "/v1/admin/auction")
+                .putHeader("x-api-key", apiKey)
                 .as(BodyCodec.jsonObject())
                 .sendBuffer(createAuctionBody(), testContext.succeeding(response -> testContext.verify(() -> {
 
@@ -193,6 +198,7 @@ public class AbstractAPITester extends AbstractE2ETest {
 
   public void validatorAPICall(VertxTestContext testContext, String host, JsonObject validatorJson) throws Exception {
     webClient.post(adminPort, host, "/v1/admin/validators")
+            .putHeader("x-api-key", apiKey)
             .as(BodyCodec.jsonObject())
             .sendJson(validatorJson, testContext.succeeding(response -> testContext.verify(() -> {
 

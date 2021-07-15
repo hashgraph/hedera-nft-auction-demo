@@ -12,7 +12,6 @@ import com.hedera.hashgraph.sdk.PrivateKey;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.AfterAll;
@@ -51,8 +50,8 @@ public class AdminAPISystemTest extends AbstractAPITester {
         bidsRepository = new BidsRepository(connectionManager);
         validatorsRepository = new ValidatorsRepository(connectionManager);
 
-        this.vertx = Vertx.vertx();
-        this.webClient = WebClient.create(this.vertx);
+//        this.vertx = Vertx.vertx();
+//        this.webClient = WebClient.create(this.vertx);
     }
 
     @AfterAll

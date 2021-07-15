@@ -177,34 +177,45 @@ public final class App {
                 .put("envFile",".env")
                 .put("envPath",".");
 
-        String serverPemKey = env.get("SERVER_PEM_KEY");
-        String serverPemCert = env.get("SERVER_PEM_CERT");
+        String keyOrPass = env.get("HTTPS_KEY_OR_PASS");
+        String certificate = env.get("HTTPS_CERTIFICATE");
 
-        if ( ! StringUtils.isEmpty(serverPemKey)) {
-            if (!serverPemKey.endsWith(".pem")) {
-                String error = "SERVER_PEM_KEY should be a .pem file";
-                log.error(error);
-                throw new Exception(error);
-            }
-            if (StringUtils.isEmpty(serverPemCert)) {
-                String error = "SERVER_PEM_KEY provided without SERVER_PEM_CERT-PASSWORD";
-                log.error(error);
-                throw new Exception(error);
-            } else if (!serverPemCert.endsWith(".pem")) {
-                String error = "SERVER_PEM_CERT should be a .pem file";
+        if ( ! StringUtils.isEmpty(keyOrPass) || ! StringUtils.isEmpty(certificate)) {
+            if (StringUtils.isEmpty(certificate)) {
+                String error = "HTTPS_KEY_OR_PASS provided without HTTPS_CERTIFICATE";
                 log.error(error);
                 throw new Exception(error);
             }
 
-            if (Files.exists(Path.of(serverPemKey)) && Files.exists(Path.of(serverPemCert))) {
-                log.info("setting up api servers to use https");
-                config.put("server-key", serverPemKey);
-                config.put("server-certificate", serverPemCert);
-            } else {
-                String error = ".pem files for server key or certificate cannot be read";
+            if (StringUtils.isEmpty(keyOrPass)) {
+                String error = "HTTPS_CERTIFICATE provided without HTTPS_KEY_OR_PASS";
                 log.error(error);
                 throw new Exception(error);
             }
+
+            if ( ! certificate.endsWith(".jks") && ! certificate.endsWith(".pfx") && ! certificate.endsWith(".pem") && ! certificate.endsWith(".p12")) {
+                String error = "HTTPS_KEY_OR_PASS should be a .jks, .pfx, .p12 or .pem file";
+                log.error(error);
+                throw new Exception(error);
+            }
+
+            if ( ! Files.exists(Path.of(certificate))) {
+                String error = "HTTPS_CERTIFICATE file cannot be found";
+                log.error(error);
+                throw new Exception(error);
+            }
+
+            if (certificate.endsWith(".pem")) {
+                if ( ! Files.exists(Path.of(keyOrPass))) {
+                    String error = "HTTPS_KEY_OR_PASS file cannot be found";
+                    log.error(error);
+                    throw new Exception(error);
+                }
+            }
+
+            log.info("setting up api servers to use https");
+            config.put("server-key-pass", keyOrPass);
+            config.put("server-certificate", certificate);
         } else {
             log.info("setting up api servers to use http");
         }

@@ -59,24 +59,23 @@ git clone https://github.com/hashgraph/hedera-nft-auction-demo.git
 The solution supports https by default and therefore requires certificates.
 A `certs.sh` script found under `docker-files` enables you to create self-signed certificates for testing.
 
-_For a production deployment, it is recommended that you supply appropriate certificates._
+The `certs.sh` script will create a certificate (`cert.pem`) and key (`key.pem`) under `docker-files`. These files are referenced in the `.env` file.
 
-The `certs.sh` script will create a certificate (`cert.pem`) and key (`cert.key`) under `docker-files`. These files are referenced in the `.env` file.
+_For a production deployment, it is recommended that you supply appropriate certificates.
+you may use `.jks`, `.pfx` or `.p12` certificates with an associated `password`, or `.pem` with an associated `.pem` key for the java servers.
+For the Javascript UI, the files should be compatible with `nginx`._
 
 For Docker
 ```text
-SERVER_PEM_KEY=/demo/key.pem
-SERVER_PEM_CERT=/demo/cert.pem
+HTTPS_KEY_OR_PASS=/demo/key.pem
+HTTPS_CERTIFICATE=/demo/cert.pem
 ```
 
 For standalone Java
 ```text
-SERVER_PEM_KEY=../docker-files/key.pem
-SERVER_PEM_CERT=../docker-files/cert.pem
+HTTPS_KEY_OR_PASS=../docker-files/key.pem
+HTTPS_CERTIFICATE=../docker-files/cert.pem
 ```
-
-The script also converts the certificate and key to another format for the `nginx` container to use (for the ui) in the `docker-files/nginx-certs` folder.
-These files are `cert.crt` and `cert.key`.
 
 If you provide own certificates for production, make sure you update both the `docker-files` certificate and key and `docker-files/nginx-certs` files and update the `.env` file and `docker-files/conf.d/compiled/default.conf` and and `docker-files/conf.d/image/default.conf` if the filenames are different.
 
@@ -88,8 +87,8 @@ upstream docker-ui {
 
 server {
     listen 8080 ssl;
-    ssl_certificate     /demo/nginx-certs/cert.crt;
-    ssl_certificate_key /demo/nginx-certs/cert.key;
+    ssl_certificate     /demo/cert.pem;
+    ssl_certificate_key /demo/key.pem;
 
     location / {
         proxy_pass         http://docker-ui;

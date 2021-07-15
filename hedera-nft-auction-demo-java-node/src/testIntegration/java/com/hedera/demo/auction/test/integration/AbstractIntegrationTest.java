@@ -245,7 +245,7 @@ public class AbstractIntegrationTest {
                 .put("POOL_SIZE", "1")
                 .put("API_PORT","9005")
                 .put("x-api-key", apiKey)
-                .put("server-key", "../docker-files/key.pem")
+                .put("server-key-pass", "../docker-files/key.pem")
                 .put("server-certificate", "../docker-files/cert.pem");
 
         DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(1);

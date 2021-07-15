@@ -6,7 +6,9 @@ public class SetupProperties {
   private SetupPropertiesToken token = new SetupPropertiesToken();
   private SetupPropertiesAuctionAccount auctionAccount = new SetupPropertiesAuctionAccount();
   private SetupPropertiesAuction auction = new SetupPropertiesAuction();
-  private String adminApiHost = "http://localhost:8082";
+  private String adminApiHost = "https://localhost:8082";
+  private String xApiKey = "";
+
   private SetupExerciser exerciser = new SetupExerciser();
 
   public void setCreateTopic(boolean createTopic) {
@@ -55,6 +57,14 @@ public class SetupProperties {
 
   public String getAdminApiHost() {
     return adminApiHost;
+  }
+
+  public void setxApiKey(String xApiKey) {
+    this.xApiKey = xApiKey;
+  }
+
+  public String getxApiKey() {
+    return xApiKey;
   }
 
   public void setExerciser(SetupExerciser exerciser) {

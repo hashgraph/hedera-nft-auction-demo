@@ -16,7 +16,10 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
 
     private final WebClientOptions webClientOptions = new WebClientOptions()
             .setUserAgent("HederaAuction/1.0")
-            .setKeepAlive(false);
+            .setKeepAlive(false)
+            .setSsl(true)
+            .setVerifyHost(true)
+            .setTrustAll(true);
     protected WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
 
     protected AbstractE2ETest() throws Exception {

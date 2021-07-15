@@ -78,7 +78,7 @@ public final class SetupHelper {
     keyList.put("threshold", setupProperties.getAuctionAccount().getThreshold());
 
     JsonObject accountJson = new JsonObject();
-    accountJson.put("keyList", keyList);
+    accountJson.put("keylist", keyList);
     accountJson.put("initialBalance", setupProperties.getAuctionAccount().getBalance());
 
     System.out.println("Creating auction account");
@@ -86,6 +86,7 @@ public final class SetupHelper {
     @Var HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(setupProperties.getAdminApiHost().concat("/v1/admin/auctionaccount")))
             .header("Content-Type", "application/json")
+            .header("x-api-key", setupProperties.getxApiKey())
             .POST(BodyPublishers.ofString(accountJson.toString()))
             .build();
 
@@ -108,6 +109,7 @@ public final class SetupHelper {
     request = HttpRequest.newBuilder()
             .uri(URI.create(setupProperties.getAdminApiHost().concat("/v1/admin/auction")))
             .header("Content-Type", "application/json")
+            .header("x-api-key", setupProperties.getxApiKey())
             .POST(BodyPublishers.ofString(auction.encode()))
             .build();
 

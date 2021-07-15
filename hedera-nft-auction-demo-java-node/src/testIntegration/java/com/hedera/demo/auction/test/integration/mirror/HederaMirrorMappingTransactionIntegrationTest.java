@@ -28,6 +28,7 @@ public class HederaMirrorMappingTransactionIntegrationTest extends AbstractMirro
 
         var webQuery = webClient
             .get(mirrorURL, "/api/v1/transactions")
+            .ssl(false)
             .addQueryParam("transactiontype", "CRYPTOTRANSFER")
             .addQueryParam("order", "asc")
             .addQueryParam("limit", "2")

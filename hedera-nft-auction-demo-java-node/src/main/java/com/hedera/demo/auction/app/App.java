@@ -173,22 +173,70 @@ public final class App {
                 .load();
         flyway.migrate();
 
+        JsonObject config = new JsonObject()
+                .put("envFile",".env")
+                .put("envPath",".");
+
+        String keyOrPass = env.get("HTTPS_KEY_OR_PASS");
+        String certificate = env.get("HTTPS_CERTIFICATE");
+
+        if ( ! StringUtils.isEmpty(keyOrPass) || ! StringUtils.isEmpty(certificate)) {
+            if (StringUtils.isEmpty(certificate)) {
+                String error = "HTTPS_KEY_OR_PASS provided without HTTPS_CERTIFICATE";
+                log.error(error);
+                throw new Exception(error);
+            }
+
+            if (StringUtils.isEmpty(keyOrPass)) {
+                String error = "HTTPS_CERTIFICATE provided without HTTPS_KEY_OR_PASS";
+                log.error(error);
+                throw new Exception(error);
+            }
+
+            if ( ! certificate.endsWith(".jks") && ! certificate.endsWith(".pfx") && ! certificate.endsWith(".pem") && ! certificate.endsWith(".p12")) {
+                String error = "HTTPS_KEY_OR_PASS should be a .jks, .pfx, .p12 or .pem file";
+                log.error(error);
+                throw new Exception(error);
+            }
+
+            if ( ! Files.exists(Path.of(certificate))) {
+                String error = "HTTPS_CERTIFICATE file cannot be found";
+                log.error(error);
+                throw new Exception(error);
+            }
+
+            if (certificate.endsWith(".pem")) {
+                if ( ! Files.exists(Path.of(keyOrPass))) {
+                    String error = "HTTPS_KEY_OR_PASS file cannot be found";
+                    log.error(error);
+                    throw new Exception(error);
+                }
+            }
+
+            log.info("setting up api servers to use https");
+            config.put("server-key-pass", keyOrPass);
+            config.put("server-certificate", certificate);
+        } else {
+            log.info("setting up api servers to use http");
+        }
+
         if (restAPI) {
             log.info("starting client REST api");
-            JsonObject config = new JsonObject()
-                    .put("envFile",".env")
-                    .put("envPath",".")
-                    .put("topicId", this.topicId);
+            config.put("topicId", this.topicId);
             DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(restApiVerticleCount);
             vertx.deployVerticle(ApiVerticle.class.getName(), options);
         }
 
         if (adminAPI) {
             log.info("starting admin REST api");
-            JsonObject config = new JsonObject()
-                    .put("envFile",".env")
-                    .put("envPath",".")
-                    .put("filesPath", filesPath);
+            config.put("filesPath", filesPath);
+            String apiKey = env.get("X_API_KEY");
+            if (StringUtils.isEmpty(apiKey)) {
+                String error = "no X_API_KEY specified in .env";
+                log.error(error);
+                throw new Exception(error);
+            }
+            config.put("x-api-key", apiKey);
             DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(adminApiVerticleCount);
             vertx.deployVerticle(AdminApiVerticle.class.getName(), options);
         }

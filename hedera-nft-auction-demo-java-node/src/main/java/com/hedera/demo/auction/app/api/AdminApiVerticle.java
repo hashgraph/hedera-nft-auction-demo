@@ -1,9 +1,11 @@
 package com.hedera.demo.auction.app.api;
 
+import com.hedera.demo.auction.app.Utils;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -40,13 +42,16 @@ public class AdminApiVerticle extends AbstractVerticle {
 
         int httpPort = Integer.parseInt(Optional.ofNullable(config().getString("ADMIN_API_PORT")).orElse(Optional.ofNullable(env.get("ADMIN_API_PORT")).orElse("9006")));
         String filesPath = config().getString("filesPath");
+        String apiKey = config().getString("x-api-key");
 
-        var server = vertx.createHttpServer();
+        HttpServerOptions options = Utils.httpServerOptions(config());
+        var server = vertx.createHttpServer(options);
         var router = Router.router(vertx);
 
         SchemaRouter schemaRouter = SchemaRouter.create(vertx, new SchemaRouterOptions());
         SchemaParser schemaParser = SchemaParser.createOpenAPI3SchemaParser(schemaRouter);
 
+        AuthenticationHandler authenticationHandler = new AuthenticationHandler(apiKey);
         PostTopicHandler postTopicHandler = new PostTopicHandler(env);
         PostCreateToken postCreateToken = new PostCreateToken(schemaParser, env, filesPath);
         PostAuctionAccountHandler postAuctionAccountHandler = new PostAuctionAccountHandler(schemaParser, env);
@@ -67,24 +72,31 @@ public class AdminApiVerticle extends AbstractVerticle {
                 .failureHandler(AdminApiVerticle::failureHandler);
 
         router.post("/v1/admin/topic")
+            .handler(authenticationHandler)
             .handler(postTopicHandler);
 
         router.post("/v1/admin/easysetup")
+                .handler(authenticationHandler)
                 .handler(postEasySetupHandler);
 
         router.post("/v1/admin/token")
+                .handler(authenticationHandler)
                 .handler(postCreateToken);
 
         router.post("/v1/admin/auctionaccount")
+                .handler(authenticationHandler)
                 .handler(postAuctionAccountHandler);
 
         router.post("/v1/admin/auction")
+                .handler(authenticationHandler)
                 .handler(postAuctionHandler);
 
         router.post("/v1/admin/transfer")
+                .handler(authenticationHandler)
                 .handler(postTransferHandler);
 
         router.post("/v1/admin/validators")
+                .handler(authenticationHandler)
                 .handler(postValidators);
 
         router.get("/").handler(rootHandler);

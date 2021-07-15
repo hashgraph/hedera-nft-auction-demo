@@ -17,6 +17,14 @@ jobs:
   build_docker_images:
     runs-on: ubuntu-latest
     steps:
+      - name: Create certificates
+        run: |
+          cd docker-files
+          mkdir -p nginx-certs
+          openssl req -config certs.cnf -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
+          openssl x509 -in cert.pem -out nginx-certs/cert.crt
+          openssl rsa -in key.pem -out nginx-certs/cert.key
+
       - name: Set version
         run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
 

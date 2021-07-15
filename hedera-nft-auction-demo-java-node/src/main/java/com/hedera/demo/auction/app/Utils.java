@@ -5,7 +5,11 @@ import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.mirrormapping.MirrorSchedule;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTransactions;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.JksOptions;
+import io.vertx.core.net.PemKeyCertOptions;
+import io.vertx.core.net.PfxOptions;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
@@ -375,4 +379,37 @@ public class Utils {
         return Normalizer.normalize(textToNormalize, Form.NFKC);
     }
 
+    /**
+     * sets up options for the HTTP server, including https if applicable
+     *
+     * @param config a JSON object containing configuration details
+     * @return HttpServerOptions
+     */
+    public static HttpServerOptions httpServerOptions(JsonObject config) {
+        @Var HttpServerOptions options = new HttpServerOptions();
+        String keyOrPass = config.getString("server-key-pass");
+        String certificate = config.getString("server-certificate");
+
+        if (certificate.endsWith(".jks")) {
+            options.setSsl(true);
+            options.setKeyStoreOptions(
+                    new JksOptions()
+                        .setPath(certificate)
+                        .setPassword(keyOrPass));
+        } else if (certificate.endsWith(".pfx") || certificate.endsWith(".p12")) {
+            options.setSsl(true);
+            options.setPfxKeyCertOptions(
+                    new PfxOptions()
+                            .setPath(certificate)
+                            .setPassword(keyOrPass));
+        } else if (certificate.endsWith(".pem")) {
+            options.setSsl(true);
+            options.setPemKeyCertOptions(
+                    new PemKeyCertOptions()
+                            .setKeyPath(keyOrPass)
+                            .setCertPath(certificate)
+            );
+        }
+        return options;
+    }
 }

@@ -164,17 +164,14 @@ you may now navigate to [http://localhost:8080](http://localhost:8080) to verify
 #### Create a sample auction
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -k -d '{
+curl -H "Content-Type: application/json" -X POST -k \
+--header 'X-API-key: your api key' \
+-d '{
   "symbol":"MTT",
   "name":"Test Token",
   "clean":false
-}' 
---header 'X-API-key: your-api-key-here'
-https://localhost:8082/v1/admin/easysetup
+}'  https://localhost:8082/v1/admin/easysetup
 ```
-
-curl --location --request POST 'https://localhost:8082/v1/admin/topic' \
-
 
 #### Restart the docker containers for the topic to be taken into account
 
@@ -292,13 +289,13 @@ This command takes a number of parameters runs all the necessary steps to create
 This requires that the REST api and database are up and running
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -k -d '{
+curl -H "Content-Type: application/json" -X POST -k \
+--header 'X-API-key: your api key' \
+-d '{
   "symbol":"MTT",
   "name":"Test Token",
   "clean":false
-}'
---header 'X-API-key: your-api-key-here'
-https://localhost:8082/v1/admin/easysetup
+}' https://localhost:8082/v1/admin/easysetup
 ```
 
 #### Step by step 
@@ -312,11 +309,8 @@ This will create a new topic id and set the `TOPIC_ID` in the `.env` file.
 It is now necessary to restart the application for the changes to take effect.
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -k -d '
-  {
-  }
-'
---header 'X-API-key: your-api-key-here'
+curl -H "Content-Type: application/json" -X POST -k \
+--header 'X-API-key: your api key' \
 https://localhost:8082/v1/admin/topic
 ```
 
@@ -336,7 +330,9 @@ If `image`, `certificate` or `description` are included, files will be created o
 If neither of these attributes are set, the `symbol` attribute is used.
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -k -d '
+curl -H "Content-Type: application/json" -X POST -k \
+--header 'X-API-key: your api key' \
+-d '
 {
   "name": "Token Name",
   "symbol": "Symbol",
@@ -356,15 +352,15 @@ curl -H "Content-Type: application/json" -X POST -k -d '
     "description": "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"
   }
 }
-'
---header 'X-API-key: your-api-key-here'
-https://localhost:8082/v1/admin/token
+' https://localhost:8082/v1/admin/token
 ```
 
 or
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -k -d '
+curl -H "Content-Type: application/json" -X POST -k \
+--header 'X-API-key: your api key' \
+-d '
 {
   "name": "Token Name",
   "symbol": "Symbol",
@@ -384,9 +380,7 @@ curl -H "Content-Type: application/json" -X POST -k -d '
     "description": "silver.jpg"
   }
 }
-'
---header 'X-API-key: your-api-key-here'
-https://localhost:8082/v1/admin/token
+' https://localhost:8082/v1/admin/token
 ```
 
 returns a token id
@@ -402,21 +396,20 @@ __Create an auction account__
 This command will create an auction account with an initial balance of `100` hbar and use the operator key for the account.
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -k -d '
-  {
-    "keylist: {
-      "keys": [
-        {
-          "key": "your public key"
-        }
-      ],
-      "threshold": 1
-    },
-    "initialBalance": 100
-  }
-'
---header 'X-API-key: your-api-key-here'
-https://localhost:8082/v1/admin/auctionaccount
+curl -H "Content-Type: application/json" -X POST -k \
+--header 'X-API-key: your api key' \
+-d '
+{
+  "keylist": {
+    "keys": [
+      {
+        "key": "302a300506032b65700321005b73818c623c27ae05f96cbcb83703538034eafa1f381480da220612881435c5"
+      }
+    ],
+    "threshold": 1
+  },
+  "initialBalance": 100
+}' https://localhost:8082/v1/admin/auctionaccount
 ```
 
 returns an account id
@@ -436,7 +429,9 @@ _Note: if the environment file contains an entry for `MASTER_KEY`, it will autom
 _Note: all keys are *public* keys_
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -k -d '
+curl -H "Content-Type: application/json" -X POST -k \
+--header 'X-API-key: your api key' \
+-d '
 {
   "keylist": {
     "keys": [
@@ -450,9 +445,7 @@ curl -H "Content-Type: application/json" -X POST -k -d '
     "threshold": 2
   },
   "initialBalance": 100
-}'
---header 'X-API-key: your-api-key-here'
-https://localhost:8082/v1/admin/auctionaccount
+}' https://localhost:8082/v1/admin/auctionaccount
 ```
 
 returns an account id
@@ -469,7 +462,9 @@ __Create the auction__
 be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the values you obtained earlier.
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -k -d '
+curl -H "Content-Type: application/json" -X POST -k \
+--header 'X-API-key: your api key' \
+-d '
 {
   "tokenid": "{{tokenId}}",
   "auctionaccountid": "{{accountId}}",
@@ -479,9 +474,7 @@ curl -H "Content-Type: application/json" -X POST -k -d '
   "winnercanbid": true,
   "title": "Auction title",
   "description": "Auction description"
-}'
---header 'X-API-key: your-api-key-here'
-https://localhost:8082/v1/admin/auction
+}' https://localhost:8082/v1/admin/auction
 ```
 
 _Note: the minimum bid and reserve are expressed in `tinybars`_
@@ -495,13 +488,13 @@ be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the va
 _Note: If the token has been created with the REST api call above, it will already by associated and owned by the `auctionaccountid`, there is no need to transfer it._
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -k -d '
+curl -H "Content-Type: application/json" -X POST -k \
+--header 'X-API-key: your api key' \
+-d '
 {
   "tokenid" : "{{tokenId}}",
   "auctionaccountid" : "{{accountId}}"
-}'
---header 'X-API-key: your-api-key-here'
-https://localhost:8082/v1/admin/transfer
+}' https://localhost:8082/v1/admin/transfer
 ```
 
 #### Run the components
@@ -701,9 +694,7 @@ A helper function is available to generate keys as follows
 or
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -k -d '{
-}'
-https://localhost:8081/v1/generatekey
+curl -H "Content-Type: application/json" -X GET -k https://localhost:8081/v1/generatekey
 ```
 
 _Note: this runs on the client REST API port (8081), not the admin API port (8082)
@@ -758,11 +749,8 @@ _note: you may generate a new API key as follows, although any string will work_
 From the command line of your node (assuming the admin API is enabled)
 
 ```shell
-curl -H "Content-Type: application/json" -X POST -k -d '
-{
-}
-'
---header 'X-API-key: your-api-key-here'
+curl -H "Content-Type: application/json" -X POST -k \
+--header 'X-API-key: your api key' \
 https://localhost:8082/v1/admin/topic
 ```
 
@@ -787,7 +775,9 @@ _Note: if the environment file contains an entry for `MASTER_KEY`, it will autom
 _Note: all keys are *public* keys_
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -k -d '
+curl -H "Content-Type: application/json" -X POST -k \
+--header 'X-API-key: your api key' \
+-d '
 {
   "keylist": {
     "keys": [
@@ -804,9 +794,7 @@ curl -H "Content-Type: application/json" -X POST -k -d '
     "threshold": 2
   },
   "initialBalance": 100
-}'
---header 'X-API-key: your-api-key-here'
-https://localhost:8082/v1/admin/auctionaccount
+}' https://localhost:8082/v1/admin/auctionaccount
 ```
 
 ## Creating an auction
@@ -823,19 +811,19 @@ be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the va
 * `title` and `description` for the auction (rendered in the UI)
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -k -d '
+curl -H "Content-Type: application/json" -X POST -k \
+--header 'X-API-key: your api key' \
+-d '
 {
-  "tokenid": "{{tokenId}}",
-  "auctionaccountid": "{{accountId}}",
+  "tokenid": "{{tokenid}}",
+  "auctionaccountid": "{{accountid}}",
   "reserve": 0,
   "minimumbid": 1000000,
   "endtimestamp": "",
   "winnercanbid": true,
   "title": "Auction title",
   "description": "Auction description"
-}'
---header 'X-API-key: your-api-key-here'
-https://localhost:8082/v1/admin/auction
+}' https://localhost:8082/v1/admin/auction
 ```
 
 _Note: the minimum bid and reserve are expressed in `tinybars`_
@@ -955,25 +943,27 @@ After sending the request to the admin API, a message will be sent to the TOPIC 
 _Note: in the event of a create or update, if a parameter such as `url` isn't specified, it will be set to an empty string._
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -k -d '
+curl -H "Content-Type: application/json" -X POST -k \
+--header 'X-API-key: your api key' \
+-d '
 {
     "validators": [
     {
       "name": "name of the validator",
-      "url": "url of the company or of the location where their UI is hosted",
-      "publicKey": "optional, may be used later",
+      "url": "url of the validator",
+      "publicKey": "optional public key",
       "operation" : "add"
     }
   ]
-}'
---header 'X-API-key: your-api-key-here'
-https://localhost:8082/v1/admin/validators
+}' https://localhost:8082/v1/admin/validators
 ```
 
 You may modify the details of a validator as follows:
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -k -d '
+curl -H "Content-Type: application/json" -X POST -k \
+--header 'X-API-key: your api key' \
+-d '
 {
     "validators": [
     {
@@ -984,15 +974,15 @@ curl -H "Content-Type: application/json" -X POST -k -d '
       "operation" : "update"
     }
   ]
-}'
---header 'X-API-key: your-api-key-here'
-https://localhost:8082/v1/admin/validators
+}' https://localhost:8082/v1/admin/validators
 ```
 
 And finally, you may delete details of a validator as follows:
 
 ```shell script
-curl -H "Content-Type: application/json" -X POST -k -d '
+curl -H "Content-Type: application/json" -X POST -k \
+--header 'X-API-key: your api key' \
+-d '
 {
   "validators": [
     {
@@ -1000,7 +990,5 @@ curl -H "Content-Type: application/json" -X POST -k -d '
       "operation" : "delete"
     }
   ]
-}'
---header 'X-API-key: your-api-key-here'
-https://localhost:8082/v1/admin/validators
+}' https://localhost:8082/v1/admin/validators
 ```

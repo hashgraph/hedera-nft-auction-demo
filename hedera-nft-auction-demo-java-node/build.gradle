@@ -10,7 +10,7 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath "org.glassfish.jaxb:jaxb-runtime:2.3.2"
+		classpath "org.glassfish.jaxb:jaxb-runtime:3.0.2-b01"
 		classpath "org.postgresql:postgresql:42.2.14"
 		classpath "io.github.jklingsporn:vertx-jooq-generate:6.3.0"
 		classpath "io.vertx:vertx-core:4.0.3"

@@ -162,7 +162,7 @@ dependencies {
 	implementation "io.vertx:vertx-pg-client:$vertxVersion"
 	implementation "io.vertx:vertx-web-client:$vertxVersion"
 	implementation "io.vertx:vertx-web-validation:$vertxVersion"
-	implementation "io.github.jklingsporn:vertx-jooq-classic-reactive:5.2.0"
+	implementation "io.github.jklingsporn:vertx-jooq-classic-reactive:6.3.0"
 	implementation 'commons-codec:commons-codec:1.9'
 	// jOOQ
 	implementation "org.jooq:jooq:$jooqVersion"

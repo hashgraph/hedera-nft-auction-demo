@@ -1,6 +1,5 @@
 import groovy.xml.MarkupBuilder
 import org.jooq.codegen.GenerationTool
-
 import javax.xml.bind.JAXB
 
 buildscript {
@@ -10,8 +9,8 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath "org.glassfish.jaxb:jaxb-runtime:3.0.2-b01"
-		classpath "org.postgresql:postgresql:42.2.14"
+		classpath "org.glassfish.jaxb:jaxb-runtime:2.3.4"
+		classpath "org.postgresql:postgresql:42.2.23"
 		classpath "io.github.jklingsporn:vertx-jooq-generate:6.3.0"
 		classpath "io.vertx:vertx-core:4.1.1"
 	}
@@ -38,7 +37,7 @@ allprojects {
 	apply plugin: "nebula.lint"
 
 	gradleLint {
-		rules=['unused-dependency']
+//		rules=['unused-dependency']
 	}
 	sourceCompatibility = 14
 	targetCompatibility = 14
@@ -92,7 +91,7 @@ allprojects {
 
 		errorprone "com.google.errorprone:error_prone_core:2.4.0"
 		errorprone "com.uber.nullaway:nullaway:0.9.1"
-		compileOnly "com.google.errorprone:error_prone_annotations:2.6.0"
+		compileOnly "com.google.errorprone:error_prone_annotations:2.4.0"
 	}
 
 	jacoco {
@@ -139,9 +138,9 @@ description = "Hedera™ Hashgraph NFT Auction Appnet Demo"
 dependencies {
 	def jooqVersion = "3.14.11"
 	def vertxVersion = "4.1.1"
-	def postgressqlVersion = "42.2.14"
+	def postgressqlVersion = "42.2.23"
 	def jacksonVersion = "2.12.3"
-	def lombokVersion = "1.18.16"
+	def lombokVersion = "1.18.18"
 	def junitJupiterVersion = "5.8.0-M1"
 	def testContainersVersion = "1.15.3"
 
@@ -155,7 +154,7 @@ dependencies {
 	implementation "io.github.jklingsporn:vertx-jooq-classic-reactive:6.3.0"
 	implementation "commons-codec:commons-codec:1.9"
 	implementation "org.jooq:jooq:$jooqVersion"
-	implementation "org.apache.logging.log4j:log4j-core:2.13.2"
+	implementation "org.apache.logging.log4j:log4j-core:2.14.1"
 	implementation "commons-validator:commons-validator:1.7"
 	implementation "org.yaml:snakeyaml:1.29"
 
@@ -283,7 +282,7 @@ flyway {
 }
 
 task jooqGenerate {
-
+	autoLintGradle.enabled = false
 	doLast() {
 		def dbURL = System.getenv("DATABASE_URL") ?: "postgresql://localhost:5432/postgres"
 		def dbUSER = System.getenv("DATABASE_USERNAME") ?: "postgres"
@@ -335,6 +334,7 @@ if (project.hasProperty("args")) {
 }
 
 task runNode(type: JavaExec) {
+	autoLintGradle.enabled = false
 	group = "Execution"
 	description = "Runs the application"
 	classpath = sourceSets.main.runtimeClasspath
@@ -343,6 +343,7 @@ task runNode(type: JavaExec) {
 }
 
 task generateKey(type: JavaExec) {
+	autoLintGradle.enabled = false
 	group = "Execution"
 	description = "Generates a public / private key pair"
 	classpath = sourceSets.main.runtimeClasspath
@@ -351,6 +352,7 @@ task generateKey(type: JavaExec) {
 }
 
 task generateApiKey(type: JavaExec) {
+	autoLintGradle.enabled = false
 	group = "Execution"
 	description = "Generates a key for the admin api"
 	classpath = sourceSets.main.runtimeClasspath
@@ -359,6 +361,7 @@ task generateApiKey(type: JavaExec) {
 }
 
 task setupHelper(type: JavaExec) {
+	autoLintGradle.enabled = false
 	group = "Execution"
 	description = "Sets up a topic (optional), auction account, token, auction...."
 	classpath = sourceSets.main.runtimeClasspath
@@ -367,6 +370,7 @@ task setupHelper(type: JavaExec) {
 }
 
 task exerciseAuction(type: JavaExec) {
+	autoLintGradle.enabled = false
 	group = "Execution"
 	description = "Sends bids to an auction"
 	classpath = sourceSets.main.runtimeClasspath
@@ -375,6 +379,7 @@ task exerciseAuction(type: JavaExec) {
 }
 
 task createAccount(type: JavaExec) {
+	autoLintGradle.enabled = false
 	group = "Execution"
 	description = "Creates an account"
 	classpath = sourceSets.main.runtimeClasspath
@@ -402,5 +407,6 @@ tasks.withType(JavaCompile).configureEach {
 	options.errorprone {
 		disable("DefaultPackage")
 	}
+	autoLintGradle.enabled = true
 }
 

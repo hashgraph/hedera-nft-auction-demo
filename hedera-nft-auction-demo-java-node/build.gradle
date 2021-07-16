@@ -190,7 +190,7 @@ dependencies {
 	compile "org.flywaydb:flyway-core:7.11.2"
 
 	// Testing
-	def junitJupiterVersion = "5.4.2"
+	def junitJupiterVersion = "5.8.0-M1"
 	testImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
 

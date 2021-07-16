@@ -13,7 +13,7 @@ buildscript {
 		classpath "org.glassfish.jaxb:jaxb-runtime:3.0.2-b01"
 		classpath "org.postgresql:postgresql:42.2.14"
 		classpath "io.github.jklingsporn:vertx-jooq-generate:6.3.0"
-		classpath "io.vertx:vertx-core:4.0.3"
+		classpath "io.vertx:vertx-core:4.1.1"
 	}
 }
 
@@ -73,11 +73,6 @@ allprojects {
 
 	idea {
 		module {
-//			sourceDirs -= file("src/testIntegration/java")
-//			testSourceDirs += file("src/testIntegration/java")
-//			sourceDirs -= file("src/testSystem/java")
-//			testSourceDirs += file("src/testSystem/java")
-
 			scopes.TEST.plus += [ configurations.testIntegrationCompile ]
 			scopes.TEST.plus += [ configurations.testSystemCompile ]
 		}
@@ -93,17 +88,11 @@ allprojects {
 
 	dependencies {
 		implementation 'com.google.guava:guava:30.1.1-jre'
-
-		// https://github.com/google/error-prone
-		// https://errorprone.info/
-		errorprone "com.google.errorprone:error_prone_core:2.4.0"
-		compileOnly "com.google.errorprone:error_prone_annotations:2.6.0"
-
-		// https://github.com/uber/NullAway
-		errorprone "com.uber.nullaway:nullaway:0.9.1"
-
-		// https://github.com/eclipse-ee4j/common-annotations-api
 		implementation "jakarta.annotation:jakarta.annotation-api:2.0.0-RC1"
+
+		errorprone "com.google.errorprone:error_prone_core:2.4.0"
+		errorprone "com.uber.nullaway:nullaway:0.9.1"
+		compileOnly "com.google.errorprone:error_prone_annotations:2.6.0"
 	}
 
 	jacoco {
@@ -148,56 +137,52 @@ version = "1.0"
 description = "Hedera™ Hashgraph NFT Auction Appnet Demo"
 
 dependencies {
-	implementation "io.github.cdimascio:java-dotenv:5.2.1"
-	implementation "com.fasterxml.jackson.core:jackson-annotations:2.12.3"
-	runtimeOnly "com.fasterxml.jackson.core:jackson-databind:2.12.3"
-	implementation "com.hedera.hashgraph:sdk:2.0.5"
-
-	runtimeOnly 'io.grpc:grpc-netty-shaded:1.39.0'
-
-	def vertxVersion = "4.0.3"
 	def jooqVersion = "3.14.11"
+	def vertxVersion = "4.1.1"
+	def postgressqlVersion = "42.2.14"
+	def jacksonVersion = "2.12.3"
+	def lombokVersion = "1.18.16"
+	def junitJupiterVersion = "5.8.0-M1"
+	def testContainersVersion = "1.15.3"
 
+	implementation "io.github.cdimascio:java-dotenv:5.2.1"
+	implementation "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
+	implementation "com.hedera.hashgraph:sdk:2.0.5"
 	implementation "io.vertx:vertx-web:$vertxVersion"
 	implementation "io.vertx:vertx-pg-client:$vertxVersion"
 	implementation "io.vertx:vertx-web-client:$vertxVersion"
 	implementation "io.vertx:vertx-web-validation:$vertxVersion"
 	implementation "io.github.jklingsporn:vertx-jooq-classic-reactive:6.3.0"
-	implementation 'commons-codec:commons-codec:1.9'
-	// jOOQ
+	implementation "commons-codec:commons-codec:1.9"
 	implementation "org.jooq:jooq:$jooqVersion"
+	implementation "org.apache.logging.log4j:log4j-core:2.13.2"
+	implementation "commons-validator:commons-validator:1.7"
+	implementation "org.yaml:snakeyaml:1.29"
+
+	runtimeOnly "io.grpc:grpc-netty-shaded:1.39.0"
+	runtimeOnly "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 	runtimeOnly "org.jooq:jooq-meta:$jooqVersion"
-	runtimeOnly 'org.postgresql:postgresql:42.2.14'
+	runtimeOnly "org.postgresql:postgresql:$postgressqlVersion"
 
 	// jOOQ database driver
-	jooqGenerator 'org.postgresql:postgresql:42.2.14'
-
-	// logging
-	implementation 'org.apache.logging.log4j:log4j-core:2.13.2'
-	// https://mvnrepository.com/artifact/commons-validator/commons-validator
-	implementation 'commons-validator:commons-validator:1.7'
+	jooqGenerator "org.postgresql:postgresql:$postgressqlVersion"
 
 	// lombok
-	implementation 'org.projectlombok:lombok:1.18.16'
-	annotationProcessor 'org.projectlombok:lombok:1.18.16'
-	testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
-	testSystemAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
-
-	// https://mvnrepository.com/artifact/org.yaml/snakeyaml
-	implementation 'org.yaml:snakeyaml:1.29'
+	implementation "org.projectlombok:lombok:$lombokVersion"
+	annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+	testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+	testSystemAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
 
 	// flyway
 	compile "org.flywaydb:flyway-core:7.11.2"
 
 	// Testing
-	def junitJupiterVersion = "5.8.0-M1"
 	testImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
 
 	testImplementation "io.vertx:vertx-junit5:$vertxVersion"
 	testImplementation "io.vertx:vertx-unit:$vertxVersion"
 
-	def testContainersVersion = "1.15.3"
 	testRuntimeOnly "org.testcontainers:testcontainers:$testContainersVersion"
 	testImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
 	testImplementation "org.testcontainers:postgresql:$testContainersVersion"
@@ -209,7 +194,6 @@ dependencies {
 	testImplementation "org.awaitility:awaitility:4.1.0"
 	testImplementation "org.glassfish:javax.json:1.1.4"
 	testImplementation "net.joshka:junit-json-params:1.1.0"
-
 	testImplementation "org.slf4j:slf4j-log4j12:1.7.31"
 }
 

@@ -153,7 +153,7 @@ dependencies {
 	runtimeOnly "com.fasterxml.jackson.core:jackson-databind:2.12.3"
 	implementation "com.hedera.hashgraph:sdk:2.0.5"
 
-	runtimeOnly 'io.grpc:grpc-netty-shaded:1.35.0'
+	runtimeOnly 'io.grpc:grpc-netty-shaded:1.39.0'
 
 	def vertxVersion = "4.0.3"
 	def jooqVersion = "3.14.11"

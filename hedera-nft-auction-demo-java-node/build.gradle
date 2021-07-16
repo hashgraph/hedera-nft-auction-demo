@@ -206,7 +206,7 @@ dependencies {
 	testImplementation "org.mock-server:mockserver-netty:$mockServerVersion"
 	testImplementation "org.mock-server:mockserver-client-java:$mockServerVersion"
 
-	testImplementation "org.awaitility:awaitility:4.0.3"
+	testImplementation "org.awaitility:awaitility:4.1.0"
 	testImplementation "org.glassfish:javax.json:1.1.4"
 	testImplementation "net.joshka:junit-json-params:1.1.0"
 

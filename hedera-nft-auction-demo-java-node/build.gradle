@@ -187,7 +187,7 @@ dependencies {
 	implementation 'org.yaml:snakeyaml:1.29'
 
 	// flyway
-	compile "org.flywaydb:flyway-core:7.7.0"
+	compile "org.flywaydb:flyway-core:7.11.2"
 
 	// Testing
 	def junitJupiterVersion = "5.4.2"

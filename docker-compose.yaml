@@ -180,7 +180,7 @@ services:
       - image
 
   proxy-compiled:
-    container_name: nginx-proxy
+    container_name: nginx-proxy-compiled
     build:
       context: docker-nginx
     restart: unless-stopped
@@ -195,7 +195,7 @@ services:
       - ./docker-files/conf.d/compiled:/etc/nginx/conf.d/
 
   proxy-image:
-    container_name: nginx-proxy
+    container_name: nginx-proxy-image
     build:
       context: docker-nginx
     restart: unless-stopped

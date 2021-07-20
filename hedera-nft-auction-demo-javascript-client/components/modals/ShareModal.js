@@ -13,6 +13,7 @@ import {
 } from 'react-share'
 import { CopyToClipboard } from 'react-copy-to-clipboard'
 import { FaCopy } from 'react-icons/fa'
+import CloseIcon from './assets/close_icon.svg'
 
 const ShareIcons = ({ url }) => {
   const ICON_SIZE = 32
@@ -101,9 +102,19 @@ const Modal = ({ isOpen, close, auction }) => {
               borderColor: '#4B68F1',
             }}
           >
+            <CloseIcon
+              className='h-8 w-8 text-white absolute cursor-pointer'
+              onClick={close}
+              style={{
+                top: '10px',
+                right: '8px',
+              }}
+            />
             <div className='pt-5 pb-4 sm:p-6 sm:pb-4'>
               {hasCopiedText && (
-                <p className='text-white mb-2 absolute left-36 top-2'>Copied!</p>
+                <p className='text-white mb-2 absolute left-36 top-2'>
+                  Copied!
+                </p>
               )}
               <div className='text-center flex py-3'>
                 <p className='text-white mr-2'>{shareUrl}</p>

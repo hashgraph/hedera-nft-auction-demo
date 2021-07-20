@@ -30,7 +30,7 @@ const LiveAuction = () => {
   )
 
   const soldAuctions = auctions.filter(
-    auction => !auction.active && Boolean(auction.winningbid)
+    auction => auction.ended
   )
 
   const getFeaturedAuction = () => {
@@ -94,7 +94,7 @@ const LiveAuction = () => {
           <ViewAllButton onClick={hanldeViewAllLiveAuctionsClick} />
         </div>
         <div
-          className={`grid sm:grid-cols-4 grid-rows-1 gap-10`}
+          className={`grid sm:grid-cols-2 lg:grid-cols-4 grid-rows-1 gap-10`}
         >
           {noLiveAuctionsToShow ? (
             <p className='font-thin'>No Live Auctions</p>
@@ -125,7 +125,7 @@ const LiveAuction = () => {
           <ViewAllButton onClick={handleViewAllSoldClick} />
         </div>
         <div
-          className={`grid sm:grid-cols-4 grid-rows-1 gap-10`}
+          className={`grid sm:grid-cols-2 lg:grid-cols-4 grid-rows-1 gap-10`}
         >
           {noSoldAuctionsToShow ? (
             <p className='font-thin'>No Sold Auctions</p>

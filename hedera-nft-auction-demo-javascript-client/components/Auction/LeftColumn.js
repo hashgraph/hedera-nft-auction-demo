@@ -21,6 +21,9 @@ const LeftColumn = ({ auction, openLightbox }) => {
       <div className='flex justify-between'>
         {/* Mobile View */}
         <div className='sm:hidden block'>
+        <p className='font-bold my-5' style={{ fontSize: '26px' }}>
+          {titleToRender}
+        </p>
           <div className='font-thin text-sm'>
             <p className='mb-4 line-clamp-5'>{descriptionToRender}</p>
           </div>

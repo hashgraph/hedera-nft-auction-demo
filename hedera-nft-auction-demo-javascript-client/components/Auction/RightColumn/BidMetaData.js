@@ -7,10 +7,12 @@ import BidButton from './BidButton'
 import BidModal from 'components/modals/BidModal'
 import { Hbar } from '@hashgraph/sdk'
 import HbarUnbit from 'components/common/HbarUnit'
+import ShareModal from 'components/modals/ShareModal'
 
 const BidMetaData = ({ auction }) => {
   const { currentPrice, isFetching: isFetchingHederaData } = useHederaPrice()
   const [isPlacingBid, setPlacingBidStatus] = React.useState(false)
+  const [isSharingAuction, setSharingAuction] = React.useState(false)
 
   const openBidModal = () => setPlacingBidStatus(true)
   const closeBidModal = () => setPlacingBidStatus(false)
@@ -23,6 +25,9 @@ const BidMetaData = ({ auction }) => {
   const usdValue = getUsdValue(bidToShow, currentPrice)
 
   const isOver = !auction.active && Boolean(auction.winningbid)
+
+  const openShareModal = () => setSharingAuction(true)
+  const closeShareModal = () => setSharingAuction(false)
 
   if (isOver)
     return (
@@ -137,7 +142,7 @@ const BidMetaData = ({ auction }) => {
         <BidButton openBidModal={openBidModal} />
         <div
           className='flex flex-col items-end justify-center cursor-pointer'
-          // onClick={openShareModal}
+          onClick={openShareModal}
         >
           <img
             src='/assets/share-icon.svg'
@@ -148,6 +153,7 @@ const BidMetaData = ({ auction }) => {
         </div>
       </div>
       <BidModal isOpen={isPlacingBid} close={closeBidModal} auction={auction} />
+      <ShareModal isOpen={isSharingAuction} close={closeShareModal} />
     </div>
   )
 }

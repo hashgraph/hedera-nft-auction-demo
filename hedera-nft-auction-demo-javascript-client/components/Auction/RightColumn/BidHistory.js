@@ -18,7 +18,7 @@ const getFormattedTime = timestamp => {
   return dayjs(new Date(seconds * 1000)).format('LLL')
 }
 
-const BidItem = ({ bid, currentPrice, isWinner }) => {
+const BidItem = ({ bid, currentPrice, isWinner, isClosed }) => {
   const { timestamp, bidamount, bidderaccountid, transactionid } = bid
   const formattedTimestamp = getFormattedTime(timestamp)
 
@@ -43,12 +43,16 @@ const BidItem = ({ bid, currentPrice, isWinner }) => {
 
   const marginClass = getMarginClass()
 
+  const showPurpleBar = !isClosed || (isClosed && isWinner)
+
   return (
     <div
       className={`${marginClass} shadow-bid-item sm:h-16 h-full relative flex justify-between`}
     >
-      {isWinner && <div className='bg-purple-gradient w-2 h-full absolute' />}
-      <div className='flex sm:flex-row flex-col sm:items-center items-left w-full justify-between sm:ml-5 ml-7'>
+      {showPurpleBar && (
+        <div className='bg-purple-gradient w-2 h-full absolute' />
+      )}
+      <div className='flex sm:flex-row flex-col sm:items-center items-left w-full justify-between sm:ml-5 ml-7 sm:mt-0 mt-3'>
         <div className='sm:pb-0 pb-4 w-1/4'>
           <p className='font-light text-xs text-gray-400'>Bidder</p>
           <p className='font-bold text-sm'>{bidderaccountid}</p>
@@ -72,7 +76,7 @@ const BidItem = ({ bid, currentPrice, isWinner }) => {
           <img
             src='/assets/view-transaction.svg'
             onClick={handleTransactoinViewClick}
-            className='h-6 w-6 sm:ml-12 ml-2 cursor-pointer sm:relative absolute top-1 right-3'
+            className='h-6 w-6 sm:ml-12 ml-2 cursor-pointer sm:relative absolute top-1 right-3 sm:mt-0 mt-3'
           />
         </div>
       </div>
@@ -109,8 +113,10 @@ const BidHistory = ({ auction }) => {
     auctionaccountid,
     starttimestamp: createdAtTimestamp,
     reserve,
+    status: auctionStatus,
   } = auction
 
+  const isClosed = auctionStatus === 'CLOSED'
   const formattedCreatedTime = getFormattedTime(createdAtTimestamp)
 
   if (isLoading) return <p>Loading...</p>
@@ -125,7 +131,7 @@ const BidHistory = ({ auction }) => {
         <h1 className='font-bold text-lg pt-2 pb-6'>
           History{' '}
           <span className='text-xs font-thin'>
-            (The bid history is limited to the last 50 bids)
+            (limited to the last 50 transactions)
           </span>
         </h1>
         <div className='p-1 '>
@@ -141,7 +147,13 @@ const BidHistory = ({ auction }) => {
   return (
     <div className='relative'>
       <PurpleGradientBorder />
-      <h1 className='font-bold text-lg pt-2 pb-6'>History</h1>
+      <h1 className='font-bold text-lg pt-2 pb-6'>
+        History{' '}
+        <span className='text-xs font-thin'>
+          (limited to the last 50 transactions)
+        </span>
+      </h1>
+
       <div className='p-1 '>
         {bidHistory.map((bid, index) => {
           const isWinner = bid.transactionid === winningtxid
@@ -153,6 +165,7 @@ const BidHistory = ({ auction }) => {
               currentPrice={currentPrice}
               isLastItem={isLastItem}
               isWinner={isWinner}
+              isClosed={isClosed}
             />
           )
         })}

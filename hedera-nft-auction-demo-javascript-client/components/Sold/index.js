@@ -33,7 +33,7 @@ const Sold = () => {
     )
 
   return (
-    <div className='grid sm:grid-cols-4 grid-rows-1 gap-10'>
+    <div className='grid sm:grid-cols-2 lg:grid-cols-4 grid-rows-1 gap-10'>
       {soldAuctions.map(auction => (
         <LiveAuctionCard key={auction.id} auction={auction} showStatus />
       ))}

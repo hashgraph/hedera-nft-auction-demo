@@ -59,6 +59,9 @@ module.exports = {
       },
       margin: {
         '25': '25px'
+      },
+      height: {
+        '90': '90%'
       }
     },
   },

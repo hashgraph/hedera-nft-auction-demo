@@ -7,7 +7,7 @@ import NFTLogo from './assets/nft-auction.svg'
 import { useWindowSize } from '@react-hook/window-size'
 import { isMobile } from 'react-device-detect'
 
-const Link = ({ item, isMobile, closeMenu, externalLink }) => {
+const Link = ({ item, isMobile, closeMenu, externalLink, className }) => {
   const isActive = item.isActive
   const router = useRouter()
 
@@ -43,9 +43,13 @@ const Link = ({ item, isMobile, closeMenu, externalLink }) => {
   )
 
   return (
-    <div className={`sm:mx-10 mx-0 ml-5 ${isMobile ? 'py-3' : ''}`}>
+    <div
+      className={
+        `sm:mx-10 mx-0 ml-5 ${isMobile ? 'py-3' : ''} ` + (className || '')
+      }
+    >
       {isActive ? <ActiveBorder /> : <TransparentBorder />}
-      <div onClick={goToPage} className='text-white cursor-pointer'>
+      <div onClick={goToPage} className={'text-white cursor-pointer'}>
         <span
           style={{
             letterSpacing: '-.025rem !important',
@@ -82,11 +86,12 @@ const TopBarMenu = () => {
       isActive: isViewingLiveAuction,
     },
     { name: 'Sold', to: '/sold', isActive: isViewingSold },
+    {
+      name: 'FAQ',
+      externalLink: 'https://help.hedera.com/',
+      className: 'sm:hidden block',
+    },
   ]
-
-  if (isMobile || width < 640) {
-    navigation.push({ name: 'FAQ', externalLink: 'https://help.hedera.com/' })
-  }
 
   const goToHederaFAQ = () => window.open('https://help.hedera.com/', '_blank')
 
@@ -127,12 +132,13 @@ const TopBarMenu = () => {
                     item={item}
                     closeMenu={closeMenu}
                     externalLink={item.externalLink}
+                    className={item.className}
                   />
                 ))}
               </div>
             </div>
             {!(isMobile && width < 640) && (
-              <p className='cursor-pointer' onClick={goToHederaFAQ}>
+              <p className='cursor-pointer sm:block hidden' onClick={goToHederaFAQ}>
                 FAQ
               </p>
             )}

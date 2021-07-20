@@ -15,12 +15,13 @@ const FirstBidItem = ({ auctionaccountid, createdAt, reserve }) => {
     <div
       className={`mb-8 shadow-bid-item sm:h-16 h-full relative flex justify-between`}
     >
-      <div className='flex sm:flex-row flex-col sm:items-center items-left w-full justify-between sm:ml-5 ml-7'>
+      <div className='bg-purple-gradient w-2 h-full absolute' />
+      <div className='flex sm:flex-row flex-col sm:items-center items-left w-full justify-between sm:ml-5 ml-7 sm:mt-0 mt-3'>
         <div className='sm:pb-0 pb-4 w-1/4'>
-          <p className='font-light text-xs text-gray-400'>Listed by</p>
+          <p className='font-light text-xs text-gray-400 whitespace-nowrap'>Listing Transaction</p>
           <p className='font-bold text-sm'>{auctionaccountid}</p>
         </div>
-        <div className='flex flex-grow justify-between sm:items-center items-left sm:flex-row flex-col'>
+        <div className='flex flex-grow justify-between sm:items-center items-left sm:flex-row flex-col '>
           <div className='sm:pb-0 pb-4 w-3/4'>
             <p className='font-light text-xs text-gray-400'>Date created</p>
             <p className='font-bold text-sm'>{createdAt}</p>
@@ -36,7 +37,7 @@ const FirstBidItem = ({ auctionaccountid, createdAt, reserve }) => {
           <img
             src='/assets/view-transaction.svg'
             // onClick={handleTransactoinViewClick}
-            className='h-6 w-6 sm:ml-12 ml-2 cursor-pointer sm:relative absolute top-1 right-3'
+            className='h-6 w-6 sm:ml-12 ml-2 cursor-pointer sm:relative absolute top-1 right-3 sm:mt-0 mt-3'
           />
         </div>
       </div>

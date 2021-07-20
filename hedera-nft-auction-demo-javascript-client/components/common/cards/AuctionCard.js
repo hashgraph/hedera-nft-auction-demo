@@ -31,7 +31,7 @@ const LiveAuctionCard = ({
   const getStatus = () => {
     if (!showStatus) return
     if (ended) return 'SOLD'
-    if (status === 'CLOSED') return 'CLOSED'
+    if (status === 'CLOSED') return null
   }
 
   const bidToShow = getBidValue(winningbid)

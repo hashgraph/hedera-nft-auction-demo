@@ -32,7 +32,7 @@ const Banner = () => {
   const goToHederaFAQ = () => window.open('https://help.hedera.com/', '_blank')
   const { network, nodeOperator, topicId, validators } = environment
   return (
-    <div className='flex bg-purple-gradient items-center justify-between px-20 py-4'>
+    <div className='flex bg-purple-gradient items-center justify-between py-4 sm:px-section-desktop px-section-mobile sm:flex-row flex-col'>
       <p className='font-thin text-sm'>
         This application is part of a Hedera Validator network using topic{' '}
         <UnderLine>{topicId}</UnderLine>. This{' '}
@@ -53,7 +53,10 @@ const Banner = () => {
       </p>
       <button
         onClick={goToHederaFAQ}
-        className='text-white border font-thin p-3 text-sm cursor-pointer'
+        className='text-white font-thin p-3 text-sm cursor-pointer whitespace-nowrap sm:ml-4 sm:mt-0 mt-3'
+        style={{
+          backgroundColor: 'rgba(0,0,0,0.10)'
+        }}
       >
         How it works
       </button>

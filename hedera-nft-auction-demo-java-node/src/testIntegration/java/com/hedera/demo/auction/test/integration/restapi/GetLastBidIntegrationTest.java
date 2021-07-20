@@ -21,8 +21,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.SQLException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(VertxExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -84,4 +83,39 @@ public class GetLastBidIntegrationTest extends AbstractIntegrationTest {
                     testContext.completeNow();
                 })));
     }
+
+//.pathParameter(Parameters.param("bidderaccountid", Utils.LONG_STRING_MAX_SCHEMA))
+
+  @Test
+  public void getLastBidInvalidAuctionId(VertxTestContext testContext) {
+    webClient.get(9005, "localhost", "/v1/lastbid/abc/1")
+            .as(BodyCodec.jsonObject())
+            .send(testContext.succeeding(response -> testContext.verify(() -> {
+              assertNull(response.body());
+              assertEquals(500, response.statusCode());
+              testContext.completeNow();
+            })));
+  }
+
+  @Test
+  public void getLastBidAuctionIdZero(VertxTestContext testContext) {
+    webClient.get(9005, "localhost", "/v1/lastbid/0/1")
+            .as(BodyCodec.jsonObject())
+            .send(testContext.succeeding(response -> testContext.verify(() -> {
+              assertNull(response.body());
+              assertEquals(500, response.statusCode());
+              testContext.completeNow();
+            })));
+  }
+
+  @Test
+  public void getLastBidLongBidString(VertxTestContext testContext) {
+    webClient.get(9005, "localhost", "/v1/lastbid/1/".concat(LONG_ID_STRING))
+            .as(BodyCodec.jsonObject())
+            .send(testContext.succeeding(response -> testContext.verify(() -> {
+              assertNull(response.body());
+              assertEquals(500, response.statusCode());
+              testContext.completeNow();
+            })));
+  }
 }

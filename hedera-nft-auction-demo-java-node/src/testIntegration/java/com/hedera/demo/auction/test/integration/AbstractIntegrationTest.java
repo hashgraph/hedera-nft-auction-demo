@@ -34,6 +34,7 @@ public class AbstractIntegrationTest {
     protected WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
     protected final static Dotenv env = Dotenv.configure().filename(".env.integration.sample").ignoreIfMissing().load();
     protected final static String LONG_KEY = StringUtils.repeat("*", 100);
+    protected final static String LONG_ID_STRING = StringUtils.repeat("*", 25);
     protected final static String VERY_LONG_STRING = StringUtils.repeat("*", 70000);
     @SuppressWarnings("FieldMissingNullable")
     protected final static String apiKey = Optional.ofNullable(env.get("X_API_KEY")).orElse("");

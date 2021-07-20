@@ -32,14 +32,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "export": "next export",
-    "lint": "next lint"
+    "export": "next export"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
-      "react-app/jest",
-      "next"
+      "react-app/jest"
     ]
   },
   "browserslist": {

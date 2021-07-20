@@ -138,8 +138,6 @@ const BidHistory = ({ auction }) => {
       </div>
     )
 
-    console.log('AUCTION', auction)
-
   return (
     <div className='relative'>
       <PurpleGradientBorder />

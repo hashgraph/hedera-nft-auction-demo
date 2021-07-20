@@ -1,13 +1,13 @@
 import React from 'react'
 import CloseIcon from './assets/close_icon.svg'
-import HbarUnbit from 'components/common/HbarUnit'
 
 const Modal = ({ isOpen, close, auction }) => {
-  console.log('AUCTION', auction)
   const { auctionaccountid, title } = auction
   if (!isOpen) return null
 
   const handleClose = () => {
+    const body = window.document.getElementsByTagName('body')[0]
+    body.style.overflow = 'inherit'
     close()
   }
 

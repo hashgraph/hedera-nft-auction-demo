@@ -122,7 +122,7 @@ public class ApiVerticle extends AbstractVerticle {
                 .handler(ValidationHandler
                         .builder(schemaParser)
                         .pathParameter(Parameters.param("auctionid", intSchema().with(minimum(1))))
-                        .pathParameter(Parameters.param("bidderaccountid", Utils.LONG_STRING_MAX_SCHEMA))
+                        .pathParameter(Parameters.param("bidderaccountid", Utils.SHORT_STRING_SCHEMA))
                         .build())
                 .handler(getLastBidderBidHandler);
 

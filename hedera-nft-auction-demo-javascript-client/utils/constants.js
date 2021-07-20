@@ -1,1 +1,2 @@
-export const NETWORK = process.env.NEXT_PUBLIC_NETWORK ? process.env.NEXT_PUBLIC_NETWORK : "Testnet";
+
+export const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_API_URL

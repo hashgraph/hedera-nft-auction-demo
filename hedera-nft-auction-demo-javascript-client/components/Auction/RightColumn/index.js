@@ -29,12 +29,19 @@ const RightColumn = ({ auction }) => {
         className='hidden md:flex flex-col items-end justify-center cursor-pointer'
         onClick={openShareModal}
       >
-        <img
-          src='/assets/share-icon.svg'
-          className='h-5 w-5 relative'
-          style={{ right: '11px' }}
-        />
-        <p className='font-light'>Share</p>
+        <div style={{ marginRight: '14px' }}>
+          <img
+            src='/assets/share-icon.svg'
+            className='h-7 w-7 relative'
+            style={{ left: '3px', marginBottom: '2px' }}
+          />
+          <p
+            className='font-light'
+            style={{ fontSize: '12px', paddingBottom: '6px' }}
+          >
+            Share
+          </p>
+        </div>
       </div>
       <BidHistory auction={auction} />
       <BidModal isOpen={isPlacingBid} close={closeBidModal} auction={auction} />

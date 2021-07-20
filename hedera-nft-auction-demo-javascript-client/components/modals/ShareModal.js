@@ -90,7 +90,7 @@ const Modal = ({ isOpen, close, auction }) => {
           <div className='absolute inset-0 bg-black opacity-75'></div>
         </div>
         <div
-          className='inline-block align-bottom text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full'
+          className='inline-block align-bottom text-left overflow-hidden shadow-share-modal transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full'
           role='dialog'
           aria-modal='true'
           aria-labelledby='modal-headline'
@@ -103,16 +103,16 @@ const Modal = ({ isOpen, close, auction }) => {
           >
             <div className='pt-5 pb-4 sm:p-6 sm:pb-4'>
               {hasCopiedText && (
-                <p className='text-white mb-2 absolute left-2 top-2'>Copied!</p>
+                <p className='text-white mb-2 absolute left-36 top-2'>Copied!</p>
               )}
-              <div className='text-center'>
+              <div className='text-center flex py-3'>
+                <p className='text-white mr-2'>{shareUrl}</p>
                 <CopyToClipboard onCopy={handleCopy} text={shareUrl}>
                   <FaCopy
-                    className='absolute right-2 top-2 cursor-pointer'
-                    style={{ color: '#4B68F1' }}
+                    className='cursor-pointer relative'
+                    style={{ color: '#4B68F1', top: '2px' }}
                   />
                 </CopyToClipboard>
-                <p className='text-white m-3 py-3'>{shareUrl}</p>
               </div>
               <ShareIcons url={shareUrl} />
             </div>

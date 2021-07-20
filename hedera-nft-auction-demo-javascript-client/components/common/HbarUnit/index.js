@@ -1,19 +1,46 @@
-const HbarUnit = ({ className, amount, italic, bold }) => {
-  let classNames = italic ? `italic ` : ''
+const HbarUnit = ({
+  className,
+  amount,
+  italic,
+  bold,
+  amountBold,
+  large,
+  medium,
+  card,
+  description,
+}) => {
+  const getFontSize = () => {
+    if (medium) return '28px'
+    if (large) return '34px'
+    if (card) return '22px'
+    return ''
+  }
+  const fontSize = getFontSize()
+  let classNames = ''
   if (bold) classNames += ' font-bold '
-  if (!amount && amount !== 0) return <span className={classNames + className}>ℏ</span>
+  if (!amount && amount !== 0)
+    return <span className={classNames + className}>ℏ</span>
   if (amount % 1000000 === 0)
     return (
-      <p className={className}>
-        {amount / 1000000}
-        <span className={classNames}>ℏ</span>
-      </p>
+      <span className={className} style={{ fontSize }}>
+        <span className={amountBold ? 'font-bold' : ''}>
+          {amount / 1000000}
+        </span>
+        <span
+          className={classNames + 'font-light'}
+          style={{ marginLeft: '3px' }}
+        >
+          ℏ
+        </span>
+      </span>
     )
   return (
-    <p className={className}>
-      {amount}
-      <span className={classNames}>ℏ</span>
-    </p>
+    <span className={className} style={{ fontSize }}>
+      <span className={amountBold ? 'font-bold' : ''}>{amount}</span>
+      <span className={classNames + 'font-light'} style={{ marginLeft: '3px' }}>
+        ℏ
+      </span>
+    </span>
   )
 }
 

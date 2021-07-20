@@ -67,6 +67,17 @@ const LiveAuction = () => {
   const noLiveAuctionsToShow = mostRecentLiveAuctions.length === 0
   const noSoldAuctionsToShow = mostRecentSoldAuctions.length === 0
 
+  const girdCount = 4
+
+  const numberOfLiveAuctions = mostRecentLiveAuctions.length
+  const numberOfSoldAuctions = mostRecentSoldAuctions.length
+
+  const numberOfPlaceholderLiveAuctions =
+    numberOfLiveAuctions >= girdCount ? 0 : girdCount - numberOfLiveAuctions
+
+  const numberOfPlaceholderSoldAuctions =
+    numberOfSoldAuctions >= girdCount ? 0 : girdCount - numberOfSoldAuctions
+
   return (
     <div className=''>
       <FeaturedAuction featuredAuction={featuredAuction} />
@@ -82,7 +93,9 @@ const LiveAuction = () => {
           </h1>
           <ViewAllButton onClick={hanldeViewAllLiveAuctionsClick} />
         </div>
-        <div className='flex flex-wrap'>
+        <div
+          className={`grid sm:grid-cols-4 grid-rows-1 gap-10`}
+        >
           {noLiveAuctionsToShow ? (
             <p className='font-thin'>No Live Auctions</p>
           ) : (
@@ -111,7 +124,9 @@ const LiveAuction = () => {
           </h1>
           <ViewAllButton onClick={handleViewAllSoldClick} />
         </div>
-        <div className='flex justify-start flex-wrap'>
+        <div
+          className={`grid sm:grid-cols-4 grid-rows-1 gap-10`}
+        >
           {noSoldAuctionsToShow ? (
             <p className='font-thin'>No Sold Auctions</p>
           ) : (

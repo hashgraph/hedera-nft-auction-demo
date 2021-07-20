@@ -5,18 +5,18 @@ import ConnectWalletIcon from './assets/connect_wallet_logo.svg'
 import MobileMenuIcon from './assets/mobile_menu_icon.svg'
 import NFTLogo from './assets/nft-auction.svg'
 import { useWindowSize } from '@react-hook/window-size'
-import {
-  BrowserView,
-  MobileView,
-  isBrowser,
-  isMobile
-} from "react-device-detect";
+import { isMobile } from 'react-device-detect'
 
-const Link = ({ item, isMobile, closeMenu }) => {
+const Link = ({ item, isMobile, closeMenu, externalLink }) => {
   const isActive = item.isActive
   const router = useRouter()
 
   const goToPage = () => {
+    if (externalLink) {
+      window.open(externalLink, '_blank')
+      closeMenu()
+      return
+    }
     router.push(item.to)
     closeMenu()
   }
@@ -65,7 +65,6 @@ const TopBarMenu = () => {
   const connectWalletLogoSrc = '/assets/connect-wallet.png'
   const mobileConnectWalletLogoSrc = '/assets/connect-wallet-mobile.png'
 
-
   const closeMenu = () => setOpen(false)
 
   const router = useRouter()
@@ -85,6 +84,10 @@ const TopBarMenu = () => {
     { name: 'Sold', to: '/sold', isActive: isViewingSold },
   ]
 
+  if (isMobile || width < 640) {
+    navigation.push({ name: 'FAQ', externalLink: 'https://help.hedera.com/' })
+  }
+
   const goToHederaFAQ = () => window.open('https://help.hedera.com/', '_blank')
 
   return (
@@ -94,10 +97,10 @@ const TopBarMenu = () => {
     >
       <div className='mx-auto'>
         <div className='relative flex items-center justify-between h-20'>
-          <div className='flex items-center justify-between sm:justify-between w-full'>
+          <div className='flex items-center justify-between sm:justify-between w-full sm:flex-row flex-row-reverse'>
             <div
               onClick={handleMenuToggle}
-              className='cursor-pointer inline-flex items-center justify-center p-2 rounded-md text-gray-400 focus:outline-none focus:ring-none sm:hidden'
+              className='cursor-pointer inline-flex items-center justify-center rounded-md text-gray-400 focus:outline-none focus:ring-none sm:hidden'
             >
               {isOpen ? (
                 <CloseIcon className='block h-6 w-6' />
@@ -119,23 +122,20 @@ const TopBarMenu = () => {
               {/* Desktop Nav */}
               <div className='hidden sm:flex items-center sm:ml-10'>
                 {navigation.map(item => (
-                  <Link key={item.name} item={item} closeMenu={closeMenu} />
+                  <Link
+                    key={item.name}
+                    item={item}
+                    closeMenu={closeMenu}
+                    externalLink={item.externalLink}
+                  />
                 ))}
               </div>
             </div>
-            {/* <ConnectWalletIcon
-                onClick={goToHederaFAQ}
-                style={{ width: '8.75rem' }}
-                className='cursor-pointer'
-              /> */}
-            {}
-            <img
-              src={
-                (isMobile || width && width < 640)
-                  ? mobileConnectWalletLogoSrc
-                  : connectWalletLogoSrc
-              }
-            />
+            {!(isMobile && width < 640) && (
+              <p className='cursor-pointer' onClick={goToHederaFAQ}>
+                FAQ
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -143,7 +143,13 @@ const TopBarMenu = () => {
       <div className='sm:hidden flex mt-3'>
         {isOpen &&
           navigation.map(item => (
-            <Link isMobile key={item.name} item={item} closeMenu={closeMenu} />
+            <Link
+              isMobile
+              key={item.name}
+              item={item}
+              closeMenu={closeMenu}
+              externalLink={item.externalLink}
+            />
           ))}
       </div>
     </div>

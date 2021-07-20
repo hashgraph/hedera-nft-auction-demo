@@ -26,7 +26,7 @@ const AllLiveAuctions = () => {
 
   return (
     <div className=''>
-      <div className='flex flex-wrap'>
+      <div className='grid sm:grid-cols-4 grid-rows-1 gap-10'>
         {liveAuctions.map((auction, index) => {
           const isLastItem = index === liveAuctions.length - 1
           return (

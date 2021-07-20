@@ -20,7 +20,7 @@ const FirstBidItem = ({ auctionaccountid, createdAt, reserve }) => {
           <p className='font-light text-xs text-gray-400'>Listed by</p>
           <p className='font-bold text-sm'>{auctionaccountid}</p>
         </div>
-        <div className='flex flex-grow justify-between items-center'>
+        <div className='flex flex-grow justify-between sm:items-center items-left sm:flex-row flex-col'>
           <div className='sm:pb-0 pb-4 w-3/4'>
             <p className='font-light text-xs text-gray-400'>Date created</p>
             <p className='font-bold text-sm'>{createdAt}</p>

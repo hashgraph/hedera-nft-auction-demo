@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class EasySetupSystemTest extends AbstractSystemTest {
 
+    private SqlConnectionManager connectionManager;
     EasySetupSystemTest() throws Exception {
         super();
     }
@@ -37,7 +38,7 @@ public class EasySetupSystemTest extends AbstractSystemTest {
         postgres = new PostgreSQLContainer("postgres:12.6");
         postgres.start();
         migrate(postgres);
-        SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+        connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
         validatorsRepository = new ValidatorsRepository(connectionManager);
@@ -56,6 +57,7 @@ public class EasySetupSystemTest extends AbstractSystemTest {
         requestEasySetup.clean = true;
         requestEasySetup.setName(tokenName);
         requestEasySetup.setSymbol(symbol);
+        easySetup.setConnectionManager(connectionManager);
         String topic = easySetup.setup(requestEasySetup);
         topicId = TopicId.fromString(topic);
     }

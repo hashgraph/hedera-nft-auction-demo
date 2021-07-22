@@ -50,22 +50,26 @@ public class ApiVerticle extends AbstractVerticle {
                 .load();
 
         String url = Optional.ofNullable(config().getString("DATABASE_URL")).orElse(Optional.ofNullable(env.get("DATABASE_URL")).orElse(""));
-        String username = Optional.ofNullable(config().getString("DATABASE_USERNAME")).orElse(Optional.ofNullable(env.get("DATABASE_USERNAME")).orElse(""));
-        String password = Optional.ofNullable(config().getString("DATABASE_PASSWORD")).orElse(Optional.ofNullable(env.get("DATABASE_PASSWORD")).orElse(""));
+        String database = Optional.ofNullable(config().getString("POSTGRES_DB")).orElse(Optional.ofNullable(env.get("POSTGRES_DB")).orElse(""));
+        String username = Optional.ofNullable(config().getString("POSTGRES_USER")).orElse(Optional.ofNullable(env.get("POSTGRES_USER")).orElse(""));
+        String password = Optional.ofNullable(config().getString("POSTGRES_PASSWORD")).orElse(Optional.ofNullable(env.get("POSTGRES_PASSWORD")).orElse(""));
         int poolSize = Integer.parseInt(Optional.ofNullable(config().getString("POOL_SIZE")).orElse(Optional.ofNullable(env.get("POOL_SIZE")).orElse("1")));
         int httpPort = Integer.parseInt(Optional.ofNullable(config().getString("API_PORT")).orElse(Optional.ofNullable(env.get("API_PORT")).orElse("9005")));
 
         if (StringUtils.isEmpty(url)) {
             throw new Exception("missing environment variable DATABASE_URL");
         }
+        if (StringUtils.isEmpty(database)) {
+            throw new Exception("missing environment variable POSTGRES_DB");
+        }
         if (StringUtils.isEmpty(username)) {
-            throw new Exception("missing environment variable DATABASE_USERNAME");
+            throw new Exception("missing environment variable POSTGRES_USER");
         }
         if (StringUtils.isEmpty(password)) {
-            throw new Exception("missing environment variable DATABASE_PASSWORD");
+            throw new Exception("missing environment variable POSTGRES_PASSWORD");
         }
         PgConnectOptions pgConnectOptions = PgConnectOptions
-                        .fromUri(url)
+                        .fromUri(url.concat(database))
                         .setUser(username)
                         .setPassword(password);
         PoolOptions poolOptions = new PoolOptions().setMaxSize(poolSize);

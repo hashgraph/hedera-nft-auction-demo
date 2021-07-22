@@ -39,7 +39,8 @@ public class GetLastBidIntegrationTest extends AbstractIntegrationTest {
 
         deployServerAndClient(postgres, this.vertx, testContext, new ApiVerticle());
 
-        SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
+        String url = this.postgres.getJdbcUrl().replace("test?loggerLevel=OFF", "");
+        SqlConnectionManager connectionManager = new SqlConnectionManager(url, this.postgres.getUsername(), this.postgres.getPassword());
         this.auctionsRepository = new AuctionsRepository(connectionManager);
         this.bidsRepository = new BidsRepository(connectionManager);
     }
@@ -77,14 +78,11 @@ public class GetLastBidIntegrationTest extends AbstractIntegrationTest {
                     assertEquals(bid2.getTimestamp(), body.getString("timestamp"));
                     assertEquals(bid2.getAuctionid(), body.getInteger("auctionid"));
 
-                    vertx.close(testContext.succeeding());
                     bidsRepository.deleteAllBids();
                     auctionsRepository.deleteAllAuctions();
                     testContext.completeNow();
                 })));
     }
-
-//.pathParameter(Parameters.param("bidderaccountid", Utils.LONG_STRING_MAX_SCHEMA))
 
   @Test
   public void getLastBidInvalidAuctionId(VertxTestContext testContext) {

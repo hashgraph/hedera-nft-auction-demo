@@ -63,9 +63,10 @@ jobs:
           MIRROR_PROVIDER: hedera
           MIRROR_QUERY_FREQUENCY: 5000
           #       Database information for transaction and event logging
-          DATABASE_URL: postgresql://localhost:5432/postgres
-          DATABASE_USERNAME: postgres
-          DATABASE_PASSWORD: password
+          DATABASE_URL: postgresql://localhost:5432/
+          POSTGRES_DB: nftauction
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
           #       Database information for transaction and event logging
           POOL_SIZE: 1
           #       REST Mirror urls

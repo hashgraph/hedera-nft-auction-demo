@@ -9,7 +9,6 @@ import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.demo.auction.app.repository.ValidatorsRepository;
 import com.hedera.demo.auction.test.system.AbstractAPITester;
 import com.hedera.hashgraph.sdk.PrivateKey;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -31,7 +30,6 @@ import static org.awaitility.Awaitility.await;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AdminAPISystemTest extends AbstractAPITester {
 
-    Vertx vertx;
     App app = new App();
     String publicKey;
     String publicKey2;
@@ -49,9 +47,6 @@ public class AdminAPISystemTest extends AbstractAPITester {
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
         validatorsRepository = new ValidatorsRepository(connectionManager);
-
-//        this.vertx = Vertx.vertx();
-//        this.webClient = WebClient.create(this.vertx);
     }
 
     @AfterAll

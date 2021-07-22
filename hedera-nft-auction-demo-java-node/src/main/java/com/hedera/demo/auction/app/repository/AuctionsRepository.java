@@ -150,28 +150,36 @@ public class AuctionsRepository {
     }
 
     /**
-     * Sets an auction's status to ACTIVE, updates the tokenOwner and startTimestamp
+     * Sets an auction's status to ACTIVE if it's PENDING and
+     * updates the tokenOwner and startTimestamp
      *
      * @param auction the Auction object being updated
      * @param tokenOwnerAccount the token owner's account id
      * @param timestamp the start time stamp of the auction
      * @return an updated Auction object
-     * @throws SQLException in the event of an error
+     * @throws Exception in the event of an error
      */
-    public Auction setActive(Auction auction, String tokenOwnerAccount, String timestamp) throws SQLException {
+    public Auction setActive(Auction auction, String tokenOwnerAccount, String timestamp) throws Exception {
         DSLContext cx = connectionManager.dsl();
 
-        cx.update(AUCTIONS)
+        int rows = cx.update(AUCTIONS)
                 .set(AUCTIONS.STATUS, Auction.ACTIVE)
                 .set(AUCTIONS.STARTTIMESTAMP, timestamp)
                 .set(AUCTIONS.TOKENOWNER, tokenOwnerAccount)
                 .where(AUCTIONS.AUCTIONACCOUNTID.eq(auction.getAuctionaccountid()))
+                .and(AUCTIONS.STATUS.eq(Auction.PENDING))
                 .execute();
 
-        auction.setStatus(Auction.ACTIVE);
-        auction.setStarttimestamp(timestamp);
-        auction.setTokenowneraccount(tokenOwnerAccount);
-        return auction;
+        if (rows != 0) {
+            auction.setStatus(Auction.ACTIVE);
+            auction.setStarttimestamp(timestamp);
+            auction.setTokenowneraccount(tokenOwnerAccount);
+            return auction;
+        } else {
+            String message = "auction cannot be set to ACTIVE, it's not PENDING";
+            log.error(message);
+            throw new Exception(message);
+        }
     }
 
     /**

@@ -13,7 +13,6 @@ import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
 import javax.annotation.Nullable;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -195,7 +194,7 @@ public class AuctionReadinessWatcher implements Runnable {
                 }
                 return false;
             }
-        } catch (RuntimeException | SQLException e) {
+        } catch (Exception e) {
             log.error(e, e);
         }
         return false;

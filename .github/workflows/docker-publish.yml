@@ -46,13 +46,6 @@ jobs:
       - name: Push ui image
         run: docker push ghcr.io/${{ github.repository }}/nft-auction-demo-ui:latest
 
-      - name: Build postgres image
-        run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/nft-auction-postgres:latest --tag ghcr.io/${{ github.repository }}/nft-auction-postgres:$VERSION --tag ghcr.io/${{ github.repository }}/nft-auction-postgres:$DATETIME --label "runnumber=${GITHUB_RUN_ID}"
-        working-directory: docker-postgres
-
-      - name: Push postgres image
-        run: docker push ghcr.io/${{ github.repository }}/nft-auction-postgres:latest
-
       - name: Build java node image
         run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/hedera_nft_auction_java_node:latest --tag ghcr.io/${{ github.repository }}/hedera_nft_auction_java_node:$VERSION --tag ghcr.io/${{ github.repository }}/hedera_nft_auction_java_node:$DATETIME --label "runnumber=${GITHUB_RUN_ID}"
         working-directory: hedera-nft-auction-demo-java-node

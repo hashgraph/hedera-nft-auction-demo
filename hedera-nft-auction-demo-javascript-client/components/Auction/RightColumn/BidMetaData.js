@@ -91,7 +91,7 @@ const BidMetaData = ({ auction }) => {
                     lineHeight: '2.25rem',
                   }}
                 >
-                  {timeLeft.hours || 5}
+                  {timeLeft.hours || 0}
                 </p>
                 <p className='font-light sm:mb-0 -m-0.5'>Hours</p>
               </div>
@@ -102,7 +102,7 @@ const BidMetaData = ({ auction }) => {
                     lineHeight: '2.25rem',
                   }}
                 >
-                  {timeLeft.minutes || 10}
+                  {timeLeft.minutes || 0}
                 </p>
                 <p className='font-light sm:mb-0 -m-0.5'>Minutes</p>
               </div>
@@ -113,7 +113,7 @@ const BidMetaData = ({ auction }) => {
                     lineHeight: '2.25rem',
                   }}
                 >
-                  {timeLeft.seconds || 20}
+                  {timeLeft.seconds || 0}
                 </p>
                 <p className='font-light sm:mb-0 -m-0.5'>Seconds</p>
               </div>

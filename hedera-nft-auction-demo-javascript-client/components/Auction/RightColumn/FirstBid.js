@@ -1,7 +1,7 @@
 import getUsdValue from 'utils/getUsdValue'
 import useHederaPrice from 'hooks/useHederaPrice'
 
-const FirstBidItem = ({ auctionaccountid, createdAt, reserve }) => {
+const FirstBidItem = ({ auctionaccountid, createdAt, reserve, isLive }) => {
   const handleTransactoinViewClick = async () => {
     const { network } = await fetchEnvironment()
     const isTestNet = network === 'testnet'
@@ -15,7 +15,7 @@ const FirstBidItem = ({ auctionaccountid, createdAt, reserve }) => {
     <div
       className={`mb-8 shadow-bid-item sm:h-16 h-full relative flex justify-between`}
     >
-      <div className='bg-purple-gradient w-2 h-full absolute' />
+      {isLive && <div className='bg-purple-gradient w-2 h-full absolute' />}
       <div className='flex sm:flex-row flex-col sm:items-center items-left w-full justify-between sm:ml-5 ml-7 sm:mt-0 mt-3'>
         <div className='sm:pb-0 pb-4 w-1/4'>
           <p className='font-light text-xs text-gray-400 whitespace-nowrap'>Listing Transaction</p>

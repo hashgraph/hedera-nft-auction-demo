@@ -11,11 +11,11 @@ import getBidValue from 'utils/getBidValueToShow'
 const FeaturedAuction = ({ featuredAuction }) => {
   const [isPlacingBid, setBidStatus] = React.useState(false)
   const { currentPrice, isFetching: isFetchingHederaData } = useHederaPrice()
-  const { endtimestamp, winningbid, minimumbid, reserve } = featuredAuction
-
-  const timeLeft = useCountdown(endtimestamp)
-
+  
   if (!featuredAuction) return null
+  const timeLeft = useCountdown(endtimestamp)
+  
+  const { endtimestamp, winningbid, minimumbid, reserve } = featuredAuction
   const {
     tokenid: featuredTokenId,
     reserve: featuredReserve,

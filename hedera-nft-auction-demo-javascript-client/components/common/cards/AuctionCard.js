@@ -9,7 +9,6 @@ const MINUTES_IN_AN_HOUR = 60
 const LiveAuctionCard = ({
   auction,
   showStatus,
-  isLastItem,
 }) => {
   const router = useRouter()
   const {
@@ -31,7 +30,7 @@ const LiveAuctionCard = ({
   const getStatus = () => {
     if (!showStatus) return
     if (ended) return 'SOLD'
-    if (status === 'CLOSED') return null
+    if (status === 'CLOSED') return 'CLOSED'
   }
 
   const bidToShow = getBidValue(winningbid)

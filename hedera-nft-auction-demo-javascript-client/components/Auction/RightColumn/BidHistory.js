@@ -18,7 +18,7 @@ const getFormattedTime = timestamp => {
   return dayjs(new Date(seconds * 1000)).format('LLL')
 }
 
-const BidItem = ({ bid, currentPrice, isWinner, isClosed }) => {
+const BidItem = ({ bid, currentPrice, isWinner, isClosed, isLive }) => {
   const { timestamp, bidamount, bidderaccountid, transactionid } = bid
   const formattedTimestamp = getFormattedTime(timestamp)
 
@@ -43,7 +43,7 @@ const BidItem = ({ bid, currentPrice, isWinner, isClosed }) => {
 
   const marginClass = getMarginClass()
 
-  const showPurpleBar = !isClosed || (isClosed && isWinner)
+  const showPurpleBar = isLive || (isClosed && isWinner)
 
   return (
     <div
@@ -117,6 +117,7 @@ const BidHistory = ({ auction }) => {
   } = auction
 
   const isClosed = auctionStatus === 'CLOSED'
+  const isLive = auctionStatus === 'ACTIVE'
   const formattedCreatedTime = getFormattedTime(createdAtTimestamp)
 
   if (isLoading) return <p>Loading...</p>
@@ -139,6 +140,7 @@ const BidHistory = ({ auction }) => {
             auctionaccountid={auctionaccountid}
             createdAt={formattedCreatedTime}
             reserve={reserve}
+            isLive={isLive}
           />
         </div>
       </div>
@@ -166,6 +168,7 @@ const BidHistory = ({ auction }) => {
               isLastItem={isLastItem}
               isWinner={isWinner}
               isClosed={isClosed}
+              isLive={isLive}
             />
           )
         })}

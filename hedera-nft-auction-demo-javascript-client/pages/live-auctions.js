@@ -1,16 +1,15 @@
 import React from 'react'
 import AuctionCard from 'components/common/cards/AuctionCard'
-import fetchAuctions from 'utils/getAuctions'
-import { useRouter } from 'next/router'
+import fethLiveAuctions from 'utils/getLiveAuctions'
 
 const AllLiveAuctions = () => {
-  const [auctions, setAuctions] = React.useState(null)
+  const [liveAuctions, setAuctions] = React.useState([])
 
   React.useEffect(() => {
     const asyncAuctionsFetch = async () => {
       try {
-        const auctions = await fetchAuctions()
-        setAuctions(auctions)
+        const liveAuctions = await fethLiveAuctions()
+        setAuctions(liveAuctions)
       } catch (error) {
         console.log('Error fetching auctions', error)
       }
@@ -18,24 +17,20 @@ const AllLiveAuctions = () => {
     asyncAuctionsFetch()
   }, [])
 
-  if (!auctions) return null
+  const noLiveAuctions = liveAuctions.length === 0
 
-  const liveAuctions = auctions.filter(
-    auction => !auction.ended && auction.active
-  )
+  if (noLiveAuctions)
+    return (
+      <div className='text-center font-thin'>
+        <p>No active auctions</p>
+      </div>
+    )
 
   return (
     <div className=''>
       <div className='grid sm:grid-cols-2 lg:grid-cols-4 grid-rows-1 gap-10'>
-        {liveAuctions.map((auction, index) => {
-          const isLastItem = index === liveAuctions.length - 1
-          return (
-            <AuctionCard
-              key={auction.id}
-              auction={auction}
-              isLastItem={isLastItem}
-            />
-          )
+        {liveAuctions.map(auction => {
+          return <AuctionCard key={auction.id} auction={auction} />
         })}
       </div>
     </div>

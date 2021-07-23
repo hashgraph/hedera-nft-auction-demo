@@ -31,7 +31,7 @@ const BidMetaData = ({ auction }) => {
 
   if (isOver)
     return (
-      <div className='flex justify-between flex-row items-center'>
+      <div className='flex sm:items-center items-left sm:flex-row flex-col'>
         <div>
           <p className='font-bold text-md'>Sold For</p>
           <p className='font-bold sm:text-3xl text-md'>
@@ -39,11 +39,8 @@ const BidMetaData = ({ auction }) => {
           </p>
           <p className='text-gray-400 font-thin text-sm'>${usdValue}</p>
         </div>
-        <p
-          className='border-gradient border-gradient-purple font-thin text-sm p-1 mt-3'
-          style={{ fontSize: '12px' }}
-        >
-          This auction is <span className='font-bold'>Closed</span>
+        <p className='border-gradient border-gradient-purple text-sm py-1 px-3 sm:mt-3 mt-6 sm:ml-10 ml-0 relative bottom-1 text-xl font-light sm:text-left text-center'>
+          This auction is <span className='font-bold'>closed</span>
         </p>
       </div>
     )

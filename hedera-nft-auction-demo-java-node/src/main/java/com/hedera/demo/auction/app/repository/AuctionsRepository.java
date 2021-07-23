@@ -2,7 +2,6 @@ package com.hedera.demo.auction.app.repository;
 
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.SqlConnectionManager;
-import com.hedera.demo.auction.app.db.Tables;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.domain.Bid;
 import lombok.extern.log4j.Log4j2;
@@ -10,9 +9,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.Record2;
 import org.jooq.Result;
 import org.jooq.exception.DataAccessException;
+import org.jooq.impl.DSL;
 
 import javax.annotation.Nullable;
 import java.sql.SQLException;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.hedera.demo.auction.app.db.Tables.AUCTIONS;
+import static com.hedera.demo.auction.app.db.Tables.BIDS;
 
 /**
  * Repository to manage auctions in the database
@@ -360,9 +362,8 @@ public class AuctionsRepository {
      * @throws SQLException in the event of an error
      */
     public Auction add(Auction auction) throws SQLException {
-        @Var DSLContext cx = null;
         try {
-            cx = connectionManager.dsl();
+            DSLContext cx = connectionManager.dsl();
             cx.insertInto(AUCTIONS,
                     AUCTIONS.TOKENID,
                     AUCTIONS.AUCTIONACCOUNTID,
@@ -429,9 +430,8 @@ public class AuctionsRepository {
      * @throws SQLException in the event of an error
      */
     public Auction createComplete(Auction auction) throws SQLException{
-        @Var DSLContext cx = null;
         try {
-            cx = connectionManager.dsl();
+            DSLContext cx = connectionManager.dsl();
             cx.insertInto(AUCTIONS,
                     AUCTIONS.TOKENID,
                     AUCTIONS.AUCTIONACCOUNTID,
@@ -499,51 +499,67 @@ public class AuctionsRepository {
     public void commitBidAndAuction(boolean updatePriorBid, long bidAmount, Bid priorBid, Auction auction, Bid newBid) throws SQLException {
         DSLContext cx = connectionManager.dsl();
 
-        //TODO: This should be transactional
-        if (updatePriorBid) {
-            int rows = cx.update(Tables.BIDS)
-                    .set(Tables.BIDS.STATUS, priorBid.getStatus())
-                    .set(Tables.BIDS.REFUNDSTATUS, priorBid.getRefundstatus())
-                    .where(Tables.BIDS.TIMESTAMP.eq(priorBid.getTimestamp()))
-                    .and(Tables.BIDS.REFUNDSTATUS.eq("")) // don't overwrite refund status if already set
-                    .execute();
-            log.debug("Updated {} bids", rows);
+        @NotNull
+        Result<Record1<String>> rows = cx.select(BIDS.TIMESTAMP).from(BIDS).where(BIDS.TIMESTAMP.eq(priorBid.getTimestamp())).and(BIDS.REFUNDSTATUS.ne("")).fetch();
+
+        @Var boolean shouldUpdate = true;
+        if ((rows != null) && (rows.size() != 0)) {
+            // this bid already exists in the database and its refund status is already set
+            shouldUpdate = false;
         }
 
-        cx.update(AUCTIONS)
-                .set(AUCTIONS.LASTCONSENSUSTIMESTAMP, auction.getLastconsensustimestamp())
-                .set(AUCTIONS.WINNINGACCOUNT, auction.getWinningaccount())
-                .set(AUCTIONS.WINNINGBID, auction.getWinningbid())
-                .set(AUCTIONS.WINNINGTIMESTAMP, auction.getWinningtimestamp())
-                .set(AUCTIONS.WINNINGTXID, auction.getWinningtxid())
-                .set(AUCTIONS.WINNINGTXHASH, auction.getWinningtxhash())
-                .where(AUCTIONS.AUCTIONACCOUNTID.eq(auction.getAuctionaccountid()))
-                .execute();
+        boolean finalShouldUpdatePriorBid = updatePriorBid && shouldUpdate;
+        cx.transaction(configuration -> {
+            if (finalShouldUpdatePriorBid) {
+                int updatedRows = DSL.using(configuration).update(BIDS)
+                        .set(BIDS.STATUS, priorBid.getStatus())
+                        .set(BIDS.REFUNDSTATUS, priorBid.getRefundstatus())
+                        .where(BIDS.TIMESTAMP.eq(priorBid.getTimestamp()))
+                        .and(BIDS.REFUNDSTATUS.eq("")) // don't overwrite refund status if already set
+                        .execute();
+                log.debug("Updated {} bids", updatedRows);
 
-        if (bidAmount> 0) {
-            try {
-                cx.insertInto(Tables.BIDS,
-                        Tables.BIDS.AUCTIONID,
-                        Tables.BIDS.STATUS,
-                        Tables.BIDS.TIMESTAMP,
-                        Tables.BIDS.BIDAMOUNT,
-                        Tables.BIDS.BIDDERACCOUNTID,
-                        Tables.BIDS.TRANSACTIONID,
-                        Tables.BIDS.TRANSACTIONHASH,
-                        Tables.BIDS.REFUNDSTATUS
-                ).values(
-                        newBid.getAuctionid(),
-                        newBid.getStatus(),
-                        newBid.getTimestamp(),
-                        newBid.getBidamount(),
-                        newBid.getBidderaccountid(),
-                        newBid.getTransactionid(),
-                        newBid.getTransactionhash(),
-                        newBid.getRefundstatus()
-                ).execute();
-            } catch (DataAccessException e) {
-                log.debug("Bid already in database");
             }
-        }
+            DSL.using(configuration).update(AUCTIONS)
+                    .set(AUCTIONS.LASTCONSENSUSTIMESTAMP, auction.getLastconsensustimestamp())
+                    .set(AUCTIONS.WINNINGACCOUNT, auction.getWinningaccount())
+                    .set(AUCTIONS.WINNINGBID, auction.getWinningbid())
+                    .set(AUCTIONS.WINNINGTIMESTAMP, auction.getWinningtimestamp())
+                    .set(AUCTIONS.WINNINGTXID, auction.getWinningtxid())
+                    .set(AUCTIONS.WINNINGTXHASH, auction.getWinningtxhash())
+                    .where(AUCTIONS.AUCTIONACCOUNTID.eq(auction.getAuctionaccountid()))
+                    .execute();
+
+            if (bidAmount > 0) {
+                // does the bid already exist ?
+                @NotNull
+                Result<Record1<String>> bid = DSL.using(configuration).select(BIDS.TIMESTAMP).from(BIDS).where(BIDS.TIMESTAMP.eq(newBid.getTimestamp())).fetch();
+
+                if ((bid == null) || (bid.size() == 0)) {
+                    // this bid is definitely new, add it
+                    DSL.using(configuration).insertInto(BIDS,
+                            BIDS.AUCTIONID,
+                            BIDS.STATUS,
+                            BIDS.TIMESTAMP,
+                            BIDS.BIDAMOUNT,
+                            BIDS.BIDDERACCOUNTID,
+                            BIDS.TRANSACTIONID,
+                            BIDS.TRANSACTIONHASH,
+                            BIDS.REFUNDSTATUS
+                    ).values(
+                            newBid.getAuctionid(),
+                            newBid.getStatus(),
+                            newBid.getTimestamp(),
+                            newBid.getBidamount(),
+                            newBid.getBidderaccountid(),
+                            newBid.getTransactionid(),
+                            newBid.getTransactionhash(),
+                            newBid.getRefundstatus()
+                    ).execute();
+                } else {
+                    log.debug("Bid already in database");
+                }
+            }
+        });
     }
 }

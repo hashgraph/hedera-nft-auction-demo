@@ -3,6 +3,7 @@ package com.hedera.demo.auction.test.integration;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.domain.Bid;
 import com.hedera.demo.auction.app.domain.Validator;
+import com.hedera.hashgraph.sdk.PrivateKey;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
@@ -126,8 +127,8 @@ public class AbstractIntegrationTest {
     String description() { return stringPlusIndex("description");}
 
     String validatorName() { return stringPlusIndex("validatorName");}
-    String validatorUrl() { return stringPlusIndex("https://hedera").concat(".com");}
-    String validatorPublicKey() { return stringPlusIndex("validatorPublicKey");}
+    String validatorUrl() { return "https://hedera".concat(String.valueOf(index)).concat(".com");}
+    String validatorPublicKey() { return PrivateKey.generate().getPublicKey().toString();}
 
     @SuppressWarnings("FieldMissingNullable")
     protected String masterKey = Optional.ofNullable(env.get("MASTER_KEY")).orElse(""); //TODO: Handle tests where masterNode = false

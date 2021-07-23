@@ -133,10 +133,20 @@ public class AdminAPISystemTest extends AbstractAPITester {
     @Test
     public void testValidatorUpdate(VertxTestContext testContext) throws Exception {
 
-        // create a validator directly in the database
-        validatorsRepository.add("validatorName", "https://hedera.com", publicKey);
+        String publicKey1 = PrivateKey.generate().getPublicKey().toString();
+        String publicKey2 = PrivateKey.generate().getPublicKey().toString();
 
-        JsonObject validatorJson = new JsonObject();
+        JsonArray validatorsJson = new JsonArray();
+        @Var JsonObject validatorJson = new JsonObject();
+        validatorJson.put("name", "validatorName1");
+        validatorJson.put("url", "https://hedera1.com");
+        validatorJson.put("publicKey", publicKey1);
+        validatorJson.put("operation", "add");
+        validatorsJson.add(validatorJson);
+
+        validatorsRepository.manage(validatorsJson);
+
+        validatorJson = new JsonObject();
         JsonArray validators = new JsonArray();
 
         JsonObject updateValidator = new JsonObject();
@@ -164,10 +174,19 @@ public class AdminAPISystemTest extends AbstractAPITester {
     @Test
     public void testValidatorDelete(VertxTestContext testContext) throws Exception {
 
-        // create a validator directly in the database
-        validatorsRepository.add("validatorName", "https://hedera.com", publicKey);
+        String publicKey1 = PrivateKey.generate().getPublicKey().toString();
 
-        JsonObject validatorJson = new JsonObject();
+        JsonArray validatorsJson = new JsonArray();
+        @Var JsonObject validatorJson = new JsonObject();
+        validatorJson.put("name", "validatorName1");
+        validatorJson.put("url", "https://hedera1.com");
+        validatorJson.put("publicKey", publicKey1);
+        validatorJson.put("operation", "add");
+        validatorsJson.add(validatorJson);
+
+        validatorsRepository.manage(validatorsJson);
+
+        validatorJson = new JsonObject();
         JsonArray validators = new JsonArray();
 
         JsonObject deleteValidator = new JsonObject();

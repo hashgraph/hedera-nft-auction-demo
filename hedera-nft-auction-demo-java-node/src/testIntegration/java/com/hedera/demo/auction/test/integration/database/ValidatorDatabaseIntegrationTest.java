@@ -1,9 +1,13 @@
 package com.hedera.demo.auction.test.integration.database;
 
+import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.SqlConnectionManager;
 import com.hedera.demo.auction.app.domain.Validator;
 import com.hedera.demo.auction.app.repository.ValidatorsRepository;
 import com.hedera.demo.auction.test.integration.AbstractIntegrationTest;
+import com.hedera.hashgraph.sdk.PrivateKey;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,9 +48,17 @@ class ValidatorDatabaseIntegrationTest extends AbstractIntegrationTest {
     }
 
     @BeforeEach
-    public void beforeEach() throws SQLException {
+    public void beforeEach() throws Exception {
+        validatorsRepository.deleteAllValidators();
         validator = testValidatorObject(1);
-        validatorsRepository.add(validator.getName(), validator.getUrl(), validator.getPublicKey());
+        JsonObject validatorJson = new JsonObject();
+        validatorJson.put("name", validator.getName());
+        validatorJson.put("url", validator.getUrl());
+        validatorJson.put("publicKey", validator.getPublicKey());
+        validatorJson.put("operation", "add");
+        JsonArray validators = new JsonArray();
+        validators.add(validatorJson);
+        validatorsRepository.manage(validators);
     }
 
     @AfterEach
@@ -64,37 +76,74 @@ class ValidatorDatabaseIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void udpateValidatorTest() throws Exception {
+        JsonObject validatorJson = new JsonObject();
+        validatorJson.put("nameToUpdate", validator.getName());
+        validatorJson.put("name", "newName");
+        validatorJson.put("url", "https://hedera2.com");
+        String newPubKey = PrivateKey.generate().getPublicKey().toString();
+        validatorJson.put("publicKey", newPubKey);
+        validatorJson.put("operation", "update");
+        JsonArray validatorsJson = new JsonArray();
+        validatorsJson.add(validatorJson);
+        validatorsRepository.manage(validatorsJson);
 
-        validatorsRepository.update(validator.getName(), "newName", "newUrl", "newPublicKey");
         List<Validator> validators = validatorsRepository.getValidatorsList();
         assertEquals(1, validators.size());
         assertEquals("newName", validators.get(0).getName());
-        assertEquals("newUrl", validators.get(0).getUrl());
-        assertEquals("newPublicKey", validators.get(0).getPublicKey());
+        assertEquals("https://hedera2.com", validators.get(0).getUrl());
+        assertEquals(newPubKey, validators.get(0).getPublicKey());
     }
 
     @Test
-    public void multipleValidatorsTest() throws SQLException {
-        validatorsRepository.add(validator.getName(), validator.getUrl(), validator.getPublicKey());
-        Validator validator1 = testValidatorObject(2);
-        validatorsRepository.add(validator1.getName(), validator1.getUrl(), validator1.getPublicKey());
+    public void multipleValidatorsTest() throws Exception {
+        @Var JsonObject validatorJson = new JsonObject();
+        validatorJson.put("name", "name1");
+        validatorJson.put("url", "https://hedera.com");
+        validatorJson.put("publicKey", validator.getPublicKey());
+        validatorJson.put("operation", "add");
+        JsonArray validatorsJson = new JsonArray();
+        validatorsJson.add(validatorJson);
+
+        validatorJson = new JsonObject();
+        validatorJson.put("name", "name2");
+        validatorJson.put("url", "https://hedera.com");
+        validatorJson.put("publicKey", validator.getPublicKey());
+        validatorJson.put("operation", "add");
+        validatorsJson.add(validatorJson);
+
+        validatorsRepository.manage(validatorsJson);
 
         List<Validator> validators = validatorsRepository.getValidatorsList();
-        assertEquals(2, validators.size());
+        assertEquals(3, validators.size());
     }
 
     @Test
-    public void deleteValidatorTest() throws SQLException {
-        validatorsRepository.delete(validator.getName());
+    public void deleteValidatorTest() throws Exception {
+        JsonObject validatorJson = new JsonObject();
+        JsonArray validatorsJson = new JsonArray();
+        validatorJson.put("name", validator.getName());
+        validatorJson.put("operation", "delete");
+        validatorsJson.clear();
+        validatorsJson.add(validatorJson);
+
+        validatorsRepository.manage(validatorsJson);
+
         List<Validator> deletedValidators = validatorsRepository.getValidatorsList();
         assertEquals(0, deletedValidators.size());
     }
 
     @Test
-    public void deleteValidatorsTest() throws SQLException {
-        validatorsRepository.add(validator.getName(), validator.getUrl(), validator.getPublicKey());
-        Validator validator1 = testValidatorObject(2);
-        validatorsRepository.add(validator1.getName(), validator1.getUrl(), validator1.getPublicKey());
+    public void deleteValidatorsTest() throws Exception {
+        JsonObject validatorJson = new JsonObject();
+        JsonArray validatorsJson = new JsonArray();
+
+        validatorJson.put("name", "name2");
+        validatorJson.put("url", "https://hedera.com");
+        validatorJson.put("publicKey", validator.getPublicKey());
+        validatorJson.put("operation", "add");
+        validatorsJson.add(validatorJson);
+
+        validatorsRepository.manage(validatorsJson);
 
         List<Validator> validators = validatorsRepository.getValidatorsList();
         assertEquals(2, validators.size());
@@ -106,7 +155,19 @@ class ValidatorDatabaseIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void duplicateValidatorTest() throws SQLException {
-        validatorsRepository.add(validator.getName(), validator.getName(), validator.getPublicKey());
+        JsonObject validatorJson = new JsonObject();
+        validatorJson.put("name", validator.getName());
+        validatorJson.put("url", validator.getUrl());
+        validatorJson.put("publicKey", validator.getPublicKey());
+        validatorJson.put("operation", "add");
+        JsonArray validatorsJson = new JsonArray();
+        validatorsJson.add(validatorJson);
+
+        try {
+            validatorsRepository.manage(validatorsJson);
+        } catch (Exception e) {
+            // do nothing, it's expected
+        }
 
         List<Validator> validators = validatorsRepository.getValidatorsList();
         assertEquals(1, validators.size());

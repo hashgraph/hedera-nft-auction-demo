@@ -4,7 +4,6 @@ import com.hedera.demo.auction.app.ManageValidator;
 import com.hedera.demo.auction.app.Utils;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.json.schema.Schema;
@@ -47,8 +46,6 @@ public class PostValidators implements Handler<RoutingContext> {
                 .build(schemaParser);
 
         validatorsSchemaBuilder.validateSync(body);
-
-        JsonArray validators = body.getJsonArray("validators");
 
         RequestPostValidators requestPostValidators = body.mapTo(RequestPostValidators.class);
         if (requestPostValidators.getValidators().length == 0) {

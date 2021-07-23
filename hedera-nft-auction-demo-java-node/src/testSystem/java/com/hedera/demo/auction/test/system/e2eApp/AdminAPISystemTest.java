@@ -151,7 +151,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
 
         JsonObject updateValidator = new JsonObject();
         updateValidator.put("operation", "update");
-        updateValidator.put("nameToUpdate", "validatorName");
+        updateValidator.put("nameToUpdate", "validatorName1");
         updateValidator.put("name", "validatorName2");
         updateValidator.put("url", "https://hedera2.com");
         updateValidator.put("publicKey", publicKey2);

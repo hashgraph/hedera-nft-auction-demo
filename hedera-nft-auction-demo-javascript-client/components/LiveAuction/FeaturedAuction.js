@@ -12,10 +12,11 @@ const FeaturedAuction = ({ featuredAuction }) => {
   const [isPlacingBid, setBidStatus] = React.useState(false)
   const { currentPrice, isFetching: isFetchingHederaData } = useHederaPrice()
   
-  if (!featuredAuction) return null
+  const { endtimestamp, winningbid, minimumbid, reserve } = featuredAuction
   const timeLeft = useCountdown(endtimestamp)
   
-  const { endtimestamp, winningbid, minimumbid, reserve } = featuredAuction
+  if (!featuredAuction) return null
+  
   const {
     tokenid: featuredTokenId,
     reserve: featuredReserve,

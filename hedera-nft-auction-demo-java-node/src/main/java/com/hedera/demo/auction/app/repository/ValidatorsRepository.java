@@ -9,7 +9,6 @@ import lombok.extern.log4j.Log4j2;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
-import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 import org.jooq.tools.StringUtils;
 
@@ -54,7 +53,7 @@ public class ValidatorsRepository {
         return validators;
     }
 
-    public void manage(JsonArray validators) throws SQLException {
+    public void manage(JsonArray validators) throws Exception {
         DSLContext cx = connectionManager.dsl();
         cx.transaction(configuration -> {
             for (Object validatorObject : validators.getList()) {
@@ -86,41 +85,14 @@ public class ValidatorsRepository {
                                     .execute();
                             break;
                         default:
-                            log.warn("invalid consensus message contents - validator object has invalid value combinations");
+                            throw new Exception("invalid consensus message contents - validator object has invalid value combinations");
                     }
+                } else {
+                    throw new Exception("invalid validator definition");
                 }
             }
 
             // Implicit commit executed here
         });
-    }
-    public void delete(String validatorName) throws SQLException {
-        DSLContext cx = connectionManager.dsl();
-        cx.delete(VALIDATORS)
-                .where(VALIDATORS.NAME.eq(validatorName))
-                .execute();
-    }
-
-    public void add(String name, String url, String publicKey) throws SQLException {
-        DSLContext cx = connectionManager.dsl();
-        try {
-            cx.insertInto(VALIDATORS)
-                    .set(VALIDATORS.NAME, name)
-                    .set(VALIDATORS.URL, url)
-                    .set(VALIDATORS.PUBLICKEY, publicKey)
-                    .execute();
-        } catch (DataAccessException e) {
-            log.info("Validator already in database");
-        }
-    }
-
-    public void update(String validatorName, String newName, String newUrl, String newPublicKey) throws SQLException {
-        DSLContext cx = connectionManager.dsl();
-        cx.update(VALIDATORS)
-                .set(VALIDATORS.NAME, newName)
-                .set(VALIDATORS.URL, newUrl)
-                .set(VALIDATORS.PUBLICKEY, newPublicKey)
-                .where(VALIDATORS.NAME.eq(validatorName))
-                .execute();
     }
 }

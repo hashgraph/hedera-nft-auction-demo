@@ -55,7 +55,7 @@ const LeftColumn = ({ auction, openLightbox }) => {
           className='w-5 h-5 cursor-pointer sm:block hidden'
           onClick={openLightbox}
         />
-        <div className='sm:hidden visible  sm:pb-0 pb-16'>
+        <div className='sm:hidden visible  sm:pb-0 sm:pb-16 pb-12'>
           <BidMetaData auction={auction} />
         </div>
       </div>

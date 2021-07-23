@@ -104,7 +104,7 @@ public class AuctionEndTransfer implements Runnable {
                                 log.debug("auction {} no winning bid, setting to {}", auction.getAuctionaccountid(), Auction.TRANSFER_STATUS_PENDING);
 
                                 auctionsRepository.setTransferPending(auction.getTokenid());
-                            } catch (SQLException e) {
+                            } catch (Exception e) {
                                 log.error("Failed to set auction to {} status", Auction.TRANSFER_STATUS_PENDING, e);
                             }
                         } else {
@@ -164,7 +164,7 @@ public class AuctionEndTransfer implements Runnable {
             log.error("timeout exception querying for balance", e);
         } catch (PrecheckStatusException e) {
             log.error("precheckStatusException exception querying for balance", e);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             log.error("unable to set auction to transferPending", e);
         }
     }
@@ -224,7 +224,7 @@ public class AuctionEndTransfer implements Runnable {
                 log.info("setting auction to transfer in progress (auction = {})",auction.getAuctionaccountid());
                 try {
                     auctionsRepository.setTransferInProgress(auction.getTokenid());
-                } catch (SQLException e) {
+                } catch (Exception e) {
                     log.error("unable to set auction to transfer in progress (auction = {}", auction.getAuctionaccountid(), e);
                 }
             }
@@ -232,8 +232,8 @@ public class AuctionEndTransfer implements Runnable {
             log.error("Token owner for auction id {} is not set.", auction.getAuctionaccountid());
             try {
                 auctionsRepository.setTransferTransactionByAuctionId(auction.getId(), "Token not transferred by owner", "Token not transferred by owner");
-            } catch (SQLException e) {
-                log.error("unable to end auction with token not transferred by owner", e);
+            } catch (Exception e) {
+                log.error(e.getMessage());
             }
         }
     }
@@ -255,7 +255,7 @@ public class AuctionEndTransfer implements Runnable {
                         try {
                             auctionsRepository.setTransferTransactionByTokenId(tokenId, mirrorTransaction.transactionId, mirrorTransaction.getTransactionHashString());
                             return AuctionEndTransfer.TransferResult.SUCCESS;
-                        } catch (SQLException e) {
+                        } catch (Exception e) {
                             log.error("unable to set transaction to transfer complete", e);
                         }
                     } else {

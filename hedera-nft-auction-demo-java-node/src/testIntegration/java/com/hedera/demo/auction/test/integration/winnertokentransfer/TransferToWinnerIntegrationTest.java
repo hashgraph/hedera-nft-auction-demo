@@ -76,6 +76,7 @@ public class TransferToWinnerIntegrationTest extends AbstractIntegrationTest {
         assertEquals("", updatedAuction.getTransfertxid());
         assertEquals("", updatedAuction.getTransfertxhash());
 
+        auctionsRepository.setTransferPending(auction.getTokenid());
         auctionEndTransfer.transferToken(auction);
 
         updatedAuction = auctionsRepository.getAuction(auction.getId());

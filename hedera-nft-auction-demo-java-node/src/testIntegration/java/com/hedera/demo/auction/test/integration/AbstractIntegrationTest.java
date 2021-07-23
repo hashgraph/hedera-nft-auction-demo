@@ -62,7 +62,7 @@ public class AbstractIntegrationTest {
         return 20L + this.index;
     }
     String status() {
-        return stringPlusIndex("status");
+        return Auction.PENDING;
     }
     boolean winnercanbid() {
         return (this.index == 1);

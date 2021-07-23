@@ -7,6 +7,7 @@ import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.domain.Bid;
 import lombok.extern.log4j.Log4j2;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Record2;
@@ -28,7 +29,7 @@ import static com.hedera.demo.auction.app.db.Tables.AUCTIONS;
 @Log4j2
 public class AuctionsRepository {
     private final SqlConnectionManager connectionManager;
-
+    private final Condition activeOrClosedStatusCondition = AUCTIONS.STATUS.eq(Auction.ACTIVE).or(AUCTIONS.STATUS.eq(Auction.CLOSED));
     /**
      * Constructor
      * @param connectionManager connection manager to the database
@@ -43,12 +44,9 @@ public class AuctionsRepository {
      * @return {@code Result<Record>} records of auctions
      * @throws SQLException in the event of an error
      */
-    @Nullable
     private Result<Record> getAuctions () throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        Result<Record> rows = cx.selectFrom(AUCTIONS).orderBy(AUCTIONS.ID).fetch();
-
-        return rows;
+        return cx.selectFrom(AUCTIONS).orderBy(AUCTIONS.ID).fetch();
     }
 
     /**
@@ -61,11 +59,9 @@ public class AuctionsRepository {
     @Nullable
     private Record getAuctionData (int auctionId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        Record auctionRecord = cx.selectFrom(AUCTIONS)
+        return cx.selectFrom(AUCTIONS)
                 .where(AUCTIONS.ID.eq(auctionId))
                 .fetchAny();
-
-        return auctionRecord;
     }
 
     /**
@@ -104,11 +100,9 @@ public class AuctionsRepository {
     public List<Auction> getAuctionsList() throws SQLException {
         List<Auction> auctions = new ArrayList<>();
         Result<Record> auctionsData = getAuctions();
-        if (auctionsData != null) {
-            for (Record record : auctionsData) {
-                Auction auction = new Auction(record);
-                auctions.add(auction);
-            }
+        for (Record record : auctionsData) {
+            Auction auction = new Auction(record);
+            auctions.add(auction);
         }
         return auctions;
     }
@@ -156,10 +150,9 @@ public class AuctionsRepository {
      * @param auction the Auction object being updated
      * @param tokenOwnerAccount the token owner's account id
      * @param timestamp the start time stamp of the auction
-     * @return an updated Auction object
      * @throws Exception in the event of an error
      */
-    public Auction setActive(Auction auction, String tokenOwnerAccount, String timestamp) throws Exception {
+    public void setActive(Auction auction, String tokenOwnerAccount, String timestamp) throws Exception {
         DSLContext cx = connectionManager.dsl();
 
         int rows = cx.update(AUCTIONS)
@@ -170,12 +163,7 @@ public class AuctionsRepository {
                 .and(AUCTIONS.STATUS.eq(Auction.PENDING))
                 .execute();
 
-        if (rows != 0) {
-            auction.setStatus(Auction.ACTIVE);
-            auction.setStarttimestamp(timestamp);
-            auction.setTokenowneraccount(tokenOwnerAccount);
-            return auction;
-        } else {
+        if (rows == 0) {
             String message = "auction cannot be set to ACTIVE, it's not PENDING";
             log.error(message);
             throw new Exception(message);
@@ -186,31 +174,44 @@ public class AuctionsRepository {
      * Sets an auction's transfer status to TRANSFER_PENDING
      *
      * @param tokenId the token id of the auction to update
-     * @throws SQLException in the event of an error
+     * @throws Exception in the event of an error
      */
-    public void setTransferPending(String tokenId) throws SQLException {
+    public void setTransferPending(String tokenId) throws Exception {
         DSLContext cx = connectionManager.dsl();
         log.debug("Setting auction transfer status to {} for token id {}", Auction.TRANSFER_STATUS_PENDING, tokenId);
-        cx.update(AUCTIONS)
+        int rows = cx.update(AUCTIONS)
                 .set(AUCTIONS.TRANSFERSTATUS, Auction.TRANSFER_STATUS_PENDING)
                 .where(AUCTIONS.TOKENID.eq(tokenId))
+                .and(AUCTIONS.TRANSFERSTATUS.eq(""))
                 .execute();
+        if (rows == 0) {
+            String message = "cannot overwrite non empty auction transferStatus to PENDING";
+            log.error(message);
+            throw new Exception(message);
+        }
     }
 
     /**
      * Sets an auction's transfer status to IN_PROGRESS
      *
      * @param tokenId the token id of the auction to update
-     * @throws SQLException in the event of an error
+     * @throws Exception in the event of an error
      */
-    public void setTransferInProgress(String tokenId) throws SQLException {
+    public void setTransferInProgress(String tokenId) throws Exception {
         DSLContext cx = connectionManager.dsl();
         log.debug("setTransferInProgress {} for token id {}", Auction.TRANSFER_STATUS_IN_PROGRESS, tokenId);
 
-        cx.update(AUCTIONS)
+        int rows = cx.update(AUCTIONS)
                 .set(AUCTIONS.TRANSFERSTATUS, Auction.TRANSFER_STATUS_IN_PROGRESS)
                 .where(AUCTIONS.TOKENID.eq(tokenId))
+                .and(AUCTIONS.TRANSFERSTATUS.eq(Auction.TRANSFER_STATUS_PENDING))
                 .execute();
+
+        if (rows == 0) {
+            String message = "auction transfer status not PENDING";
+            log.error(message);
+            throw new Exception(message);
+        }
     }
 
     /**
@@ -219,40 +220,51 @@ public class AuctionsRepository {
      * @param tokenId the token id of the auction to update
      * @param transactionId the transaction id
      * @param transactionHash the transaction hash
-     * @throws SQLException in the event of an error
+     * @throws Exception in the event of an error
      */
-    public void setTransferTransactionByTokenId(String tokenId, String transactionId, String transactionHash) throws SQLException {
+    public void setTransferTransactionByTokenId(String tokenId, String transactionId, String transactionHash) throws Exception {
         DSLContext cx = connectionManager.dsl();
         log.debug("setTransferTransactionByTokenId {}, transactionId {}, hash {}", tokenId, transactionId, transactionHash);
 
-        cx.update(AUCTIONS)
+        int rows = cx.update(AUCTIONS)
                 .set(AUCTIONS.TRANSFERTXID, transactionId)
                 .set(AUCTIONS.TRANSFERTXHASH, transactionHash)
                 .set(AUCTIONS.TRANSFERSTATUS, Auction.TRANSFER_STATUS_COMPLETE)
                 .set(AUCTIONS.STATUS, Auction.ENDED)
                 .where(AUCTIONS.TOKENID.eq(tokenId))
+                .and(AUCTIONS.TRANSFERSTATUS.eq(Auction.TRANSFER_STATUS_IN_PROGRESS))
                 .execute();
+        if (rows == 0) {
+            String message = "unable to set transfer status to COMPLETE, it's not IN PROGRESS";
+            log.error(message);
+            throw new Exception(message);
+        }
     }
 
     /**
-     * Sets the auction's transfer transaction id and hash given an auction id
+     * Sets the auction's transfer transaction id and hash given an auction id if the auction is closed
      *
      * @param auctionId the auction id to update
      * @param transactionId the transaction id
      * @param transactionHash the transaction hash
-     * @throws SQLException in the event of an error
+     * @throws Exception in the event of an error
      */
-    public void setTransferTransactionByAuctionId(int auctionId, String transactionId, String transactionHash) throws SQLException {
+    public void setTransferTransactionByAuctionId(int auctionId, String transactionId, String transactionHash) throws Exception {
         DSLContext cx = connectionManager.dsl();
 
         log.debug("setTransferTransactionByAuctionId {}, transactionId {}, hash {}",auctionId, transactionId, transactionHash);
-        cx.update(AUCTIONS)
+        int rows = cx.update(AUCTIONS)
                 .set(AUCTIONS.TRANSFERTXID, transactionId)
                 .set(AUCTIONS.TRANSFERTXHASH, transactionHash)
                 .set(AUCTIONS.TRANSFERSTATUS, Auction.TRANSFER_STATUS_COMPLETE)
                 .set(AUCTIONS.STATUS, Auction.ENDED)
                 .where(AUCTIONS.ID.eq(auctionId))
+                .and(AUCTIONS.STATUS.eq(Auction.CLOSED))
                 .execute();
+        if (rows == 0) {
+            String message = "auction is not CLOSED, cannot set transfer transaction";
+            throw new Exception(message);
+        }
     }
 
     /**
@@ -265,23 +277,32 @@ public class AuctionsRepository {
         DSLContext cx = connectionManager.dsl();
 
         cx.update(AUCTIONS)
-                .set(AUCTIONS.STATUS, Auction.ENDED)
-                .where(AUCTIONS.ID.eq(auctionId))
-                .execute();
+            .set(AUCTIONS.STATUS, Auction.ENDED)
+            .where(AUCTIONS.ID.eq(auctionId))
+            .and(activeOrClosedStatusCondition)
+            .execute();
     }
 
     /**
      * Sets the auction's status to CLOSED given an auction id
      *
      * @param auctionId the auction id to update
-     * @throws SQLException in the event of an error
+     * @return boolean if the update was successful
+     * @throws Exception in the event of an error
      */
-    public void setClosed(int auctionId) throws SQLException {
+    public boolean setClosed(int auctionId) throws Exception {
         DSLContext cx = connectionManager.dsl();
-        cx.update(AUCTIONS)
+        int rows = cx.update(AUCTIONS)
                 .set(AUCTIONS.STATUS, Auction.CLOSED)
                 .where(AUCTIONS.ID.eq(auctionId))
+                .and(AUCTIONS.STATUS.eq(Auction.ACTIVE))
                 .execute();
+        if (rows == 0) {
+            String message = "unable to close inactive (not ACTIVE) auction";
+            log.error(message);
+            throw new Exception(message);
+        }
+        return true;
     }
 
     /**
@@ -291,7 +312,7 @@ public class AuctionsRepository {
      * @return Auction object
      * @throws SQLException in the event of an error
      */
-    public Auction setClosed(Auction auction) throws SQLException {
+    public Auction setClosed(Auction auction) throws Exception {
         setClosed(auction.getId());
         auction.setStatus(Auction.CLOSED);
         return auction;

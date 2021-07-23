@@ -50,43 +50,37 @@ public class PostValidators implements Handler<RoutingContext> {
 
         JsonArray validators = body.getJsonArray("validators");
 
-        if (validators.size() == 0) {
-            String errorMessage = "no validator objects provided";
+        RequestPostValidators requestPostValidators = body.mapTo(RequestPostValidators.class);
+        if (requestPostValidators.getValidators().length == 0) {
+            String errorMessage = "empty list of validators";
             log.error(errorMessage);
             routingContext.fail(500, new Exception(errorMessage));
             return;
         }
-        for (Object validatorObject : validators) {
-            JsonObject validatorJson = JsonObject.mapFrom(validatorObject);
-            RequestPostValidator requestPostValidator = validatorJson.mapTo(RequestPostValidator.class);
-            String isValid = requestPostValidator.isValid();
-            if ( ! StringUtils.isEmpty(isValid)) {
-                log.error(isValid);
-                routingContext.fail(500, new Exception(isValid));
-                return;
-            }
+
+
+        String isValid = requestPostValidators.isValid();
+        if ( ! StringUtils.isEmpty(isValid)) {
+            log.error(isValid);
+            routingContext.fail(500, new Exception(isValid));
+            return;
         }
 
-        for (Object validatorObject : validators) {
-            JsonObject validatorJson = JsonObject.mapFrom(validatorObject);
-            RequestPostValidator requestPostValidator = validatorJson.mapTo(RequestPostValidator.class);
+        try {
+            ManageValidator manageValidator = new ManageValidator();
+            manageValidator.manage(body);
 
-            try {
-                ManageValidator manageValidator = new ManageValidator();
-                manageValidator.manage(requestPostValidator);
+            JsonObject response = new JsonObject();
+            log.info("validator request submission successful");
+            response.put("status", "success");
 
-                JsonObject response = new JsonObject();
-                log.info("validator request submission successful");
-                response.put("status", "success");
-
-                routingContext.response()
-                        .putHeader("content-type", "application/json")
-                        .end(Json.encodeToBuffer(response));
-            } catch (Exception e) {
-                log.error(e, e);
-                routingContext.fail(500, e);
-                return;
-            }
+            routingContext.response()
+                    .putHeader("content-type", "application/json")
+                    .end(Json.encodeToBuffer(response));
+        } catch (Exception e) {
+            log.error(e, e);
+            routingContext.fail(500, e);
+            return;
         }
     }
 }

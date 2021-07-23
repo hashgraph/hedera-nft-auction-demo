@@ -4,7 +4,6 @@ import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.AuctionReadinessWatcher;
 import com.hedera.demo.auction.app.HederaClient;
 import com.hedera.demo.auction.app.Utils;
-import com.hedera.demo.auction.app.api.RequestPostValidator;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTopicMessage;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTopicMessages;
@@ -206,32 +205,37 @@ public class TopicSubscriber implements Runnable{
     public void handleValidators(JsonArray validators) {
         log.debug("consensus message for validators management");
         if (validators != null) {
-            for (Object validatorObject : validators.getList()) {
-                JsonObject validator = JsonObject.mapFrom(validatorObject);
-                RequestPostValidator postValidator = validator.mapTo(RequestPostValidator.class);
-                if (StringUtils.isEmpty(postValidator.isValid())) {
-                    try {
-                        switch (postValidator.operation) {
-                            case "add":
-                                log.debug("adding validator");
-                                validatorsRepository.add(postValidator.getName(), postValidator.url, postValidator.publicKey);
-                                break;
-                            case "delete":
-                                log.debug("deleting validator");
-                                validatorsRepository.delete(postValidator.getName());
-                                break;
-                            case "update":
-                                log.debug("updating validator");
-                                validatorsRepository.update(postValidator.getNameToUpdate(), postValidator.getName(), postValidator.url, postValidator.publicKey);
-                                break;
-                            default:
-                                log.warn("invalid consensus message contents - validator object has invalid value combinations");
-                        }
-                    } catch (SQLException e) {
-                        log.error(e, e);
-                    }
-                }
+            try {
+                validatorsRepository.manage(validators);
+            } catch (SQLException e) {
+                log.error(e, e);
             }
+//            for (Object validatorObject : validators.getList()) {
+//                JsonObject validator = JsonObject.mapFrom(validatorObject);
+//                RequestPostValidator postValidator = validator.mapTo(RequestPostValidator.class);
+//                if (StringUtils.isEmpty(postValidator.isValid())) {
+//                    try {
+//                        switch (postValidator.operation) {
+//                            case "add":
+//                                log.debug("adding validator");
+//                                validatorsRepository.add(postValidator.getName(), postValidator.url, postValidator.publicKey);
+//                                break;
+//                            case "delete":
+//                                log.debug("deleting validator");
+//                                validatorsRepository.delete(postValidator.getName());
+//                                break;
+//                            case "update":
+//                                log.debug("updating validator");
+//                                validatorsRepository.update(postValidator.getNameToUpdate(), postValidator.getName(), postValidator.url, postValidator.publicKey);
+//                                break;
+//                            default:
+//                                log.warn("invalid consensus message contents - validator object has invalid value combinations");
+//                        }
+//                    } catch (SQLException e) {
+//                        log.error(e, e);
+//                    }
+//                }
+//            }
         } else {
             log.warn("invalid consensus message contents - validators is not an array");
         }

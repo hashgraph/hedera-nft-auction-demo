@@ -24,7 +24,7 @@ public class GenerateKey {
     public static void main(String[] args) {
         GenerateKey generateKey = new GenerateKey();
         PrivateKey privateKey = generateKey.generate();
-        log.info("Private Key: {}", privateKey.toString());
-        log.info("Public Key: {}", privateKey.getPublicKey().toString());
+        System.out.println("Private Key: ".concat(privateKey.toString());
+        System.out.println("Public Key: ".concat(privateKey.getPublicKey().toString());
     }
 }

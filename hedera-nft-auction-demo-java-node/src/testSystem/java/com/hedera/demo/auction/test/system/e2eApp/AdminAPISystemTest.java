@@ -191,7 +191,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
 
         JsonObject deleteValidator = new JsonObject();
         deleteValidator.put("operation", "delete");
-        deleteValidator.put("name", "validatorName");
+        deleteValidator.put("name", "validatorName1");
 
         validators.add(deleteValidator);
 

@@ -64,6 +64,9 @@ public class PostAuctionHandler implements Handler<RoutingContext> {
                 createAuction.setEnv(env);
                 if (StringUtils.isEmpty(requestCreateAuction.topicid)) {
                     requestCreateAuction.topicid = env.get("TOPIC_ID");
+                    if (requestCreateAuction.topicid == null) {
+                        throw new Exception("TOPIC_ID environment variable not set");
+                    }
                 }
                 createAuction.create(requestCreateAuction);
 

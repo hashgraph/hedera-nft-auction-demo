@@ -58,7 +58,7 @@ const LiveAuction = () => {
   // grabbing the most recent four live auctions
   const mostRecentLiveAuctions = getMostRecentAuctions(liveAuctions)
   // grabbing the most recent four sold auctions
-  const mostRecentEndedAuctions = getMostRecentAuctions(closedAuctions)
+  const mostRecentEndedAuctions = getMostRecentAuctions(endedAuctions)
 
   const noLiveAuctionsToShow = mostRecentLiveAuctions.length === 0
   const noEndedAuctionsToShow = mostRecentEndedAuctions.length === 0

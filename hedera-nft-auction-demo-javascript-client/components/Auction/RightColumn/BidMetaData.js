@@ -10,7 +10,6 @@ import HbarUnbit from 'components/common/HbarUnit'
 import ShareModal from 'components/modals/ShareModal'
 
 const BidMetaData = ({ auction }) => {
-  console.log('AUCTIONS', auction)
   const { currentPrice, isFetching: isFetchingHederaData } = useHederaPrice()
   const [isPlacingBid, setPlacingBidStatus] = React.useState(false)
   const [isSharingAuction, setSharingAuction] = React.useState(false)

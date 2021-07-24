@@ -10,6 +10,7 @@ import HbarUnbit from 'components/common/HbarUnit'
 import ShareModal from 'components/modals/ShareModal'
 
 const BidMetaData = ({ auction }) => {
+  console.log('AUCTIONS', auction)
   const { currentPrice, isFetching: isFetchingHederaData } = useHederaPrice()
   const [isPlacingBid, setPlacingBidStatus] = React.useState(false)
   const [isSharingAuction, setSharingAuction] = React.useState(false)
@@ -24,7 +25,7 @@ const BidMetaData = ({ auction }) => {
   const bidToShow = getBidValue(winningbid)
   const usdValue = getUsdValue(bidToShow, currentPrice)
 
-  const isOver = !auction.active && Boolean(auction.winningbid)
+  const isOver = auction.status === 'ENDED'
 
   const openShareModal = () => setSharingAuction(true)
   const closeShareModal = () => setSharingAuction(false)
@@ -40,7 +41,7 @@ const BidMetaData = ({ auction }) => {
           <p className='text-gray-400 font-thin text-sm'>${usdValue}</p>
         </div>
         <p className='border-gradient border-gradient-purple text-sm py-1 px-3 sm:mt-3 mt-6 sm:ml-10 ml-0 relative bottom-1 text-xl font-light sm:text-left text-center'>
-          This auction is <span className='font-bold'>closed</span>
+          This auction is <span className='font-bold'>ended</span>
         </p>
       </div>
     )

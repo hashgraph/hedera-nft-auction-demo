@@ -1,9 +1,7 @@
 package com.hedera.demo.auction.app;
 
 import com.hedera.hashgraph.sdk.PrivateKey;
-import lombok.extern.log4j.Log4j2;
 
-@Log4j2
 public class GenerateKey {
 
     public GenerateKey() {

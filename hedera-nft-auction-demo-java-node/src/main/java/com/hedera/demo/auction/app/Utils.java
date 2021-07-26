@@ -19,11 +19,8 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.binary.Hex;
 import org.jooq.tools.StringUtils;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
 import java.time.Instant;
@@ -75,27 +72,6 @@ public class Utils {
     }
 
     private Utils() {
-    }
-
-    /**
-     * Reads a file and returns a string containing the file contents
-     *
-     * @param filePath the path to the file
-     * @return String the contents of the file in a string
-     */
-    public static String readFileIntoString(String filePath)
-    {
-        @Var String content = "";
-        try
-        {
-            content = new String ( Files.readAllBytes( Paths.get(filePath)), UTF_8);
-        }
-        catch (IOException e)
-        {
-            log.error(e, e);
-        }
-
-        return content;
     }
 
     /**

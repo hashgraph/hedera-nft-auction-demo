@@ -79,6 +79,18 @@ public class AuctionReadinessWatcher implements Runnable {
         log.info("Watching auction account Id {}, token Id {}", auction.getAuctionaccountid(), auction.getTokenid());
         String uri = "/api/v1/transactions";
 
+        // check auction status
+        try {
+            Auction checkAuction = auctionsRepository.getAuction(auction.getId());
+            if ( ! checkAuction.isPending()) {
+                log.info("auction is not pending, exiting thread");
+                return;
+            }
+        } catch (Exception e) {
+            log.error(e, e);
+        }
+
+
         ExecutorService executor = Executors.newFixedThreadPool(1);
         while (runThread) {
             @Var String queryFromTimeStamp = nextTimestamp;

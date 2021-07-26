@@ -48,6 +48,9 @@ public class HederaClient {
      * @throws Exception in the event of an error
      */
     public HederaClient(Dotenv env) throws Exception {
+        if (env == null) {
+            throw new Exception("provided environment is null");
+        }
         this.operatorId = AccountId.fromString(Objects.requireNonNull(env.get("OPERATOR_ID")));
         this.operatorKey = PrivateKey.fromString(Objects.requireNonNull(env.get("OPERATOR_KEY")));
         if (StringUtils.isEmpty(env.get("MIRROR_PROVIDER"))) {
@@ -65,12 +68,10 @@ public class HederaClient {
         String envVariable = "REST_".concat(this.mirrorProvider.toUpperCase()).concat("_")
                 .concat(this.network);
         this.mirrorUrl = "";
-        if (env != null) {
-            if (StringUtils.isEmpty(env.get(envVariable))) {
-                throw new Exception(envVariable + " environment variable not set");
-            } else {
-                this.mirrorUrl = env.get(envVariable, "");
-            }
+        if (StringUtils.isEmpty(env.get(envVariable))) {
+            throw new Exception(envVariable + " environment variable not set");
+        } else {
+            this.mirrorUrl = env.get(envVariable, "");
         }
         if (StringUtils.isBlank(this.mirrorUrl)) {
             throw new Exception("NEXT_PUBLIC_NETWORK and/or MIRROR_PROVIDER environment variables not set");

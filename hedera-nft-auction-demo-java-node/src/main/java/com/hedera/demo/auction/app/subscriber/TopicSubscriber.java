@@ -55,13 +55,12 @@ public class TopicSubscriber implements Runnable{
     private final TopicId topicId;
     private final int mirrorQueryFrequency;
     private final HederaClient hederaClient;
-    private boolean testing = false;
     private boolean skipReadinessWatcher = false;
     private boolean runThread = true;
     @Nullable
     private AuctionReadinessWatcher auctionReadinessWatcher = null;
     private final String masterKey;
-    private boolean runOnce = false;
+    private boolean runOnce;
 
     /**
      * Constructor
@@ -92,13 +91,6 @@ public class TopicSubscriber implements Runnable{
         if (auctionReadinessWatcher != null) {
             auctionReadinessWatcher.stop();
         }
-    }
-
-    /**
-     * Sets up boolean for unit and integration testing
-     */
-    public void setTesting() {
-        testing = true;
     }
 
     /**
@@ -265,37 +257,35 @@ public class TopicSubscriber implements Runnable{
                 auction = auctionsRepository.getAuction(newAuction.getAuctionaccountid());
                 // auction doesn't exist, create it
                 if (auction == null) {
-                    if (!testing) {
-                        // get token info
-                        Client client = hederaClient.client();
-                        try {
-                            log.debug("Getting token info");
-                            TokenInfo tokenInfo = new TokenInfoQuery()
-                                    .setTokenId(TokenId.fromString(newAuction.getTokenid()))
-                                    .execute(client);
-
-                            // store the IPFS url against the auction
-                            if (tokenInfo.symbol.contains("ipfs")) {
-                                // set token image data
-                                newAuction.setTokenmetadata(tokenInfo.symbol);
-                            }
-                        } catch (Exception e) {
-                            log.error("error getting token info", e);
-                            throw e;
-                        }
-                        // get auction account info
-                        log.debug("getting auction account info");
-                        AccountInfo accountInfo = new AccountInfoQuery()
-                                .setAccountId(AccountId.fromString(newAuction.getAuctionaccountid()))
+                    // get token info
+                    Client client = hederaClient.client();
+                    try {
+                        log.debug("Getting token info");
+                        TokenInfo tokenInfo = new TokenInfoQuery()
+                                .setTokenId(TokenId.fromString(newAuction.getTokenid()))
                                 .execute(client);
 
-                        // only process refunds for this auction if the auction's key contains the operator's public key
-                        newAuction.setProcessrefunds(accountInfo.key.toString().toUpperCase().contains(hederaClient.operatorPublicKey().toString().toUpperCase()));
+                        // store the IPFS url against the auction
+                        if (tokenInfo.symbol.contains("ipfs")) {
+                            // set token image data
+                            newAuction.setTokenmetadata(tokenInfo.symbol);
+                        }
+                    } catch (Exception e) {
+                        log.error("error getting token info", e);
+                        throw e;
                     }
+                    // get auction account info
+                    log.debug("getting auction account info");
+                    AccountInfo accountInfo = new AccountInfoQuery()
+                            .setAccountId(AccountId.fromString(newAuction.getAuctionaccountid()))
+                            .execute(client);
+
+                    // only process refunds for this auction if the auction's key contains the operator's public key
+                    newAuction.setProcessrefunds(accountInfo.key.toString().toUpperCase().contains(hederaClient.operatorPublicKey().toString().toUpperCase()));
 
                     auction = auctionsRepository.add(newAuction);
 
-                    if ((auction.getId() != 0) && !testing) {
+                    if ((auction.getId() != 0)) {
                         log.info("Auction for token {} added", newAuction.getTokenid());
                     }
 

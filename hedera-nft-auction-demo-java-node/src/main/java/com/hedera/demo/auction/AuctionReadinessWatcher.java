@@ -32,12 +32,11 @@ public class AuctionReadinessWatcher implements Runnable {
     protected final String mirrorProvider;
     protected final HederaClient hederaClient;
 
-    protected boolean testing = false;
     protected boolean runThread = true;
     @Nullable
     protected BidsWatcher bidsWatcher = null;
     protected String nextTimestamp = "0.0";
-    protected boolean runOnce = false;
+    protected boolean runOnce;
 
     /**
      * Constructor
@@ -55,13 +54,6 @@ public class AuctionReadinessWatcher implements Runnable {
         this.hederaClient = hederaClient;
         this.mirrorProvider = hederaClient.mirrorProvider();
         this.runOnce = runOnce;
-    }
-
-    /**
-     * Sets the class up for unit or integration testing
-     */
-    public void setTesting() {
-        this.testing = true;
     }
 
     /**
@@ -109,10 +101,6 @@ public class AuctionReadinessWatcher implements Runnable {
                             log.debug("Token owned by the account");
                             runThread = false;
                             break;
-                        } else {
-                            if (testing) {
-                                runThread = false;
-                            }
                         }
                         queryFromTimeStamp = Utils.getTimestampFromMirrorLink(mirrorTransactions.links.next);
                         if (StringUtils.isEmpty(queryFromTimeStamp)) {
@@ -133,7 +121,7 @@ public class AuctionReadinessWatcher implements Runnable {
                 }
             }
 
-            if (this.testing || this.runOnce) {
+            if (this.runOnce) {
                 this.runThread = false;
             } else {
                 Utils.sleep(this.mirrorQueryFrequency);
@@ -178,15 +166,13 @@ public class AuctionReadinessWatcher implements Runnable {
                             log.info("Account {} owns token {}, starting auction",  auction.getAuctionaccountid(), auction.getTokenid());
                             auctionsRepository.setActive(auction, tokenOwnerAccount, transaction.consensusTimestamp);
                             // start the thread to monitor bids
-                            if (!this.testing) {
-                                bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, auction.getId(), mirrorQueryFrequency, runOnce);
-                                if (this.runOnce) {
-                                    // do not run as a thread
-                                    bidsWatcher.run();
-                                } else {
-                                    Thread t = new Thread(bidsWatcher);
-                                    t.start();
-                                }
+                            bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, auction.getId(), mirrorQueryFrequency, runOnce);
+                            if (this.runOnce) {
+                                // do not run as a thread
+                                bidsWatcher.run();
+                            } else {
+                                Thread t = new Thread(bidsWatcher);
+                                t.start();
                             }
                             return true;
                         }

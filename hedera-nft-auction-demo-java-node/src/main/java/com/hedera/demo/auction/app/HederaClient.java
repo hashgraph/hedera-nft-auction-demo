@@ -87,15 +87,6 @@ public class HederaClient {
     }
 
     /**
-     * Creates a client with dummy operator information for testing purposes
-     * @return a HederaClient
-     * @throws Exception in the event of an error
-     */
-    public static HederaClient emptyTestClient() throws Exception {
-        return new HederaClient(AccountId.fromString("0.0.1"), PrivateKey.generate(), "TESTNET", "hedera", "");
-    }
-
-    /**
      * Creates a client for the auction's auction account
      *
      * @param auction the auction to create the client for

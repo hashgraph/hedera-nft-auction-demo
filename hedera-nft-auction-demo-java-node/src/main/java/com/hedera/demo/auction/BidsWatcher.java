@@ -33,7 +33,6 @@ public class BidsWatcher implements Runnable {
     private final int mirrorQueryFrequency;
     private final HederaClient hederaClient;
     protected boolean runThread = true;
-    protected boolean testing = false;
     protected boolean runOnce;
     protected Auction watchedAuction = new Auction();
 
@@ -52,13 +51,6 @@ public class BidsWatcher implements Runnable {
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.hederaClient = hederaClient;
         this.runOnce = runOnce;
-    }
-
-    /**
-     * sets the class up for unit or integration testing
-     */
-    public void setTesting() {
-        this.testing = true;
     }
 
     /**

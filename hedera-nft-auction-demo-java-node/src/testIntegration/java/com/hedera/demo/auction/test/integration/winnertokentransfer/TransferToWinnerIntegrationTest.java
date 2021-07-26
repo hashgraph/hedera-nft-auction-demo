@@ -26,7 +26,7 @@ public class TransferToWinnerIntegrationTest extends AbstractIntegrationTest {
 
     private PostgreSQLContainer postgres;
     private AuctionsRepository auctionsRepository;
-    private final HederaClient hederaClient = HederaClient.emptyTestClient();
+    private final HederaClient hederaClient = new HederaClient();
     private final static String tokenId = "0.0.10";
     private final static String auctionAccountId = "0.0.30";
     private final static String winningAccountId = "0.0.20";
@@ -45,7 +45,6 @@ public class TransferToWinnerIntegrationTest extends AbstractIntegrationTest {
         SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
         auctionEndTransfer = new AuctionEndTransfer(hederaClient, auctionsRepository, "", 5000);
-        auctionEndTransfer.setTesting();
     }
 
     @AfterAll
@@ -67,6 +66,7 @@ public class TransferToWinnerIntegrationTest extends AbstractIntegrationTest {
     @AfterEach
     public void afterEach() throws SQLException {
         auctionsRepository.deleteAllAuctions();
+        auctionEndTransfer.stop();
     }
 
     @Test

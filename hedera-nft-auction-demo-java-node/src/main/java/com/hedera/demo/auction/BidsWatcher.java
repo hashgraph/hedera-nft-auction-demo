@@ -160,7 +160,7 @@ public class BidsWatcher implements Runnable {
      * @param transaction the transaction to analyze
      * @throws SQLException thrown in the event of a database connection error
      */
-    public void handleTransaction(MirrorTransaction transaction) throws SQLException {
+    private void handleTransaction(MirrorTransaction transaction) throws SQLException {
         @Var String rejectReason = "";
         @Var boolean refund = false;
         String auctionAccountId = this.watchedAuction.getAuctionaccountid();

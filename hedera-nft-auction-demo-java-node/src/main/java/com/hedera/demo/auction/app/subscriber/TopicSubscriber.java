@@ -123,6 +123,7 @@ public class TopicSubscriber implements Runnable{
 
                 Map<String, String> queryParameters = new HashMap<>();
                 queryParameters.put("timestamp", "gt:".concat(nextTimestamp));
+                queryParameters.put("order", "asc");
 
                 Future<JsonObject> future = executor.submit(Utils.queryMirror(hederaClient, uri, queryParameters));
 

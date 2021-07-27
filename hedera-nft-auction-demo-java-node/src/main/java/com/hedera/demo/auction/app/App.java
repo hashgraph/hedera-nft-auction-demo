@@ -35,7 +35,7 @@ import java.util.Optional;
  */
 @Log4j2
 public final class App {
-    Vertx vertx = Vertx.vertx();
+    private final Vertx vertx = Vertx.vertx();
     private final Dotenv env = Dotenv.configure().ignoreIfMissing().load();
     @SuppressWarnings("FieldMissingNullable")
     private boolean restAPI = Optional.ofNullable(env.get("REST_API")).map(Boolean::parseBoolean).orElse(false);
@@ -53,7 +53,7 @@ public final class App {
     @SuppressWarnings("FieldMissingNullable")
     private String postgresUrl = env.get("DATABASE_URL");
     @SuppressWarnings("FieldMissingNullable")
-    private String postgresDatabase = env.get("POSTGRES_DB");
+    private final String postgresDatabase = env.get("POSTGRES_DB");
     @SuppressWarnings("FieldMissingNullable")
     private String postgresUser = env.get("POSTGRES_USER");
     @SuppressWarnings("FieldMissingNullable")

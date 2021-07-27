@@ -1,12 +1,18 @@
 package com.hedera.demo.auction.test.system.app;
 
+import com.hedera.demo.auction.app.SqlConnectionManager;
+import com.hedera.demo.auction.app.repository.AuctionsRepository;
+import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.demo.auction.test.system.AbstractSystemTest;
 import com.hedera.hashgraph.sdk.Key;
 import com.hedera.hashgraph.sdk.KeyList;
 import com.hedera.hashgraph.sdk.PrivateKey;
 import io.vertx.core.json.JsonObject;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.util.Arrays;
 
@@ -23,6 +29,21 @@ public class AuctionAccountCreateSystemTest extends AbstractSystemTest {
 
     AuctionAccountCreateSystemTest() throws Exception {
         super();
+    }
+
+    @BeforeAll
+    public void beforeAll() {
+        postgres = new PostgreSQLContainer("postgres:12.6");
+        postgres.start();
+        migrate(postgres);
+        SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+        auctionsRepository = new AuctionsRepository(connectionManager);
+        bidsRepository = new BidsRepository(connectionManager);
+    }
+
+    @AfterAll
+    public void afterAll() {
+        this.postgres.close();
     }
 
     @Test

@@ -12,7 +12,12 @@ public class GenerateKey {
      * Generates a private key
      */
     public PrivateKey generate() {
-        return PrivateKey.generate();
+
+        PrivateKey privateKey = PrivateKey.generate();
+        System.out.println("Private Key: ".concat(privateKey.toString()));
+        System.out.println("Public Key: ".concat(privateKey.getPublicKey().toString()));
+
+        return privateKey;
     }
 
     /**
@@ -21,8 +26,6 @@ public class GenerateKey {
      */
     public static void main(String[] args) {
         GenerateKey generateKey = new GenerateKey();
-        PrivateKey privateKey = generateKey.generate();
-        System.out.println("Private Key: ".concat(privateKey.toString()));
-        System.out.println("Public Key: ".concat(privateKey.getPublicKey().toString()));
+        generateKey.generate();
     }
 }

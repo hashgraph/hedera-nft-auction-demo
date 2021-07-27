@@ -1,8 +1,6 @@
 package com.hedera.demo.auction.app.repository;
 
-import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.SqlConnectionManager;
-import com.hedera.demo.auction.app.db.Tables;
 import com.hedera.demo.auction.app.domain.Bid;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.DSLContext;
@@ -17,6 +15,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.hedera.demo.auction.app.db.Tables.BIDS;
 import static org.jooq.impl.DSL.min;
 
 /**
@@ -45,8 +44,8 @@ public class BidsRepository {
     private Result<Record> getBids () throws SQLException {
         DSLContext cx = connectionManager.dsl();
 
-        Result<Record> rows = cx.selectFrom(Tables.BIDS)
-                .orderBy(Tables.BIDS.TIMESTAMP)
+        Result<Record> rows = cx.selectFrom(BIDS)
+                .orderBy(BIDS.TIMESTAMP)
                 .fetch();
         return rows;
     }
@@ -67,10 +66,10 @@ public class BidsRepository {
     public Bid getBid (int auctionId, String accountId, long bidAmount) throws SQLException {
         DSLContext cx = connectionManager.dsl();
 
-        Result<Record> result = cx.selectFrom(Tables.BIDS)
-                .where(Tables.BIDS.AUCTIONID.eq(auctionId))
-                .and(Tables.BIDS.BIDAMOUNT.eq(bidAmount))
-                .and(Tables.BIDS.BIDDERACCOUNTID.eq(accountId))
+        Result<Record> result = cx.selectFrom(BIDS)
+                .where(BIDS.AUCTIONID.eq(auctionId))
+                .and(BIDS.BIDAMOUNT.eq(bidAmount))
+                .and(BIDS.BIDDERACCOUNTID.eq(accountId))
                 .fetch();
         if (result.size() != 1) {
             return null;
@@ -90,8 +89,8 @@ public class BidsRepository {
     public Bid getBidForTimestamp (String timestamp) throws SQLException {
         DSLContext cx = connectionManager.dsl();
 
-        Result<Record> result = cx.selectFrom(Tables.BIDS)
-                .where(Tables.BIDS.TIMESTAMP.eq(timestamp))
+        Result<Record> result = cx.selectFrom(BIDS)
+                .where(BIDS.TIMESTAMP.eq(timestamp))
                 .fetch();
         if (result.size() != 1) {
             return null;
@@ -110,12 +109,12 @@ public class BidsRepository {
      */
     public String getFirstBidToRefund(int auctionId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        Result<Record1<String>> result = cx.select(min(Tables.BIDS.TIMESTAMP))
-                .from(Tables.BIDS)
-                .where(Tables.BIDS.AUCTIONID.eq(auctionId))
-                .and(Tables.BIDS.REFUNDSTATUS.ne(""))
-                .and(Tables.BIDS.REFUNDSTATUS.ne(Bid.REFUND_REFUNDED))
-                .and(Tables.BIDS.REFUNDSTATUS.ne(Bid.REFUND_ERROR))
+        Result<Record1<String>> result = cx.select(min(BIDS.TIMESTAMP))
+                .from(BIDS)
+                .where(BIDS.AUCTIONID.eq(auctionId))
+                .and(BIDS.REFUNDSTATUS.ne(""))
+                .and(BIDS.REFUNDSTATUS.ne(Bid.REFUND_REFUNDED))
+                .and(BIDS.REFUNDSTATUS.ne(Bid.REFUND_ERROR))
                 .fetch();
         if (result.size() != 1) {
             return "";
@@ -153,7 +152,7 @@ public class BidsRepository {
      */
     public void deleteAllBids() throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        cx.deleteFrom(Tables.BIDS)
+        cx.deleteFrom(BIDS)
             .execute();
     }
 
@@ -169,20 +168,44 @@ public class BidsRepository {
         DSLContext cx = connectionManager.dsl();
 
         if (StringUtils.isEmpty(transactionId)) {
-            cx.update(Tables.BIDS)
-                    .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_ISSUED)
-                    .set(Tables.BIDS.SCHEDULEID, scheduleId)
-                    .where(Tables.BIDS.TIMESTAMP.eq(consensusTimestamp))
-                    .and(Tables.BIDS.REFUNDSTATUS.eq(Bid.REFUND_ISSUING))
+            cx.update(BIDS)
+                    .set(BIDS.REFUNDSTATUS, Bid.REFUND_ISSUED)
+                    .set(BIDS.SCHEDULEID, scheduleId)
+                    .where(BIDS.TIMESTAMP.eq(consensusTimestamp))
+                    .and(BIDS.REFUNDSTATUS.eq(Bid.REFUND_ISSUING))
                     .execute();
         } else {
-            cx.update(Tables.BIDS)
-                    .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_ISSUED)
-                    .set(Tables.BIDS.SCHEDULEID, scheduleId)
-                    .set(Tables.BIDS.REFUNDTXID, transactionId)
-                    .where(Tables.BIDS.TIMESTAMP.eq(consensusTimestamp))
-                    .and(Tables.BIDS.REFUNDSTATUS.eq(Bid.REFUND_ISSUING))
+            cx.update(BIDS)
+                    .set(BIDS.REFUNDSTATUS, Bid.REFUND_ISSUED)
+                    .set(BIDS.SCHEDULEID, scheduleId)
+                    .set(BIDS.REFUNDTXID, transactionId)
+                    .where(BIDS.TIMESTAMP.eq(consensusTimestamp))
+                    .and(BIDS.REFUNDSTATUS.eq(Bid.REFUND_ISSUING))
                     .execute();
+        }
+    }
+
+    /**
+     * returns the last bid placed by a given bidding account on a given auction
+     *
+     * @param auctionId the id of the auction
+     * @param bidderAccountId the account id of the bidder
+     * @return a bid if found, null otherwise
+     * @exception SQLException in the event of an error
+     */
+    public Bid getBidderLastBid(int auctionId, String bidderAccountId) throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+
+        Result<Record> bid = cx.selectFrom(BIDS)
+                .where(BIDS.AUCTIONID.eq(auctionId))
+                .and(BIDS.BIDDERACCOUNTID.eq(bidderAccountId))
+                .orderBy(BIDS.TIMESTAMP.desc())
+                .limit(1)
+                .fetch();
+        if (bid.size() == 0) {
+            return null;
+        } else {
+            return new Bid(bid.get(0));
         }
     }
 
@@ -196,11 +219,11 @@ public class BidsRepository {
     public boolean setRefundIssuing(String consensusTimestamp) throws SQLException {
         DSLContext cx = connectionManager.dsl();
 
-        int rows = cx.update(Tables.BIDS)
-                .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_ISSUING)
-                .set(Tables.BIDS.SCHEDULEID, "")
-                .where(Tables.BIDS.TIMESTAMP.eq(consensusTimestamp))
-                .and(Tables.BIDS.REFUNDSTATUS.eq(Bid.REFUND_PENDING))
+        int rows = cx.update(BIDS)
+                .set(BIDS.REFUNDSTATUS, Bid.REFUND_ISSUING)
+                .set(BIDS.SCHEDULEID, "")
+                .where(BIDS.TIMESTAMP.eq(consensusTimestamp))
+                .and(BIDS.REFUNDSTATUS.eq(Bid.REFUND_PENDING))
                 .execute();
         return (rows == 1);
     }
@@ -214,12 +237,12 @@ public class BidsRepository {
      */
     public boolean setRefundPending(String bidTransactionId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        int rowsUpdated = cx.update(Tables.BIDS)
-                .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_PENDING)
-                .set(Tables.BIDS.SCHEDULEID, "")
-                .set(Tables.BIDS.REFUNDTXHASH, "")
-                .set(Tables.BIDS.REFUNDTXID, "")
-                .where(Tables.BIDS.TRANSACTIONID.eq(bidTransactionId))
+        int rowsUpdated = cx.update(BIDS)
+                .set(BIDS.REFUNDSTATUS, Bid.REFUND_PENDING)
+                .set(BIDS.SCHEDULEID, "")
+                .set(BIDS.REFUNDTXHASH, "")
+                .set(BIDS.REFUNDTXID, "")
+                .where(BIDS.TRANSACTIONID.eq(bidTransactionId))
                 .execute();
         return (rowsUpdated != 0);
     }
@@ -233,12 +256,12 @@ public class BidsRepository {
      */
     public boolean setRefundError(String bidTransactionId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        int rowsUpdated = cx.update(Tables.BIDS)
-                .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_ERROR)
-                .set(Tables.BIDS.SCHEDULEID, "")
-                .set(Tables.BIDS.REFUNDTXHASH, "")
-                .set(Tables.BIDS.REFUNDTXID, "")
-                .where(Tables.BIDS.TRANSACTIONID.eq(bidTransactionId))
+        int rowsUpdated = cx.update(BIDS)
+                .set(BIDS.REFUNDSTATUS, Bid.REFUND_ERROR)
+                .set(BIDS.SCHEDULEID, "")
+                .set(BIDS.REFUNDTXHASH, "")
+                .set(BIDS.REFUNDTXID, "")
+                .where(BIDS.TRANSACTIONID.eq(bidTransactionId))
                 .execute();
         return (rowsUpdated != 0);
     }
@@ -254,12 +277,12 @@ public class BidsRepository {
      */
     public boolean setRefunded(String bidTransactionId, String refundTransactionId, String refundTransactionHash) throws SQLException {
         DSLContext cx = connectionManager.dsl();
-        int rowsUpdated = cx.update(Tables.BIDS)
-                .set(Tables.BIDS.REFUNDSTATUS, Bid.REFUND_REFUNDED)
-                .set(Tables.BIDS.REFUNDTXHASH, refundTransactionHash)
-                .set(Tables.BIDS.REFUNDTXID, refundTransactionId)
-                .where(Tables.BIDS.TRANSACTIONID.eq(bidTransactionId))
-                .and(Tables.BIDS.REFUNDSTATUS.ne(Bid.REFUND_REFUNDED))
+        int rowsUpdated = cx.update(BIDS)
+                .set(BIDS.REFUNDSTATUS, Bid.REFUND_REFUNDED)
+                .set(BIDS.REFUNDTXHASH, refundTransactionHash)
+                .set(BIDS.REFUNDTXID, refundTransactionId)
+                .where(BIDS.TRANSACTIONID.eq(bidTransactionId))
+                .and(BIDS.REFUNDSTATUS.ne(Bid.REFUND_REFUNDED))
                 .execute();
 
         return (rowsUpdated != 0);
@@ -272,20 +295,18 @@ public class BidsRepository {
      * @throws SQLException in the event of an error
      */
     public void add(Bid bid) throws SQLException {
-        @Var DSLContext cx = null;
+        DSLContext cx = connectionManager.dsl();
         try {
-            cx = connectionManager.dsl();
-
-            cx.insertInto(Tables.BIDS,
-                    Tables.BIDS.AUCTIONID,
-                    Tables.BIDS.STATUS,
-                    Tables.BIDS.TIMESTAMP,
-                    Tables.BIDS.BIDAMOUNT,
-                    Tables.BIDS.BIDDERACCOUNTID,
-                    Tables.BIDS.TRANSACTIONID,
-                    Tables.BIDS.TRANSACTIONHASH,
-                    Tables.BIDS.REFUNDSTATUS,
-                    Tables.BIDS.SCHEDULEID
+            cx.insertInto(BIDS,
+                    BIDS.AUCTIONID,
+                    BIDS.STATUS,
+                    BIDS.TIMESTAMP,
+                    BIDS.BIDAMOUNT,
+                    BIDS.BIDDERACCOUNTID,
+                    BIDS.TRANSACTIONID,
+                    BIDS.TRANSACTIONHASH,
+                    BIDS.REFUNDSTATUS,
+                    BIDS.SCHEDULEID
             ).values(
                     bid.getAuctionid(),
                     bid.getStatus(),
@@ -315,9 +336,36 @@ public class BidsRepository {
         List<Bid> bids = new ArrayList<>();
         DSLContext cx = connectionManager.dsl();
 
-        Result<Record> result = cx.selectFrom(Tables.BIDS)
-                .where(Tables.BIDS.AUCTIONID.eq(auctionId))
-                .and(Tables.BIDS.REFUNDSTATUS.eq(Bid.REFUND_PENDING))
+        Result<Record> result = cx.selectFrom(BIDS)
+                .where(BIDS.AUCTIONID.eq(auctionId))
+                .and(BIDS.REFUNDSTATUS.eq(Bid.REFUND_PENDING))
+                .fetch();
+
+        if (result != null) {
+            for (Record record : result) {
+                Bid bid = new Bid(record);
+                bids.add(bid);
+            }
+        }
+        return bids;
+    }
+
+    /**
+     * Gets list of bids for an auction
+     *
+     * @param auctionId the auction id to query bids for
+     * @return {@code List<Bid>} list of Bid objects
+     * @throws SQLException in the event of an error
+     */
+    public List<Bid> getLastBids(int auctionId, int numBids) throws SQLException {
+
+        List<Bid> bids = new ArrayList<>();
+        DSLContext cx = connectionManager.dsl();
+
+        Result<Record> result = cx.selectFrom(BIDS)
+                .where(BIDS.AUCTIONID.eq(auctionId))
+                .orderBy(BIDS.TIMESTAMP.desc())
+                .limit(numBids)
                 .fetch();
 
         if (result != null) {
@@ -339,10 +387,10 @@ public class BidsRepository {
         List<Bid> bids = new ArrayList<>();
         DSLContext cx = connectionManager.dsl();
 
-        Result<Record> result = cx.selectFrom(Tables.BIDS)
-                .where(Tables.BIDS.REFUNDSTATUS.eq(Bid.REFUND_ISSUED))
-                .or(Tables.BIDS.REFUNDSTATUS.eq(Bid.REFUND_ISSUING))
-                .or(Tables.BIDS.REFUNDSTATUS.eq(Bid.REFUND_ERROR))
+        Result<Record> result = cx.selectFrom(BIDS)
+                .where(BIDS.REFUNDSTATUS.eq(Bid.REFUND_ISSUED))
+                .or(BIDS.REFUNDSTATUS.eq(Bid.REFUND_ISSUING))
+                .or(BIDS.REFUNDSTATUS.eq(Bid.REFUND_ERROR))
                 .fetch();
 
         if (result != null) {

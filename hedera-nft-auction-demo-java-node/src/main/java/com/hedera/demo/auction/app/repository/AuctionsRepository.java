@@ -46,7 +46,7 @@ public class AuctionsRepository {
      * @return {@code Result<Record>} records of auctions
      * @throws SQLException in the event of an error
      */
-    private Result<Record> getAuctions () throws SQLException {
+    private Result<Record> getAuctions() throws SQLException {
         DSLContext cx = connectionManager.dsl();
         return cx.selectFrom(AUCTIONS).orderBy(AUCTIONS.ID).fetch();
     }
@@ -143,6 +143,51 @@ public class AuctionsRepository {
         } else {
             return new Auction(auctionData);
         }
+    }
+
+    /**
+     * Gets auctions below reserve
+     *
+     * @return List of Auction below reserve
+     * @throws SQLException in the event of an error
+     */
+    @Nullable
+    public List<Auction> getAuctionsBelowReserve() throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+        Result<Record> auctionRecords = cx.selectFrom(AUCTIONS)
+                .where(AUCTIONS.WINNINGBID.lessThan(AUCTIONS.RESERVE))
+                .orderBy(AUCTIONS.ID)
+                .fetch();
+
+        List<Auction> auctions = new ArrayList<>();
+        for (Record record : auctionRecords) {
+            Auction auction = new Auction(record);
+            auctions.add(auction);
+        }
+        return auctions;
+    }
+
+    /**
+     * Gets auctions for a given status
+     *
+     * @param status the status to search on
+     * @return List of Auction that match the provided status
+     * @throws SQLException in the event of an error
+     */
+    @Nullable
+    public List<Auction> getByStatus(String status) throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+        Result<Record> auctionRecords = cx.selectFrom(AUCTIONS)
+                .where(AUCTIONS.STATUS.eq(status))
+                .orderBy(AUCTIONS.ID)
+                .fetch();
+
+        List<Auction> auctions = new ArrayList<>();
+        for (Record record : auctionRecords) {
+            Auction auction = new Auction(record);
+            auctions.add(auction);
+        }
+        return auctions;
     }
 
     /**

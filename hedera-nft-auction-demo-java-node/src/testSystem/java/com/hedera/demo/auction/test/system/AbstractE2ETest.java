@@ -99,7 +99,6 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
 //        addToEnvFromEnv("AUCTION_NODE");
 //        addToEnvFromEnv("TRANSFER_ON_WIN");
 //
-//        addToEnvFromEnv("POOL_SIZE");
 //
 //        addToEnvFromEnv("REST_HEDERA_MAINNET");
 //        addToEnvFromEnv("REST_HEDERA_TESTNET");

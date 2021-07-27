@@ -70,8 +70,6 @@ jobs:
         POSTGRES_DB: nftauction
         POSTGRES_USER: postgres
         POSTGRES_PASSWORD: password
-        #       Database information for transaction and event logging
-        POOL_SIZE: 1
         #       REST Mirror urls
         REST_HEDERA_MAINNET: mainnet.mirrornode.hedera.com
         REST_HEDERA_TESTNET: testnet.mirrornode.hedera.com

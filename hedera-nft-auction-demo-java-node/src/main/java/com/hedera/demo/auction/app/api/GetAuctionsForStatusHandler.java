@@ -6,31 +6,35 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.ext.web.RoutingContext;
 
+import java.sql.SQLException;
+import java.util.List;
+
 /**
- * Gets the details of a particular auction
+ * Gets auctions that match the provided status
  */
-public class GetAuctionHandler implements Handler<RoutingContext>  {
-
+public class GetAuctionsForStatusHandler implements Handler<RoutingContext> {
     private final AuctionsRepository auctionsRepository;
+    private final String status;
 
-    GetAuctionHandler(AuctionsRepository auctionsRepository) {
+    public GetAuctionsForStatusHandler(AuctionsRepository auctionsRepository, String status) {
         this.auctionsRepository = auctionsRepository;
+        this.status = status;
     }
 
     /**
-     * Given an auction id, query the database for its details
+     * Query the database for all auctions which have a matching status
      *
      * @param routingContext the RoutingContext
      */
     @Override
     public void handle(RoutingContext routingContext) {
-        int id = Integer.parseInt(routingContext.pathParam("id"));
+
         try {
-            Auction auction = auctionsRepository.getAuction(id);
+            List<Auction> auctions = auctionsRepository.getByStatus(status);
             routingContext.response()
                     .putHeader("content-type", "application/json")
-                    .end(Json.encodeToBuffer(auction));
-        } catch (Exception e) {
+                    .end(Json.encodeToBuffer(auctions));
+        } catch (SQLException e) {
             routingContext.fail(e.getCause());
             return;
         }

@@ -244,7 +244,6 @@ public class AbstractIntegrationTest {
                 .put("DATABASE_URL",databaseUrl.replace("jdbc:",""))
                 .put("POSTGRES_USER", username)
                 .put("POSTGRES_PASSWORD", password)
-                .put("POOL_SIZE", "1")
                 .put("API_PORT","9005")
                 .put("x-api-key", apiKey)
                 .put("server-key-pass", "../docker-files/key.pem")

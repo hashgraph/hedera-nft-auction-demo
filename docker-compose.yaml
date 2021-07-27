@@ -1,40 +1,22 @@
 version: "3"
 services:
-  postgres-compiled:
-    container_name: nft-auction-postgres-compiled
+  postgres:
+    container_name: nft-auction-postgres
     build:
-      context: docker-postgres
+      context: ./docker-postgres
     restart: unless-stopped
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
+    env_file:
+      - docker-files/.env
     expose:
       - "5433"
     ports:
       - "5433:5433"
-    command: -p 5433
-    volumes:
-      - ./docker-files/postgres-data:/var/lib/postgresql/data
-    profiles:
-      - compile
-
-  postgres-image:
-    container_name: nft-auction-postgres-image
-    image: ghcr.io/hashgraph/hedera-nft-auction-demo/nft-auction-postgres:latest
-    pull_policy: always
-    restart: unless-stopped
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-    expose:
-      - "5433"
-    ports:
-      - "5433:5433"
-    command: -p 5433
+    command: -c 'max_connections=100' -p 5433
     volumes:
       - ./docker-files/postgres-data:/var/lib/postgresql/data
     profiles:
       - image
+      - compile
 
   node-compiled:
     container_name: nft-auction-node-compiled
@@ -43,10 +25,7 @@ services:
     restart: unless-stopped
     environment:
       # Database connection
-      - DATABASE_URL=postgresql://postgres-compiled:5433/postgres
-      - DATABASE_USERNAME=postgres
-      - DATABASE_PASSWORD=password
-      - POOL_SIZE=10
+      - DATABASE_URL=postgresql://postgres:5433/
       # Run auction node only
       - AUCTION_NODE=true
       - REST_API=false
@@ -54,7 +33,7 @@ services:
     env_file:
       - docker-files/.env
     depends_on:
-      - postgres-compiled
+      - postgres
     volumes:
       - ./docker-files:/demo
     profiles:
@@ -67,10 +46,7 @@ services:
     restart: unless-stopped
     environment:
       # Database connection
-      - DATABASE_URL=postgresql://postgres-image:5433/postgres
-      - DATABASE_USERNAME=postgres
-      - DATABASE_PASSWORD=password
-      - POOL_SIZE=10
+      - DATABASE_URL=postgresql://postgres:5433/
       # Run auction node only
       - AUCTION_NODE=true
       - REST_API=false
@@ -78,7 +54,7 @@ services:
     env_file:
       - docker-files/.env
     depends_on:
-      - postgres-image
+      - postgres
     volumes:
       - ./docker-files:/demo
     profiles:
@@ -95,13 +71,10 @@ services:
       - ADMIN_API=true
       - AUCTION_NODE=false
       # Database connection
-      - DATABASE_URL=postgresql://postgres-compiled:5433/postgres
-      - DATABASE_USERNAME=postgres
-      - DATABASE_PASSWORD=password
-      - POOL_SIZE=10
+      - DATABASE_URL=postgresql://postgres:5433/
       # REST API Ports
       - API_PORT=8081
-      - API_VERTICLE_COUNT=16
+      - API_VERTICLE_COUNT=3
       - ADMIN_API_PORT=8082
       - ADMIN_API_VERTICLE_COUNT=1
     env_file:
@@ -110,7 +83,7 @@ services:
       - "8081:8081"
       - "8082:8082"
     depends_on:
-      - postgres-compiled
+      - postgres
     volumes:
       - ./docker-files:/demo
     profiles:
@@ -127,13 +100,10 @@ services:
       - ADMIN_API=true
       - AUCTION_NODE=false
       # Database connection
-      - DATABASE_URL=postgresql://postgres-image:5433/postgres
-      - DATABASE_USERNAME=postgres
-      - DATABASE_PASSWORD=password
-      - POOL_SIZE=10
+      - DATABASE_URL=postgresql://postgres:5433/
       # REST API Ports
       - API_PORT=8081
-      - API_VERTICLE_COUNT=16
+      - API_VERTICLE_COUNT=3
       - ADMIN_API_PORT=8082
       - ADMIN_API_VERTICLE_COUNT=1
     env_file:
@@ -142,7 +112,7 @@ services:
       - "8081:8081"
       - "8082:8082"
     depends_on:
-      - postgres-image
+      - postgres
     volumes:
       - ./docker-files:/demo
     profiles:

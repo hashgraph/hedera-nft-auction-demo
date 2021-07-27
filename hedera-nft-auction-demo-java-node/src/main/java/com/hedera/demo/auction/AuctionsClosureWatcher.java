@@ -118,6 +118,8 @@ public class AuctionsClosureWatcher implements Runnable {
             }
         } catch (SQLException e) {
             log.error("unable to fetch pending and open auctions", e);
+        } catch (Exception e) {
+            log.error(e.getMessage());
         }
     }
 

@@ -71,7 +71,49 @@ public class RequestCreateToken {
     public void saveImagesToIPFS(String nftStorageKey, String filesPath) throws Exception {
         // does the metadata contain an image
         saveImageToIPFS(nftStorageKey, this.image, filesPath);
-        saveImageToIPFS(nftStorageKey, this.certificate, filesPath);
+        try {
+            saveImageToIPFS(nftStorageKey, this.certificate, filesPath);
+        } catch (Exception e) {
+            // attempt to delete first image
+            String cidToDelete = image.getDescription().replace("https://cloudflare-ipfs.com/ipfs/", "");
+            if (! StringUtils.isEmpty(cidToDelete)) {
+                removeImageFromIPFS(nftStorageKey, cidToDelete);
+            }
+        }
+    }
+
+    /**
+     * Removes binary data from IPFS using fileCoin
+     *
+     * @param nftStorageKey the fileCoin authentication key
+     * @param cid the cid to remove
+     *
+     * @throws IOException in the event of an error
+     * @throws InterruptedException in the event of an error
+     */
+    private static void removeImageFromIPFS(String nftStorageKey, String cid) throws IOException, InterruptedException {
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.nft.storage/".concat(cid)))
+                .header("Content-Type", "text/plain;charset=UTF-8")
+                .header("Authorization", "Bearer ".concat(nftStorageKey))
+                .DELETE()
+                .build();
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+        if (response.statusCode() == 200) {
+            try {
+                JsonObject body = new JsonObject(response.body());
+                if (! "true".equals(body.getString("ok"))) {
+                    log.error("removing from IPFS failed {}", response.body());
+                }
+            } catch (RuntimeException e) {
+                log.error(e, e);
+            }
+        } else {
+            log.error("removing from IPFS failed status code={} response body={}", response.statusCode(), response.body());
+        }
     }
 
     /**

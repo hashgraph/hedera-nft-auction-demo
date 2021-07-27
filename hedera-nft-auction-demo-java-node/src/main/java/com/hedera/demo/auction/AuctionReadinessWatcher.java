@@ -13,7 +13,6 @@ import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
 import javax.annotation.Nullable;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -33,12 +32,11 @@ public class AuctionReadinessWatcher implements Runnable {
     protected final String mirrorProvider;
     protected final HederaClient hederaClient;
 
-    protected boolean testing = false;
     protected boolean runThread = true;
     @Nullable
     protected BidsWatcher bidsWatcher = null;
     protected String nextTimestamp = "0.0";
-    protected boolean runOnce = false;
+    protected boolean runOnce;
 
     /**
      * Constructor
@@ -56,13 +54,6 @@ public class AuctionReadinessWatcher implements Runnable {
         this.hederaClient = hederaClient;
         this.mirrorProvider = hederaClient.mirrorProvider();
         this.runOnce = runOnce;
-    }
-
-    /**
-     * Sets the class up for unit or integration testing
-     */
-    public void setTesting() {
-        this.testing = true;
     }
 
     /**
@@ -88,6 +79,18 @@ public class AuctionReadinessWatcher implements Runnable {
         log.info("Watching auction account Id {}, token Id {}", auction.getAuctionaccountid(), auction.getTokenid());
         String uri = "/api/v1/transactions";
 
+        // check auction status
+        try {
+            Auction checkAuction = auctionsRepository.getAuction(auction.getId());
+            if ( ! checkAuction.isPending()) {
+                log.info("auction is not pending, exiting thread");
+                return;
+            }
+        } catch (Exception e) {
+            log.error(e, e);
+        }
+
+
         ExecutorService executor = Executors.newFixedThreadPool(1);
         while (runThread) {
             @Var String queryFromTimeStamp = nextTimestamp;
@@ -110,10 +113,6 @@ public class AuctionReadinessWatcher implements Runnable {
                             log.debug("Token owned by the account");
                             runThread = false;
                             break;
-                        } else {
-                            if (testing) {
-                                runThread = false;
-                            }
                         }
                         queryFromTimeStamp = Utils.getTimestampFromMirrorLink(mirrorTransactions.links.next);
                         if (StringUtils.isEmpty(queryFromTimeStamp)) {
@@ -134,7 +133,7 @@ public class AuctionReadinessWatcher implements Runnable {
                 }
             }
 
-            if (this.testing || this.runOnce) {
+            if (this.runOnce) {
                 this.runThread = false;
             } else {
                 Utils.sleep(this.mirrorQueryFrequency);
@@ -179,15 +178,13 @@ public class AuctionReadinessWatcher implements Runnable {
                             log.info("Account {} owns token {}, starting auction",  auction.getAuctionaccountid(), auction.getTokenid());
                             auctionsRepository.setActive(auction, tokenOwnerAccount, transaction.consensusTimestamp);
                             // start the thread to monitor bids
-                            if (!this.testing) {
-                                bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, auction.getId(), mirrorQueryFrequency, runOnce);
-                                if (this.runOnce) {
-                                    // do not run as a thread
-                                    bidsWatcher.run();
-                                } else {
-                                    Thread t = new Thread(bidsWatcher);
-                                    t.start();
-                                }
+                            bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, auction.getId(), mirrorQueryFrequency, runOnce);
+                            if (this.runOnce) {
+                                // do not run as a thread
+                                bidsWatcher.run();
+                            } else {
+                                Thread t = new Thread(bidsWatcher);
+                                t.start();
                             }
                             return true;
                         }
@@ -195,7 +192,7 @@ public class AuctionReadinessWatcher implements Runnable {
                 }
                 return false;
             }
-        } catch (RuntimeException | SQLException e) {
+        } catch (Exception e) {
             log.error(e, e);
         }
         return false;

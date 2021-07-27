@@ -1,23 +1,25 @@
 package com.hedera.demo.auction.app.api;
 
 import com.hedera.demo.auction.app.domain.Bid;
+import com.hedera.demo.auction.app.repository.BidsRepository;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.pgclient.PgPool;
-import io.vertx.sqlclient.Tuple;
 
-import java.util.ArrayList;
+import java.sql.SQLException;
+import java.util.List;
 
 /**
  * Gets all the bids for a given auction id
  */
 public class GetBidsHandler implements Handler<RoutingContext> {
 
-    private final PgPool pgPool;
+    private final BidsRepository bidsRepository;
+    private final int bidsToReturn;
 
-    GetBidsHandler(PgPool pgPool) {
-        this.pgPool = pgPool;
+    GetBidsHandler(BidsRepository bidsRepository, int bidsToReturn) {
+        this.bidsRepository = bidsRepository;
+        this.bidsToReturn = bidsToReturn;
     }
 
     /**
@@ -29,25 +31,14 @@ public class GetBidsHandler implements Handler<RoutingContext> {
     public void handle(RoutingContext routingContext) {
 
         int auctionId = Integer.parseInt(routingContext.pathParam("auctionid"));
-        String sql = "SELECT * FROM bids WHERE auctionid = $1 ORDER BY timestamp desc limit 50";
-
-        pgPool.preparedQuery(sql).execute(Tuple.of(auctionId), ar -> {
-            if (ar.failed()) {
-                routingContext.fail(ar.cause());
-                return;
-            }
-
-            var rows = ar.result();
-            var bids = new ArrayList<Bid>(rows.rowCount());
-
-            for (var row : rows) {
-                var bid = new Bid(row);
-                bids.add(bid);
-            }
-
+        try {
+            List<Bid> bids = bidsRepository.getLastBids(auctionId, bidsToReturn);
             routingContext.response()
                     .putHeader("content-type", "application/json")
                     .end(Json.encodeToBuffer(bids));
-        });
+        } catch (SQLException e) {
+            routingContext.fail(e.getCause());
+            return;
+        }
     }
 }

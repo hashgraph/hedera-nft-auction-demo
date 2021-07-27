@@ -29,7 +29,7 @@ public abstract class AbstractCreate {
     AbstractCreate() throws Exception {
         setEnv(env);
     }
-    //For testing to override default .env
+
     public void setEnv(Dotenv overrideEnv) throws Exception {
         env = overrideEnv;
         hederaClient = new HederaClient(env);
@@ -41,6 +41,10 @@ public abstract class AbstractCreate {
         username = Objects.requireNonNull(env.get("POSTGRES_USER"), "missing environment variable POSTGRES_USER");
         password = Objects.requireNonNull(env.get("POSTGRES_PASSWORD"), "missing environment variable POSTGRES_PASSWORD");
 
+        if (connectionManager != null) {
+            // close the connection if it's not null
+            connectionManager.getConnection().close();
+        }
         connectionManager = new SqlConnectionManager(url.concat(database), username, password);
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
@@ -53,6 +57,10 @@ public abstract class AbstractCreate {
 
     //For testing to override connection manager
     public void setConnectionManager(SqlConnectionManager sqlConnectionManager) throws Exception {
+        if (connectionManager != null) {
+            // close the connection if it's not null
+            connectionManager.getConnection().close();
+        }
         connectionManager = sqlConnectionManager;
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);

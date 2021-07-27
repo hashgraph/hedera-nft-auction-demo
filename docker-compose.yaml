@@ -11,7 +11,7 @@ services:
       - "5433"
     ports:
       - "5433:5433"
-    command: -p 5433
+    command: -c 'max_connections=100' -p 5433
     volumes:
       - ./docker-files/postgres-data:/var/lib/postgresql/data
     profiles:
@@ -26,7 +26,7 @@ services:
     environment:
       # Database connection
       - DATABASE_URL=postgresql://postgres:5433/
-      - POOL_SIZE=10
+      - POOL_SIZE=1
       # Run auction node only
       - AUCTION_NODE=true
       - REST_API=false
@@ -48,7 +48,9 @@ services:
     environment:
       # Database connection
       - DATABASE_URL=postgresql://postgres:5433/
-      - POOL_SIZE=10
+      # note, if increasing pool size, the database's max_connections should be
+      # increased accordinly (min 16 * pool size)
+      - POOL_SIZE=1
       # Run auction node only
       - AUCTION_NODE=true
       - REST_API=false
@@ -74,10 +76,14 @@ services:
       - AUCTION_NODE=false
       # Database connection
       - DATABASE_URL=postgresql://postgres:5433/
-      - POOL_SIZE=10
+      # note, if increasing pool size, the database's max_connections should be
+      # increased accordingly (min API_VERTICLE_COUNT below * pool size)
+      - POOL_SIZE=1
       # REST API Ports
       - API_PORT=8081
-      - API_VERTICLE_COUNT=16
+      # note, if increasing verticle count, the database's max_connections should be
+      # increased accordingly (min API_VERTICLE_COUNT * pool size above)
+      - API_VERTICLE_COUNT=3
       - ADMIN_API_PORT=8082
       - ADMIN_API_VERTICLE_COUNT=1
     env_file:
@@ -104,10 +110,10 @@ services:
       - AUCTION_NODE=false
       # Database connection
       - DATABASE_URL=postgresql://postgres:5433/
-      - POOL_SIZE=10
+      - POOL_SIZE=1
       # REST API Ports
       - API_PORT=8081
-      - API_VERTICLE_COUNT=16
+      - API_VERTICLE_COUNT=3
       - ADMIN_API_PORT=8082
       - ADMIN_API_VERTICLE_COUNT=1
     env_file:

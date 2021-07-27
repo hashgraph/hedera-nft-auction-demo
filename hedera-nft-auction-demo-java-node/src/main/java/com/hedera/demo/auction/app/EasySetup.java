@@ -6,9 +6,6 @@ import com.hedera.demo.auction.app.api.RequestCreateAuctionAccountKey;
 import com.hedera.demo.auction.app.api.RequestCreateToken;
 import com.hedera.demo.auction.app.api.RequestEasySetup;
 import com.hedera.demo.auction.app.api.RequestTokenTransfer;
-import com.hedera.demo.auction.app.repository.AuctionsRepository;
-import com.hedera.demo.auction.app.repository.BidsRepository;
-import com.hedera.demo.auction.app.repository.ValidatorsRepository;
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
 import com.hedera.hashgraph.sdk.Status;
@@ -19,8 +16,6 @@ import com.hedera.hashgraph.sdk.TransactionResponse;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Automates the creation of test data including
@@ -37,23 +32,6 @@ public class EasySetup extends AbstractCreate {
     public EasySetup() throws Exception {
         super();
     }
-    @SuppressWarnings("FieldMissingNullable")
-    final static String url = Objects.requireNonNull(env.get("DATABASE_URL"), "missing environment variable DATABASE_URL");
-    @SuppressWarnings("FieldMissingNullable")
-    final static String username = Objects.requireNonNull(
-            env.get("DATABASE_USERNAME"), "missing environment variable DATABASE_USERNAME");
-    @SuppressWarnings("FieldMissingNullable")
-    final static String password = Objects.requireNonNull(
-            env.get("DATABASE_PASSWORD"), "missing environment variable DATABASE_PASSWORD");
-
-    final static SqlConnectionManager connectionManager = new SqlConnectionManager(url, username, password);
-    final static AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
-    final static BidsRepository bidsRepository = new BidsRepository(connectionManager);
-    final static ValidatorsRepository validatorsRepository = new ValidatorsRepository(connectionManager);
-    @SuppressWarnings("FieldMissingNullable")
-    static String topicId = Optional.ofNullable(env.get("TOPIC_ID")).orElse("");
-    @SuppressWarnings("FieldMissingNullable")
-    private final String filesPath = Optional.ofNullable(env.get("FILES_LOCATION")).orElse("./sample-files");
 
     public String setup(RequestEasySetup requestEasySetup) throws Exception {
         Client client = hederaClient.client();

@@ -271,11 +271,12 @@ task testSystem(type: Test) {
 //}
 
 flyway {
-	def dbURL = System.getenv("DATABASE_URL") ?: "postgresql://localhost:5432/postgres"
-	def dbUSER = System.getenv("DATABASE_USERNAME") ?: "postgres"
-	def dbPASS = System.getenv("DATABASE_PASSWORD") ?: "password"
+	def dbURL = System.getenv("DATABASE_URL") ?: "postgresql://localhost:5432/"
+	def dbSCHEMA = System.getenv("POSTGRES_DB") ?: "nftauction"
+	def dbUSER = System.getenv("POSTGRES_USER")
+	def dbPASS = System.getenv("POSTGRES_PASSWORD")
 
-	url = "jdbc:${dbURL}"
+	url = "jdbc:${dbURL}${dbSCHEMA}"
 	user = "${dbUSER}"
 	password = "${dbPASS}"
 	locations = ['filesystem:src/main/resources/migrations']
@@ -284,16 +285,17 @@ flyway {
 task jooqGenerate {
 	autoLintGradle.enabled = false
 	doLast() {
-		def dbURL = System.getenv("DATABASE_URL") ?: "postgresql://localhost:5432/postgres"
-		def dbUSER = System.getenv("DATABASE_USERNAME") ?: "postgres"
-		def dbPASS = System.getenv("DATABASE_PASSWORD") ?: "password"
+		def dbURL = System.getenv("DATABASE_URL") ?: "postgresql://localhost:5432/"
+		def dbSCHEMA = System.getenv("POSTGRES_DB") ?: "nftauction"
+		def dbUSER = System.getenv("POSTGRES_USER")
+		def dbPASS = System.getenv("POSTGRES_PASSWORD")
 		def writer = new StringWriter()
 
 		new MarkupBuilder(writer)
 				.configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.14.0.xsd') {
 					jdbc {
 						driver('org.postgresql.Driver')
-						url("jdbc:${dbURL}")
+						url("jdbc:${dbURL}${dbSCHEMA}")
 						user("${dbUSER}")
 						password("${dbPASS}")
 					}

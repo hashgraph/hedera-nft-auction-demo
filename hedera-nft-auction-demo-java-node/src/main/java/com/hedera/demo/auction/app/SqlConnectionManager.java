@@ -33,7 +33,7 @@ public class SqlConnectionManager {
     }
 
     /**
-     * Returns a context to the databsae
+     * Returns a context to the database
      * @return DSLContext a database context
      * @throws SQLException in the event of a database error
      */

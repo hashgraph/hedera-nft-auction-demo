@@ -4,15 +4,20 @@ import java.util.UUID;
 
 public class GenerateApiKey {
 
-    private GenerateApiKey() {
-
+    public GenerateApiKey() {
     }
+
+    public String generate() {
+        return UUID.randomUUID().toString();
+    }
+
     /**
      * Generates an api key
      * and outputs the key to log
      */
     public static void main(String[] args) {
-        UUID uuid = UUID.randomUUID();
-        System.out.println("X_API_KEY=".concat(uuid.toString()));
+        GenerateApiKey generateApiKey = new GenerateApiKey();
+        String apiKey = generateApiKey.generate();
+        System.out.println("X_API_KEY=".concat(apiKey));
     }
 }

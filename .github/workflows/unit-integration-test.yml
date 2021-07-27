@@ -44,7 +44,7 @@ jobs:
       env:
         OPERATOR_ID: ${{ secrets.OPERATOR_ID }}
         OPERATOR_KEY: ${{ secrets.OPERATOR_KEY }}
-        NETWORK: testnet
+        NEXT_PUBLIC_NETWORK: testnet
         #       Run the REST API true/false
         REST_API: true
         API_PORT: 8081
@@ -53,11 +53,14 @@ jobs:
         ADMIN_API: true
         ADMIN_API_PORT: 8082
         ADMIN_API_VERTICLE_COUNT: 1
+        X_API_KEY: e6e006ec-c1ac-4204-9389-8d4ad4c12345
+        NFT_STORAGE_API_KEY: ${{ secrets.NFT_STORAGE_API_KEY }}
         HTTPS_KEY_OR_PASS: ../docker-files/key.pem
         HTTPS_CERTIFICATE: ../docker-files/cert.pem
         #       Run the Auction Node true/false
         AUCTION_NODE: true
         #       only if participating in refund transactions
+        REFUND_THREADS: 1
         TRANSFER_ON_WIN: true
         #       auction topic details
         TOPIC_ID:
@@ -66,11 +69,10 @@ jobs:
         MIRROR_PROVIDER: hedera
         MIRROR_QUERY_FREQUENCY: 5000
         #       Database information for transaction and event logging
-        DATABASE_URL: postgresql://localhost:5432/postgres
-        DATABASE_USERNAME: postgres
-        DATABASE_PASSWORD: password
-        #       Database information for transaction and event logging
-        POOL_SIZE: 1
+        DATABASE_URL: postgresql://localhost:5432/
+        POSTGRES_DB: nftauction
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: password
         #       REST Mirror urls
         REST_HEDERA_MAINNET: mainnet.mirrornode.hedera.com
         REST_HEDERA_TESTNET: testnet.mirrornode.hedera.com

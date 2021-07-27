@@ -99,7 +99,6 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
 //        addToEnvFromEnv("AUCTION_NODE");
 //        addToEnvFromEnv("TRANSFER_ON_WIN");
 //
-//        addToEnvFromEnv("POOL_SIZE");
 //
 //        addToEnvFromEnv("REST_HEDERA_MAINNET");
 //        addToEnvFromEnv("REST_HEDERA_TESTNET");
@@ -108,8 +107,8 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
 //        environment.put("TOPIC_ID", topicId);
 //        environment.put("MIRROR_PROVIDER", mirrorProvider);
 //        environment.put("DATABASE_URL", "postgresql://pgdb:5432/postgres");
-//        environment.put("DATABASE_USERNAME", postgreSQLContainer.getUsername());
-//        environment.put("DATABASE_PASSWORD", postgreSQLContainer.getPassword());
+//        environment.put("POSTGRES_USER", postgreSQLContainer.getUsername());
+//        environment.put("POSTGRES_PASSWORD", postgreSQLContainer.getPassword());
 //        environment.put("MIRROR_QUERY_FREQUENCY", "10000");
 //
 //        GenericContainer container = new GenericContainer(

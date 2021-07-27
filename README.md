@@ -122,6 +122,9 @@ setup the `.env` properties as follows
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
 * `NEXT_PUBLIC_NETWORK=` (mainnet, testnet or previewnet)
+* `POSTGRES_USER=` (username for the database)
+* `POSTGRES_PASSWORD=` (password for the database user)
+* `POSTGRES_DB=nftauction` (schema name for the database, you may change if desired)
 * `MASTER_KEY=` (set only for one node which has additional authority over the auction accounts, can be the same as operator key only, else must be different)
 * `NFT_STORAGE_API_KEY=` (We use IPFS storage using [nft.storage](https://nft.storage) to store NFT metadata. You can create your API key on https://nft.storage and add it to your .env file to enable IPFS upload, this is only required if your node will be involved in token creation through the API or command line)
 * `X_API_KEY=` (API key to authenticate admin REST api calls e.g. a6e006ec-c1ac-4204-9389-8d4ad4c84a6f)
@@ -209,12 +212,6 @@ you may now navigate to [https://localhost:8080](https://localhost:8080) to veri
 
 ### Standalone
 
-#### Database
-
-All database objects will be created in the `public` database.
-
-_Note the installation below assumes the user is `postgres` and the password is `password`._
-
 #### Java Appnet Node
 
 ```shell
@@ -241,6 +238,9 @@ The operator id/key is used to query the hedera network for the token's metadata
 
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
+* `POSTGRES_USER=` (username for the database)
+* `POSTGRES_PASSWORD=` (password for the database user)
+* `POSTGRES_DB=nftauction` (schema name for the database, you may change if desired)
 * `TRANSFER_ON_WIN=`true
 
 You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish (although only the hedera mirror API is supported at this time).
@@ -722,6 +722,9 @@ which will create an account with the specified initial balance in hbar and will
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
 * `NEXT_PUBLIC_NETWORK=` (mainnet, testnet or previewnet)
+* `POSTGRES_USER=` (username for the database)
+* `POSTGRES_PASSWORD=` (password for the database user)
+* `POSTGRES_DB=nftauction` (schema name for the database, you may change if desired)
 * `NODE_OWNER=` (an identifier, e.g. `ACMEAuctions` to be rendered in the UI to show which node the UI is connected to)
 * `TOPIC_ID=` (the topic id provided by whoever is setting up the application network, leave blank if you're setting up a new application network)
 

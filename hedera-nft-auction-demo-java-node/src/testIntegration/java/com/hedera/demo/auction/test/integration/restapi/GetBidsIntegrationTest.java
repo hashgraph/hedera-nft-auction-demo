@@ -7,11 +7,8 @@ import com.hedera.demo.auction.app.domain.Bid;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.demo.auction.test.integration.AbstractIntegrationTest;
-import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
-import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -23,11 +20,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.SQLException;
-import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(VertxExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -93,4 +87,26 @@ public class GetBidsIntegrationTest extends AbstractIntegrationTest {
                     testContext.completeNow();
                 })));
     }
+
+  @Test
+  public void getBidsInvalidAuctionId(VertxTestContext testContext) {
+    webClient.get(9005, "localhost", "/v1/bids/abc")
+            .as(BodyCodec.buffer())
+            .send(testContext.succeeding(response -> testContext.verify(() -> {
+              assertNull(response.body());
+              assertEquals(500, response.statusCode());
+              testContext.completeNow();
+            })));
+  }
+
+  @Test
+  public void getBidsAuctionIdZero(VertxTestContext testContext) {
+    webClient.get(9005, "localhost", "/v1/bids/0")
+            .as(BodyCodec.buffer())
+            .send(testContext.succeeding(response -> testContext.verify(() -> {
+              assertNull(response.body());
+              assertEquals(500, response.statusCode());
+              testContext.completeNow();
+            })));
+  }
 }

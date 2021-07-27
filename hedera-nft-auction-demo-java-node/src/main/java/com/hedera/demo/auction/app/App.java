@@ -35,7 +35,7 @@ import java.util.Optional;
  */
 @Log4j2
 public final class App {
-    Vertx vertx = Vertx.vertx();
+    private final Vertx vertx = Vertx.vertx();
     private final Dotenv env = Dotenv.configure().ignoreIfMissing().load();
     @SuppressWarnings("FieldMissingNullable")
     private boolean restAPI = Optional.ofNullable(env.get("REST_API")).map(Boolean::parseBoolean).orElse(false);
@@ -51,11 +51,13 @@ public final class App {
     private String topicId = Optional.ofNullable(env.get("TOPIC_ID")).orElse("");
     private int mirrorQueryFrequency = Integer.parseInt(Optional.ofNullable(env.get("MIRROR_QUERY_FREQUENCY")).orElse("5000"));
     @SuppressWarnings("FieldMissingNullable")
-    private String postgresUrl = Optional.ofNullable(env.get("DATABASE_URL")).orElse("postgresql://localhost:5432/postgres");
+    private String postgresUrl = env.get("DATABASE_URL");
     @SuppressWarnings("FieldMissingNullable")
-    private String postgresUser = Optional.ofNullable(env.get("DATABASE_USERNAME")).orElse("postgres");
+    private final String postgresDatabase = env.get("POSTGRES_DB");
     @SuppressWarnings("FieldMissingNullable")
-    private String postgresPassword = Optional.ofNullable(env.get("DATABASE_PASSWORD")).orElse("password");
+    private String postgresUser = env.get("POSTGRES_USER");
+    @SuppressWarnings("FieldMissingNullable")
+    private String postgresPassword = env.get("POSTGRES_PASSWORD");
     @SuppressWarnings("FieldMissingNullable")
     private boolean transferOnWin = Optional.ofNullable(env.get("TRANSFER_ON_WIN")).map(Boolean::parseBoolean).orElse(true);
     @SuppressWarnings("FieldMissingNullable")
@@ -164,10 +166,31 @@ public final class App {
      */
     public void runApp() throws Exception {
 
+        if (StringUtils.isEmpty(postgresUrl)) {
+            String error = "DATABASE_URL environment variable is missing";
+            log.error(error);
+            throw new Exception(error);
+        }
+        if (StringUtils.isEmpty(postgresDatabase)) {
+            String error = "POSTGRES_DB environment variable is missing";
+            log.error(error);
+            throw new Exception(error);
+        }
+        if (StringUtils.isEmpty(postgresUser)) {
+            String error = "POSTGRES_USER environment variable is missing";
+            log.error(error);
+            throw new Exception(error);
+        }
+        if (StringUtils.isEmpty(postgresPassword)) {
+            String error = "POSTGRES_PASSWORD environment variable is missing";
+            log.error(error);
+            throw new Exception(error);
+        }
+
         log.info("applying database migrations");
         Flyway flyway = Flyway
                 .configure()
-                .dataSource("jdbc:".concat(postgresUrl), postgresUser, postgresPassword)
+                .dataSource("jdbc:".concat(postgresUrl).concat(postgresDatabase), postgresUser, postgresPassword)
                 .locations("classpath:migrations")
                 .connectRetries(20)
                 .load();
@@ -242,7 +265,7 @@ public final class App {
         }
 
         if (auctionNode) {
-            SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgresUrl, this.postgresUser, this.postgresPassword);
+            SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgresUrl.concat(this.postgresDatabase), this.postgresUser, this.postgresPassword);
             AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
             BidsRepository bidsRepository = new BidsRepository(connectionManager);
             ValidatorsRepository validatorsRepository = new ValidatorsRepository(connectionManager);

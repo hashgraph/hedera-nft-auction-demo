@@ -4,7 +4,6 @@ import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.AuctionReadinessWatcher;
 import com.hedera.demo.auction.app.HederaClient;
 import com.hedera.demo.auction.app.Utils;
-import com.hedera.demo.auction.app.api.RequestPostValidator;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTopicMessage;
 import com.hedera.demo.auction.app.mirrormapping.MirrorTopicMessages;
@@ -56,13 +55,12 @@ public class TopicSubscriber implements Runnable{
     private final TopicId topicId;
     private final int mirrorQueryFrequency;
     private final HederaClient hederaClient;
-    private boolean testing = false;
     private boolean skipReadinessWatcher = false;
     private boolean runThread = true;
     @Nullable
     private AuctionReadinessWatcher auctionReadinessWatcher = null;
     private final String masterKey;
-    private boolean runOnce = false;
+    private boolean runOnce;
 
     /**
      * Constructor
@@ -96,13 +94,6 @@ public class TopicSubscriber implements Runnable{
     }
 
     /**
-     * Sets up boolean for unit and integration testing
-     */
-    public void setTesting() {
-        testing = true;
-    }
-
-    /**
      * Detrmines if the readiness watcher startup should be skipped for unit and integration testing purposes
      */
     public void setSkipReadinessWatcher() {
@@ -132,6 +123,7 @@ public class TopicSubscriber implements Runnable{
 
                 Map<String, String> queryParameters = new HashMap<>();
                 queryParameters.put("timestamp", "gt:".concat(nextTimestamp));
+                queryParameters.put("order", "asc");
 
                 Future<JsonObject> future = executor.submit(Utils.queryMirror(hederaClient, uri, queryParameters));
 
@@ -206,31 +198,10 @@ public class TopicSubscriber implements Runnable{
     public void handleValidators(JsonArray validators) {
         log.debug("consensus message for validators management");
         if (validators != null) {
-            for (Object validatorObject : validators.getList()) {
-                JsonObject validator = JsonObject.mapFrom(validatorObject);
-                RequestPostValidator postValidator = validator.mapTo(RequestPostValidator.class);
-                if (StringUtils.isEmpty(postValidator.isValid())) {
-                    try {
-                        switch (postValidator.operation) {
-                            case "add":
-                                log.debug("adding validator");
-                                validatorsRepository.add(postValidator.getName(), postValidator.url, postValidator.publicKey);
-                                break;
-                            case "delete":
-                                log.debug("deleting validator");
-                                validatorsRepository.delete(postValidator.getName());
-                                break;
-                            case "update":
-                                log.debug("updating validator");
-                                validatorsRepository.update(postValidator.getNameToUpdate(), postValidator.getName(), postValidator.url, postValidator.publicKey);
-                                break;
-                            default:
-                                log.warn("invalid consensus message contents - validator object has invalid value combinations");
-                        }
-                    } catch (SQLException e) {
-                        log.error(e, e);
-                    }
-                }
+            try {
+                validatorsRepository.manage(validators);
+            } catch (Exception e) {
+                log.error(e, e);
             }
         } else {
             log.warn("invalid consensus message contents - validators is not an array");
@@ -287,37 +258,35 @@ public class TopicSubscriber implements Runnable{
                 auction = auctionsRepository.getAuction(newAuction.getAuctionaccountid());
                 // auction doesn't exist, create it
                 if (auction == null) {
-                    if (!testing) {
-                        // get token info
-                        Client client = hederaClient.client();
-                        try {
-                            log.debug("Getting token info");
-                            TokenInfo tokenInfo = new TokenInfoQuery()
-                                    .setTokenId(TokenId.fromString(newAuction.getTokenid()))
-                                    .execute(client);
-
-                            // store the IPFS url against the auction
-                            if (tokenInfo.symbol.contains("ipfs")) {
-                                // set token image data
-                                newAuction.setTokenmetadata(tokenInfo.symbol);
-                            }
-                        } catch (Exception e) {
-                            log.error("error getting token info", e);
-                            throw e;
-                        }
-                        // get auction account info
-                        log.debug("getting auction account info");
-                        AccountInfo accountInfo = new AccountInfoQuery()
-                                .setAccountId(AccountId.fromString(newAuction.getAuctionaccountid()))
+                    // get token info
+                    Client client = hederaClient.client();
+                    try {
+                        log.debug("Getting token info");
+                        TokenInfo tokenInfo = new TokenInfoQuery()
+                                .setTokenId(TokenId.fromString(newAuction.getTokenid()))
                                 .execute(client);
 
-                        // only process refunds for this auction if the auction's key contains the operator's public key
-                        newAuction.setProcessrefunds(accountInfo.key.toString().toUpperCase().contains(hederaClient.operatorPublicKey().toString().toUpperCase()));
+                        // store the IPFS url against the auction
+                        if (tokenInfo.symbol.contains("ipfs")) {
+                            // set token image data
+                            newAuction.setTokenmetadata(tokenInfo.symbol);
+                        }
+                    } catch (Exception e) {
+                        log.error("error getting token info", e);
+                        throw e;
                     }
+                    // get auction account info
+                    log.debug("getting auction account info");
+                    AccountInfo accountInfo = new AccountInfoQuery()
+                            .setAccountId(AccountId.fromString(newAuction.getAuctionaccountid()))
+                            .execute(client);
+
+                    // only process refunds for this auction if the auction's key contains the operator's public key
+                    newAuction.setProcessrefunds(accountInfo.key.toString().toUpperCase().contains(hederaClient.operatorPublicKey().toString().toUpperCase()));
 
                     auction = auctionsRepository.add(newAuction);
 
-                    if ((auction.getId() != 0) && !testing) {
+                    if ((auction.getId() != 0)) {
                         log.info("Auction for token {} added", newAuction.getTokenid());
                     }
 

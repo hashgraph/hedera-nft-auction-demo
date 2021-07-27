@@ -5,7 +5,6 @@ import getUsdValue from 'utils/getUsdValue'
 import getBidValue from 'utils/getBidValueToShow'
 import BidButton from './BidButton'
 import BidModal from 'components/modals/BidModal'
-import { Hbar } from '@hashgraph/sdk'
 import HbarUnbit from 'components/common/HbarUnit'
 import ShareModal from 'components/modals/ShareModal'
 

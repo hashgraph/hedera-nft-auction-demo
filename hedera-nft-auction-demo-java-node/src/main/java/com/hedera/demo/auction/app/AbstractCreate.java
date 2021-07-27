@@ -36,15 +36,27 @@ public abstract class AbstractCreate {
 
         filesPath = Optional.ofNullable(env.get("FILES_LOCATION")).orElse("./sample-files");
 
-        url = Objects.requireNonNull(env.get("DATABASE_URL"), "missing environment variable DATABASE_URL");
-        database = Objects.requireNonNull(env.get("POSTGRES_DB"), "missing environment variable POSTGRES_DB");
-        username = Objects.requireNonNull(env.get("POSTGRES_USER"), "missing environment variable POSTGRES_USER");
-        password = Objects.requireNonNull(env.get("POSTGRES_PASSWORD"), "missing environment variable POSTGRES_PASSWORD");
+        String newUrl = Objects.requireNonNull(env.get("DATABASE_URL"), "missing environment variable DATABASE_URL");
+        String newDatabase = Objects.requireNonNull(env.get("POSTGRES_DB"), "missing environment variable POSTGRES_DB");
+        String newUsername = Objects.requireNonNull(env.get("POSTGRES_USER"), "missing environment variable POSTGRES_USER");
+        String newPassword = Objects.requireNonNull(env.get("POSTGRES_PASSWORD"), "missing environment variable POSTGRES_PASSWORD");
 
         if (connectionManager != null) {
-            // close the connection if it's not null
-            connectionManager.getConnection().close();
+            String newConnection = newUrl.concat(newDatabase).concat(newUsername).concat(newPassword);
+            String oldConnection = url.concat(database).concat(username).concat(password);
+
+            if (! newConnection.equals(oldConnection)) {
+                // close the connection if it's not null
+                connectionManager.getConnection().close();
+            }
+
         }
+
+        url = newUrl;
+        database = newDatabase;
+        username = newUsername;
+        password = newPassword;
+
         connectionManager = new SqlConnectionManager(url.concat(database), username, password);
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);

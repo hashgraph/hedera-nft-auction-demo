@@ -37,7 +37,7 @@ public class TransactionScheduler {
     private TransactionId transactionId;
     @Nullable
     private Transaction transaction;
-    private final Dotenv env = Dotenv.load();
+    private final Dotenv env = Dotenv.configure().ignoreIfMissing().load();
 
     /**
      * Constructor

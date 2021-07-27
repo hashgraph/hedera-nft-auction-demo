@@ -84,7 +84,7 @@ public class HederaClient {
      * @throws Exception in the event of an error
      */
     public HederaClient() throws Exception {
-        this(Dotenv.load());
+        this(Dotenv.configure().ignoreIfMissing().load());
     }
 
     /**

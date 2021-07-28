@@ -511,4 +511,3 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         assertEquals(Hex.encodeHexString(txHashBytes), testBid.getTransactionhash());
     }
 }
-

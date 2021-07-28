@@ -43,7 +43,6 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
     private final static String auctionAccountId = "0.0.20";
     private final static TopicId topicId = TopicId.fromString("0.0.1");
 
-    private JsonObject auctionJson;
     private TopicSubscriber topicSubscriber;
     private Instant consensusTimestamp;
     private String publicKey;
@@ -76,7 +75,7 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     public void beforeEach() {
-        auctionJson = new JsonObject();
+        JsonObject auctionJson = new JsonObject();
         auctionJson.put("endtimestamp", "");
         auctionJson.put("tokenid", tokenId);
         auctionJson.put("auctionaccountid", auctionAccountId);
@@ -515,9 +514,5 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
         MirrorTopicMessage mirrorTopicMessage = topicMessage.mapTo(MirrorTopicMessage.class);
         mirrorTopicMessages = new MirrorTopicMessages();
         mirrorTopicMessages.messages.add(mirrorTopicMessage);
-    }
-
-    private String consensusTimeStampWithNanos() {
-        return String.valueOf(consensusTimestamp.getEpochSecond()).concat(".000000000");
     }
 }

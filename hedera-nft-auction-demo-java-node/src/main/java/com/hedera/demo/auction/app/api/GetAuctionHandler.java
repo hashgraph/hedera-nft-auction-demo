@@ -31,8 +31,13 @@ public class GetAuctionHandler implements Handler<RoutingContext>  {
                     .putHeader("content-type", "application/json")
                     .end(Json.encodeToBuffer(auction));
         } catch (Exception e) {
-            routingContext.fail(e.getCause());
-            return;
+            if (e.getMessage() != null) {
+                if (e.getMessage().contains("No auction id")) {
+                    routingContext.fail(404);
+                    return;
+                }
+            }
+            routingContext.fail(500, e);
         }
     }
 }

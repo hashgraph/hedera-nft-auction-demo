@@ -42,7 +42,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
     private PostgreSQLContainer postgres;
     private AuctionsRepository auctionsRepository;
     private BidsRepository bidsRepository;
-    private HederaClient hederaClient = new HederaClient();
+    private final HederaClient hederaClient = new HederaClient();
     private BidsWatcher bidWatcher;
     private Auction auction = testAuctionObject(1);
     private static final long bidAmount = 1000000000;
@@ -511,4 +511,3 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         assertEquals(Hex.encodeHexString(txHashBytes), testBid.getTransactionhash());
     }
 }
-

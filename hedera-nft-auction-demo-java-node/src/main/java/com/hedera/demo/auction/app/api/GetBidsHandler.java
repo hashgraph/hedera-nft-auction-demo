@@ -5,6 +5,7 @@ import com.hedera.demo.auction.app.repository.BidsRepository;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
 import io.vertx.ext.web.RoutingContext;
+import lombok.extern.log4j.Log4j2;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
 /**
  * Gets all the bids for a given auction id
  */
+@Log4j2
 public class GetBidsHandler implements Handler<RoutingContext> {
 
     private final BidsRepository bidsRepository;
@@ -37,8 +39,8 @@ public class GetBidsHandler implements Handler<RoutingContext> {
                     .putHeader("content-type", "application/json")
                     .end(Json.encodeToBuffer(bids));
         } catch (SQLException e) {
-            routingContext.fail(e.getCause());
-            return;
+            log.error(e, e);
+            routingContext.fail(500, e);
         }
     }
 }

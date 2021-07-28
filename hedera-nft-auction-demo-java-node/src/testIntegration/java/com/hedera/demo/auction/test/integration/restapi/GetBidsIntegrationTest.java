@@ -21,7 +21,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.SQLException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @ExtendWith(VertxExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

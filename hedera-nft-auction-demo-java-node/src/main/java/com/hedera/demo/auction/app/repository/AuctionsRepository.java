@@ -421,7 +421,8 @@ public class AuctionsRepository {
                     AUCTIONS.MINIMUMBID,
                     AUCTIONS.TITLE,
                     AUCTIONS.DESCRIPTION,
-                    AUCTIONS.PROCESSREFUNDS
+                    AUCTIONS.PROCESSREFUNDS,
+                    AUCTIONS.CREATEAUCTIONTXID
             ).values(auction.getTokenid(),
                     auction.getAuctionaccountid(),
                     auction.getEndtimestamp(),
@@ -433,7 +434,8 @@ public class AuctionsRepository {
                     auction.getMinimumbid(),
                     auction.getTitle(),
                     auction.getDescription(),
-                    auction.getProcessrefunds()
+                    auction.getProcessrefunds(),
+                    auction.getCreateauctiontxid()
             ).returning(AUCTIONS.ID).execute();
             int id = cx.lastID().intValue();
             auction.setId(id);
@@ -499,7 +501,8 @@ public class AuctionsRepository {
                     AUCTIONS.TITLE,
                     AUCTIONS.DESCRIPTION,
                     AUCTIONS.TRANSFERSTATUS,
-                    AUCTIONS.PROCESSREFUNDS
+                    AUCTIONS.PROCESSREFUNDS,
+                    AUCTIONS.CREATEAUCTIONTXID
             ).values(auction.getTokenid(),
                     auction.getAuctionaccountid(),
                     auction.getEndtimestamp(),
@@ -521,7 +524,8 @@ public class AuctionsRepository {
                     auction.getTitle(),
                     auction.getDescription(),
                     auction.getTransferstatus(),
-                    auction.getProcessrefunds()
+                    auction.getProcessrefunds(),
+                    auction.getCreateauctiontxid()
             ).returning(AUCTIONS.ID).execute();
             int id = cx.lastID().intValue();
             auction.setId(id);

@@ -54,14 +54,14 @@ public class GetEnvironmentHandler implements Handler<RoutingContext>  {
         @Var List<Validator> validatorList = new ArrayList<>();
         try {
             validatorList = validatorsRepository.getValidatorsList();
+            response.put("validators", validatorList);
+
+            routingContext.response()
+                    .putHeader("content-type", "application/json")
+                    .end(Json.encodeToBuffer(response));
         } catch (SQLException e) {
             log.error(e, e);
+            routingContext.fail(500, e);
         }
-
-        response.put("validators", validatorList);
-
-        routingContext.response()
-                .putHeader("content-type", "application/json")
-                .end(Json.encodeToBuffer(response));
     }
 }

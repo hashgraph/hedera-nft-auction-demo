@@ -32,10 +32,8 @@ public class GetAuctionsReserveNotMetHandler implements Handler<RoutingContext> 
             routingContext.response()
                     .putHeader("content-type", "application/json")
                     .end(Json.encodeToBuffer(auctions));
-
         } catch (SQLException e) {
-            routingContext.fail(e.getCause());
-            return;
+            routingContext.fail(500, e);
         }
     }
 }

@@ -22,7 +22,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(VertxExtension.class)
 public class AbstractIntegrationTest {
@@ -129,6 +131,7 @@ public class AbstractIntegrationTest {
     String validatorName() { return stringPlusIndex("validatorName");}
     String validatorUrl() { return "https://hedera".concat(String.valueOf(index)).concat(".com");}
     String validatorPublicKey() { return PrivateKey.generate().getPublicKey().toString();}
+    String createAuctionTx() { return stringPlusIndex("createauctiontx");}
 
     @SuppressWarnings("FieldMissingNullable")
     protected String masterKey = Optional.ofNullable(env.get("MASTER_KEY")).orElse(""); //TODO: Handle tests where masterNode = false
@@ -158,6 +161,7 @@ public class AbstractIntegrationTest {
         auction.setTransferstatus(transferStatus());
         auction.setTitle(title());
         auction.setDescription(description());
+        auction.setCreateauctiontxid(createAuctionTx());
 
         return auction;
     }
@@ -185,6 +189,7 @@ public class AbstractIntegrationTest {
         assertEquals(auction.getMinimumbid(),getAuction.getMinimumbid());
         assertEquals(auction.getTitle(), getAuction.getTitle());
         assertEquals(auction.getDescription(), getAuction.getDescription());
+        assertEquals(auction.getCreateauctiontxid(), getAuction.getCreateauctiontxid());
     }
 
     public void testNewValidator(Validator validator, Validator getValidator) {
@@ -233,7 +238,6 @@ public class AbstractIntegrationTest {
                 .locations("filesystem:./src/main/resources/migrations")
                 .load();
         flyway.migrate();
-
     }
 
     protected DeploymentOptions getVerticleDeploymentOptions(String databaseUrl, String username, String password) {
@@ -294,6 +298,7 @@ public class AbstractIntegrationTest {
         assertEquals(auction.getTransferstatus(), body.getString("transferstatus"));
         assertEquals(auction.getTitle(), body.getString("title"));
         assertEquals(auction.getDescription(), body.getString("description"));
+        assertEquals(auction.getCreateauctiontxid(), body.getString("createauctiontxid"));
     }
 
     protected void failingAdminAPITest(VertxTestContext testContext, String url, JsonObject body) {

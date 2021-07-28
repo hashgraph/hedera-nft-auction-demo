@@ -1,3 +1,3 @@
-import HomePage from 'components/LiveAuction'
+import HomePage from '@/components/Homepage'
 
 export default HomePage

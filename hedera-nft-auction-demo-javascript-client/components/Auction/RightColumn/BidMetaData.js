@@ -28,6 +28,16 @@ const BidMetaData = ({ auction }) => {
   const openShareModal = () => setSharingAuction(true)
   const closeShareModal = () => setSharingAuction(false)
 
+  const moreThanOneDayLeft = timeLeft.days >= 1
+  const lessThanOneHourLeft = !timeLeft.days && timeLeft.hours < 1
+  const lessThanMinutLeft =
+    !timeLeft.days && !timeLeft.hours && timeLeft.minutes < 1
+
+  const shouldShowDays = moreThanOneDayLeft
+  const shouldShowHours = !lessThanOneHourLeft
+  const shouldShowMinutes = !lessThanMinutLeft
+  const shouldShowSeconds = !moreThanOneDayLeft
+
   if (isOver)
     return (
       <div className='flex sm:items-center items-left sm:flex-row flex-col'>
@@ -39,7 +49,7 @@ const BidMetaData = ({ auction }) => {
           <p className='text-gray-400 font-thin text-sm'>${usdValue}</p>
         </div>
         <p className='border-gradient border-gradient-purple text-sm py-1 px-3 sm:mt-3 mt-6 sm:ml-10 ml-0 relative bottom-1 text-xl font-light sm:text-left text-center'>
-          This auction is <span className='font-bold'>ended</span>
+          This auction has <span className='font-bold'>ended</span>
         </p>
       </div>
     )
@@ -83,39 +93,58 @@ const BidMetaData = ({ auction }) => {
             <p>Calculating...</p>
           ) : (
             <>
-              <div className='mr-6 font-thin'>
-                <p
-                  className='sm:text-34 text-30 sm:mb-1 mb-0'
-                  style={{
-                    lineHeight: '2.25rem',
-                  }}
-                >
-                  {timeLeft.hours || 0}
-                </p>
-                <p className='font-light sm:mb-0 -m-0.5'>Hours</p>
-              </div>
-              <div className='mr-4 font-thin'>
-                <p
-                  className='sm:text-34 text-30 sm:mb-1 mb-0'
-                  style={{
-                    lineHeight: '2.25rem',
-                  }}
-                >
-                  {timeLeft.minutes || 0}
-                </p>
-                <p className='font-light sm:mb-0 -m-0.5'>Minutes</p>
-              </div>
-              <div className='font-thin'>
-                <p
-                  className='sm:text-34 text-30 sm:mb-1 mb-0'
-                  style={{
-                    lineHeight: '2.25rem',
-                  }}
-                >
-                  {timeLeft.seconds || 0}
-                </p>
-                <p className='font-light sm:mb-0 -m-0.5'>Seconds</p>
-              </div>
+              {shouldShowDays && (
+                <div className='mr-6 font-thin'>
+                  <p
+                    className='sm:text-34 text-30 sm:mb-1 mb-0'
+                    style={{
+                      lineHeight: '2.25rem',
+                    }}
+                  >
+                    {timeLeft.days || 0}
+                  </p>
+                  <p className='font-light sm:mb-0 -m-0.5'>Days</p>
+                </div>
+              )}
+              {shouldShowHours && (
+                <div className='mr-6 font-thin'>
+                  <p
+                    className='sm:text-34 text-30 sm:mb-1 mb-0'
+                    style={{
+                      lineHeight: '2.25rem',
+                    }}
+                  >
+                    {timeLeft.hours || 0}
+                  </p>
+                  <p className='font-light sm:mb-0 -m-0.5'>Hours</p>
+                </div>
+              )}
+              {shouldShowMinutes && (
+                <div className='mr-4 font-thin'>
+                  <p
+                    className='sm:text-34 text-30 sm:mb-1 mb-0'
+                    style={{
+                      lineHeight: '2.25rem',
+                    }}
+                  >
+                    {timeLeft.minutes || 0}
+                  </p>
+                  <p className='font-light sm:mb-0 -m-0.5'>Minutes</p>
+                </div>
+              )}
+              {shouldShowSeconds && (
+                <div className='font-thin'>
+                  <p
+                    className='sm:text-34 text-30 sm:mb-1 mb-0'
+                    style={{
+                      lineHeight: '2.25rem',
+                    }}
+                  >
+                    {timeLeft.seconds || 0}
+                  </p>
+                  <p className='font-light sm:mb-0 -m-0.5'>Seconds</p>
+                </div>
+              )}
             </>
           )}
         </div>

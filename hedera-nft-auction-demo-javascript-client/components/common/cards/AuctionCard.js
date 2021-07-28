@@ -6,10 +6,7 @@ import getBidValue from 'utils/getBidValueToShow'
 const MINUTES_IN_A_DAY = 1440
 const MINUTES_IN_AN_HOUR = 60
 
-const LiveAuctionCard = ({
-  auction,
-  showStatus,
-}) => {
+const LiveAuctionCard = ({ auction, showStatus }) => {
   const router = useRouter()
   const {
     tokenid,
@@ -25,6 +22,12 @@ const LiveAuctionCard = ({
   } = auction
 
   const { days, hours, minutes, seconds } = calculateTimeLeft(endtimestamp)
+
+  const moreThanOneDayLeft = days >= 1 && hours >= 1
+  const lessThanOneDayLeft = !days && hours >= 1
+  const lessThanOneHourLeft = !days && hours < 1
+  const lessThanMinutLeft = !days && !hours && minutes < 1
+
   const goToAuctionPage = () => router.push(`/auction/${auctionId}`)
 
   const getStatus = () => {
@@ -35,36 +38,39 @@ const LiveAuctionCard = ({
 
   const bidToShow = getBidValue(winningbid)
 
-  const endTimeisGreaterThanTwoDays = days >= 2
-
   const isSold = !active
   const auctionImage = tokenimage || '/assets/default-token-image.png'
 
   const getEndTime = () => {
-    if (endTimeisGreaterThanTwoDays)
+    if (moreThanOneDayLeft)
       return (
         <>
           <span style={{ marginRight: '10px' }}>{days}d</span>
           <span>{hours}h</span>
         </>
       )
-    const getTotalMinutes = () => {
-      let totalMinutes = minutes
-      if (days >= 1) {
-        totalMinutes =
-          days * MINUTES_IN_A_DAY + hours * MINUTES_IN_AN_HOUR + minutes
-      } else if (hours >= 1) {
-        totalMinutes = hours * MINUTES_IN_AN_HOUR + minutes
-      }
-      return totalMinutes
-    }
-    const totalMinutesToShow = getTotalMinutes()
-    return (
-      <>
-        <span style={{ marginRight: '10px' }}>{totalMinutesToShow}m</span>
-        <span>{seconds}s</span>
-      </>
-    )
+    if (lessThanOneDayLeft)
+      return (
+        <>
+          <span style={{ marginRight: '10px' }}>{hours}h</span>
+          <span>{minutes}m</span>
+        </>
+      )
+    if (lessThanOneHourLeft)
+      return (
+        <>
+          <span style={{ marginRight: '10px' }}>{minutes}m</span>
+          <span>{seconds}s</span>
+        </>
+      )
+    if (lessThanMinutLeft)
+      return (
+        <>
+          <span style={{ marginRight: '10px' }}>{minutes}m</span>
+          <span>{seconds}s</span>
+        </>
+      )
+    return null
   }
 
   const endTimeToDisplay = getEndTime()

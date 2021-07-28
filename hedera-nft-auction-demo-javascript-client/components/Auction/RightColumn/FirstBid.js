@@ -1,11 +1,25 @@
 import getUsdValue from 'utils/getUsdValue'
 import useHederaPrice from 'hooks/useHederaPrice'
+import fetchEnvironment from 'utils/getEnvironment'
 
-const FirstBidItem = ({ auctionaccountid, createdAt, reserve, isLive }) => {
+const getIdForDragonglassExplorer = transactionid => {
+  const hashWithoutPeriods = transactionid.split('.').join('')
+  const hashWithoutSymbol = hashWithoutPeriods.split('@').join('')
+  return hashWithoutSymbol.replace(/-/g, '')
+}
+
+const FirstBidItem = ({
+  auctionaccountid,
+  createdAt,
+  reserve,
+  isLive,
+  transactionId,
+}) => {
   const handleTransactoinViewClick = async () => {
+    if (!transactionId) return
     const { network } = await fetchEnvironment()
     const isTestNet = network === 'testnet'
-    const idForDragonGlass = getIdForDragonglassExplorer()
+    const idForDragonGlass = getIdForDragonglassExplorer(transactionId)
     const subdomain = isTestNet ? 'testnet.' : ''
     const dragonGlassBaseUrl = `https://${subdomain}dragonglass.me/hedera/transactions/`
     window.open(dragonGlassBaseUrl + idForDragonGlass)
@@ -18,7 +32,9 @@ const FirstBidItem = ({ auctionaccountid, createdAt, reserve, isLive }) => {
       {isLive && <div className='bg-purple-gradient w-2 h-full absolute' />}
       <div className='flex sm:flex-row flex-col sm:items-center items-left w-full justify-between sm:ml-5 ml-7 sm:mt-0 mt-3'>
         <div className='sm:pb-0 pb-4 w-1/4'>
-          <p className='font-light text-xs text-gray-400 whitespace-nowrap'>Listing Transaction</p>
+          <p className='font-light text-xs text-gray-400 whitespace-nowrap'>
+            Listing Transaction
+          </p>
           <p className='font-bold text-sm'>{auctionaccountid}</p>
         </div>
         <div className='flex flex-grow justify-between sm:items-center items-left sm:flex-row flex-col '>
@@ -36,7 +52,7 @@ const FirstBidItem = ({ auctionaccountid, createdAt, reserve, isLive }) => {
           </div>
           <img
             src='/assets/view-transaction.svg'
-            // onClick={handleTransactoinViewClick}
+            onClick={handleTransactoinViewClick}
             className='h-6 w-6 sm:ml-12 ml-2 cursor-pointer sm:relative absolute top-1 right-3 sm:mt-0 mt-3'
           />
         </div>

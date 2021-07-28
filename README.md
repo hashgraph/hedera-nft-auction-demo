@@ -80,6 +80,7 @@ HTTPS_CERTIFICATE=../docker-files/cert.pem
 If you provide own certificates for production, make sure you update both the `docker-files` certificate and key and `docker-files/nginx-certs` files and update the `.env` file and `docker-files/conf.d/compiled/default.conf` and and `docker-files/conf.d/image/default.conf` if the filenames are different.
 
 default.conf example
+
 ```text
 upstream docker-ui {
     server ui-compiled:3000;
@@ -567,6 +568,46 @@ These tests include testing the outcome of various operations in the database.
 System testing is run with `./gradlew testSystem`.
 
 These tests include testing the outcome of various operations in the database and invoke Hedera APIs.
+
+### Load testing
+
+In order to load test the REST API, a Jmeter sample file is available within `hedera-nft-auction-demo-java-node\rest-load-test`. This file will exercise the client REST API.
+This is a simple test file which queries 4 different endpoints with a given `auction id` and `bidder account id`.
+
+To run it, first install [Apache JMeter](https://jmeter.apache.org/index.html). (_Note: we used version `5.3`_)
+
+then in a terminal
+
+```script
+cd hedera-nft-auction-demo-java-node\rest-load-test
+rm -f AssertionResults.xml
+rm -f GraphResults.csv
+rm -f SummaryReport.csv
+
+{PATH_TO_JMETER}/jmeter -n -f \
+-Jbidaccount=0.0.2167090 \
+-Jauctionid=1 \
+-t client-api-test.jmx
+```
+
+Ensure you specify a valid `auctionid`, `bidaccountid` to ensure positive responses from the API, else the script will fail (it expects a 200 response for all calls).
+
+By default, the script will run with `20` threads, ramp-up over `60` seconds and run for `150` seconds. The API calls will be targetted at `https://localhost:8081`.
+
+You may override these defaults by specifying additional parameters on the command line:
+
+* -Jnumthreads=20
+* -Jrampup=60
+* -Jduration=150
+* -Jhost=localhost
+* -Jprotocol=https
+* -Jport=8081
+
+Results of the test will be found in the following files:
+
+* AssertionResults.xml
+* GraphResults.csv
+* SummaryReport.csv
 
 # Token Specification
 

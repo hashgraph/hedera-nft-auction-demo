@@ -8,6 +8,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.json.schema.Schema;
 import io.vertx.json.schema.SchemaParser;
+import lombok.extern.log4j.Log4j2;
 
 import static io.vertx.json.schema.common.dsl.Schemas.booleanSchema;
 import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
@@ -15,6 +16,7 @@ import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
 /**
  * API to invoke the easySetup method
  */
+@Log4j2
 public class PostEasySetupHandler implements Handler<RoutingContext> {
     private final SchemaParser schemaParser;
     public PostEasySetupHandler(SchemaParser schemaParser) {
@@ -51,8 +53,8 @@ public class PostEasySetupHandler implements Handler<RoutingContext> {
                     .putHeader("content-type", "application/json")
                     .end(Json.encodeToBuffer(response));
         } catch (Exception e) {
+            log.error(e, e);
             routingContext.fail(500, e);
-            return;
         }
     }
 }

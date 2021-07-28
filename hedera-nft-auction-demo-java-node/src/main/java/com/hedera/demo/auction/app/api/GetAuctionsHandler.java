@@ -33,8 +33,7 @@ public class GetAuctionsHandler implements Handler<RoutingContext> {
                     .putHeader("content-type", "application/json")
                     .end(Json.encodeToBuffer(auctions));
         } catch (SQLException e) {
-            routingContext.fail(e.getCause());
-            return;
+            routingContext.fail(500, e);
         }
     }
 }

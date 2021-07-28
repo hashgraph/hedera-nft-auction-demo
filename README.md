@@ -166,7 +166,7 @@ you may now navigate to [http://localhost:8080](http://localhost:8080) to verify
 
 #### Create a sample auction
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '{
@@ -182,7 +182,7 @@ Stop the containers with `CTRL+C`
 
 Restart the containers
 
-```shell script
+```shell
 docker-compose up
 ```
 
@@ -288,7 +288,7 @@ This command takes a number of parameters runs all the necessary steps to create
 
 This requires that the REST api and database are up and running
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '{
@@ -308,7 +308,7 @@ This will create a new topic id and set the `TOPIC_ID` in the `.env` file.
 
 It is now necessary to restart the application for the changes to take effect.
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 https://localhost:8082/v1/admin/topic
@@ -329,7 +329,7 @@ This command will create a token named `Token Name`, an initial supply of `1`, `
 If `image`, `certificate` or `description` are included, files will be created on IPFS and will be referenced in a `metadata` file also on IPFS. The `metadata` file URI will be used for the token's symbol.
 If neither of these attributes are set, the `symbol` attribute is used.
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -357,7 +357,7 @@ curl -H "Content-Type: application/json" -X POST -k \
 
 or
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -395,7 +395,7 @@ __Create an auction account__
 
 This command will create an auction account with an initial balance of `100` hbar and use the operator key for the account.
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -428,7 +428,7 @@ _Note: if the environment file contains an entry for `MASTER_KEY`, it will autom
 
 _Note: all keys are *public* keys_
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -461,7 +461,7 @@ __Create the auction__
 
 be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the values you obtained earlier.
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -487,7 +487,7 @@ be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the va
 
 _Note: If the token has been created with the REST api call above, it will already by associated and owned by the `auctionaccountid`, there is no need to transfer it._
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -523,15 +523,26 @@ npm start
 
 This is only required in order to create/modify database objects, it happens automatically when the application is launched too.
 
+__Setup the environment__
+
+for the commands below, the following environment variables need to be set
+
+```shell
+export DATABASE_URL="postgresql://localhost:5432/"
+export POSTGRES_DB="schema name"
+export POSTGRES_USER="youruser"
+export POSTGRES_PASSWORD="yourpassword"
+```
+
 __Setup the database objects__
 
-```shell script
+```shell
 ./gradlew flywayMigrate
 ````
 
 __Build the database classes__
 
-```shell script
+```shell
 ./gradlew jooqGenerate
 ````
 
@@ -693,7 +704,7 @@ A helper function is available to generate keys as follows
 
 or
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X GET -k https://localhost:8081/v1/generatekey
 ```
 
@@ -777,7 +788,7 @@ _Note: if the environment file contains an entry for `MASTER_KEY`, it will autom
 
 _Note: all keys are *public* keys_
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -813,7 +824,7 @@ be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the va
 * `winnercanbid` whether the highest bidder is allowed to place a higher bid
 * `title` and `description` for the auction (rendered in the UI)
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -945,7 +956,7 @@ After sending the request to the admin API, a message will be sent to the TOPIC 
 
 _Note: in the event of a create or update, if a parameter such as `url` isn't specified, it will be set to an empty string._
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -963,7 +974,7 @@ curl -H "Content-Type: application/json" -X POST -k \
 
 You may modify the details of a validator as follows:
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -982,7 +993,7 @@ curl -H "Content-Type: application/json" -X POST -k \
 
 And finally, you may delete details of a validator as follows:
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '

@@ -13,6 +13,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.json.schema.Schema;
 import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.common.dsl.Schemas;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +24,7 @@ import static io.vertx.json.schema.draft7.dsl.Keywords.minimum;
 /**
  * Creates a new auction account
  */
+@Log4j2
 public class PostAuctionAccountHandler implements Handler<RoutingContext> {
     private final Dotenv env;
     private final SchemaParser schemaParser;
@@ -101,8 +103,8 @@ public class PostAuctionAccountHandler implements Handler<RoutingContext> {
                     .putHeader("content-type", "application/json")
                     .end(Json.encodeToBuffer(response));
         } catch (Exception e) {
+            log.error(e, e);
             routingContext.fail(500, e);
-            return;
         }
     }
 }

@@ -101,7 +101,7 @@ const FeaturedAuction = ({ featuredAuction }) => {
                 {usdValue}
               </p>
             </div>
-            <div className='sm:ml-20'>
+            <div className='sm:ml-32 sm:absolute relative'>
               <p className='font-semibold sm:mb-2 mb-0'>Auction Ends</p>
               <div className='flex'>
                 {!timeLeft ? (

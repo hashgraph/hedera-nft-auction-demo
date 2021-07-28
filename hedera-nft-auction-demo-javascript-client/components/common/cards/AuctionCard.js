@@ -2,9 +2,7 @@ import calculateTimeLeft from 'utils/calculateTimeLeft'
 import { useRouter } from 'next/router'
 import HbarUnbit from 'components/common/HbarUnit'
 import getBidValue from 'utils/getBidValueToShow'
-
-const MINUTES_IN_A_DAY = 1440
-const MINUTES_IN_AN_HOUR = 60
+import useCountdown from 'hooks/useCountdown'
 
 const LiveAuctionCard = ({ auction, showStatus }) => {
   const router = useRouter()
@@ -21,9 +19,9 @@ const LiveAuctionCard = ({ auction, showStatus }) => {
     title,
   } = auction
 
-  const { days, hours, minutes, seconds } = calculateTimeLeft(endtimestamp)
+  const { days, hours, minutes, seconds } = useCountdown(endtimestamp)
 
-  const moreThanOneDayLeft = days >= 1 && hours >= 1
+  const moreThanOneDayLeft = days >= 1
   const lessThanOneDayLeft = !days && hours >= 1
   const lessThanOneHourLeft = !days && hours < 1
   const lessThanMinutLeft = !days && !hours && minutes < 1

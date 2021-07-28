@@ -114,6 +114,7 @@ const BidHistory = ({ auction }) => {
     starttimestamp: createdAtTimestamp,
     reserve,
     status: auctionStatus,
+    createauctiontxid,
   } = auction
 
   const isEnded = auctionStatus === 'ENDED'
@@ -141,6 +142,7 @@ const BidHistory = ({ auction }) => {
             createdAt={formattedCreatedTime}
             reserve={reserve}
             isLive={isLive}
+            transactionId={createauctiontxid}
           />
         </div>
       </div>

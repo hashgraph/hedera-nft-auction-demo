@@ -2,8 +2,6 @@ package com.hedera.demo.auction.app.api;
 
 import com.hedera.demo.auction.app.CreateAuction;
 import com.hedera.demo.auction.app.Utils;
-import com.hedera.hashgraph.sdk.PrecheckStatusException;
-import com.hedera.hashgraph.sdk.ReceiptStatusException;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
@@ -14,9 +12,6 @@ import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.common.dsl.Schemas;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
-
-import java.io.IOException;
-import java.util.concurrent.TimeoutException;
 
 import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
 
@@ -78,15 +73,12 @@ public class PostAuctionHandler implements Handler<RoutingContext> {
                         .end(Json.encodeToBuffer(response));
 
             } else {
-                routingContext.fail(500, new Exception(isValid));
-                return;
+                throw new Exception(isValid);
             }
         } catch (InterruptedException e) {
+            log.error(e, e);
             routingContext.fail(500, e);
             Thread.currentThread().interrupt();
-        } catch (TimeoutException | PrecheckStatusException | ReceiptStatusException | IOException e) {
-            routingContext.fail(500, e);
-            return;
         } catch (Exception e) {
             log.error(e, e);
             routingContext.fail(500, e);

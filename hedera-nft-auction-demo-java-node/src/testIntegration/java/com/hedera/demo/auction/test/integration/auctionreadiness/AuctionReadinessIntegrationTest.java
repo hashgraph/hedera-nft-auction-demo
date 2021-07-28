@@ -42,7 +42,7 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
     private final static String badTokenOwnerAccount = "0.0.21";
     private final static long badAmount = 0L;
 
-    private HederaClient hederaClient = new HederaClient();
+    private final HederaClient hederaClient = new HederaClient();
     private AuctionReadinessWatcher auctionReadinessWatcher;
 
     public AuctionReadinessIntegrationTest() throws Exception {

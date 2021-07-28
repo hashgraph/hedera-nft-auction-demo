@@ -26,6 +26,7 @@ public abstract class AbstractAuction {
     String transferStatus = "transferstatus";
     String title = "title";
     String description = "description";
+    String auctionCreateTransaction = "auctionCreateTransaction";
 
     Auction testAuctionObject() {
         Auction auction = new Auction();
@@ -51,6 +52,7 @@ public abstract class AbstractAuction {
         auction.setTransferstatus(transferStatus);
         auction.setTitle(title);
         auction.setDescription(description);
+        auction.setCreateauctiontxid(auctionCreateTransaction);
 
         return auction;
     }
@@ -78,5 +80,6 @@ public abstract class AbstractAuction {
         assertEquals(transferStatus, auction.getTransferstatus());
         assertEquals(title, auction.getTitle());
         assertEquals(description, auction.getDescription());
+        assertEquals(auctionCreateTransaction, auction.getCreateauctiontxid());
     }
 }

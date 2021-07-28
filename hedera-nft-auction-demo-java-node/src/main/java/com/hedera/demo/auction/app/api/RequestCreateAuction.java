@@ -20,6 +20,7 @@ public class RequestCreateAuction {
     public String topicid = "";
     private String description = "";
     private String title = "";
+    public String createauctiontxid = "";
 
     public void setDescription(String description) {
         this.description = Utils.normalize(description);

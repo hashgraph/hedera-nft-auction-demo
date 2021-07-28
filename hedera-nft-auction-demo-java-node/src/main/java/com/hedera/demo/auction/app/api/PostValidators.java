@@ -77,7 +77,6 @@ public class PostValidators implements Handler<RoutingContext> {
         } catch (Exception e) {
             log.error(e, e);
             routingContext.fail(500, e);
-            return;
         }
     }
 }

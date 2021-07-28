@@ -4,6 +4,7 @@ import com.hedera.demo.auction.app.api.RequestCreateAuction;
 import com.hedera.hashgraph.sdk.Status;
 import com.hedera.hashgraph.sdk.TopicId;
 import com.hedera.hashgraph.sdk.TopicMessageSubmitTransaction;
+import com.hedera.hashgraph.sdk.TransactionId;
 import com.hedera.hashgraph.sdk.TransactionReceipt;
 import com.hedera.hashgraph.sdk.TransactionResponse;
 import io.vertx.core.json.JsonObject;
@@ -25,11 +26,15 @@ public class CreateAuction extends AbstractCreate {
 
         log.info("Submitting auction to HCS");
 
+        TransactionId transactionId = TransactionId.generate(hederaClient.client().getOperatorAccountId());
+        requestCreateAuction.createauctiontxid = transactionId.toString();
+
         JsonObject auctionInitData = JsonObject.mapFrom(requestCreateAuction);
         try {
             TopicMessageSubmitTransaction topicMessageSubmitTransaction = new TopicMessageSubmitTransaction()
                     .setTopicId(TopicId.fromString(requestCreateAuction.topicid))
                     .setTransactionMemo("CreateAuction")
+                    .setTransactionId(transactionId)
                     .setMessage(auctionInitData.encode());
 
             TransactionResponse response = topicMessageSubmitTransaction.execute(hederaClient.client());

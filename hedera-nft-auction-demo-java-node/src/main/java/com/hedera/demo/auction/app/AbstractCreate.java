@@ -14,12 +14,12 @@ import java.util.Optional;
 public abstract class AbstractCreate {
     protected static Dotenv env = Dotenv.configure().ignoreIfMissing().load();
     protected HederaClient hederaClient;
-    protected static String topicId;
-    protected static String filesPath;
-    protected static String url;
-    protected static String database;
-    protected static String username;
-    protected static String password;
+    protected static String topicId = "";
+    protected static String filesPath = "";
+    protected static String url = "";
+    protected static String database = "";
+    protected static String username = "";
+    protected static String password = "";
 
     protected static SqlConnectionManager connectionManager;
     protected static AuctionsRepository auctionsRepository;

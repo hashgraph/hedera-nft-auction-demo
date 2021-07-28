@@ -9,6 +9,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.json.schema.Schema;
 import io.vertx.json.schema.SchemaParser;
+import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
 import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
@@ -16,6 +17,7 @@ import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
 /**
  * Transfers a token from one account to another
  */
+@Log4j2
 public class PostTransferHandler implements Handler<RoutingContext> {
     private final Dotenv env;
     private final SchemaParser schemaParser;
@@ -57,12 +59,11 @@ public class PostTransferHandler implements Handler<RoutingContext> {
                         .end(Json.encodeToBuffer(response));
 
             } else {
-                routingContext.fail(500, new Exception(isValid));
-                return;
+                throw new Exception(isValid);
             }
         } catch (Exception e) {
+            log.error(e, e);
             routingContext.fail(500, e);
-            return;
         }
     }
 }

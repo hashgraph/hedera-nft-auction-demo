@@ -4,14 +4,15 @@ import com.hedera.demo.auction.app.domain.Bid;
 import com.hedera.demo.auction.app.repository.BidsRepository;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import lombok.extern.log4j.Log4j2;
 
 import java.sql.SQLException;
 
 /**
  * Returns the last bid for a given auction and bidding account
  */
+@Log4j2
 public class GetLastBidderBidHandler implements Handler<RoutingContext> {
 
     private final BidsRepository bidsRepository;
@@ -33,17 +34,15 @@ public class GetLastBidderBidHandler implements Handler<RoutingContext> {
         try {
             Bid bid = bidsRepository.getBidderLastBid(auctionId, bidderAccountId);
             if (bid == null) {
-                routingContext.response()
-                        .putHeader("content-type", "application/json")
-                        .end(Json.encodeToBuffer(new JsonObject()));
+                routingContext.fail(404);
             } else {
                 routingContext.response()
                         .putHeader("content-type", "application/json")
                         .end(Json.encodeToBuffer(bid));
             }
         } catch (SQLException e) {
-            routingContext.fail(e.getCause());
-            return;
+            log.error(e, e);
+            routingContext.fail(500, e);
         }
     }
 }

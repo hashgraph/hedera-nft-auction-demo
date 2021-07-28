@@ -52,3 +52,7 @@ hedera-nft-auction-demo-java-node/rest-load-test/AssertionResults.xml
 hedera-nft-auction-demo-java-node/rest-load-test/GraphResults.csv
 hedera-nft-auction-demo-java-node/rest-load-test/runtest.sh
 hedera-nft-auction-demo-java-node/rest-load-test/SummaryReport.csv
+hedera-nft-auction-demo-java-node/rest-load-test/AssertionResults.xml
+hedera-nft-auction-demo-java-node/rest-load-test/GraphResults.csv
+hedera-nft-auction-demo-java-node/rest-load-test/runtest.sh
+hedera-nft-auction-demo-java-node/rest-load-test/SummaryReport.csv

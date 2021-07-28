@@ -80,6 +80,7 @@ HTTPS_CERTIFICATE=../docker-files/cert.pem
 If you provide own certificates for production, make sure you update both the `docker-files` certificate and key and `docker-files/nginx-certs` files and update the `.env` file and `docker-files/conf.d/compiled/default.conf` and and `docker-files/conf.d/image/default.conf` if the filenames are different.
 
 default.conf example
+
 ```text
 upstream docker-ui {
     server ui-compiled:3000;

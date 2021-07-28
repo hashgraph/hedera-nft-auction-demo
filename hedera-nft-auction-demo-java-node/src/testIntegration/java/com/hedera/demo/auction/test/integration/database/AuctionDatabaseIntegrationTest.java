@@ -64,9 +64,7 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
     public void addAuctionTest() throws Exception {
 
         assertNotEquals(0, auction.getId());
-
         Auction getAuction = auctionsRepository.getAuction(auction.getId());
-
         testNewAuction(auction, getAuction);
 
     }
@@ -94,6 +92,8 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void setTransferTransactionTest() throws Exception {
+        auctionsRepository.setTransferPending(auction.getTokenid());
+        auctionsRepository.setTransferInProgress(auction.getTokenid());
         auctionsRepository.setTransferTransactionByTokenId(auction.getTokenid(), auction.getTransfertxid(), auction.getTransfertxhash());
         Auction getAuction = auctionsRepository.getAuction(auction.getId());
 
@@ -106,6 +106,7 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void setClosedByAuctionTest() throws Exception {
 
+        auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
         auction = auctionsRepository.setClosed(auction);
         assertEquals(Auction.CLOSED, auction.getStatus());
 
@@ -116,6 +117,7 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void setClosedByAuctionIdTest() throws Exception {
 
+        auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
         auctionsRepository.setClosed(auction.getId());
 
         Auction getAuction = auctionsRepository.getAuction(auction.getId());
@@ -212,6 +214,7 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
             assertEquals(testAuction.getTransferstatus(), auctionToTest.getTransferstatus());
             assertEquals(testAuction.getTitle(), auctionToTest.getTitle());
             assertEquals(testAuction.getDescription(), auctionToTest.getDescription());
+            assertEquals(testAuction.getCreateauctiontxid(), auctionToTest.getCreateauctiontxid());
         }
     }
     @Test
@@ -257,6 +260,7 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void setTransferInProgressTest() throws Exception {
+        auctionsRepository.setTransferPending(auction.getTokenid());
         auctionsRepository.setTransferInProgress(auction.getTokenid());
         Auction testAuction = auctionsRepository.getAuction(auction.getId());
         assertEquals(Auction.TRANSFER_STATUS_IN_PROGRESS, testAuction.getTransferstatus());
@@ -264,6 +268,8 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void setTransferTransactionByAuctionIdTest() throws Exception {
+        auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
+        auctionsRepository.setClosed(auction.getId());
         auctionsRepository.setTransferTransactionByAuctionId(auction.getId(), "transactionId", "transactionHash");
         Auction testAuction = auctionsRepository.getAuction(auction.getId());
         assertEquals(Auction.TRANSFER_STATUS_COMPLETE, testAuction.getTransferstatus());
@@ -274,9 +280,57 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void setEndedTest() throws Exception {
+        auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
         auctionsRepository.setEnded(auction.getId());
         Auction testAuction = auctionsRepository.getAuction(auction.getId());
         assertEquals(Auction.ENDED, testAuction.getStatus());
     }
 
+    @Test
+    public void auctionMustBeNotBeClosedBeforeActive() throws Exception {
+        auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
+        auctionsRepository.setClosed(auction.getId());
+        try {
+            auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
+        } catch (Exception e) {
+            assertEquals("auction cannot be set to ACTIVE, it's not PENDING", e.getMessage());
+        }
+        Auction testAuction = auctionsRepository.getAuction(auction.getId());
+        assertEquals(Auction.CLOSED, testAuction.getStatus());
+    }
+
+    @Test
+    public void auctionMustBeNotBeEndedBeforeActive() throws Exception {
+        auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
+        auctionsRepository.setEnded(auction.getId());
+        try {
+            auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
+        } catch (Exception e) {
+            assertEquals("auction cannot be set to ACTIVE, it's not PENDING", e.getMessage());
+        }
+        Auction testAuction = auctionsRepository.getAuction(auction.getId());
+        assertEquals(Auction.ENDED, testAuction.getStatus());
+    }
+
+    @Test
+    public void auctionMustBeActiveBeforeClosed() throws Exception {
+        try {
+            auctionsRepository.setClosed(auction.getId());
+        } catch (Exception e) {
+            // do nothing
+        }
+        Auction testAuction = auctionsRepository.getAuction(auction.getId());
+        assertEquals(Auction.PENDING, testAuction.getStatus());
+    }
+
+    @Test
+    public void auctionMustBeClosedBeforeEnded() throws Exception {
+        try {
+            auctionsRepository.setEnded(auction.getId());
+        } catch (Exception e) {
+            // do nothing
+        }
+        Auction testAuction = auctionsRepository.getAuction(auction.getId());
+        assertEquals(Auction.PENDING, testAuction.getStatus());
+    }
 }

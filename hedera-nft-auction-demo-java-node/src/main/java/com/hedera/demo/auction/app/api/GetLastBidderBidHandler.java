@@ -1,22 +1,25 @@
 package com.hedera.demo.auction.app.api;
 
-import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.domain.Bid;
+import com.hedera.demo.auction.app.repository.BidsRepository;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.pgclient.PgPool;
-import io.vertx.sqlclient.Tuple;
+import lombok.extern.log4j.Log4j2;
+
+import java.sql.SQLException;
 
 /**
  * Returns the last bid for a given auction and bidding account
  */
+@Log4j2
 public class GetLastBidderBidHandler implements Handler<RoutingContext> {
 
-    private final PgPool pgPool;
+    private final BidsRepository bidsRepository;
 
-    GetLastBidderBidHandler(PgPool pgPool) {
-        this.pgPool = pgPool;
+    GetLastBidderBidHandler(BidsRepository bidsRepository) {
+        this.bidsRepository = bidsRepository;
     }
 
     /**
@@ -26,27 +29,21 @@ public class GetLastBidderBidHandler implements Handler<RoutingContext> {
      */
     @Override
     public void handle(RoutingContext routingContext) {
-        int auctionid = Integer.parseInt(routingContext.pathParam("auctionid"));
+        int auctionId = Integer.parseInt(routingContext.pathParam("auctionid"));
         String bidderAccountId = routingContext.pathParam("bidderaccountid");
 
-        @Var String sql = "SELECT * FROM bids WHERE auctionid = $1 and bidderaccountid = $2";
-        sql = sql.concat(" and timestamp = (SELECT MAX(timestamp) FROM bids WHERE auctionid = $1 and bidderaccountid = $2)");
-
-        pgPool.preparedQuery(sql).execute(Tuple.tuple().addInteger(auctionid).addString(bidderAccountId), ar -> {
-            if (ar.failed()) {
-                routingContext.fail(ar.cause());
-                return;
+        try {
+            Bid bid = bidsRepository.getBidderLastBid(auctionId, bidderAccountId);
+            if (bid == null) {
+                routingContext.fail(404);
+            } else {
+                routingContext.response()
+                        .putHeader("content-type", "application/json")
+                        .end(Json.encodeToBuffer(bid));
             }
-
-            @Var var bid = new Bid();
-            var rows = ar.result();
-            for (var row : rows) {
-                bid = new Bid(row);
-            }
-
-            routingContext.response()
-                    .putHeader("content-type", "application/json")
-                    .end(Json.encodeToBuffer(bid));
-        });
+        } catch (SQLException e) {
+            log.error(e, e);
+            routingContext.fail(500, e);
+        }
     }
 }

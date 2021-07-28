@@ -122,6 +122,9 @@ setup the `.env` properties as follows
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
 * `NEXT_PUBLIC_NETWORK=` (mainnet, testnet or previewnet)
+* `POSTGRES_USER=` (username for the database)
+* `POSTGRES_PASSWORD=` (password for the database user)
+* `POSTGRES_DB=nftauction` (schema name for the database, you may change if desired)
 * `MASTER_KEY=` (set only for one node which has additional authority over the auction accounts, can be the same as operator key only, else must be different)
 * `NFT_STORAGE_API_KEY=` (We use IPFS storage using [nft.storage](https://nft.storage) to store NFT metadata. You can create your API key on https://nft.storage and add it to your .env file to enable IPFS upload, this is only required if your node will be involved in token creation through the API or command line)
 * `X_API_KEY=` (API key to authenticate admin REST api calls e.g. a6e006ec-c1ac-4204-9389-8d4ad4c84a6f)
@@ -163,7 +166,7 @@ you may now navigate to [http://localhost:8080](http://localhost:8080) to verify
 
 #### Create a sample auction
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '{
@@ -179,7 +182,7 @@ Stop the containers with `CTRL+C`
 
 Restart the containers
 
-```shell script
+```shell
 docker-compose up
 ```
 
@@ -209,12 +212,6 @@ you may now navigate to [https://localhost:8080](https://localhost:8080) to veri
 
 ### Standalone
 
-#### Database
-
-All database objects will be created in the `public` database.
-
-_Note the installation below assumes the user is `postgres` and the password is `password`._
-
 #### Java Appnet Node
 
 ```shell
@@ -241,6 +238,9 @@ The operator id/key is used to query the hedera network for the token's metadata
 
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
+* `POSTGRES_USER=` (username for the database)
+* `POSTGRES_PASSWORD=` (password for the database user)
+* `POSTGRES_DB=nftauction` (schema name for the database, you may change if desired)
 * `TRANSFER_ON_WIN=`true
 
 You may edit additional parameters such as `MIRROR_PROVIDER`, etc... if you wish (although only the hedera mirror API is supported at this time).
@@ -288,7 +288,7 @@ This command takes a number of parameters runs all the necessary steps to create
 
 This requires that the REST api and database are up and running
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '{
@@ -308,7 +308,7 @@ This will create a new topic id and set the `TOPIC_ID` in the `.env` file.
 
 It is now necessary to restart the application for the changes to take effect.
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 https://localhost:8082/v1/admin/topic
@@ -329,7 +329,7 @@ This command will create a token named `Token Name`, an initial supply of `1`, `
 If `image`, `certificate` or `description` are included, files will be created on IPFS and will be referenced in a `metadata` file also on IPFS. The `metadata` file URI will be used for the token's symbol.
 If neither of these attributes are set, the `symbol` attribute is used.
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -357,7 +357,7 @@ curl -H "Content-Type: application/json" -X POST -k \
 
 or
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -395,7 +395,7 @@ __Create an auction account__
 
 This command will create an auction account with an initial balance of `100` hbar and use the operator key for the account.
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -428,7 +428,7 @@ _Note: if the environment file contains an entry for `MASTER_KEY`, it will autom
 
 _Note: all keys are *public* keys_
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -461,7 +461,7 @@ __Create the auction__
 
 be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the values you obtained earlier.
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -487,7 +487,7 @@ be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the va
 
 _Note: If the token has been created with the REST api call above, it will already by associated and owned by the `auctionaccountid`, there is no need to transfer it._
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -523,15 +523,26 @@ npm start
 
 This is only required in order to create/modify database objects, it happens automatically when the application is launched too.
 
+__Setup the environment__
+
+for the commands below, the following environment variables need to be set
+
+```shell
+export DATABASE_URL="postgresql://localhost:5432/"
+export POSTGRES_DB="schema name"
+export POSTGRES_USER="youruser"
+export POSTGRES_PASSWORD="yourpassword"
+```
+
 __Setup the database objects__
 
-```shell script
+```shell
 ./gradlew flywayMigrate
 ````
 
 __Build the database classes__
 
-```shell script
+```shell
 ./gradlew jooqGenerate
 ````
 
@@ -693,7 +704,7 @@ A helper function is available to generate keys as follows
 
 or
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X GET -k https://localhost:8081/v1/generatekey
 ```
 
@@ -722,6 +733,9 @@ which will create an account with the specified initial balance in hbar and will
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
 * `NEXT_PUBLIC_NETWORK=` (mainnet, testnet or previewnet)
+* `POSTGRES_USER=` (username for the database)
+* `POSTGRES_PASSWORD=` (password for the database user)
+* `POSTGRES_DB=nftauction` (schema name for the database, you may change if desired)
 * `NODE_OWNER=` (an identifier, e.g. `ACMEAuctions` to be rendered in the UI to show which node the UI is connected to)
 * `TOPIC_ID=` (the topic id provided by whoever is setting up the application network, leave blank if you're setting up a new application network)
 
@@ -774,7 +788,7 @@ _Note: if the environment file contains an entry for `MASTER_KEY`, it will autom
 
 _Note: all keys are *public* keys_
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -810,7 +824,7 @@ be sure the replace `{{tokenId}}`, `{{accountId}}` in the json below with the va
 * `winnercanbid` whether the highest bidder is allowed to place a higher bid
 * `title` and `description` for the auction (rendered in the UI)
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -942,7 +956,7 @@ After sending the request to the admin API, a message will be sent to the TOPIC 
 
 _Note: in the event of a create or update, if a parameter such as `url` isn't specified, it will be set to an empty string._
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -960,7 +974,7 @@ curl -H "Content-Type: application/json" -X POST -k \
 
 You may modify the details of a validator as follows:
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '
@@ -979,7 +993,7 @@ curl -H "Content-Type: application/json" -X POST -k \
 
 And finally, you may delete details of a validator as follows:
 
-```shell script
+```shell
 curl -H "Content-Type: application/json" -X POST -k \
 --header 'X-API-key: your api key' \
 -d '

@@ -1,32 +1,38 @@
 package com.hedera.demo.auction.app.api;
 
+import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.domain.Validator;
+import com.hedera.demo.auction.app.repository.ValidatorsRepository;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.pgclient.PgPool;
+import lombok.extern.log4j.Log4j2;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Returns environment variables for use by the UI
  */
+@Log4j2
 public class GetEnvironmentHandler implements Handler<RoutingContext>  {
 
-    private final PgPool pgPool;
+    private final ValidatorsRepository validatorsRepository;
     private final String network;
     private final String topicId;
     private final String nodeOperator;
 
     /**
      * Constructor
-     * @param pgPool the database connection pool to use
+     * @param validatorsRepository the repository to use
      * @param network the network to use
      * @param topicId the topic id to use
      * @param nodeOperator the name of the node's operator
      */
-    GetEnvironmentHandler(PgPool pgPool, String network, String topicId, String nodeOperator) {
-        this.pgPool = pgPool;
+    GetEnvironmentHandler(ValidatorsRepository validatorsRepository, String network, String topicId, String nodeOperator) {
+        this.validatorsRepository = validatorsRepository;
         this.network = network;
         this.topicId = topicId;
         this.nodeOperator = nodeOperator;
@@ -45,28 +51,17 @@ public class GetEnvironmentHandler implements Handler<RoutingContext>  {
         response.put("topicId", this.topicId);
         response.put("nodeOperator", this.nodeOperator);
 
-        String sql = "SELECT * FROM validators ORDER BY name";
-
-        pgPool.preparedQuery(sql).execute(ar -> {
-            if (ar.failed()) {
-                routingContext.fail(ar.cause());
-                return;
-            }
-
-            var rows = ar.result();
-            var validators = new JsonArray();
-
-            for (var row : rows) {
-                var item = new Validator(row);
-                validators.add(item);
-            }
-
-            response.put("validators", validators);
+        @Var List<Validator> validatorList = new ArrayList<>();
+        try {
+            validatorList = validatorsRepository.getValidatorsList();
+            response.put("validators", validatorList);
 
             routingContext.response()
                     .putHeader("content-type", "application/json")
                     .end(Json.encodeToBuffer(response));
-
-        });
+        } catch (SQLException e) {
+            log.error(e, e);
+            routingContext.fail(500, e);
+        }
     }
 }

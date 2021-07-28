@@ -42,7 +42,7 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
     private final static String badTokenOwnerAccount = "0.0.21";
     private final static long badAmount = 0L;
 
-    private HederaClient hederaClient = HederaClient.emptyTestClient();
+    private final HederaClient hederaClient = new HederaClient();
     private AuctionReadinessWatcher auctionReadinessWatcher;
 
     public AuctionReadinessIntegrationTest() throws Exception {
@@ -55,7 +55,6 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
         migrate(postgres);
         SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
-        this.hederaClient = HederaClient.emptyTestClient();
     }
 
     @AfterAll
@@ -71,11 +70,11 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
         auction = auctionsRepository.add(auction);
 
         auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, auctionsRepository, auction, 5000, /*runOnce= */ false);
-        auctionReadinessWatcher.setTesting();
     }
 
     @AfterEach
     public void afterEach() throws SQLException {
+        auctionReadinessWatcher.stop();
         auctionsRepository.deleteAllAuctions();;
     }
 
@@ -124,7 +123,6 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
     public void testAuctionReadinessFromJsonDataNotReadyLink() throws Exception {
 
         AuctionReadinessWatcher readinessTester = new AuctionReadinessWatcher(hederaClient, auctionsRepository, auction, 5000, /*runOnce= */ false);
-        readinessTester.setTesting();
 
         JsonObject jsonResponse = HederaJson.mirrorTransactions(HederaJson.tokenTransferTransaction(badTokenOwnerAccount, badAccount, tokenId, goodAmount));
 
@@ -133,6 +131,7 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
         boolean response = readinessTester.handleResponse(mirrorTransactions);
         assertFalse (response);
         auctionsRepository.deleteAllAuctions();
+        readinessTester.stop();
     }
 
     @Test

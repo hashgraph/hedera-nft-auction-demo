@@ -11,6 +11,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.json.schema.Schema;
 import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.common.dsl.Schemas;
+import lombok.extern.log4j.Log4j2;
 
 import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
 import static io.vertx.json.schema.draft7.dsl.Keywords.minimum;
@@ -18,6 +19,7 @@ import static io.vertx.json.schema.draft7.dsl.Keywords.minimum;
 /**
  * Creates a new token
  */
+@Log4j2
 public class PostCreateToken implements Handler<RoutingContext> {
     private final Dotenv env;
     private final String filesPath;
@@ -74,8 +76,8 @@ public class PostCreateToken implements Handler<RoutingContext> {
                     .putHeader("content-type", "application/json")
                     .end(Json.encodeToBuffer(response));
         } catch (Exception e) {
+            log.error(e, e);
             routingContext.fail(500, e);
-            return;
         }
     }
 }

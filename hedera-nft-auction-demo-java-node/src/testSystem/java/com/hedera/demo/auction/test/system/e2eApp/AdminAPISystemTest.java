@@ -9,7 +9,6 @@ import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.demo.auction.app.repository.ValidatorsRepository;
 import com.hedera.demo.auction.test.system.AbstractAPITester;
 import com.hedera.hashgraph.sdk.PrivateKey;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
@@ -31,7 +30,6 @@ import static org.awaitility.Awaitility.await;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AdminAPISystemTest extends AbstractAPITester {
 
-    Vertx vertx;
     App app = new App();
     String publicKey;
     String publicKey2;
@@ -49,9 +47,6 @@ public class AdminAPISystemTest extends AbstractAPITester {
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
         validatorsRepository = new ValidatorsRepository(connectionManager);
-
-//        this.vertx = Vertx.vertx();
-//        this.webClient = WebClient.create(this.vertx);
     }
 
     @AfterAll
@@ -138,15 +133,25 @@ public class AdminAPISystemTest extends AbstractAPITester {
     @Test
     public void testValidatorUpdate(VertxTestContext testContext) throws Exception {
 
-        // create a validator directly in the database
-        validatorsRepository.add("validatorName", "https://hedera.com", publicKey);
+        String publicKey1 = PrivateKey.generate().getPublicKey().toString();
+        String publicKey2 = PrivateKey.generate().getPublicKey().toString();
 
-        JsonObject validatorJson = new JsonObject();
+        JsonArray validatorsJson = new JsonArray();
+        @Var JsonObject validatorJson = new JsonObject();
+        validatorJson.put("name", "validatorName1");
+        validatorJson.put("url", "https://hedera1.com");
+        validatorJson.put("publicKey", publicKey1);
+        validatorJson.put("operation", "add");
+        validatorsJson.add(validatorJson);
+
+        validatorsRepository.manage(validatorsJson);
+
+        validatorJson = new JsonObject();
         JsonArray validators = new JsonArray();
 
         JsonObject updateValidator = new JsonObject();
         updateValidator.put("operation", "update");
-        updateValidator.put("nameToUpdate", "validatorName");
+        updateValidator.put("nameToUpdate", "validatorName1");
         updateValidator.put("name", "validatorName2");
         updateValidator.put("url", "https://hedera2.com");
         updateValidator.put("publicKey", publicKey2);
@@ -169,15 +174,24 @@ public class AdminAPISystemTest extends AbstractAPITester {
     @Test
     public void testValidatorDelete(VertxTestContext testContext) throws Exception {
 
-        // create a validator directly in the database
-        validatorsRepository.add("validatorName", "https://hedera.com", publicKey);
+        String publicKey1 = PrivateKey.generate().getPublicKey().toString();
 
-        JsonObject validatorJson = new JsonObject();
+        JsonArray validatorsJson = new JsonArray();
+        @Var JsonObject validatorJson = new JsonObject();
+        validatorJson.put("name", "validatorName1");
+        validatorJson.put("url", "https://hedera1.com");
+        validatorJson.put("publicKey", publicKey1);
+        validatorJson.put("operation", "add");
+        validatorsJson.add(validatorJson);
+
+        validatorsRepository.manage(validatorsJson);
+
+        validatorJson = new JsonObject();
         JsonArray validators = new JsonArray();
 
         JsonObject deleteValidator = new JsonObject();
         deleteValidator.put("operation", "delete");
-        deleteValidator.put("name", "validatorName");
+        deleteValidator.put("name", "validatorName1");
 
         validators.add(deleteValidator);
 

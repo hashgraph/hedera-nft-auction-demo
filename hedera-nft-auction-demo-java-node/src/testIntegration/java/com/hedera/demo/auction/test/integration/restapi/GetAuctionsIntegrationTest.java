@@ -6,11 +6,8 @@ import com.hedera.demo.auction.app.api.ApiVerticle;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.test.integration.AbstractIntegrationTest;
-import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
-import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -22,11 +19,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.SQLException;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(VertxExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -76,22 +71,22 @@ public class GetAuctionsIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void getPendingAuctionsTest(VertxTestContext testContext) throws SQLException {
-        getAuction(testContext,  "/v1/pendingauctions/", Auction.PENDING);
+        getAuction(testContext,  "/v1/pendingauctions/", Auction.PENDING, 2);
     }
 
     @Test
     public void getActiveAuctionsTest(VertxTestContext testContext) throws SQLException {
-        getAuction(testContext,  "/v1/activeauctions/", Auction.ACTIVE);
+        getAuction(testContext,  "/v1/activeauctions/", Auction.ACTIVE, 1);
     }
 
     @Test
     public void getClosedAuctionsTest(VertxTestContext testContext) throws SQLException {
-        getAuction(testContext,  "/v1/closedauctions/", Auction.CLOSED);
+        getAuction(testContext,  "/v1/closedauctions/", Auction.CLOSED, 1);
     }
 
     @Test
     public void getEndedAuctionsTest(VertxTestContext testContext) throws SQLException {
-        getAuction(testContext,  "/v1/endedauctions/", Auction.ENDED);
+        getAuction(testContext,  "/v1/endedauctions/", Auction.ENDED, 1);
     }
 
     @Test
@@ -121,7 +116,7 @@ public class GetAuctionsIntegrationTest extends AbstractIntegrationTest {
                 })));
     }
 
-    public void getAuction(VertxTestContext testContext, String url, String status) throws SQLException {
+    public void getAuction(VertxTestContext testContext, String url, String status, int expectedCount) throws SQLException {
         Auction auction = testAuctionObject(1);
         auctionsRepository.createComplete(auction);
         @Var Auction newAuction = testAuctionObject(2);
@@ -135,8 +130,8 @@ public class GetAuctionsIntegrationTest extends AbstractIntegrationTest {
                     assertNotNull(response);
                     JsonArray body = new JsonArray(response.body());
                     assertNotNull(body);
-                    assertEquals(1, body.size());
-                    verifyAuction(finalNewAuction, body.getJsonObject(0));
+                    assertEquals(expectedCount, body.size());
+                    verifyAuction(finalNewAuction, body.getJsonObject(expectedCount - 1));
 
                     auctionsRepository.deleteAllAuctions();
                     testContext.completeNow();

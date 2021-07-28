@@ -36,13 +36,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BidWatcherIntegrationTest extends AbstractIntegrationTest {
 
-    public BidWatcherIntegrationTest() {
+    public BidWatcherIntegrationTest() throws Exception {
     }
 
     private PostgreSQLContainer postgres;
     private AuctionsRepository auctionsRepository;
     private BidsRepository bidsRepository;
-    private HederaClient hederaClient;
+    private final HederaClient hederaClient = new HederaClient();
     private BidsWatcher bidWatcher;
     private Auction auction = testAuctionObject(1);
     private static final long bidAmount = 1000000000;
@@ -57,7 +57,6 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
         this.postgres = postgres;
-        this.hederaClient = HederaClient.emptyTestClient();
     }
 
     @AfterAll
@@ -70,11 +69,11 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         auction.setWinningbid(0L);
         auction = auctionsRepository.add(auction);
         bidWatcher = new BidsWatcher(hederaClient, auctionsRepository, auction.getId(), 5000, /*runOnce= */false);
-        bidWatcher.setTesting();
     }
 
     @AfterEach
     public void afterEach() throws SQLException {
+        bidWatcher.stop();
         bidsRepository.deleteAllBids();
         auctionsRepository.deleteAllAuctions();
     }
@@ -119,7 +118,6 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
     public void testBidFromAuctionAccountId() throws Exception {
 
         BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, auction.getId(), 5000, /*runOnce= */false);
-        bidsWatcher.setTesting();
 
         JsonObject transaction = HederaJson.singleTransaction();
         String transactionId = auction.getAuctionaccountid().concat("-1617786650-796134000");
@@ -134,13 +132,13 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         assertEquals(0, bids.size());
 
         testUpdatedAuctionNotChanged(auction);
+        bidsWatcher.stop();
     }
 
     @Test
     public void testBidUnsuccessfulTransaction() throws Exception {
 
         BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, auction.getId(), 5000, /*runOnce= */false);
-        bidsWatcher.setTesting();
 
         JsonObject transaction = HederaJson.singleTransaction();
         transaction.put("result", "Error");
@@ -154,13 +152,13 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         assertEquals(0, bids.size());
 
         testUpdatedAuctionNotChanged(auction);
+        bidsWatcher.stop();
     }
 
     @Test
     public void testBidMemo() throws Exception {
 
         BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, auction.getId(), 5000, /*runOnce= */false);
-        bidsWatcher.setTesting();
 
         JsonObject transaction = HederaJson.singleTransaction();
         String memo = "CREATEAUCTION";
@@ -175,13 +173,13 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         assertEquals(0, bids.size());
 
         testUpdatedAuctionNotChanged(auction);
+        bidsWatcher.stop();
     }
 
     @Test
     public void testPastEnd() throws Exception {
 
         BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, auction.getId(), 5000, /*runOnce= */false);
-        bidsWatcher.setTesting();
 
         JsonObject transaction = HederaJson.transactionWithTransfers(fromAccount, auction.getAuctionaccountid(), bidAmount );
         transaction.put("consensus_timestamp", "z");
@@ -194,6 +192,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         assertEquals(1, bids.size());
         testBidValues("Auction is closed", bidAmount, auction, fromAccount, transaction, bids.get(0));
         testUpdatedAuctionNotChanged(auction);
+        bidsWatcher.stop();
     }
 
     @Test
@@ -201,7 +200,6 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
 
         auctionsRepository.setActive(auction, auction.getTokenowneraccount(), "z");
         BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, auction.getId(), 5000, /*runOnce= */false);
-        bidsWatcher.setTesting();
 
         JsonObject transaction = HederaJson.transactionWithTransfers("0.0.100", auction.getAuctionaccountid(), bidAmount );
         transaction.put("consensus_timestamp", "a");
@@ -215,6 +213,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
 
         testBidValues("Auction has not started yet", bidAmount, auction, fromAccount, transaction, bids.get(0));
         testUpdatedAuctionNotChanged(auction);
+        bidsWatcher.stop();
 
     }
 
@@ -228,7 +227,6 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         auctionsRepository.setActive(winnerCantBidAuction, winnerCantBidAuction.getTokenowneraccount(), "a");
 
         BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, winnerCantBidAuction.getId(), 5000, /*runOnce= */false);
-        bidsWatcher.setTesting();
 
         // create a first bid and current winner (bidAmount - 10)
         JsonObject transaction1 = HederaJson.transactionWithTransfers(fromAccount, winnerCantBidAuction.getAuctionaccountid(), bidAmount-10 );
@@ -258,6 +256,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         assertEquals(transaction1.getString("transaction_id"), winnerCantBidAuction.getWinningtxid());
         String txHash = Utils.base64toStringHex(transaction1.getString("transaction_hash"));
         assertEquals(txHash, winnerCantBidAuction.getWinningtxhash());
+        bidsWatcher.stop();
     }
 
     @Test
@@ -270,7 +269,6 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         auctionsRepository.setActive(winnerCanBidAuction, winnerCanBidAuction.getTokenowneraccount(), "a");
 
         BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, winnerCanBidAuction.getId(), 5000, /*runOnce= */false);
-        bidsWatcher.setTesting();
 
         // create a first bid and current winner (bidAmount - 10)
         JsonObject transaction1 = HederaJson.transactionWithTransfers(fromAccount, winnerCanBidAuction.getAuctionaccountid(), bidAmount-10 );
@@ -298,6 +296,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         assertEquals(transaction2.getString("transaction_id"), winnerCanBidAuction.getWinningtxid());
         String txHash = Utils.base64toStringHex(transaction2.getString("transaction_hash"));
         assertEquals(txHash, winnerCanBidAuction.getWinningtxhash());
+        bidsWatcher.stop();
     }
 
     @Test
@@ -311,7 +310,6 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         auctionsRepository.setActive(smallIncreaseAuction, smallIncreaseAuction.getTokenowneraccount(), "a");
 
         BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository,  smallIncreaseAuction.getId(), 5000, /*runOnce= */false);
-        bidsWatcher.setTesting();
 
         JsonObject transaction = HederaJson.transactionWithTransfers(fromAccount, smallIncreaseAuction.getAuctionaccountid(), bidAmount);
         transaction.put("consensus_timestamp", "b");
@@ -328,6 +326,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
 
         // check auction has not been updated with bid
         testUpdatedAuctionNotChanged(smallIncreaseAuction);
+        bidsWatcher.stop();
     }
 
     @Test
@@ -341,7 +340,6 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         auctionsRepository.setActive(smallIncreaseAuction, smallIncreaseAuction.getTokenowneraccount(), "a");
 
         BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, smallIncreaseAuction.getId(), 5000, /*runOnce= */false);
-        bidsWatcher.setTesting();
 
         // create a first bid and current winner (bidAmount)
         JsonObject transaction1 = HederaJson.transactionWithTransfers(fromAccount, smallIncreaseAuction.getAuctionaccountid(), bidAmount );
@@ -371,6 +369,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         assertEquals(transaction1.getString("transaction_id"), smallIncreaseAuction.getWinningtxid());
         String txHash = Utils.base64toStringHex(transaction1.getString("transaction_hash"));
         assertEquals(txHash, smallIncreaseAuction.getWinningtxhash());
+        bidsWatcher.stop();
     }
 
     @Test
@@ -383,7 +382,6 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         auctionsRepository.setActive(belowReserveAuction, belowReserveAuction.getTokenowneraccount(), "a");
 
         BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, belowReserveAuction.getId(), 5000, /*runOnce= */false);
-        bidsWatcher.setTesting();
 
         JsonObject transaction = HederaJson.transactionWithTransfers(fromAccount, belowReserveAuction.getAuctionaccountid(), bidAmount);
         transaction.put("consensus_timestamp", "c");
@@ -400,6 +398,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
 
         // check auction has not been updated with  bid
         testUpdatedAuctionNotChanged(belowReserveAuction);
+        bidsWatcher.stop();
     }
 
     @Test
@@ -413,7 +412,6 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         auctionsRepository.setActive(smallIncreaseAuction, smallIncreaseAuction.getTokenowneraccount(), "a");
 
         BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, smallIncreaseAuction.getId(), 5000, /*runOnce= */false);
-        bidsWatcher.setTesting();
 
         // create a first bid and current winner (bidAmount)
         JsonObject transaction1 = HederaJson.transactionWithTransfers(fromAccount, smallIncreaseAuction.getAuctionaccountid(), bidAmount);
@@ -445,6 +443,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         assertEquals(transaction1.getString("transaction_id"), smallIncreaseAuction.getWinningtxid());
         String txHash = Utils.base64toStringHex(transaction1.getString("transaction_hash"));
         assertEquals(txHash, smallIncreaseAuction.getWinningtxhash());
+        bidsWatcher.stop();
     }
 
     @Test
@@ -458,7 +457,6 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         auctionsRepository.setActive(priorBidUpdateAuction, priorBidUpdateAuction.getTokenowneraccount(), "a");
 
         BidsWatcher bidsWatcher = new BidsWatcher(hederaClient, auctionsRepository, priorBidUpdateAuction.getId(), 5000, /*runOnce= */false);
-        bidsWatcher.setTesting();
 
         // create a first bid and current winner (bidAmount -10)
         JsonObject transaction1 = HederaJson.transactionWithTransfers(fromAccount, priorBidUpdateAuction.getAuctionaccountid(), bidAmount-10);
@@ -489,6 +487,7 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         assertEquals(transaction2.getString("transaction_id"), priorBidUpdateAuction.getWinningtxid());
         String txHash = Utils.base64toStringHex(transaction2.getString("transaction_hash"));
         assertEquals(txHash, priorBidUpdateAuction.getWinningtxhash());
+        bidsWatcher.stop();
     }
 
     private void testUpdatedAuctionNotChanged(Auction auction) throws Exception {
@@ -512,4 +511,3 @@ class BidWatcherIntegrationTest extends AbstractIntegrationTest {
         assertEquals(Hex.encodeHexString(txHashBytes), testBid.getTransactionhash());
     }
 }
-

@@ -44,7 +44,6 @@ public class AuctionEndTransfer implements Runnable {
     private final AuctionsRepository auctionsRepository;
     private final HederaClient hederaClient;
     private boolean runThread = true;
-    private boolean testing = false;
     private final String operatorKey;
     private final int mirrorQueryFrequency;
     private final AccountId operatorId;
@@ -61,13 +60,6 @@ public class AuctionEndTransfer implements Runnable {
         this.operatorKey = operatorKey;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.operatorId = hederaClient.operatorId();
-    }
-
-    /**
-     * Sets testing flag to true for unit and integration testing
-     */
-    public void setTesting() {
-        this.testing = true;
     }
 
     /**
@@ -104,7 +96,7 @@ public class AuctionEndTransfer implements Runnable {
                                 log.debug("auction {} no winning bid, setting to {}", auction.getAuctionaccountid(), Auction.TRANSFER_STATUS_PENDING);
 
                                 auctionsRepository.setTransferPending(auction.getTokenid());
-                            } catch (SQLException e) {
+                            } catch (Exception e) {
                                 log.error("Failed to set auction to {} status", Auction.TRANSFER_STATUS_PENDING, e);
                             }
                         } else {
@@ -164,7 +156,7 @@ public class AuctionEndTransfer implements Runnable {
             log.error("timeout exception querying for balance", e);
         } catch (PrecheckStatusException e) {
             log.error("precheckStatusException exception querying for balance", e);
-        } catch (SQLException e) {
+        } catch (Exception e) {
             log.error("unable to set auction to transferPending", e);
         }
     }
@@ -188,43 +180,40 @@ public class AuctionEndTransfer implements Runnable {
                 transferToAccountId = AccountId.fromString(auction.getWinningaccount());
             }
 
-            if (! testing) {
-                try {
-                    String memo = "Token transfer from auction";
+            try {
+                String memo = "Token transfer from auction";
 
-                    TransactionId transactionId = TransactionId.generate(operatorId);
-                    transactionId.setScheduled(true);
-                    String shortTransactionId = transactionId.toString().replace("?scheduled", "");
+                TransactionId transactionId = TransactionId.generate(operatorId);
+                transactionId.setScheduled(true);
+                String shortTransactionId = transactionId.toString().replace("?scheduled", "");
 
-                    TransferTransaction transferTransaction = new TransferTransaction();
-                    transferTransaction.setTransactionMemo(memo);
-                    transferTransaction.setTransactionId(transactionId);
-                    transferTransaction.addTokenTransfer(tokenId, auctionAccountId, -1L);
-                    transferTransaction.addTokenTransfer(tokenId, transferToAccountId, 1L);
-                    transferTransaction.addHbarTransfer(auctionAccountId, Hbar.fromTinybars(-auction.getWinningbid()));
-                    transferTransaction.addHbarTransfer(tokenOwnerAccount, Hbar.fromTinybars(auction.getWinningbid()));
+                TransferTransaction transferTransaction = new TransferTransaction();
+                transferTransaction.setTransactionMemo(memo);
+                transferTransaction.setTransactionId(transactionId);
+                transferTransaction.addTokenTransfer(tokenId, auctionAccountId, -1L);
+                transferTransaction.addTokenTransfer(tokenId, transferToAccountId, 1L);
+                transferTransaction.addHbarTransfer(auctionAccountId, Hbar.fromTinybars(-auction.getWinningbid()));
+                transferTransaction.addHbarTransfer(tokenOwnerAccount, Hbar.fromTinybars(auction.getWinningbid()));
 
-                    TransactionScheduler transactionScheduler = new TransactionScheduler(auctionAccountId, transactionId, transferTransaction);
-                    TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction("Scheduled Auction End Transfer");
+                TransactionScheduler transactionScheduler = new TransactionScheduler(auctionAccountId, transactionId, transferTransaction);
+                TransactionSchedulerResult transactionSchedulerResult = transactionScheduler.issueScheduledTransaction("Scheduled Auction End Transfer");
 
-                    if (transactionSchedulerResult.success) {
-                        transferInProgress = true;
-                        log.info("token transfer scheduled (id {})", shortTransactionId);
-                    } else {
-                        log.error("error transferring token to winner auction: {} status {}", auction.getAuctionaccountid(), transactionSchedulerResult.status);
-                    }
-
-//                    client.close();
-                } catch (Exception e) {
-                    log.error("error scheduling transaction for auction {}, token {}, transfer {} to {}", auctionAccountId.toString(), tokenId.toString(), auction.getWinningbid(), transferToAccountId.toString(), e);
+                if (transactionSchedulerResult.success) {
+                    transferInProgress = true;
+                    log.info("token transfer scheduled (id {})", shortTransactionId);
+                } else {
+                    log.error("error transferring token to winner auction: {} status {}", auction.getAuctionaccountid(), transactionSchedulerResult.status);
                 }
+
+            } catch (Exception e) {
+                log.error("error scheduling transaction for auction {}, token {}, transfer {} to {}", auctionAccountId.toString(), tokenId.toString(), auction.getWinningbid(), transferToAccountId.toString(), e);
             }
 
-            if (transferInProgress || testing) {
+            if (transferInProgress) {
                 log.info("setting auction to transfer in progress (auction = {})",auction.getAuctionaccountid());
                 try {
                     auctionsRepository.setTransferInProgress(auction.getTokenid());
-                } catch (SQLException e) {
+                } catch (Exception e) {
                     log.error("unable to set auction to transfer in progress (auction = {}", auction.getAuctionaccountid(), e);
                 }
             }
@@ -232,8 +221,8 @@ public class AuctionEndTransfer implements Runnable {
             log.error("Token owner for auction id {} is not set.", auction.getAuctionaccountid());
             try {
                 auctionsRepository.setTransferTransactionByAuctionId(auction.getId(), "Token not transferred by owner", "Token not transferred by owner");
-            } catch (SQLException e) {
-                log.error("unable to end auction with token not transferred by owner", e);
+            } catch (Exception e) {
+                log.error(e.getMessage());
             }
         }
     }
@@ -255,7 +244,7 @@ public class AuctionEndTransfer implements Runnable {
                         try {
                             auctionsRepository.setTransferTransactionByTokenId(tokenId, mirrorTransaction.transactionId, mirrorTransaction.getTransactionHashString());
                             return AuctionEndTransfer.TransferResult.SUCCESS;
-                        } catch (SQLException e) {
+                        } catch (Exception e) {
                             log.error("unable to set transaction to transfer complete", e);
                         }
                     } else {

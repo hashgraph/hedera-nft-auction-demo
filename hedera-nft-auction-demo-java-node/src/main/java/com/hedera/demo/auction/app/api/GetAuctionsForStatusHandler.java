@@ -10,17 +10,19 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * Gets auctions for which the reserve was not met regardless of status
+ * Gets auctions that match the provided status
  */
-public class GetAuctionsReserveNotMetHandler implements Handler<RoutingContext> {
+public class GetAuctionsForStatusHandler implements Handler<RoutingContext> {
     private final AuctionsRepository auctionsRepository;
+    private final String status;
 
-    public GetAuctionsReserveNotMetHandler(AuctionsRepository auctionsRepository) {
+    public GetAuctionsForStatusHandler(AuctionsRepository auctionsRepository, String status) {
         this.auctionsRepository = auctionsRepository;
+        this.status = status;
     }
 
     /**
-     * Query the database for all auctions where the winning bid is below reserve
+     * Query the database for all auctions which have a matching status
      *
      * @param routingContext the RoutingContext
      */
@@ -28,7 +30,7 @@ public class GetAuctionsReserveNotMetHandler implements Handler<RoutingContext> 
     public void handle(RoutingContext routingContext) {
 
         try {
-            List<Auction> auctions = auctionsRepository.getAuctionsBelowReserve();
+            List<Auction> auctions = auctionsRepository.getByStatus(status);
             routingContext.response()
                     .putHeader("content-type", "application/json")
                     .end(Json.encodeToBuffer(auctions));

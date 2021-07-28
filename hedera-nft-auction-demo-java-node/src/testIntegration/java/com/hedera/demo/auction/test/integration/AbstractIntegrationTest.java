@@ -3,6 +3,7 @@ package com.hedera.demo.auction.test.integration;
 import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.domain.Bid;
 import com.hedera.demo.auction.app.domain.Validator;
+import com.hedera.hashgraph.sdk.PrivateKey;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
@@ -21,7 +22,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(VertxExtension.class)
 public class AbstractIntegrationTest {
@@ -34,6 +37,7 @@ public class AbstractIntegrationTest {
     protected WebClient webClient = WebClient.create(Vertx.vertx(), webClientOptions);
     protected final static Dotenv env = Dotenv.configure().filename(".env.integration.sample").ignoreIfMissing().load();
     protected final static String LONG_KEY = StringUtils.repeat("*", 100);
+    protected final static String LONG_ID_STRING = StringUtils.repeat("*", 25);
     protected final static String VERY_LONG_STRING = StringUtils.repeat("*", 70000);
     @SuppressWarnings("FieldMissingNullable")
     protected final static String apiKey = Optional.ofNullable(env.get("X_API_KEY")).orElse("");
@@ -61,7 +65,7 @@ public class AbstractIntegrationTest {
         return 20L + this.index;
     }
     String status() {
-        return stringPlusIndex("status");
+        return Auction.PENDING;
     }
     boolean winnercanbid() {
         return (this.index == 1);
@@ -125,8 +129,9 @@ public class AbstractIntegrationTest {
     String description() { return stringPlusIndex("description");}
 
     String validatorName() { return stringPlusIndex("validatorName");}
-    String validatorUrl() { return stringPlusIndex("https://hedera").concat(".com");}
-    String validatorPublicKey() { return stringPlusIndex("validatorPublicKey");}
+    String validatorUrl() { return "https://hedera".concat(String.valueOf(index)).concat(".com");}
+    String validatorPublicKey() { return PrivateKey.generate().getPublicKey().toString();}
+    String createAuctionTx() { return stringPlusIndex("createauctiontx");}
 
     @SuppressWarnings("FieldMissingNullable")
     protected String masterKey = Optional.ofNullable(env.get("MASTER_KEY")).orElse(""); //TODO: Handle tests where masterNode = false
@@ -156,6 +161,7 @@ public class AbstractIntegrationTest {
         auction.setTransferstatus(transferStatus());
         auction.setTitle(title());
         auction.setDescription(description());
+        auction.setCreateauctiontxid(createAuctionTx());
 
         return auction;
     }
@@ -183,6 +189,7 @@ public class AbstractIntegrationTest {
         assertEquals(auction.getMinimumbid(),getAuction.getMinimumbid());
         assertEquals(auction.getTitle(), getAuction.getTitle());
         assertEquals(auction.getDescription(), getAuction.getDescription());
+        assertEquals(auction.getCreateauctiontxid(), getAuction.getCreateauctiontxid());
     }
 
     public void testNewValidator(Validator validator, Validator getValidator) {
@@ -231,7 +238,6 @@ public class AbstractIntegrationTest {
                 .locations("filesystem:./src/main/resources/migrations")
                 .load();
         flyway.migrate();
-
     }
 
     protected DeploymentOptions getVerticleDeploymentOptions(String databaseUrl, String username, String password) {
@@ -240,9 +246,8 @@ public class AbstractIntegrationTest {
                 .put("envFile",".env.integration.sample")
                 .put("envPath",".")
                 .put("DATABASE_URL",databaseUrl.replace("jdbc:",""))
-                .put("DATABASE_USERNAME", username)
-                .put("DATABASE_PASSWORD", password)
-                .put("POOL_SIZE", "1")
+                .put("POSTGRES_USER", username)
+                .put("POSTGRES_PASSWORD", password)
                 .put("API_PORT","9005")
                 .put("x-api-key", apiKey)
                 .put("server-key-pass", "../docker-files/key.pem")
@@ -293,6 +298,7 @@ public class AbstractIntegrationTest {
         assertEquals(auction.getTransferstatus(), body.getString("transferstatus"));
         assertEquals(auction.getTitle(), body.getString("title"));
         assertEquals(auction.getDescription(), body.getString("description"));
+        assertEquals(auction.getCreateauctiontxid(), body.getString("createauctiontxid"));
     }
 
     protected void failingAdminAPITest(VertxTestContext testContext, String url, JsonObject body) {

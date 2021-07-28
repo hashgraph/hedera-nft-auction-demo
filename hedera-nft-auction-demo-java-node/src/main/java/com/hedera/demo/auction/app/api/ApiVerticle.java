@@ -1,6 +1,11 @@
 package com.hedera.demo.auction.app.api;
 
+import com.hedera.demo.auction.app.SqlConnectionManager;
 import com.hedera.demo.auction.app.Utils;
+import com.hedera.demo.auction.app.domain.Auction;
+import com.hedera.demo.auction.app.repository.AuctionsRepository;
+import com.hedera.demo.auction.app.repository.BidsRepository;
+import com.hedera.demo.auction.app.repository.ValidatorsRepository;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -15,9 +20,6 @@ import io.vertx.ext.web.validation.builder.Parameters;
 import io.vertx.json.schema.SchemaParser;
 import io.vertx.json.schema.SchemaRouter;
 import io.vertx.json.schema.SchemaRouterOptions;
-import io.vertx.pgclient.PgConnectOptions;
-import io.vertx.pgclient.PgPool;
-import io.vertx.sqlclient.PoolOptions;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
 
@@ -50,44 +52,46 @@ public class ApiVerticle extends AbstractVerticle {
                 .load();
 
         String url = Optional.ofNullable(config().getString("DATABASE_URL")).orElse(Optional.ofNullable(env.get("DATABASE_URL")).orElse(""));
-        String username = Optional.ofNullable(config().getString("DATABASE_USERNAME")).orElse(Optional.ofNullable(env.get("DATABASE_USERNAME")).orElse(""));
-        String password = Optional.ofNullable(config().getString("DATABASE_PASSWORD")).orElse(Optional.ofNullable(env.get("DATABASE_PASSWORD")).orElse(""));
-        int poolSize = Integer.parseInt(Optional.ofNullable(config().getString("POOL_SIZE")).orElse(Optional.ofNullable(env.get("POOL_SIZE")).orElse("1")));
+        String database = Optional.ofNullable(config().getString("POSTGRES_DB")).orElse(Optional.ofNullable(env.get("POSTGRES_DB")).orElse(""));
+        String username = Optional.ofNullable(config().getString("POSTGRES_USER")).orElse(Optional.ofNullable(env.get("POSTGRES_USER")).orElse(""));
+        String password = Optional.ofNullable(config().getString("POSTGRES_PASSWORD")).orElse(Optional.ofNullable(env.get("POSTGRES_PASSWORD")).orElse(""));
         int httpPort = Integer.parseInt(Optional.ofNullable(config().getString("API_PORT")).orElse(Optional.ofNullable(env.get("API_PORT")).orElse("9005")));
 
         if (StringUtils.isEmpty(url)) {
             throw new Exception("missing environment variable DATABASE_URL");
         }
+        if (StringUtils.isEmpty(database)) {
+            throw new Exception("missing environment variable POSTGRES_DB");
+        }
         if (StringUtils.isEmpty(username)) {
-            throw new Exception("missing environment variable DATABASE_USERNAME");
+            throw new Exception("missing environment variable POSTGRES_USER");
         }
         if (StringUtils.isEmpty(password)) {
-            throw new Exception("missing environment variable DATABASE_PASSWORD");
+            throw new Exception("missing environment variable POSTGRES_PASSWORD");
         }
-        PgConnectOptions pgConnectOptions = PgConnectOptions
-                        .fromUri(url)
-                        .setUser(username)
-                        .setPassword(password);
-        PoolOptions poolOptions = new PoolOptions().setMaxSize(poolSize);
 
-        PgPool pgPool = PgPool.pool(vertx, pgConnectOptions, poolOptions);
+        SqlConnectionManager connectionManager = new SqlConnectionManager(url.concat(database), username, password);
 
         HttpServerOptions options = Utils.httpServerOptions(config());
         var server = vertx.createHttpServer(options);
         var router = Router.router(vertx);
 
-        GetAuctionsHandler getAuctionsHandler = new GetAuctionsHandler(pgPool);
-        GetAuctionHandler getAuctionHandler = new GetAuctionHandler(pgPool);
-        GetLastBidderBidHandler getLastBidderBidHandler = new GetLastBidderBidHandler(pgPool);
-        GetBidsHandler getBidsHandler = new GetBidsHandler(pgPool);
-        GetAuctionsReserveNotMetHandler getAuctionsReserveNotMetHandler = new GetAuctionsReserveNotMetHandler(pgPool);
-        GetClosedAuctionsHandler getClosedAuctionsHandler = new GetClosedAuctionsHandler(pgPool);
-        GetEndedAuctionsHandler getEndedAuctionsHandler = new GetEndedAuctionsHandler(pgPool);
-        GetActiveAuctionsHandler getActiveAuctionsHandler = new GetActiveAuctionsHandler(pgPool);
-        GetPendingAuctionsHandler getPendingAuctionsHandler = new GetPendingAuctionsHandler(pgPool);
+        AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
+        BidsRepository bidsRepository = new BidsRepository(connectionManager);
+        ValidatorsRepository validatorsRepository = new ValidatorsRepository(connectionManager);
+
+        GetAuctionsHandler getAuctionsHandler = new GetAuctionsHandler(auctionsRepository);
+        GetAuctionHandler getAuctionHandler = new GetAuctionHandler(auctionsRepository);
+        GetLastBidderBidHandler getLastBidderBidHandler = new GetLastBidderBidHandler(bidsRepository);
+        GetBidsHandler getBidsHandler = new GetBidsHandler(bidsRepository, 50);
+        GetAuctionsReserveNotMetHandler getAuctionsReserveNotMetHandler = new GetAuctionsReserveNotMetHandler(auctionsRepository);
+        GetAuctionsForStatusHandler getClosedAuctionsHandler = new GetAuctionsForStatusHandler(auctionsRepository, Auction.CLOSED);
+        GetAuctionsForStatusHandler getEndedAuctionsHandler = new GetAuctionsForStatusHandler(auctionsRepository, Auction.ENDED);
+        GetAuctionsForStatusHandler getActiveAuctionsHandler = new GetAuctionsForStatusHandler(auctionsRepository, Auction.ACTIVE);
+        GetAuctionsForStatusHandler getPendingAuctionsHandler = new GetAuctionsForStatusHandler(auctionsRepository, Auction.PENDING);
         GetGeneratedKeysHandler getGeneratedKeysHandler = new GetGeneratedKeysHandler();
 
-        GetEnvironmentHandler getEnvironmentHandler = new GetEnvironmentHandler(pgPool, env.get("NEXT_PUBLIC_NETWORK"), config().getString("topicId"), env.get("NODE_OWNER", ""));
+        GetEnvironmentHandler getEnvironmentHandler = new GetEnvironmentHandler(validatorsRepository, env.get("NEXT_PUBLIC_NETWORK"), config().getString("topicId"), env.get("NODE_OWNER", ""));
         RootHandler rootHandler = new RootHandler();
 
         Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.GET));
@@ -122,7 +126,7 @@ public class ApiVerticle extends AbstractVerticle {
                 .handler(ValidationHandler
                         .builder(schemaParser)
                         .pathParameter(Parameters.param("auctionid", intSchema().with(minimum(1))))
-                        .pathParameter(Parameters.param("bidderaccountid", Utils.LONG_STRING_MAX_SCHEMA))
+                        .pathParameter(Parameters.param("bidderaccountid", Utils.SHORT_STRING_SCHEMA))
                         .build())
                 .handler(getLastBidderBidHandler);
 

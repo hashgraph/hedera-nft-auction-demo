@@ -39,7 +39,6 @@ public class Refunder implements Runnable {
     private final AuctionsRepository auctionsRepository;
     private final HederaClient hederaClient;
     private final int mirrorQueryFrequency;
-    private boolean testing = false;
     private boolean runThread = true;
     private final ExecutorService executor;
     private final Map<String, String> refundsInProgress = new HashMap();
@@ -58,13 +57,6 @@ public class Refunder implements Runnable {
         this.hederaClient = hederaClient;
         this.mirrorQueryFrequency = mirrorQueryFrequency;
         this.executor = Executors.newFixedThreadPool(refundThreads);
-    }
-
-    /**
-     * Sets a testing flag to avoid sending transactions to Hedera
-     */
-    public void setTesting() {
-        this.testing = true;
     }
 
     /**
@@ -136,40 +128,31 @@ public class Refunder implements Runnable {
         log.info("Refunding {} from {} to {}", bid.getBidamount(), auctionAccount, bid.getBidderaccountid());
         String memo = Bid.REFUND_MEMO_PREFIX.concat(bid.getTransactionid());
         // issue refund
-        if (testing) {
-            // just testing, we can't sign a scheduled transaction, just record the state change on the bid
-            try {
-                bidsRepository.setRefundIssued(bid.getTimestamp(), "", "");
-            } catch (SQLException e) {
-                log.error("Failed to set bid refund in progress (bid timestamp {})", bid.getTimestamp(), e);
+        try {
+            if (bidsRepository.setRefundIssuing(bid.getTimestamp())) {
+                refundsInProgress.put(bid.getTimestamp(), "");
+                CompletableFuture.supplyAsync(() -> {
+                    try {
+                        TransactionScheduler transactionScheduler = new TransactionScheduler(auctionAccountId);
+                        transactionScheduler.issueScheduledTransactionForRefund(bid, bidsRepository, memo);
+                        return bid.getTimestamp();
+                    } catch (Throwable e) {
+                        log.error(e, e);
+                        return "";
+                    }
+                }, executor)
+                .thenAccept(refundingBid -> {
+                    if (!StringUtils.isEmpty(refundingBid)) {
+                        refundsInProgress.remove(refundingBid);
+                    }
+                })
+                .exceptionally(exception -> {
+                    log.error(exception, exception);
+                    return null;
+                });
             }
-        } else {
-            try {
-                if (bidsRepository.setRefundIssuing(bid.getTimestamp())) {
-                    refundsInProgress.put(bid.getTimestamp(), "");
-                    CompletableFuture.supplyAsync(() -> {
-                        try {
-                            TransactionScheduler transactionScheduler = new TransactionScheduler(auctionAccountId);
-                            transactionScheduler.issueScheduledTransactionForRefund(bid, bidsRepository, memo);
-                            return bid.getTimestamp();
-                        } catch (Throwable e) {
-                            log.error(e, e);
-                            return "";
-                        }
-                    }, executor)
-                    .thenAccept(refundingBid -> {
-                        if (!StringUtils.isEmpty(refundingBid)) {
-                            refundsInProgress.remove(refundingBid);
-                        }
-                    })
-                    .exceptionally(exception -> {
-                        log.error(exception, exception);
-                        return null;
-                    });
-                }
-            } catch (SQLException e) {
-                log.error("Unable to set bid to refund issuing", e);
-            }
+        } catch (SQLException e) {
+            log.error("Unable to set bid to refund issuing", e);
         }
     }
 

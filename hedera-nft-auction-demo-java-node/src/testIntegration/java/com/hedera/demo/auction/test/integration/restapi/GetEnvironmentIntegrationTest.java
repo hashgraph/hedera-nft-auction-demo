@@ -1,9 +1,11 @@
 package com.hedera.demo.auction.test.integration.restapi;
 
+import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.SqlConnectionManager;
 import com.hedera.demo.auction.app.api.ApiVerticle;
 import com.hedera.demo.auction.app.repository.ValidatorsRepository;
 import com.hedera.demo.auction.test.integration.AbstractIntegrationTest;
+import com.hedera.hashgraph.sdk.PrivateKey;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -17,9 +19,9 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-import java.sql.SQLException;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(VertxExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -46,9 +48,26 @@ public class GetEnvironmentIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void getEnvironmentTest(VertxTestContext testContext) throws SQLException {
-      validatorsRepository.add("validatorName", "https://hedera.com", "validatorPublicKey");
-      validatorsRepository.add("validatorName1", "https://hedera.com1", "validatorPublicKey1");
+    public void getEnvironmentTest(VertxTestContext testContext) throws Exception {
+      String publicKey1 = PrivateKey.generate().getPublicKey().toString();
+      String publicKey2 = PrivateKey.generate().getPublicKey().toString();
+
+      JsonArray validatorsJson = new JsonArray();
+      @Var JsonObject validatorJson = new JsonObject();
+      validatorJson.put("name", "validatorName1");
+      validatorJson.put("url", "https://hedera1.com");
+      validatorJson.put("publicKey", publicKey1);
+      validatorJson.put("operation", "add");
+      validatorsJson.add(validatorJson);
+
+      validatorJson = new JsonObject();
+      validatorJson.put("name", "validatorName2");
+      validatorJson.put("url", "https://hedera2.com");
+      validatorJson.put("publicKey", publicKey2);
+      validatorJson.put("operation", "add");
+      validatorsJson.add(validatorJson);
+
+      validatorsRepository.manage(validatorsJson);
 
         webClient.get(9005, "localhost", "/v1/environment/")
                 .as(BodyCodec.jsonObject())
@@ -66,14 +85,14 @@ public class GetEnvironmentIntegrationTest extends AbstractIntegrationTest {
                     JsonArray validators = body.getJsonArray("validators");
                     assertEquals(2, validators.size());
                     JsonObject validator = validators.getJsonObject(0);
-                    assertEquals("validatorName", validator.getString("name"));
-                    assertEquals("https://hedera.com", validator.getString("url"));
-                    assertEquals("validatorPublicKey", validator.getString("publicKey"));
+                    assertEquals("validatorName1", validator.getString("name"));
+                    assertEquals("https://hedera1.com", validator.getString("url"));
+                    assertEquals(publicKey1, validator.getString("publicKey"));
 
                     JsonObject validator2 = validators.getJsonObject(1);
-                    assertEquals("validatorName1", validator2.getString("name"));
-                    assertEquals("https://hedera.com1", validator2.getString("url"));
-                    assertEquals("validatorPublicKey1", validator2.getString("publicKey"));
+                    assertEquals("validatorName2", validator2.getString("name"));
+                    assertEquals("https://hedera2.com", validator2.getString("url"));
+                    assertEquals(publicKey2, validator2.getString("publicKey"));
 
                     testContext.completeNow();
                 })));

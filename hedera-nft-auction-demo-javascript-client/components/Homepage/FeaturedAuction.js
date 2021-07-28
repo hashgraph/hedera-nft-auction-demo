@@ -80,7 +80,7 @@ const FeaturedAuction = ({ featuredAuction }) => {
           {truncatedTitle}
         </p>
         <div>
-          <div className='flex justify-between sm:flex-row flex-col'>
+          <div className='flex justify-between flex-col lg:flex-row'>
             <div className='sm:mb-0 mb-8'>
               <p className='sm:mb-2 mb-0'>Current Bid</p>
               <p className='font-semibold sm:text-3xl text-lg pb-1.5 sm:mb-1 mb-0'>
@@ -101,7 +101,7 @@ const FeaturedAuction = ({ featuredAuction }) => {
                 {usdValue}
               </p>
             </div>
-            <div className='sm:ml-32 sm:absolute relative'>
+            <div className='ml-0 lg:ml-44 lg:absolute relative'>
               <p className='font-semibold sm:mb-2 mb-0'>Auction Ends</p>
               <div className='flex'>
                 {!timeLeft ? (

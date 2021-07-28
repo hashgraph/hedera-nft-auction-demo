@@ -214,6 +214,7 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
             assertEquals(testAuction.getTransferstatus(), auctionToTest.getTransferstatus());
             assertEquals(testAuction.getTitle(), auctionToTest.getTitle());
             assertEquals(testAuction.getDescription(), auctionToTest.getDescription());
+            assertEquals(testAuction.getCreateauctiontxid(), auctionToTest.getCreateauctiontxid());
         }
     }
     @Test

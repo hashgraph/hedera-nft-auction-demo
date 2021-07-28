@@ -42,6 +42,7 @@ public class Auction implements VertxPojo, Serializable {
     private String title = "";
     private String description = "";
     private boolean processrefunds = false;
+    private String createauctiontxid = "";
 
     public Auction() {}
 
@@ -74,6 +75,7 @@ public class Auction implements VertxPojo, Serializable {
         this.title = record.get(AUCTIONS.TITLE);
         this.description = record.get(AUCTIONS.DESCRIPTION);
         this.processrefunds = record.get(AUCTIONS.PROCESSREFUNDS);
+        this.createauctiontxid = record.get(AUCTIONS.CREATEAUCTIONTXID);
     }
 
     /**
@@ -104,6 +106,7 @@ public class Auction implements VertxPojo, Serializable {
         this.title = row.getString(AUCTIONS.TITLE.getName());
         this.description = row.getString(AUCTIONS.DESCRIPTION.getName());
         this.processrefunds = row.getBoolean(AUCTIONS.PROCESSREFUNDS.getName());
+        this.createauctiontxid = row.getString(AUCTIONS.CREATEAUCTIONTXID.getName());
     }
 
     /**
@@ -325,6 +328,13 @@ public class Auction implements VertxPojo, Serializable {
         return this.processrefunds;
     }
 
+    public void setCreateauctiontxid(String createauctiontxid) {
+        this.createauctiontxid = createauctiontxid;
+    }
+    public String getCreateauctiontxid() {
+        return this.createauctiontxid;
+    }
+
     /**
      * Convert the Auction to a String
      * @return String representing the Auction object
@@ -356,6 +366,7 @@ public class Auction implements VertxPojo, Serializable {
         sb.append(", ").append(getTitle());
         sb.append(", ").append(getDescription());
         sb.append(", ").append(getProcessrefunds());
+        sb.append(", ").append(getCreateauctiontxid());
 
         sb.append(")");
         return sb.toString();
@@ -391,6 +402,7 @@ public class Auction implements VertxPojo, Serializable {
         this.setTitle(json.getString("title", ""));
         this.setDescription(json.getString("description", ""));
         this.setProcessrefunds(json.getBoolean("processrefunds", /* def= */false));
+        this.setCreateauctiontxid(json.getString("createauctiontxid", ""));
         return this;
     }
 
@@ -424,6 +436,7 @@ public class Auction implements VertxPojo, Serializable {
         json.put("title", getTitle());
         json.put("description", getDescription());
         json.put("processrefunds", getProcessrefunds());
+        json.put("createauctiontxid", getCreateauctiontxid());
 
         return json;
     }

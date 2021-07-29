@@ -2,8 +2,7 @@ import React from 'react'
 import ViewAllButton from 'components/common/buttons/ViewAllButton'
 import AuctionCard from 'components/common/cards/AuctionCard'
 import fetchLiveAutcions from 'utils/getLiveAuctions'
-import fetchClosedAuctions from 'utils/getClosedAuctions'
-import fetchEndedAuctions from 'utils/getEndedAuctions'
+import fetchSoldAuctions from 'utils/getSoldAuctions'
 import FeaturedAuction from './FeaturedAuction'
 import { useRouter } from 'next/router'
 
@@ -11,18 +10,15 @@ const LiveAuction = () => {
   const router = useRouter()
 
   const [liveAuctions, setLiveAuctions] = React.useState([])
-  const [closedAuctions, setClosedAuctions] = React.useState([])
-  const [endedAuctions, setEndedAuctions] = React.useState([])
+  const [soldAuctions, setSoldAuctions] = React.useState([])
 
   React.useEffect(() => {
     const asyncAuctionsFetch = async () => {
       try {
         const liveAuctions = await fetchLiveAutcions()
         setLiveAuctions(liveAuctions)
-        const closedAuctions = await fetchClosedAuctions()
-        setClosedAuctions(closedAuctions)
-        const endedAuctions = await fetchEndedAuctions()
-        setEndedAuctions(endedAuctions)
+        const soldAuctions = await fetchSoldAuctions()
+        setSoldAuctions(soldAuctions)
       } catch (error) {
         console.log('Error fetching auctions', error)
       }
@@ -58,10 +54,10 @@ const LiveAuction = () => {
   // grabbing the most recent four live auctions
   const mostRecentLiveAuctions = getMostRecentAuctions(liveAuctions)
   // grabbing the most recent four sold auctions
-  const mostRecentEndedAuctions = getMostRecentAuctions(endedAuctions)
+  const mostRecentSoldAuctions = getMostRecentAuctions(soldAuctions)
 
   const noLiveAuctionsToShow = mostRecentLiveAuctions.length === 0
-  const noEndedAuctionsToShow = mostRecentEndedAuctions.length === 0
+  const noSoldAuctionsToShow = mostRecentSoldAuctions.length === 0
 
   return (
     <div className=''>
@@ -105,10 +101,10 @@ const LiveAuction = () => {
         <div
           className={`grid sm:grid-cols-2 lg:grid-cols-4 grid-rows-1 gap-10`}
         >
-          {noEndedAuctionsToShow ? (
+          {noSoldAuctionsToShow ? (
             <p className='font-thin'>No Sold Auctions</p>
           ) : (
-            mostRecentEndedAuctions.map(auction => {
+            mostRecentSoldAuctions.map(auction => {
               return (
                 <AuctionCard key={auction.id} auction={auction} showStatus />
               )
@@ -121,3 +117,4 @@ const LiveAuction = () => {
 }
 
 export default LiveAuction
+

@@ -1,15 +1,15 @@
 import React from 'react'
 import AuctionCard from 'components/common/cards/AuctionCard'
-import fetchEndendAuctions from 'utils/getEndedAuctions'
+import fetchSoldAuctions from 'utils/getSoldAuctions'
 
 const Sold = () => {
-  const [endedAuctions, setAuctions] = React.useState([])
+  const [soldAuctions, setAuctions] = React.useState([])
 
   React.useEffect(() => {
     const asyncAuctionsFetch = async () => {
       try {
-        const endedAuctions = await fetchEndendAuctions()
-        setAuctions(endedAuctions)
+        const soldAuctions = await fetchSoldAuctions()
+        setAuctions(soldAuctions)
       } catch (error) {
         console.log('Error fetching auctions', error)
       }
@@ -17,9 +17,9 @@ const Sold = () => {
     asyncAuctionsFetch()
   }, [])
 
-  if (!endedAuctions) return null
+  if (!soldAuctions) return null
 
-  const noSoldAuctions = endedAuctions.length === 0
+  const noSoldAuctions = soldAuctions.length === 0
 
   if (noSoldAuctions)
     return (
@@ -30,7 +30,7 @@ const Sold = () => {
 
   return (
     <div className='grid sm:grid-cols-2 lg:grid-cols-4 grid-rows-1 gap-10'>
-      {endedAuctions.map(auction => (
+      {soldAuctions.map(auction => (
         <AuctionCard key={auction.id} auction={auction} showStatus />
       ))}
     </div>
@@ -38,3 +38,4 @@ const Sold = () => {
 }
 
 export default Sold
+

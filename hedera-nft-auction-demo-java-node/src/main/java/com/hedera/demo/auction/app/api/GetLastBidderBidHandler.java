@@ -4,7 +4,6 @@ import com.hedera.demo.auction.app.domain.Bid;
 import com.hedera.demo.auction.app.repository.BidsRepository;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import lombok.extern.log4j.Log4j2;
 

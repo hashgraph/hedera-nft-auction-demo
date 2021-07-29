@@ -118,8 +118,8 @@ services:
     profiles:
       - image
 
-  ui-compiled:
-    container_name: nft-auction-ui-compiled
+  ui:
+    container_name: nft-auction-ui
     build:
       context: hedera-nft-auction-demo-javascript-client
     restart: unless-stopped
@@ -127,54 +127,22 @@ services:
       - docker-files/.env
     expose:
       - 3000
-    depends_on:
-      - rest-compiled
-    volumes:
-      - ./docker-files/ui-conf.d:/etc/nginx/conf.d/
-    profiles:
-      - compile
-
-  ui-image:
-    container_name: nft-auction-ui-image
-    image: ghcr.io/hashgraph/hedera-nft-auction-demo/nft-auction-demo-ui:latest
-    pull_policy: always
-    restart: unless-stopped
-    expose:
-      - 3000
-    depends_on:
-      - rest-image
-    volumes:
-      - ./docker-files/ui-conf.d:/etc/nginx/conf.d/
-      - ./docker-files:/demo
     profiles:
       - image
+      - compile
 
-  proxy-compiled:
-    container_name: nginx-proxy-compiled
+  proxy:
+    container_name: nft-auction-nginx-proxy
     build:
       context: docker-nginx
     restart: unless-stopped
     ports:
       - "8080:8080"
     depends_on:
-      - ui-compiled
+      - ui
     profiles:
+      - image
       - compile
     volumes:
       - ./docker-files:/demo
-      - ./docker-files/conf.d/compiled:/etc/nginx/conf.d/
-
-  proxy-image:
-    container_name: nginx-proxy-image
-    build:
-      context: docker-nginx
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
-    depends_on:
-      - ui-image
-    profiles:
-      - image
-    volumes:
-      - ./docker-files:/demo
-      - ./docker-files/conf.d/image:/etc/nginx/conf.d/
+      - ./docker-files/conf.d:/etc/nginx/conf.d/

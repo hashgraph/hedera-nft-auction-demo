@@ -38,9 +38,15 @@ public class EasySetup extends AbstractCreate {
 
         if (requestEasySetup.clean) {
             log.info("Deleting existing auctions and bids and creating new topic");
-            bidsRepository.deleteAllBids();
-            auctionsRepository.deleteAllAuctions();
-            validatorsRepository.deleteAllValidators();
+            if (bidsRepository != null) {
+                bidsRepository.deleteAllBids();
+            }
+            if (auctionsRepository != null) {
+                auctionsRepository.deleteAllAuctions();
+            }
+            if (validatorsRepository != null) {
+                validatorsRepository.deleteAllValidators();
+            }
             CreateTopic createTopic = new CreateTopic();
             topicId = createTopic.create().toString();
         }

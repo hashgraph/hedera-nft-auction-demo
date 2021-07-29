@@ -59,10 +59,10 @@ public class HederaClient {
             this.mirrorProvider = env.get("MIRROR_PROVIDER").toUpperCase();
         }
 
-        if (StringUtils.isEmpty(env.get("NEXT_PUBLIC_NETWORK"))) {
-            throw new Exception("NEXT_PUBLIC_NETWORK environment variable not set");
+        if (StringUtils.isEmpty(env.get("NETWORK"))) {
+            throw new Exception("NETWORK environment variable not set");
         } else {
-            this.network = env.get("NEXT_PUBLIC_NETWORK").toUpperCase();
+            this.network = env.get("NETWORK").toUpperCase();
         }
         this.client = clientForNetwork(this.network);
         String envVariable = "REST_".concat(this.mirrorProvider.toUpperCase()).concat("_")
@@ -74,7 +74,7 @@ public class HederaClient {
             this.mirrorUrl = env.get(envVariable, "");
         }
         if (StringUtils.isBlank(this.mirrorUrl)) {
-            throw new Exception("NEXT_PUBLIC_NETWORK and/or MIRROR_PROVIDER environment variables not set");
+            throw new Exception("NETWORK and/or MIRROR_PROVIDER environment variables not set");
         }
     }
 

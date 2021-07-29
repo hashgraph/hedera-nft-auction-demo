@@ -89,9 +89,11 @@ public class ApiVerticle extends AbstractVerticle {
         GetAuctionsForStatusHandler getEndedAuctionsHandler = new GetAuctionsForStatusHandler(auctionsRepository, Auction.ENDED);
         GetAuctionsForStatusHandler getActiveAuctionsHandler = new GetAuctionsForStatusHandler(auctionsRepository, Auction.ACTIVE);
         GetAuctionsForStatusHandler getPendingAuctionsHandler = new GetAuctionsForStatusHandler(auctionsRepository, Auction.PENDING);
+        GetAuctionsSoldHandler getAuctionsSoldHandler = new GetAuctionsSoldHandler(auctionsRepository);
+
         GetGeneratedKeysHandler getGeneratedKeysHandler = new GetGeneratedKeysHandler();
 
-        GetEnvironmentHandler getEnvironmentHandler = new GetEnvironmentHandler(validatorsRepository, env.get("NEXT_PUBLIC_NETWORK"), config().getString("topicId"), env.get("NODE_OWNER", ""));
+        GetEnvironmentHandler getEnvironmentHandler = new GetEnvironmentHandler(validatorsRepository, env.get("NETWORK"), config().getString("topicId"), env.get("NODE_OWNER", ""));
         RootHandler rootHandler = new RootHandler();
 
         Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.GET));
@@ -112,6 +114,7 @@ public class ApiVerticle extends AbstractVerticle {
         router.get("/v1/endedauctions").handler(getEndedAuctionsHandler);
         router.get("/v1/activeauctions").handler(getActiveAuctionsHandler);
         router.get("/v1/pendingauctions").handler(getPendingAuctionsHandler);
+        router.get("/v1/soldauctions").handler(getAuctionsSoldHandler);
 
         router.get("/v1/auctions/:id")
                 .handler(ValidationHandler

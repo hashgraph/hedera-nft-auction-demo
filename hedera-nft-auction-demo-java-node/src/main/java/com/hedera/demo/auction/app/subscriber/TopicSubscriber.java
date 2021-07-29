@@ -60,7 +60,7 @@ public class TopicSubscriber implements Runnable{
     @Nullable
     private AuctionReadinessWatcher auctionReadinessWatcher = null;
     private final String masterKey;
-    private boolean runOnce;
+    private final boolean runOnce;
 
     /**
      * Constructor

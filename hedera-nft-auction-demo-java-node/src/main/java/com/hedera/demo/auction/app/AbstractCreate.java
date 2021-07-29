@@ -5,12 +5,14 @@ import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.demo.auction.app.repository.ValidatorsRepository;
 import io.github.cdimascio.dotenv.Dotenv;
 
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
 /**
  * Abstract class to support creation of accounts, topics, etc...
  */
+@SuppressWarnings("FieldMissingNullable")
 public abstract class AbstractCreate {
     protected static Dotenv env = Dotenv.configure().ignoreIfMissing().load();
     protected HederaClient hederaClient;
@@ -21,12 +23,17 @@ public abstract class AbstractCreate {
     protected static String username = "";
     protected static String password = "";
 
+    @Nullable
     protected static SqlConnectionManager connectionManager;
+    @Nullable
     protected static AuctionsRepository auctionsRepository;
+    @Nullable
     protected static BidsRepository bidsRepository;
+    @Nullable
     protected static ValidatorsRepository validatorsRepository;
 
     AbstractCreate() throws Exception {
+        hederaClient = new HederaClient(env);
         setEnv(env);
     }
 

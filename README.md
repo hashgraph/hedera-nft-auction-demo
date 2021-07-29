@@ -77,13 +77,13 @@ HTTPS_KEY_OR_PASS=../docker-files/key.pem
 HTTPS_CERTIFICATE=../docker-files/cert.pem
 ```
 
-If you provide own certificates for production, make sure you update both the `docker-files` certificate and key and `docker-files/nginx-certs` files and update the `.env` file and `docker-files/conf.d/compiled/default.conf` and and `docker-files/conf.d/image/default.conf` if the filenames are different.
+If you provide own certificates for production, update the `.env` file and `docker-files/conf.d/default.conf` if the filenames are different.
 
 default.conf example
 
 ```text
 upstream docker-ui {
-    server ui-compiled:3000;
+    server ui:3000;
 }
 
 server {
@@ -122,10 +122,14 @@ setup the `.env` properties as follows
 
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
-* `NEXT_PUBLIC_NETWORK=` (mainnet, testnet or previewnet)
+  
+* `NETWORK=` (mainnet, testnet or previewnet)
+* `NEXT_PUBLIC_BASE_API_URL=` (the url to the REST api for the Javascript UI e.g. http://localhost:8081/v1)
+  
 * `POSTGRES_USER=` (username for the database)
 * `POSTGRES_PASSWORD=` (password for the database user)
 * `POSTGRES_DB=nftauction` (schema name for the database, you may change if desired)
+  
 * `MASTER_KEY=` (set only for one node which has additional authority over the auction accounts, can be the same as operator key only, else must be different)
 * `NFT_STORAGE_API_KEY=` (We use IPFS storage using [nft.storage](https://nft.storage) to store NFT metadata. You can create your API key on https://nft.storage and add it to your .env file to enable IPFS upload, this is only required if your node will be involved in token creation through the API or command line)
 * `X_API_KEY=` (API key to authenticate admin REST api calls e.g. a6e006ec-c1ac-4204-9389-8d4ad4c84a6f)
@@ -259,12 +263,13 @@ _Note: The UI assumes it is served from the same server as the client REST api (
 Edit environment variables
 
 ```shell
-cp .env.sample .env
-nano .env
+cd hedera-nft-auction-demo
+cd hedera-nft-auction-demo-javascript-client
+cp .env.local.sample .env.local
+nano .env.local
 ```
 
-* `NEXT_PUBLIC_BASE_API_URL=` this is the url of the client API (e.g. https://localhost:8081). Note that if not specified, the UI will assume the REST API is served from the same server as the UI on port 8081.
-* `NEXT_PUBLIC_NETWORK=` `Testnet` or `Mainnet`. If not specified, the UI will default to `Testnet`.
+* `NEXT_PUBLIC_BASE_API_URL=` this is the url of the client API (e.g. https://localhost:8081).
 
 ```shell
 cd hedera-nft-auction-demo
@@ -773,7 +778,7 @@ which will create an account with the specified initial balance in hbar and will
 
 * `OPERATOR_ID=` (input your account id for the Hedera network)
 * `OPERATOR_KEY=` (input your private key associated with the Hedera account above - 302xxxx)
-* `NEXT_PUBLIC_NETWORK=` (mainnet, testnet or previewnet)
+* `NETWORK=` (mainnet, testnet or previewnet)
 * `POSTGRES_USER=` (username for the database)
 * `POSTGRES_PASSWORD=` (password for the database user)
 * `POSTGRES_DB=nftauction` (schema name for the database, you may change if desired)

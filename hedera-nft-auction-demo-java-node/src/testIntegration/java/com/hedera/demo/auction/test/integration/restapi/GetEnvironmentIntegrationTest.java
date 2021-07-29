@@ -79,7 +79,7 @@ public class GetEnvironmentIntegrationTest extends AbstractIntegrationTest {
 
                     assertEquals("ATopicId", body.getString("topicId"));
                     assertEquals(env.get("NODE_OWNER"), body.getString("nodeOperator"));
-                    assertEquals(env.get("NEXT_PUBLIC_NETWORK"), body.getString("network"));
+                    assertEquals(env.get("NETWORK"), body.getString("network"));
 
                     assertTrue(body.containsKey("validators"));
                     JsonArray validators = body.getJsonArray("validators");

@@ -44,7 +44,7 @@ jobs:
       env:
         OPERATOR_ID: ${{ secrets.OPERATOR_ID }}
         OPERATOR_KEY: ${{ secrets.OPERATOR_KEY }}
-        NEXT_PUBLIC_NETWORK: testnet
+        NETWORK: testnet
         #       Run the REST API true/false
         REST_API: true
         API_PORT: 8081

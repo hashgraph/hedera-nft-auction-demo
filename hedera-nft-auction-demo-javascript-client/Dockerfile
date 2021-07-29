@@ -6,6 +6,8 @@ ENV PORT 3000
 RUN mkdir -p ./app
 WORKDIR /app
 
+RUN echo NEXT_PUBLIC_BASE_API_URL=$NEXT_PUBLIC_BASE_API_URL > .env.local
+
 # Installing dependencies
 COPY package*.json /app/
 RUN npm install

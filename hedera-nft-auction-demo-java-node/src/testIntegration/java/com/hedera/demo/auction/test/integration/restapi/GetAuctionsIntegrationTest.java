@@ -116,7 +116,35 @@ public class GetAuctionsIntegrationTest extends AbstractIntegrationTest {
                 })));
     }
 
-    public void getAuction(VertxTestContext testContext, String url, String status, int expectedCount) throws SQLException {
+  @Test
+  public void getAuctionSold(VertxTestContext testContext) throws SQLException {
+    // reserve not met auction
+    Auction auction = testAuctionObject(1);
+    auction.setWinningbid(2L);
+    auction.setReserve(5L);
+    auctionsRepository.createComplete(auction);
+    // reserve met auction
+    Auction newAuction = testAuctionObject(2);
+    newAuction.setWinningbid(2L);
+    newAuction.setReserve(0L);
+    newAuction.setStatus(Auction.ENDED);
+    auctionsRepository.createComplete(newAuction);
+
+    webClient.get(9005, "localhost", "/v1/soldauctions")
+            .as(BodyCodec.buffer())
+            .send(testContext.succeeding(response -> testContext.verify(() -> {
+              assertNotNull(response);
+              JsonArray body = new JsonArray(response.body());
+              assertNotNull(body);
+              assertEquals(1, body.size());
+              verifyAuction(newAuction, body.getJsonObject(0));
+
+              auctionsRepository.deleteAllAuctions();
+              testContext.completeNow();
+            })));
+  }
+
+  public void getAuction(VertxTestContext testContext, String url, String status, int expectedCount) throws SQLException {
         Auction auction = testAuctionObject(1);
         auctionsRepository.createComplete(auction);
         @Var Auction newAuction = testAuctionObject(2);

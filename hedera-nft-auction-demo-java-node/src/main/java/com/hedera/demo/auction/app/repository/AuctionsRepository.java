@@ -168,6 +168,29 @@ public class AuctionsRepository {
     }
 
     /**
+     * Gets ENDED auctions with a bid above reserve
+     *
+     * @return List of ENDED Auction with a bid above reserve
+     * @throws SQLException in the event of an error
+     */
+    @Nullable
+    public List<Auction> getAuctionsSold() throws SQLException {
+        DSLContext cx = connectionManager.dsl();
+        Result<Record> auctionRecords = cx.selectFrom(AUCTIONS)
+                .where(AUCTIONS.WINNINGBID.ge(AUCTIONS.RESERVE))
+                .and(AUCTIONS.STATUS.eq(Auction.ENDED))
+                .orderBy(AUCTIONS.ID)
+                .fetch();
+
+        List<Auction> auctions = new ArrayList<>();
+        for (Record record : auctionRecords) {
+            Auction auction = new Auction(record);
+            auctions.add(auction);
+        }
+        return auctions;
+    }
+
+    /**
      * Gets auctions for a given status
      *
      * @param status the status to search on

@@ -193,6 +193,7 @@ public class BidsRepository {
      * @return a bid if found, null otherwise
      * @exception SQLException in the event of an error
      */
+    @Nullable
     public Bid getBidderLastBid(int auctionId, String bidderAccountId) throws SQLException {
         DSLContext cx = connectionManager.dsl();
 

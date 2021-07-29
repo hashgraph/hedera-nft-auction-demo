@@ -119,6 +119,7 @@ allprojects {
 			disable("AndroidJdkLibsChecker")
 			disable("CatchAndPrintStackTrace")
 			disable("ThrowSpecificExceptions")
+			disable("UnnecessarilyFullyQualified")
 
 			// Ignore generated and protobuf code
 			disableWarningsInGeneratedCode = true

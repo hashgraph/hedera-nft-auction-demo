@@ -180,7 +180,7 @@ public class AuctionsRepository {
     /**
      * Gets ENDED auctions with a bid above reserve
      *
-     * @return List of ENDED Auction with a bid above reserve
+     * @return List of ENDED Auction with a bid above reserve and winning bid > 0
      * @throws SQLException in the event of an error
      */
     @Nullable
@@ -188,6 +188,7 @@ public class AuctionsRepository {
         DSLContext cx = connectionManager.dsl();
         Result<Record> auctionRecords = cx.selectFrom(AUCTIONS)
                 .where(AUCTIONS.WINNINGBID.ge(AUCTIONS.RESERVE))
+                .and(AUCTIONS.WINNINGBID.ne(0L))
                 .and(AUCTIONS.STATUS.eq(Auction.ENDED))
                 .orderBy(AUCTIONS.ID)
                 .fetch();

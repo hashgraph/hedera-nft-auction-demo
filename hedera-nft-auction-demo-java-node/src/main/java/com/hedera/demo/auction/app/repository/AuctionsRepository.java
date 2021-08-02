@@ -154,15 +154,25 @@ public class AuctionsRepository {
     @Nullable
     public List<Auction> getAuctionsBelowReserve() throws SQLException {
         DSLContext cx = connectionManager.dsl();
+        // get auctions with no winning bid
         Result<Record> auctionRecords = cx.selectFrom(AUCTIONS)
-                .where(AUCTIONS.WINNINGBID.lessThan(AUCTIONS.RESERVE))
+                .where(AUCTIONS.WINNINGBID.eq(0L))
                 .orderBy(AUCTIONS.ID)
                 .fetch();
 
         List<Auction> auctions = new ArrayList<>();
         for (Record record : auctionRecords) {
-            Auction auction = new Auction(record);
-            auctions.add(auction);
+            // look for bids against the auction that are below reserve
+            int count = cx.select(DSL.count())
+                    .from(BIDS)
+                    .where(BIDS.AUCTIONID.eq(record.get(AUCTIONS.ID)))
+                    .and(BIDS.STATUS.eq("Bid below reserve"))
+                    .fetchOne(0, int.class);
+
+            if (count > 0) {
+                Auction auction = new Auction(record);
+                auctions.add(auction);
+            }
         }
         return auctions;
     }

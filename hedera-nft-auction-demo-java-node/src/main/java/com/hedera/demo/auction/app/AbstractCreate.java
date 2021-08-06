@@ -42,6 +42,7 @@ public abstract class AbstractCreate {
         hederaClient = new HederaClient(env);
 
         filesPath = Optional.ofNullable(env.get("FILES_LOCATION")).orElse("./sample-files");
+        topicId = Objects.requireNonNull(env.get("TOPIC_ID"), "missing environment variable TOPIC_ID");
 
         String newUrl = Objects.requireNonNull(env.get("DATABASE_URL"), "missing environment variable DATABASE_URL");
         String newDatabase = Objects.requireNonNull(env.get("POSTGRES_DB"), "missing environment variable POSTGRES_DB");

@@ -22,6 +22,10 @@ RUN cd /opt/hedera-nft-auction-demo-java-node && ./gradlew --no-daemon assemble
 
 FROM adoptopenjdk:14-jre-hotspot
 
+RUN groupadd --gid 1000 appuser
+RUN useradd --uid 1000 --gid appuser appuser
+USER appuser
+
 RUN mkdir -p /srv
 
 # make a place to put our built JAR and copy it to there

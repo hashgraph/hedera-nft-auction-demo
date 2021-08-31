@@ -1,7 +1,7 @@
 import { API_BASE_URL } from './constants'
 
-const fetchAuctions = () => {
-  const endpoint = API_BASE_URL + '/auctions'
+const fetchLiveAutcions = () => {
+  const endpoint = API_BASE_URL + `/activeauctions`
   return new Promise(async (resolve, reject) => {
     try {
       const auctionResponse = await fetch(endpoint)
@@ -13,4 +13,4 @@ const fetchAuctions = () => {
   })
 }
 
-export default fetchAuctions
+export default fetchLiveAutcions

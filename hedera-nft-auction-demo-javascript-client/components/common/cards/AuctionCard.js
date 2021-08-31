@@ -1,11 +1,10 @@
 import calculateTimeLeft from 'utils/calculateTimeLeft'
 import { useRouter } from 'next/router'
 import HbarUnbit from 'components/common/HbarUnit'
+import getBidValue from 'utils/getBidValueToShow'
+import useCountdown from 'hooks/useCountdown'
 
-const MINUTES_IN_A_DAY = 1440
-const MINUTES_IN_AN_HOUR = 60
-
-const LiveAuctionCard = ({ auction, showStatus, isLastItem }) => {
+const LiveAuctionCard = ({ auction, showStatus }) => {
   const router = useRouter()
   const {
     tokenid,
@@ -14,34 +13,62 @@ const LiveAuctionCard = ({ auction, showStatus, isLastItem }) => {
     id: auctionId,
     tokenimage,
     active,
+    ended,
     status,
     description,
     title,
   } = auction
 
-  const { days, hours, minutes, seconds } = calculateTimeLeft(endtimestamp)
+  const { days, hours, minutes, seconds } = useCountdown(endtimestamp)
+
+  const moreThanOneDayLeft = days >= 1
+  const lessThanOneDayLeft = !days && hours >= 1
+  const lessThanOneHourLeft = !days && hours < 1
+  const lessThanMinutLeft = !days && !hours && minutes < 1
+
   const goToAuctionPage = () => router.push(`/auction/${auctionId}`)
 
-  const endTimeisGreaterThanTwoDays = days >= 2
-  console.log('endTimeisGreaterThanTwoDays', endTimeisGreaterThanTwoDays)
+  const getStatus = () => {
+    if (!showStatus) return
+    if (ended) return 'SOLD'
+    if (status === 'CLOSED') return 'CLOSED'
+  }
+
+  const bidToShow = getBidValue(winningbid)
 
   const isSold = !active
   const auctionImage = tokenimage || '/assets/default-token-image.png'
 
   const getEndTime = () => {
-    if (endTimeisGreaterThanTwoDays) return `${days}D ${hours}H`
-    const getTotalMinutes = () => {
-      let totalMinutes = minutes
-      if (days >= 1) {
-        totalMinutes =
-          days * MINUTES_IN_A_DAY + hours * MINUTES_IN_AN_HOUR + minutes
-      } else if (hours >= 1) {
-        totalMinutes = hours * MINUTES_IN_AN_HOUR + minutes
-      }
-      return totalMinutes
-    }
-    const totalMinutesToShow = getTotalMinutes()
-    return `${totalMinutesToShow}M ${seconds}S`
+    if (moreThanOneDayLeft)
+      return (
+        <>
+          <span style={{ marginRight: '10px' }}>{days}d</span>
+          <span>{hours}h</span>
+        </>
+      )
+    if (lessThanOneDayLeft)
+      return (
+        <>
+          <span style={{ marginRight: '10px' }}>{hours}h</span>
+          <span>{minutes}m</span>
+        </>
+      )
+    if (lessThanOneHourLeft)
+      return (
+        <>
+          <span style={{ marginRight: '10px' }}>{minutes}m</span>
+          <span>{seconds}s</span>
+        </>
+      )
+    if (lessThanMinutLeft)
+      return (
+        <>
+          <span style={{ marginRight: '10px' }}>{minutes}m</span>
+          <span>{seconds}s</span>
+        </>
+      )
+    return null
   }
 
   const endTimeToDisplay = getEndTime()
@@ -51,64 +78,62 @@ const LiveAuctionCard = ({ auction, showStatus, isLastItem }) => {
   const CardFooter = () => {
     if (isSold)
       return (
-        <div className='p-2'>
+        <div className=''>
           <p className='text-card-subtitle'>Winning Bid</p>
-          <p className='text-card-units'>
-            <HbarUnbit italic amount={winningbid} />
+          <p className='text-lg'>
+            <HbarUnbit italic amount={bidToShow} card />
           </p>
         </div>
       )
     return (
       <>
-        <div className='pt-2'>
+        <div className=''>
           <p className='text-card-subtitle '>Current Bid</p>
           <p className='text-lg'>
-            <HbarUnbit italic amount={winningbid} />
+            <HbarUnbit italic amount={bidToShow} card />
           </p>
         </div>
-        <div className='pt-2'>
-          <p className='text-card-subtitle'>Auction ends</p>
-          <p className='text-card-units mt-1'>{endTimeToDisplay}</p>
+        <div style={{ marginRight: '8%' }}>
+          <p className='text-card-subtitle'>Auction Ends</p>
+          <p className='sm:text-card-units text-20 sm:mt-1 mt-0 font-light '>
+            {endTimeToDisplay}
+          </p>
         </div>
       </>
     )
   }
 
-  const marginRightClass = isLastItem ? 'mr-0' : 'mr-10'
+  const displayStatus = getStatus()
 
   return (
-    <div
-      className={`sm:${marginRightClass} mr-0 mb-10 cursor-pointer sm:h-card h-full sm:w-card-small w-full`}
-      onClick={goToAuctionPage}
-    >
+    <div className={`mb-10 cursor-pointer h-full`} onClick={goToAuctionPage}>
       <div className='flex flex-col h-full shadow-card'>
         {showStatus && (
-          <p className='p-1 bg-purple-gradient absolute uppercase font-bold px-2'>
-            SOLD
+          <p className='p-1 bg-purple-gradient absolute uppercase font-bold px-2 z-10'>
+            {displayStatus}
           </p>
         )}
         <div className='flex flex-col h-full justify-between'>
-          <div
-            className='flex justify-center items-center'
-            style={{ flexBasis: '75%' }}
-          >
+          <div className='outer m-2'>
             <img
               src={auctionImage}
               alt='live-auction-card'
-              className='max-h-40'
-              style={{
-                objectFit: 'cover',
-              }}
+              className='inner h-full w-full object-cover'
             />
           </div>
           <div className='flex flex-col p-2 px-4'>
-            <p className='font-bold text-card-title mb-4'>{titleToRender}</p>
-            <p className='font-light mb-2 text-card-tokenid'>
+            <p
+              className='font-bold text-card-title mb-4'
+              style={{ fontSize: '20px' }}
+            >
+              {titleToRender}
+            </p>
+            <p className='font-light text-card-tokenid'>
               Token I.D.: <span className='font-normal'>{tokenid}</span>
             </p>
           </div>
         </div>
-        <div className='flex justify-between font-bold border-t border-indigo-600 py-4 px-4'>
+        <div className='flex justify-between font-bold border-t border-indigo-600 pt-2 pb-4 px-4'>
           <CardFooter />
         </div>
       </div>

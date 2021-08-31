@@ -1,6 +1,5 @@
 import { Client, Status, TransferTransaction } from '@hashgraph/sdk'
 import getWallet from 'utils/getHederaWallet'
-import {NETWORK} from "./constants";
 
 const sendBid = ({ auctionAccountId, bid }) => {
   return new Promise(async (resolve, reject) => {
@@ -9,10 +8,10 @@ const sendBid = ({ auctionAccountId, bid }) => {
     try {
       let message = 'Preparing Bid Transaction'
       let client = Client.forTestnet()
-      if (NETWORK.toUpperCase() === 'MAINNET') {
+      if (process.env.NEXT_PUBLIC_NETWORK.toUpperCase() === 'MAINNET') {
         client = Client.forMainnet()
       } else if (
-          NETWORK.toUpperCase() === 'PREVIEWNET'
+        process.env.NEXT_PUBLIC_NETWORK.toUpperCase() === 'PREVIEWNET'
       ) {
         client = Client.forPreviewnet()
       }
@@ -36,10 +35,10 @@ const sendBid = ({ auctionAccountId, bid }) => {
           // reset client so receipt request doesn't prompt for signature
           message = 'Fetching Receipt'
           client = Client.forTestnet()
-          if (NETWORK.toUpperCase() === 'MAINNET') {
+          if (process.env.NEXT_PUBLIC_NETWORK.toUpperCase() === 'MAINNET') {
             client = Client.forMainnet()
           } else if (
-              NETWORK.toUpperCase() === 'PREVIEWNET'
+            process.env.NEXT_PUBLIC_NETWORK.toUpperCase() === 'PREVIEWNET'
           ) {
             client = Client.forPreviewnet()
           }

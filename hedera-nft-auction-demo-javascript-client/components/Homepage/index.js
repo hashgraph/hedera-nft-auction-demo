@@ -1,19 +1,24 @@
 import React from 'react'
 import ViewAllButton from 'components/common/buttons/ViewAllButton'
 import AuctionCard from 'components/common/cards/AuctionCard'
-import fetchAuctions from 'utils/getAuctions'
+import fetchLiveAutcions from 'utils/getLiveAuctions'
+import fetchSoldAuctions from 'utils/getSoldAuctions'
 import FeaturedAuction from './FeaturedAuction'
 import { useRouter } from 'next/router'
 
 const LiveAuction = () => {
   const router = useRouter()
-  const [auctions, setAuctions] = React.useState(null)
+
+  const [liveAuctions, setLiveAuctions] = React.useState([])
+  const [soldAuctions, setSoldAuctions] = React.useState([])
 
   React.useEffect(() => {
     const asyncAuctionsFetch = async () => {
       try {
-        const auctions = await fetchAuctions()
-        setAuctions(auctions)
+        const liveAuctions = await fetchLiveAutcions()
+        setLiveAuctions(liveAuctions)
+        const soldAuctions = await fetchSoldAuctions()
+        setSoldAuctions(soldAuctions)
       } catch (error) {
         console.log('Error fetching auctions', error)
       }
@@ -22,16 +27,6 @@ const LiveAuction = () => {
   }, [])
 
   const hanldeViewAllLiveAuctionsClick = () => router.push('/live-auctions')
-
-  if (!auctions) return null
-
-  const liveAuctions = auctions.filter(
-    auction => !auction.ended && auction.active
-  )
-
-  const soldAuctions = auctions.filter(
-    auction => !auction.active && Boolean(auction.winningbid)
-  )
 
   const getFeaturedAuction = () => {
     const doesHaveLiveAuctions = liveAuctions && liveAuctions.length > 0
@@ -51,25 +46,22 @@ const LiveAuction = () => {
   const featuredAuction = getFeaturedAuction()
 
   const handleViewAllSoldClick = () => router.push('/sold')
+  const getMostRecentAuctions = auctions =>
+    auctions.length > 4
+      ? auctions.slice(Math.max(auctions.length - 4, 1))
+      : auctions
 
   // grabbing the most recent four live auctions
-  const mostRecentLiveAuctions =
-    liveAuctions.length > 4
-      ? liveAuctions.slice(Math.max(liveAuctions.length - 4, 1))
-      : liveAuctions
-
+  const mostRecentLiveAuctions = getMostRecentAuctions(liveAuctions)
   // grabbing the most recent four sold auctions
-  const mostRecentSoldAuctions =
-    soldAuctions.length > 4
-      ? soldAuctions.slice(Math.max(soldAuctions.length - 4, 1))
-      : soldAuctions
+  const mostRecentSoldAuctions = getMostRecentAuctions(soldAuctions)
 
   const noLiveAuctionsToShow = mostRecentLiveAuctions.length === 0
   const noSoldAuctionsToShow = mostRecentSoldAuctions.length === 0
 
   return (
     <div className=''>
-      <FeaturedAuction featuredAuction={featuredAuction} />
+      {featuredAuction && <FeaturedAuction featuredAuction={featuredAuction} />}
       <div className='pb-12'>
         <div className='flex justify-between border-b border-indigo-500 py-2 mb-6'>
           <h1
@@ -82,19 +74,14 @@ const LiveAuction = () => {
           </h1>
           <ViewAllButton onClick={hanldeViewAllLiveAuctionsClick} />
         </div>
-        <div className='flex flex-wrap'>
+        <div
+          className={`grid sm:grid-cols-2 lg:grid-cols-4 grid-rows-1 gap-10`}
+        >
           {noLiveAuctionsToShow ? (
             <p className='font-thin'>No Live Auctions</p>
           ) : (
-            mostRecentLiveAuctions.map((auction, index) => {
-              const isLastItem = index === mostRecentLiveAuctions.length - 1
-              return (
-                <AuctionCard
-                  key={auction.id}
-                  auction={auction}
-                  isLastItem={isLastItem}
-                />
-              )
+            mostRecentLiveAuctions.map(auction => {
+              return <AuctionCard key={auction.id} auction={auction} />
             })
           )}
         </div>
@@ -111,19 +98,15 @@ const LiveAuction = () => {
           </h1>
           <ViewAllButton onClick={handleViewAllSoldClick} />
         </div>
-        <div className='flex justify-start flex-wrap'>
+        <div
+          className={`grid sm:grid-cols-2 lg:grid-cols-4 grid-rows-1 gap-10`}
+        >
           {noSoldAuctionsToShow ? (
             <p className='font-thin'>No Sold Auctions</p>
           ) : (
-            mostRecentSoldAuctions.map((auction, index) => {
-              const isLastItem = index === mostRecentSoldAuctions.length - 1
+            mostRecentSoldAuctions.map(auction => {
               return (
-                <AuctionCard
-                  key={auction.id}
-                  auction={auction}
-                  showStatus
-                  isLastItem={isLastItem}
-                />
+                <AuctionCard key={auction.id} auction={auction} showStatus />
               )
             })
           )}

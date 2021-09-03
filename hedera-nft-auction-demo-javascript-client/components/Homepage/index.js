@@ -68,6 +68,8 @@ const LiveAuction = () => {
             className='text-lg relative'
             style={{
               top: '7px',
+              fontSize: '1.375rem',
+              marginBottom: '2px',
             }}
           >
             Live Auctions
@@ -92,6 +94,8 @@ const LiveAuction = () => {
             className='text-lg relative'
             style={{
               top: '7px',
+              fontSize: '1.375rem',
+              marginBottom: '2px',
             }}
           >
             Sold

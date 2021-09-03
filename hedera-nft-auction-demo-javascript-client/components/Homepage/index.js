@@ -62,7 +62,7 @@ const LiveAuction = () => {
   return (
     <div className=''>
       {featuredAuction && <FeaturedAuction featuredAuction={featuredAuction} />}
-      <div className='pb-12'>
+      <div className='pb-24'>
         <div className='flex justify-between border-b border-indigo-500 py-2 mb-6'>
           <h1
             className='text-lg relative'

@@ -114,7 +114,7 @@ const LiveAuctionCard = ({ auction, showStatus }) => {
           </p>
         )}
         <div className='flex flex-col h-full justify-between'>
-          <div className='outer mx-10 my-2'>
+          <div className='outer m-10 mb-0'>
             <img
               src={auctionImage}
               alt='live-auction-card'

@@ -89,9 +89,9 @@ const FeaturedAuction = ({ featuredAuction }) => {
                   className='sm:text-34 text-36 sm:font-bold font-light'
                 />
               </p>
-              <p className='text-gray-400 text-17 relative bottom-2'>
+              <p className='text-17 relative bottom-2'>
                 <span
-                  className='text-gray-400 text-sm relative'
+                  className='text-sm relative'
                   style={{
                     bottom: '1px',
                   }}

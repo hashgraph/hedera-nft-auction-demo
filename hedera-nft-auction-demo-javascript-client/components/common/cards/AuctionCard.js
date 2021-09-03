@@ -95,7 +95,7 @@ const LiveAuctionCard = ({ auction, showStatus }) => {
         </div>
         <div style={{ marginRight: '8%' }}>
           <p className='text-card-subtitle'>Auction Ends</p>
-          <p className='sm:text-card-units text-20 sm:mt-1 mt-0 font-light '>
+          <p className='text-lg sm:mt-0.5 mt-0 font-light'>
             {endTimeToDisplay}
           </p>
         </div>

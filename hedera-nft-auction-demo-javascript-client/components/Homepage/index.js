@@ -121,3 +121,4 @@ const LiveAuction = () => {
 }
 
 export default LiveAuction
+

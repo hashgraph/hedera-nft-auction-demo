@@ -166,6 +166,8 @@ public final class App {
      */
     public void runApp() throws Exception {
 
+        String apiKey = env.get("X_API_KEY");
+
         if (StringUtils.isEmpty(postgresUrl)) {
             String error = "DATABASE_URL environment variable is missing";
             log.error(error);
@@ -183,6 +185,12 @@ public final class App {
         }
         if (StringUtils.isEmpty(postgresPassword)) {
             String error = "POSTGRES_PASSWORD environment variable is missing";
+            log.error(error);
+            throw new Exception(error);
+        }
+
+        if (adminAPI && StringUtils.isEmpty(apiKey)) {
+            String error = "no X_API_KEY specified in .env, set to random string or disable admin api";
             log.error(error);
             throw new Exception(error);
         }
@@ -253,12 +261,6 @@ public final class App {
         if (adminAPI) {
             log.info("starting admin REST api");
             config.put("filesPath", filesPath);
-            String apiKey = env.get("X_API_KEY");
-            if (StringUtils.isEmpty(apiKey)) {
-                String error = "no X_API_KEY specified in .env";
-                log.error(error);
-                throw new Exception(error);
-            }
             config.put("x-api-key", apiKey);
             DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(adminApiVerticleCount);
             vertx.deployVerticle(AdminApiVerticle.class.getName(), options);

@@ -65,13 +65,7 @@ _For a production deployment, it is recommended that you supply appropriate cert
 you may use `.jks`, `.pfx` or `.p12` certificates with an associated `password`, or `.pem` with an associated `.pem` key for the java servers.
 For the Javascript UI, the files should be compatible with `nginx`._
 
-For Docker
-```text
-HTTPS_KEY_OR_PASS=/demo/key.pem
-HTTPS_CERTIFICATE=/demo/cert.pem
-```
-
-For standalone Java
+Only for standalone Java, leave blank or comment out for Docker
 ```text
 HTTPS_KEY_OR_PASS=../docker-files/key.pem
 HTTPS_CERTIFICATE=../docker-files/cert.pem
@@ -79,27 +73,13 @@ HTTPS_CERTIFICATE=../docker-files/cert.pem
 
 If you provide own certificates for production, update the `.env` file and `docker-files/conf.d/default.conf` if the filenames are different.
 
-default.conf example
+default.conf example, note the `ssl_certificate` directives are repeated three times in the file.
 
 ```text
-upstream docker-ui {
-    server ui:3000;
-}
-
-server {
-    listen 8080 ssl;
+    ...
     ssl_certificate     /demo/cert.pem;
     ssl_certificate_key /demo/key.pem;
-
-    location / {
-        proxy_pass         http://docker-ui;
-        proxy_redirect     off;
-        proxy_set_header   Host $host;
-        proxy_set_header   X-Real-IP $remote_addr;
-        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header   X-Forwarded-Host $server_name;
-    }
-}
+    ...    
 ```
 
 ### With docker
@@ -149,25 +129,55 @@ cp .env.sample .env
 
 you may leave the properties as they are for now
 
-#### Start docker images
+#### Start docker containers
 
 Using pre-built images
 
 ```shell
-cd ..
-docker-compose --profile image up
+cd hedera-nft-auction-demo/scripts
+./run.sh image https://yourServerIp:8081/v1
 ```
 
 Building your own images from source code
+
 ```shell
-cd ..
-docker-compose --profile compile build
-docker-compose --profile compile up
+cd hedera-nft-auction-demo/scripts
+./run.sh compile https://yourServerIp:8081/v1
 ```
 
-_Note: you may need to `sudo` these commands depending on your environment`
-
 you may now navigate to [http://localhost:8080](http://localhost:8080) to verify the UI is up and running, it should indicate no auctions are currently setup.
+
+#### Stop docker containers
+
+Using pre-built images
+
+```shell
+cd hedera-nft-auction-demo/scripts
+./stop.sh image https://yourServerIp:8081/v1
+```
+
+Built from code
+
+```shell
+cd hedera-nft-auction-demo/scripts
+./stop.sh compile https://yourServerIp:8081/v1
+```
+
+#### Show docker container logs
+
+Using pre-built images
+
+```shell
+cd hedera-nft-auction-demo/scripts
+./log.sh image https://yourServerIp:8081/v1
+```
+
+Built from code
+
+```shell
+cd hedera-nft-auction-demo/scripts
+./log.sh compile https://yourServerIp:8081/v1
+```
 
 #### Create a sample auction
 
@@ -183,15 +193,21 @@ curl -H "Content-Type: application/json" -X POST -k \
 
 #### Restart the docker containers for the topic to be taken into account
 
-Stop the containers with `CTRL+C`
-
-Restart the containers
+Stop and restart the containers
 
 ```shell
-docker-compose up
+cd hedera-nft-auction-demo/scripts
+./stop.sh image
+./run.sh image https://yourServerIp:8081/v1
 ```
 
-_Note: you may need to `sudo` this command depending on your environment`
+or
+
+```shell
+cd hedera-nft-auction-demo/scripts
+./stop.sh compile
+./run.sh compile https://yourServerIp:8081/v1
+```
 
 You should see logs similar to
 

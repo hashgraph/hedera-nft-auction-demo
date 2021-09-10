@@ -70,15 +70,11 @@ public class ApiVerticle extends AbstractVerticle {
             throw new Exception("missing environment variable POSTGRES_PASSWORD");
         }
 
-        log.debug("opening database connection");
         SqlConnectionManager connectionManager = new SqlConnectionManager(url.concat(database), username, password);
-        log.debug("got database connection");
 
-        log.debug("creating http server");
         HttpServerOptions options = Utils.httpServerOptions(config());
         var server = vertx.createHttpServer(options);
         var router = Router.router(vertx);
-        log.debug("http server created");
 
         AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
         BidsRepository bidsRepository = new BidsRepository(connectionManager);
@@ -147,19 +143,20 @@ public class ApiVerticle extends AbstractVerticle {
         router.get("/v1/generatekey").handler(getGeneratedKeysHandler);
         router.get("/").handler(rootHandler);
 
-        log.info("API Web Server Listening on port: {}", httpPort);
         server
                 .requestHandler(router)
+                .exceptionHandler(error -> {
+                    log.error(error, error);
+                })
                 .listen(httpPort, result -> {
                     if (result.succeeded()) {
+                        log.info("API Web Server Listening on port: {}", httpPort);
                         startPromise.complete();
                     } else {
                         startPromise.fail(result.cause());
                     }
                 })
-                .exceptionHandler(error -> {
-                    log.error(error, error);
-                });
+;
     }
 
     /**

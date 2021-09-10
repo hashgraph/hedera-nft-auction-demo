@@ -1,20 +1,19 @@
 FROM node:14
 
-ARG URL
 ENV PORT 3000
-
+ARG url
 # Create app directory
 RUN mkdir -p ./app
 WORKDIR /app
 
-RUN echo NEXT_PUBLIC_BASE_API_URL=${URL} > .env.local
-
 # Installing dependencies
 COPY package*.json /app/
+
 RUN npm install
 
 # Copying source files
 COPY . /app
+RUN echo NEXT_PUBLIC_BASE_API_URL=${url} > .env.local
 
 # Building app
 RUN npm run build

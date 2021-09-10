@@ -101,11 +101,14 @@ public class AdminApiVerticle extends AbstractVerticle {
 
         router.get("/").handler(rootHandler);
 
-        log.info("Admin API Web Server Listening on port: {}", httpPort);
         server
                 .requestHandler(router)
+                .exceptionHandler(error -> {
+                    log.error(error, error);
+                })
                 .listen(httpPort, result -> {
                     if (result.succeeded()) {
+                        log.info("Admin API Web Server Listening on port: {}", httpPort);
                         startPromise.complete();
                     } else {
                         startPromise.fail(result.cause());

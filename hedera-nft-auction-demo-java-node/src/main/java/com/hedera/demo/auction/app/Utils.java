@@ -365,7 +365,9 @@ public class Utils {
         @Var HttpServerOptions options = new HttpServerOptions();
         String keyOrPass = config.getString("server-key-pass");
         String certificate = config.getString("server-certificate");
-
+        if ((certificate == null) || (keyOrPass == null)) {
+            return options;
+        }
         if (certificate.endsWith(".jks")) {
             options.setSsl(true);
             options.setKeyStoreOptions(

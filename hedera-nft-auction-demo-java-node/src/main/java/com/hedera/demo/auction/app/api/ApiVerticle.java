@@ -143,16 +143,20 @@ public class ApiVerticle extends AbstractVerticle {
         router.get("/v1/generatekey").handler(getGeneratedKeysHandler);
         router.get("/").handler(rootHandler);
 
-        log.info("API Web Server Listening on port: {}", httpPort);
         server
                 .requestHandler(router)
+                .exceptionHandler(error -> {
+                    log.error(error, error);
+                })
                 .listen(httpPort, result -> {
                     if (result.succeeded()) {
+                        log.info("API Web Server Listening on port: {}", httpPort);
                         startPromise.complete();
                     } else {
                         startPromise.fail(result.cause());
                     }
-                });
+                })
+;
     }
 
     /**

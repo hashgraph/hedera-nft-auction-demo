@@ -249,13 +249,19 @@ public final class App {
             config.put("server-certificate", certificate);
         } else {
             log.info("setting up api servers to use http");
+            config.put("server-key-pass", "");
+            config.put("server-certificate", "");
         }
 
         if (restAPI) {
             log.info("starting client REST api");
             config.put("topicId", this.topicId);
             DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(restApiVerticleCount);
-            vertx.deployVerticle(ApiVerticle.class.getName(), options);
+            vertx
+                    .deployVerticle(ApiVerticle.class.getName(), options)
+                    .onFailure(error -> {
+                        log.error(error, error);
+                    });
         }
 
         if (adminAPI) {
@@ -263,7 +269,11 @@ public final class App {
             config.put("filesPath", filesPath);
             config.put("x-api-key", apiKey);
             DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(adminApiVerticleCount);
-            vertx.deployVerticle(AdminApiVerticle.class.getName(), options);
+            vertx
+                    .deployVerticle(AdminApiVerticle.class.getName(), options)
+                    .onFailure(error -> {
+                        log.error(error, error);
+                    });
         }
 
         if (auctionNode) {

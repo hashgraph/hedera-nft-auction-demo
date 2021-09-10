@@ -46,16 +46,21 @@ public class GetEnvironmentHandler implements Handler<RoutingContext>  {
     @Override
     public void handle(RoutingContext routingContext) {
 
+        log.debug("handle environment");
         JsonObject response = new JsonObject();
         response.put("network", this.network);
         response.put("topicId", this.topicId);
         response.put("nodeOperator", this.nodeOperator);
 
+        log.debug("getting validators");
         @Var List<Validator> validatorList = new ArrayList<>();
+        log.debug("got validators");
         try {
+            log.debug("preparing response");
             validatorList = validatorsRepository.getValidatorsList();
             response.put("validators", validatorList);
 
+            log.debug("responding");
             routingContext.response()
                     .putHeader("content-type", "application/json")
                     .end(Json.encodeToBuffer(response));

@@ -97,7 +97,7 @@ public class EasySetupSystemTest extends AbstractSystemTest {
         assertTrue(auction.getWinnerCanBid());
         assertNull(auction.getTokenmetadata());
         assertEquals(0, auction.getWinningbid());
-        assertEquals(1000000, auction.getMinimumbid());
+        assertEquals(10, auction.getMinimumbid());
 
     }
 }

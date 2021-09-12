@@ -47,7 +47,6 @@ jobs:
           API_PORT: 8081
           API_VERTICLE_COUNT: 1
           #       Run the admin REST API true/false
-          ADMIN_API: true
           ADMIN_API_PORT: 8082
           ADMIN_API_VERTICLE_COUNT: 1
           HTTPS_KEY_OR_PASS: ../docker-files/key.pem

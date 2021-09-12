@@ -50,7 +50,6 @@ jobs:
         API_PORT: 8081
         API_VERTICLE_COUNT: 1
         #       Run the admin REST API true/false
-        ADMIN_API: true
         ADMIN_API_PORT: 8082
         ADMIN_API_VERTICLE_COUNT: 1
         X_API_KEY: e6e006ec-c1ac-4204-9389-8d4ad4c12345

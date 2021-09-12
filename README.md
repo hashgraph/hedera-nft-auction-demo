@@ -137,14 +137,14 @@ Using pre-built images
 
 ```shell
 cd hedera-nft-auction-demo/scripts
-./run.sh image https://yourServerIp:8081/v1
+./run.sh image
 ```
 
 Building your own images from source code
 
 ```shell
 cd hedera-nft-auction-demo/scripts
-./run.sh compile https://yourServerIp:8081/v1
+./run.sh compile
 ```
 
 you may now navigate to [http://localhost:8080](http://localhost:8080) to verify the UI is up and running, it should indicate no auctions are currently setup.
@@ -155,14 +155,14 @@ Using pre-built images
 
 ```shell
 cd hedera-nft-auction-demo/scripts
-./stop.sh image https://yourServerIp:8081/v1
+./stop.sh image
 ```
 
 Built from code
 
 ```shell
 cd hedera-nft-auction-demo/scripts
-./stop.sh compile https://yourServerIp:8081/v1
+./stop.sh compile
 ```
 
 #### Show docker container logs
@@ -171,14 +171,14 @@ Using pre-built images
 
 ```shell
 cd hedera-nft-auction-demo/scripts
-./log.sh image https://yourServerIp:8081/v1
+./log.sh image
 ```
 
 Built from code
 
 ```shell
 cd hedera-nft-auction-demo/scripts
-./log.sh compile https://yourServerIp:8081/v1
+./log.sh compile
 ```
 
 #### Create a sample auction
@@ -200,7 +200,7 @@ Stop and restart the containers
 ```shell
 cd hedera-nft-auction-demo/scripts
 ./stop.sh image
-./run.sh image https://yourServerIp:8081/v1
+./run.sh image
 ```
 
 or
@@ -208,7 +208,7 @@ or
 ```shell
 cd hedera-nft-auction-demo/scripts
 ./stop.sh compile
-./run.sh compile https://yourServerIp:8081/v1
+./run.sh compile
 ```
 
 You should see logs similar to

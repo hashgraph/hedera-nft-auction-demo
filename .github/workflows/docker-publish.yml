@@ -41,3 +41,10 @@ jobs:
 
       - name: Push java node image
         run: docker push ghcr.io/${{ github.repository }}/hedera_nft_auction_java_node:latest
+
+      - name: Build ui image
+        run: docker build . --file Dockerfile --tag ghcr.io/${{ github.repository }}/hedera_nft_auction_ui:latest --tag ghcr.io/${{ github.repository }}/hedera_nft_auction_ui:$VERSION --tag ghcr.io/${{ github.repository }}/hedera_nft_auction_ui:$DATETIME --label "runnumber=${GITHUB_RUN_ID}"
+        working-directory: hedera-nft-auction-demo-javascript-client
+
+      - name: Push ui image
+        run: docker push ghcr.io/${{ github.repository }}/hedera_nft_auction_ui:latest

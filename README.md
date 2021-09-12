@@ -42,8 +42,6 @@ The latter can be run in readonly mode, meaning the processing will validate bid
 _Note: The three roles can be run within a single instance of the Java application or run in individual Java instances, for example, one instance could process bids, while one or more others could serve the UI REST API for scalability purposes. This is determined by environment variable parameters.
 The Docker deployment runs two instances, one for bid processing, the other for the UI and Admin REST APIs for example._
 
-The admin API runs on a separate port to the UI REST API to ensure it can be firewalled separately and protected from malicious execution.
-
 Additional detailed documentation on how the system is architected may be found in the `docs` folder of this project.
 
 ## Setup, compilation, execution for developer testing
@@ -88,6 +86,10 @@ This section assumes you have `docker` and `docker-compose` installed, if not, p
 
 * `docker` [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/)
 * `docker-compose` [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/)
+
+Docker containers for the database, ui, rest api and bid processing are all included. In addition an NGINX proxy is started to manage incoming http requests and distribute them to the appropriate container. 
+
+By default, the NGINX proxy listens on port 80 and redirects http requests to https.
 
 #### Setup environment
 
@@ -135,14 +137,14 @@ Using pre-built images
 
 ```shell
 cd hedera-nft-auction-demo/scripts
-./run.sh image https://yourServerIp:8081/v1
+./run.sh image
 ```
 
 Building your own images from source code
 
 ```shell
 cd hedera-nft-auction-demo/scripts
-./run.sh compile https://yourServerIp:8081/v1
+./run.sh compile
 ```
 
 you may now navigate to [http://localhost:8080](http://localhost:8080) to verify the UI is up and running, it should indicate no auctions are currently setup.
@@ -153,14 +155,14 @@ Using pre-built images
 
 ```shell
 cd hedera-nft-auction-demo/scripts
-./stop.sh image https://yourServerIp:8081/v1
+./stop.sh image
 ```
 
 Built from code
 
 ```shell
 cd hedera-nft-auction-demo/scripts
-./stop.sh compile https://yourServerIp:8081/v1
+./stop.sh compile
 ```
 
 #### Show docker container logs
@@ -169,14 +171,14 @@ Using pre-built images
 
 ```shell
 cd hedera-nft-auction-demo/scripts
-./log.sh image https://yourServerIp:8081/v1
+./log.sh image
 ```
 
 Built from code
 
 ```shell
 cd hedera-nft-auction-demo/scripts
-./log.sh compile https://yourServerIp:8081/v1
+./log.sh compile
 ```
 
 #### Create a sample auction
@@ -198,7 +200,7 @@ Stop and restart the containers
 ```shell
 cd hedera-nft-auction-demo/scripts
 ./stop.sh image
-./run.sh image https://yourServerIp:8081/v1
+./run.sh image
 ```
 
 or
@@ -206,7 +208,7 @@ or
 ```shell
 cd hedera-nft-auction-demo/scripts
 ./stop.sh compile
-./run.sh compile https://yourServerIp:8081/v1
+./run.sh compile
 ```
 
 You should see logs similar to

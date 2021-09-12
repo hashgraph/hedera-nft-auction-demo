@@ -114,7 +114,7 @@ setup the `.env` properties as follows
   
 * `MASTER_KEY=` (set only for one node which has additional authority over the auction accounts, can be the same as operator key only, else must be different)
 * `NFT_STORAGE_API_KEY=` (We use IPFS storage using [nft.storage](https://nft.storage) to store NFT metadata. You can create your API key on https://nft.storage and add it to your .env file to enable IPFS upload, this is only required if your node will be involved in token creation through the API or command line)
-* `X_API_KEY=` (API key to authenticate admin REST api calls e.g. a6e006ec-c1ac-4204-9389-8d4ad4c84a6f). If not set, the `ADMIN_API` variable should be set to `false`.
+* `X_API_KEY=` (API key to authenticate admin REST api calls e.g. a6e006ec-c1ac-4204-9389-8d4ad4c84a6f). If not set the admin api will be disabled.
 
 _note: you may generate a new API key as follows, although any string will work_
 ```shell
@@ -815,7 +815,7 @@ in addition to all node types above
 
 * `MASTER_KEY=` The ED25519 private key you generated (set only for one node which has additional authority over the auction accounts, can be the same as operator key for testing purposes only, else must be different)
 * `TRANSFER_ON_WIN=` true or false depending on whether you want the auction to transfer the tokens and winning bid automatically at the end.
-* `X_API_KEY=` (API key to authenticate admin REST api calls e.g. a6e006ec-c1ac-4204-9389-8d4ad4c84a6f). If not set, the `ADMIN_API` variable should be set to `false`.
+* `X_API_KEY=` (API key to authenticate admin REST api calls e.g. a6e006ec-c1ac-4204-9389-8d4ad4c84a6f). If not set the admin api is disabled.
 
 _note: you may generate a new API key as follows, although any string will work_
 ```shell

@@ -26,7 +26,6 @@ services:
       # Run auction node only
       - AUCTION_NODE=true
       - REST_API=false
-      - ADMIN_API=false
     env_file:
       - docker-files/.env
     depends_on:
@@ -42,7 +41,6 @@ services:
     environment:
       # Run API only
       - REST_API=true
-      - ADMIN_API=true
       - AUCTION_NODE=false
       # Database connection
       - DATABASE_URL=postgresql://postgres:5433/

@@ -63,8 +63,8 @@ services:
 
   ui:
     container_name: nft-auction-ui
-    build:
-      context: hedera-nft-auction-demo-javascript-client
+    image: ghcr.io/hashgraph/hedera-nft-auction-demo/hedera_nft_auction_ui:latest
+    pull_policy: always
     restart: unless-stopped
     env_file:
       - docker-files/.env

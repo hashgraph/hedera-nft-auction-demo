@@ -219,23 +219,35 @@ public class Utils {
                 webQuery.addQueryParam(entry.getKey(), entry.getValue());
             }
 
-            CompletableFuture<JsonObject> future = new CompletableFuture<>();
-
-            webQuery.as(BodyCodec.jsonObject())
-                    .send()
-                    .onSuccess(response -> {
-                        try {
-                            future.complete(response.body());
-                        } catch (RuntimeException e) {
-                            log.error(e, e);
-                            future.complete(new JsonObject());
-                        }
-                    })
-                    .onFailure(err -> {
-                        log.error(err.getMessage());
-                        future.complete(new JsonObject());
-                    });
-            return future.get();
+            @Var var attempts = 0;
+            while (attempts < 5) {
+                CompletableFuture<JsonObject> future = new CompletableFuture<>();
+                webQuery.as(BodyCodec.jsonObject())
+                        .send()
+                        .onSuccess(response -> {
+                            try {
+                                future.complete(response.body());
+                            } catch (RuntimeException e) {
+                                log.error(e, e);
+                                future.complete(null);
+                            }
+                        })
+                        .onFailure(err -> {
+                            log.error(err.getMessage());
+                            future.complete(null);
+                        });
+                JsonObject response = future.get();
+                if (response != null) {
+                    log.debug("returning mirror response for {}", url);
+                    return response;
+                } else {
+                    attempts += 1;
+                    Utils.sleep(1000);
+                    log.warn("No response from mirror on {}, trying again {} of 5", url, attempts);
+                }
+            }
+            log.warn("No response from mirror on {} after 5 attempts", url);
+            return new JsonObject();
         };
     }
 

@@ -44,6 +44,14 @@ The Docker deployment runs two instances, one for bid processing, the other for 
 
 Additional detailed documentation on how the system is architected may be found in the `docs` folder of this project.
 
+## Code Audit
+
+While being a demonstration, the code within this repository has undergone a code audit which was performed by a third party.
+
+You may find the result of the code audit [here](https://files.hedera.com/NCC_Group_HederaHashgraph_E001942_Report_2021-08-06_v1.0.pdf)
+
+And proof of the document's authenticity [on ProvenDB](https://files.hedera.com/NCC_Group_HederaHashgraph_E001942_Report_2021-08-06_v1.0_proof.pdf) 
+
 ## Setup, compilation, execution for developer testing
 
 Pull the repository from github

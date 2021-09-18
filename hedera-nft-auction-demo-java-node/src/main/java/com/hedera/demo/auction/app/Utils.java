@@ -304,11 +304,11 @@ public class Utils {
         Future<JsonObject> future = executor.submit(Utils.queryMirror(hederaClient, uri, queryParameters));
         try {
             JsonObject response = future.get();
-            if (response != null) {
+            if ((response != null) && (! response.isEmpty())) {
                 MirrorSchedule mirrorSchedule = response.mapTo(MirrorSchedule.class);
 
                 List<String> timeStampParts = Splitter.on('.').splitToList(mirrorSchedule.consensusTimestamp);
-                if (timeStampParts.size() > 0) {
+                if ((timeStampParts.size() > 0) && (!StringUtils.isEmpty(mirrorSchedule.consensusTimestamp))) {
                     // get seconds since epoch
                     long scheduleStart = Long.parseLong(timeStampParts.get(0));
                     if (lastMirrorTimeStamp - scheduleStart > FOURTY_MINUTES) {
@@ -322,6 +322,8 @@ public class Utils {
                 } else {
                     log.error("schedule consensus timestamp {} cannot be decoded to seconds.nanos", mirrorSchedule.consensusTimestamp);
                 }
+            } else {
+                log.warn("unable to determine schedule consensus timestamp {}", scheduleId);
             }
         } catch (InterruptedException e) {
             log.error(e, e);

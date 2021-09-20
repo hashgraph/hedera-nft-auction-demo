@@ -88,12 +88,12 @@ const TopBarMenu = () => {
     { name: 'Sold', to: '/sold', isActive: isViewingSold },
     {
       name: 'FAQ',
-      externalLink: 'https://help.hedera.com/',
+      externalLink: 'https://help.hedera.com/hc/en-us/articles/4407199123089',
       className: 'sm:hidden block',
     },
   ]
 
-  const goToHederaFAQ = () => window.open('https://help.hedera.com/', '_blank')
+  const goToHederaFAQ = () => window.open('https://help.hedera.com/hc/en-us/articles/4407199123089', '_blank')
 
   return (
     <div

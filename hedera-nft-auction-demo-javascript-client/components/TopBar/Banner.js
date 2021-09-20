@@ -29,7 +29,7 @@ const Banner = () => {
 
   if (!environment) return null
 
-  const goToHederaFAQ = () => window.open('https://help.hedera.com/', '_blank')
+  const goToHederaHowItWorks = () => window.open('https://hedera.com/blog/nft-community-auction', '_blank')
   const { network, nodeOperator, topicId, validators } = environment
   return (
     <div className='flex bg-purple-gradient items-center justify-between py-4 sm:px-section-desktop px-section-mobile sm:flex-row flex-col'>
@@ -52,7 +52,7 @@ const Banner = () => {
         .
       </p>
       <button
-        onClick={goToHederaFAQ}
+        onClick={goToHederaHowItWorks}
         className='text-white font-thin p-3 text-sm cursor-pointer whitespace-nowrap sm:ml-4 sm:mt-0 mt-3'
         style={{
           backgroundColor: 'rgba(0,0,0,0.10)'

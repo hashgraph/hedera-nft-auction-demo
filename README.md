@@ -1,6 +1,6 @@
 [![Build](https://github.com/hashgraph/hedera-nft-auction-demo/actions/workflows/unit-integration-test.yml/badge.svg)](https://github.com/hashgraph/hedera-nft-auction-demo/actions)
 [![codecov](https://img.shields.io/codecov/c/github/hashgraph/hedera-mirror-node/main)](https://codecov.io/gh/hashgraph/hedera-nft-auction-demo)
-[![GitHub](https://img.shields.io/badge/github-licence-green)](LICENSE)
+[![GitHub license](https://img.shields.io/github/license/hashgraph/hedera-nft-auction-demo)](LICENSE)
 [![Discord](https://img.shields.io/badge/discord-join%20chat-blue.svg)](https://hedera.com/discord)
 
 # Hedera Non Fungible Token Auction Demo

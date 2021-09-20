@@ -234,7 +234,7 @@ jacocoTestReport {
 	// remove generated db files from report
 	afterEvaluate {
 		classDirectories.setFrom(files(classDirectories.files.collect {
-			fileTree(dir: it, exclude: ['com.hedera.demo.auction.app.db/**','com.hedera.demo.auction.exerciser/**', 'com.hedera.demo.auction.test/**'])
+			fileTree(dir: it, exclude: ['**/com/hedera/demo/auction/app/db/**','**/com/hedera/demo/auction/exerciser/**', '**/com/hedera/demo/auction/test/**'])
 		}))
 	}
 

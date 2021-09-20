@@ -99,9 +99,9 @@ allprojects {
 		toolVersion = "0.8.5"
 	}
 
-	tasks.withType(Test) {
-		apply plugin: "jacoco"
-	}
+//	tasks.withType(Test) {
+//		apply plugin: "jacoco"
+//	}
 
 	tasks.withType(JavaCompile).configureEach {
 		options.encoding = "UTF-8"
@@ -199,6 +199,7 @@ dependencies {
 
 tasks.withType(Test) {
 	useJUnitPlatform()
+	apply plugin: "jacoco"
 
 	// this task will fail on the first failed test
 	failFast = true
@@ -214,6 +215,16 @@ tasks.withType(Test) {
 	systemProperty "OPERATOR_KEY", findProperty("OPERATOR_KEY")
 	systemProperty "CONFIG_FILE", findProperty("CONFIG_FILE")
 	systemProperty "HEDERA_NETWORK", findProperty("HEDERA_NETWORK")
+}
+
+task testIntegration(type: Test) {
+	description = 'Runs the integration tests.'
+	group = 'verification'
+	testClassesDirs = sourceSets.testIntegration.output.classesDirs
+	classpath = sourceSets.testIntegration.runtimeClasspath
+	outputs.upToDateWhen { false }
+
+	mustRunAfter test
 }
 
 jacocoTestReport {
@@ -236,17 +247,8 @@ jacocoTestReport {
 	}
 
 	// make sure we run all tests before this report is made
-	dependsOn tasks.withType(Test)
-}
-
-task testIntegration(type: Test) {
-	description = 'Runs the integration tests.'
-	group = 'verification'
-	testClassesDirs = sourceSets.testIntegration.output.classesDirs
-	classpath = sourceSets.testIntegration.runtimeClasspath
-	outputs.upToDateWhen { false }
-
-	mustRunAfter test
+	dependsOn testIntegration
+	dependsOn test
 }
 
 check.dependsOn testIntegration

@@ -160,6 +160,7 @@ const BidMetaData = ({ auction }) => {
             className='sm:text-34 text-30 sm:font-bold font-light'
             italic
             amount={minimumbid}
+            denomination='tinybar'
           />
         </div>
       </div>

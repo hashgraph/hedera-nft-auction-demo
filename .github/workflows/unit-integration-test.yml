@@ -79,4 +79,4 @@ jobs:
       run: cd hedera-nft-auction-demo-java-node && ./gradlew build testIntegration
 
     - name: Upload test reports
-      run: bash <(curl -s https://codecov.io/bash)
+      run: cd hedera-nft-auction-demo-java-node && bash <(curl -s https://codecov.io/bash)

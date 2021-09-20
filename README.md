@@ -1,11 +1,10 @@
-[![GitHub license](https://img.shields.io/github/license/hashgraph/hedera-nft-auction-demo)](https://github.com/hashgraph/hedera-nft-auction-demo/blob/master/LICENSE)
 [![GitHub](https://img.shields.io/github/license/hashgraph/hedera-nft-auction-demo)](LICENSE)
 
 [![Java CI with Gradle](https://github.com/hashgraph/hedera-nft-auction-demo/actions/workflows/unit-integration-test.yml/badge.svg)](https://github.com/hashgraph/hedera-nft-auction-demo/actions/workflows/unit-integration-test.yml)
 [![GitHub issues](https://img.shields.io/github/issues/hashgraph/hedera-nft-auction-demo)](https://github.com/hashgraph/hedera-nft-auction-demo/issues)
+
 [![GitHub forks](https://img.shields.io/github/forks/hashgraph/hedera-nft-auction-demo)](https://github.com/hashgraph/hedera-nft-auction-demo/network)
 [![GitHub stars](https://img.shields.io/github/stars/hashgraph/hedera-nft-auction-demo)](https://github.com/hashgraph/hedera-nft-auction-demo/stargazers)
-
 [![Discord](https://img.shields.io/badge/discord-join%20chat-blue.svg)](https://hedera.com/discord)
 
 

@@ -247,10 +247,11 @@ jacocoTestReport {
 	}
 
 	// make sure we run all tests before this report is made
-	dependsOn testIntegration
 	dependsOn test
+	dependsOn testIntegration
 }
 
+check.dependsOn test
 check.dependsOn testIntegration
 
 task testSystem(type: Test) {

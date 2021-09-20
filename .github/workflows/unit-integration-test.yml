@@ -76,7 +76,7 @@ jobs:
         REST_HEDERA_TESTNET: testnet.mirrornode.hedera.com
         #        REST_HEDERA_PREVIEWNET: previewnet.mirrornode.hedera.com
         REST_HEDERA_PREVIEWNET: 162.222.182.83
-      run: cd hedera-nft-auction-demo-java-node && ./gradlew build testIntegration
+      run: cd hedera-nft-auction-demo-java-node && ./gradlew build jacocoTestReport
 
     - name: Upload test reports
-      run: cd hedera-nft-auction-demo-java-node && bash <(curl -s https://codecov.io/bash)
+      run: cd hedera-nft-auction-demo-java-node && bash <(curl -s https://codecov.io/bash) -f build/reports/jacoco/report.xml

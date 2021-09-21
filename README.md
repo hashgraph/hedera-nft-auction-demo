@@ -1,6 +1,6 @@
-[![Java CI with Gradle](https://github.com/hashgraph/hedera-nft-auction-demo/actions/workflows/unit-integration-test.yml/badge.svg)](https://github.com/hashgraph/hedera-nft-auction-demo/actions/workflows/unit-integration-test.yml)
+[![Build](https://github.com/hashgraph/hedera-nft-auction-demo/actions/workflows/unit-integration-test.yml/badge.svg)](https://github.com/hashgraph/hedera-nft-auction-demo/actions)
 [![codecov](https://img.shields.io/codecov/c/github/hashgraph/hedera-nft-auction-demo/master)](https://codecov.io/gh/hashgraph/hedera-nft-auction-demo)
-[![GitHub](https://img.shields.io/github/license/hashgraph/hedera-nft-auction-demo)](LICENSE)
+[![License](https://img.shields.io/github/license/hashgraph/hedera-nft-auction-demo)](./LICENSE)
 [![Discord](https://img.shields.io/badge/discord-join%20chat-blue.svg)](https://hedera.com/discord)
 
 # Hedera Non Fungible Token Auction Demo
@@ -42,9 +42,15 @@ The latter can be run in readonly mode, meaning the processing will validate bid
 _Note: The three roles can be run within a single instance of the Java application or run in individual Java instances, for example, one instance could process bids, while one or more others could serve the UI REST API for scalability purposes. This is determined by environment variable parameters.
 The Docker deployment runs two instances, one for bid processing, the other for the UI and Admin REST APIs for example._
 
-The admin API runs on a separate port to the UI REST API to ensure it can be firewalled separately and protected from malicious execution.
-
 Additional detailed documentation on how the system is architected may be found in the `docs` folder of this project.
+
+## Code Audit
+
+While being a demonstration, the code within this repository has undergone a code audit which was performed by a third party.
+
+You may find the result of the code audit [here](https://files.hedera.com/NCC_Group_HederaHashgraph_E001942_Report_2021-08-06_v1.0.pdf)
+
+And proof of the document's authenticity [on ProvenDB](https://files.hedera.com/NCC_Group_HederaHashgraph_E001942_Report_2021-08-06_v1.0_proof.pdf) 
 
 ## Setup, compilation, execution for developer testing
 
@@ -65,13 +71,7 @@ _For a production deployment, it is recommended that you supply appropriate cert
 you may use `.jks`, `.pfx` or `.p12` certificates with an associated `password`, or `.pem` with an associated `.pem` key for the java servers.
 For the Javascript UI, the files should be compatible with `nginx`._
 
-For Docker
-```text
-HTTPS_KEY_OR_PASS=/demo/key.pem
-HTTPS_CERTIFICATE=/demo/cert.pem
-```
-
-For standalone Java
+Only for standalone Java, leave blank or comment out for Docker
 ```text
 HTTPS_KEY_OR_PASS=../docker-files/key.pem
 HTTPS_CERTIFICATE=../docker-files/cert.pem
@@ -79,27 +79,13 @@ HTTPS_CERTIFICATE=../docker-files/cert.pem
 
 If you provide own certificates for production, update the `.env` file and `docker-files/conf.d/default.conf` if the filenames are different.
 
-default.conf example
+default.conf example, note the `ssl_certificate` directives are repeated three times in the file.
 
 ```text
-upstream docker-ui {
-    server ui:3000;
-}
-
-server {
-    listen 8080 ssl;
+    ...
     ssl_certificate     /demo/cert.pem;
     ssl_certificate_key /demo/key.pem;
-
-    location / {
-        proxy_pass         http://docker-ui;
-        proxy_redirect     off;
-        proxy_set_header   Host $host;
-        proxy_set_header   X-Real-IP $remote_addr;
-        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header   X-Forwarded-Host $server_name;
-    }
-}
+    ...    
 ```
 
 ### With docker
@@ -108,6 +94,10 @@ This section assumes you have `docker` and `docker-compose` installed, if not, p
 
 * `docker` [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/)
 * `docker-compose` [https://docs.docker.com/compose/install/](https://docs.docker.com/compose/install/)
+
+Docker containers for the database, ui, rest api and bid processing are all included. In addition an NGINX proxy is started to manage incoming http requests and distribute them to the appropriate container. 
+
+By default, the NGINX proxy listens on port 80 and redirects http requests to https.
 
 #### Setup environment
 
@@ -132,14 +122,14 @@ setup the `.env` properties as follows
   
 * `MASTER_KEY=` (set only for one node which has additional authority over the auction accounts, can be the same as operator key only, else must be different)
 * `NFT_STORAGE_API_KEY=` (We use IPFS storage using [nft.storage](https://nft.storage) to store NFT metadata. You can create your API key on https://nft.storage and add it to your .env file to enable IPFS upload, this is only required if your node will be involved in token creation through the API or command line)
-* `X_API_KEY=` (API key to authenticate admin REST api calls e.g. a6e006ec-c1ac-4204-9389-8d4ad4c84a6f)
+* `X_API_KEY=` (API key to authenticate admin REST api calls e.g. a6e006ec-c1ac-4204-9389-8d4ad4c84a6f). If not set the admin api will be disabled.
 
 _note: you may generate a new API key as follows, although any string will work_
 ```shell
 ./gradlew generateApiKey
 ```
 
-you may leave the other properties as is for now
+you may leave the other properties as they are for now
 
 ```shell
 cd hedera-nft-auction-demo
@@ -149,25 +139,55 @@ cp .env.sample .env
 
 you may leave the properties as they are for now
 
-#### Start docker images
+#### Start docker containers
 
 Using pre-built images
 
 ```shell
-cd ..
-docker-compose --profile image up
+cd hedera-nft-auction-demo/scripts
+./run.sh image
 ```
 
 Building your own images from source code
+
 ```shell
-cd ..
-docker-compose --profile compile build
-docker-compose --profile compile up
+cd hedera-nft-auction-demo/scripts
+./run.sh compile
 ```
 
-_Note: you may need to `sudo` these commands depending on your environment`
-
 you may now navigate to [http://localhost:8080](http://localhost:8080) to verify the UI is up and running, it should indicate no auctions are currently setup.
+
+#### Stop docker containers
+
+Using pre-built images
+
+```shell
+cd hedera-nft-auction-demo/scripts
+./stop.sh image
+```
+
+Built from code
+
+```shell
+cd hedera-nft-auction-demo/scripts
+./stop.sh compile
+```
+
+#### Show docker container logs
+
+Using pre-built images
+
+```shell
+cd hedera-nft-auction-demo/scripts
+./log.sh image
+```
+
+Built from code
+
+```shell
+cd hedera-nft-auction-demo/scripts
+./log.sh compile
+```
 
 #### Create a sample auction
 
@@ -183,15 +203,21 @@ curl -H "Content-Type: application/json" -X POST -k \
 
 #### Restart the docker containers for the topic to be taken into account
 
-Stop the containers with `CTRL+C`
-
-Restart the containers
+Stop and restart the containers
 
 ```shell
-docker-compose up
+cd hedera-nft-auction-demo/scripts
+./stop.sh image
+./run.sh image
 ```
 
-_Note: you may need to `sudo` this command depending on your environment`
+or
+
+```shell
+cd hedera-nft-auction-demo/scripts
+./stop.sh compile
+./run.sh compile
+```
 
 You should see logs similar to
 
@@ -797,7 +823,7 @@ in addition to all node types above
 
 * `MASTER_KEY=` The ED25519 private key you generated (set only for one node which has additional authority over the auction accounts, can be the same as operator key for testing purposes only, else must be different)
 * `TRANSFER_ON_WIN=` true or false depending on whether you want the auction to transfer the tokens and winning bid automatically at the end.
-* `X_API_KEY=` (API key to authenticate admin REST api calls e.g. a6e006ec-c1ac-4204-9389-8d4ad4c84a6f)
+* `X_API_KEY=` (API key to authenticate admin REST api calls e.g. a6e006ec-c1ac-4204-9389-8d4ad4c84a6f). If not set the admin api is disabled.
 
 _note: you may generate a new API key as follows, although any string will work_
 ```shell

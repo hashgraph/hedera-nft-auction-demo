@@ -4,8 +4,7 @@
 name: Java Unit+Integration Tests
 
 on:
-  push:
-     branches: [ master ]
+  workflow_dispatch:
   pull_request:
      branches: [ master ]
 
@@ -50,7 +49,6 @@ jobs:
         API_PORT: 8081
         API_VERTICLE_COUNT: 1
         #       Run the admin REST API true/false
-        ADMIN_API: true
         ADMIN_API_PORT: 8082
         ADMIN_API_VERTICLE_COUNT: 1
         X_API_KEY: e6e006ec-c1ac-4204-9389-8d4ad4c12345
@@ -78,4 +76,7 @@ jobs:
         REST_HEDERA_TESTNET: testnet.mirrornode.hedera.com
         #        REST_HEDERA_PREVIEWNET: previewnet.mirrornode.hedera.com
         REST_HEDERA_PREVIEWNET: 162.222.182.83
-      run: cd hedera-nft-auction-demo-java-node && ./gradlew build testIntegration
+      run: cd hedera-nft-auction-demo-java-node && ./gradlew build jacocoTestReport
+
+    - name: Upload test reports
+      run: cd hedera-nft-auction-demo-java-node && bash <(curl -s https://codecov.io/bash) -f build/reports/jacoco/report.xml

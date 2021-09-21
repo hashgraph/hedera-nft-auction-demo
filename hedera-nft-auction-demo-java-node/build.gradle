@@ -99,9 +99,9 @@ allprojects {
 		toolVersion = "0.8.5"
 	}
 
-	tasks.withType(Test) {
-		apply plugin: "jacoco"
-	}
+//	tasks.withType(Test) {
+//		apply plugin: "jacoco"
+//	}
 
 	tasks.withType(JavaCompile).configureEach {
 		options.encoding = "UTF-8"
@@ -199,6 +199,7 @@ dependencies {
 
 tasks.withType(Test) {
 	useJUnitPlatform()
+	apply plugin: "jacoco"
 
 	// this task will fail on the first failed test
 	failFast = true
@@ -216,6 +217,16 @@ tasks.withType(Test) {
 	systemProperty "HEDERA_NETWORK", findProperty("HEDERA_NETWORK")
 }
 
+task testIntegration(type: Test) {
+	description = 'Runs the integration tests.'
+	group = 'verification'
+	testClassesDirs = sourceSets.testIntegration.output.classesDirs
+	classpath = sourceSets.testIntegration.runtimeClasspath
+	outputs.upToDateWhen { false }
+
+	mustRunAfter test
+}
+
 jacocoTestReport {
 	// make sure to use any/all test coverage data for the report
 	executionData fileTree(dir: buildDir, include: "jacoco/*.exec")
@@ -223,7 +234,7 @@ jacocoTestReport {
 	// remove generated db files from report
 	afterEvaluate {
 		classDirectories.setFrom(files(classDirectories.files.collect {
-			fileTree(dir: it, exclude: ['**/app/db/**','com.hedera.demo.auction.exerciser/**'])
+			fileTree(dir: it, exclude: ['**/com/hedera/demo/auction/app/db/**','**/com/hedera/demo/auction/exerciser/**', '**/com/hedera/demo/auction/test/**'])
 		}))
 	}
 
@@ -236,19 +247,11 @@ jacocoTestReport {
 	}
 
 	// make sure we run all tests before this report is made
-	dependsOn tasks.withType(Test)
+	dependsOn test
+	dependsOn testIntegration
 }
 
-task testIntegration(type: Test) {
-	description = 'Runs the integration tests.'
-	group = 'verification'
-	testClassesDirs = sourceSets.testIntegration.output.classesDirs
-	classpath = sourceSets.testIntegration.runtimeClasspath
-	outputs.upToDateWhen { false }
-
-	mustRunAfter test
-}
-
+check.dependsOn test
 check.dependsOn testIntegration
 
 task testSystem(type: Test) {

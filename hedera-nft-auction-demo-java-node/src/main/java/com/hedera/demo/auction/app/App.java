@@ -42,7 +42,7 @@ public final class App {
     @SuppressWarnings("FieldMissingNullable")
     private int restApiVerticleCount = Optional.ofNullable(env.get("API_VERTICLE_COUNT")).map(Integer::parseInt).orElse(2);
     @SuppressWarnings("FieldMissingNullable")
-    private boolean adminAPI = Optional.ofNullable(env.get("ADMIN_API")).map(Boolean::parseBoolean).orElse(false);
+    private String adminAPIKey = Optional.ofNullable(env.get("X_API_KEY")).orElse("");
     @SuppressWarnings("FieldMissingNullable")
     private int adminApiVerticleCount = Optional.ofNullable(env.get("ADMIN_API_VERTICLE_COUNT")).map(Integer::parseInt).orElse(2);
     @SuppressWarnings("FieldMissingNullable")
@@ -115,7 +115,7 @@ public final class App {
      *
      * @param hederaClient the HederaClient to use for connecting to Hedera
      * @param restAPI whether to enable the REST api or not
-     * @param adminAPI whether to enable the admin REST api or not
+     * @param adminAPIKey admin API key, if set, admin api is enabled
      * @param auctionNode whether to process auction bids or not
      * @param topicId the topicId to use
      * @param postgresUrl the details of the connection to the database
@@ -124,12 +124,12 @@ public final class App {
      * @param transferOnWin whether to transfer the token to the winner on auction closure
      * @param masterKey the master key
      */
-    public void overrideEnv(HederaClient hederaClient, boolean restAPI, boolean adminAPI, boolean auctionNode, String topicId, String postgresUrl, String postgresUser, String postgresPassword, boolean transferOnWin, String masterKey) {
+    public void overrideEnv(HederaClient hederaClient, boolean restAPI, String adminAPIKey, boolean auctionNode, String topicId, String postgresUrl, String postgresUser, String postgresPassword, boolean transferOnWin, String masterKey) {
         this.hederaClient = hederaClient;
 
         this.restAPI = restAPI;
         this.restApiVerticleCount = 1;
-        this.adminAPI = adminAPI;
+        this.adminAPIKey = adminAPIKey;
         this.adminApiVerticleCount = 1;
         this.auctionNode = auctionNode;
 
@@ -165,6 +165,8 @@ public final class App {
      * @throws Exception in the event of an error
      */
     public void runApp() throws Exception {
+
+        String apiKey = env.get("X_API_KEY");
 
         if (StringUtils.isEmpty(postgresUrl)) {
             String error = "DATABASE_URL environment variable is missing";
@@ -241,27 +243,31 @@ public final class App {
             config.put("server-certificate", certificate);
         } else {
             log.info("setting up api servers to use http");
+            config.put("server-key-pass", "");
+            config.put("server-certificate", "");
         }
 
         if (restAPI) {
             log.info("starting client REST api");
             config.put("topicId", this.topicId);
             DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(restApiVerticleCount);
-            vertx.deployVerticle(ApiVerticle.class.getName(), options);
+            vertx
+                    .deployVerticle(ApiVerticle.class.getName(), options)
+                    .onFailure(error -> {
+                        log.error(error, error);
+                    });
         }
 
-        if (adminAPI) {
+        if (! StringUtils.isEmpty(adminAPIKey)) {
             log.info("starting admin REST api");
             config.put("filesPath", filesPath);
-            String apiKey = env.get("X_API_KEY");
-            if (StringUtils.isEmpty(apiKey)) {
-                String error = "no X_API_KEY specified in .env";
-                log.error(error);
-                throw new Exception(error);
-            }
             config.put("x-api-key", apiKey);
             DeploymentOptions options = new DeploymentOptions().setConfig(config).setInstances(adminApiVerticleCount);
-            vertx.deployVerticle(AdminApiVerticle.class.getName(), options);
+            vertx
+                    .deployVerticle(AdminApiVerticle.class.getName(), options)
+                    .onFailure(error -> {
+                        log.error(error, error);
+                    });
         }
 
         if (auctionNode) {

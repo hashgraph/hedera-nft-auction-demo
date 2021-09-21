@@ -219,23 +219,35 @@ public class Utils {
                 webQuery.addQueryParam(entry.getKey(), entry.getValue());
             }
 
-            CompletableFuture<JsonObject> future = new CompletableFuture<>();
-
-            webQuery.as(BodyCodec.jsonObject())
-                    .send()
-                    .onSuccess(response -> {
-                        try {
-                            future.complete(response.body());
-                        } catch (RuntimeException e) {
-                            log.error(e, e);
-                            future.complete(new JsonObject());
-                        }
-                    })
-                    .onFailure(err -> {
-                        log.error(err.getMessage());
-                        future.complete(new JsonObject());
-                    });
-            return future.get();
+            @Var var attempts = 0;
+            while (attempts < 5) {
+                CompletableFuture<JsonObject> future = new CompletableFuture<>();
+                webQuery.as(BodyCodec.jsonObject())
+                        .send()
+                        .onSuccess(response -> {
+                            try {
+                                future.complete(response.body());
+                            } catch (RuntimeException e) {
+                                log.error(e, e);
+                                future.complete(null);
+                            }
+                        })
+                        .onFailure(err -> {
+                            log.error(err.getMessage());
+                            future.complete(null);
+                        });
+                JsonObject response = future.get();
+                if (response != null) {
+                    log.debug("returning mirror response for {}", url);
+                    return response;
+                } else {
+                    attempts += 1;
+                    Utils.sleep(1000);
+                    log.warn("No response from mirror on {}, trying again {} of 5", url, attempts);
+                }
+            }
+            log.warn("No response from mirror on {} after 5 attempts", url);
+            return new JsonObject();
         };
     }
 
@@ -292,11 +304,11 @@ public class Utils {
         Future<JsonObject> future = executor.submit(Utils.queryMirror(hederaClient, uri, queryParameters));
         try {
             JsonObject response = future.get();
-            if (response != null) {
+            if ((response != null) && (! response.isEmpty())) {
                 MirrorSchedule mirrorSchedule = response.mapTo(MirrorSchedule.class);
 
                 List<String> timeStampParts = Splitter.on('.').splitToList(mirrorSchedule.consensusTimestamp);
-                if (timeStampParts.size() > 0) {
+                if ((timeStampParts.size() > 0) && (!StringUtils.isEmpty(mirrorSchedule.consensusTimestamp))) {
                     // get seconds since epoch
                     long scheduleStart = Long.parseLong(timeStampParts.get(0));
                     if (lastMirrorTimeStamp - scheduleStart > FOURTY_MINUTES) {
@@ -310,6 +322,8 @@ public class Utils {
                 } else {
                     log.error("schedule consensus timestamp {} cannot be decoded to seconds.nanos", mirrorSchedule.consensusTimestamp);
                 }
+            } else {
+                log.warn("unable to determine schedule consensus timestamp {}", scheduleId);
             }
         } catch (InterruptedException e) {
             log.error(e, e);
@@ -365,7 +379,9 @@ public class Utils {
         @Var HttpServerOptions options = new HttpServerOptions();
         String keyOrPass = config.getString("server-key-pass");
         String certificate = config.getString("server-certificate");
-
+        if ((certificate == null) || (keyOrPass == null)) {
+            return options;
+        }
         if (certificate.endsWith(".jks")) {
             options.setSsl(true);
             options.setKeyStoreOptions(

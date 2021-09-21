@@ -125,7 +125,7 @@ public class E2EAppTest extends AbstractSystemTest {
             throw new Exception ("topicId is null");
         }
 
-        app.overrideEnv(hederaClient, /* restAPI= */true, /* adminAPI= */true, /* auctionNode= */true, topicId.toString(), this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword(), /* transferOnWin= */transferOnWin, masterKey.toString());
+        app.overrideEnv(hederaClient, /* restAPI= */true, "adminapi", /* auctionNode= */true, topicId.toString(), this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword(), /* transferOnWin= */transferOnWin, masterKey.toString());
     }
 
     private void bidOnBehalfOf(String from, long amount, boolean expectFail) throws TimeoutException, PrecheckStatusException, ReceiptStatusException {

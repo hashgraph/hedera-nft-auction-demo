@@ -92,7 +92,6 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
 //        addToEnvFromEnv("API_PORT");
 //        addToEnvFromEnv("API_VERTICLE_COUNT");
 //
-//        addToEnvFromEnv("ADMIN_API");
 //        addToEnvFromEnv("ADMIN_API_PORT");
 //        addToEnvFromEnv("ADMIN_API_VERTICLE_COUNT");
 //

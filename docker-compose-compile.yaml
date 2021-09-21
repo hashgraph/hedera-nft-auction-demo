@@ -14,12 +14,9 @@ services:
     command: -c 'max_connections=100' -p 5433
     volumes:
       - ./docker-files/postgres-data:/var/lib/postgresql/data
-    profiles:
-      - image
-      - compile
 
-  node-compiled:
-    container_name: nft-auction-node-compiled
+  node:
+    container_name: nft-auction-node
     build:
       context: hedera-nft-auction-demo-java-node
     restart: unless-stopped
@@ -29,46 +26,21 @@ services:
       # Run auction node only
       - AUCTION_NODE=true
       - REST_API=false
-      - ADMIN_API=false
     env_file:
       - docker-files/.env
     depends_on:
       - postgres
     volumes:
       - ./docker-files:/demo
-    profiles:
-      - compile
 
-  node-image:
-    container_name: nft-auction-node-image
-    image: ghcr.io/hashgraph/hedera-nft-auction-demo/hedera_nft_auction_java_node:latest
-    pull_policy: always
-    restart: unless-stopped
-    environment:
-      # Database connection
-      - DATABASE_URL=postgresql://postgres:5433/
-      # Run auction node only
-      - AUCTION_NODE=true
-      - REST_API=false
-      - ADMIN_API=false
-    env_file:
-      - docker-files/.env
-    depends_on:
-      - postgres
-    volumes:
-      - ./docker-files:/demo
-    profiles:
-      - image
-
-  rest-compiled:
-    container_name: nft-auction-node-api-compiled
+  rest-api:
+    container_name: nft-auction-rest-api
     build:
       context: hedera-nft-auction-demo-java-node
     restart: unless-stopped
     environment:
       # Run API only
       - REST_API=true
-      - ADMIN_API=true
       - AUCTION_NODE=false
       # Database connection
       - DATABASE_URL=postgresql://postgres:5433/
@@ -79,44 +51,13 @@ services:
       - ADMIN_API_VERTICLE_COUNT=1
     env_file:
       - docker-files/.env
-    ports:
-      - "8081:8081"
-      - "8082:8082"
+    expose:
+      - 8081
+      - 8082
     depends_on:
       - postgres
     volumes:
       - ./docker-files:/demo
-    profiles:
-      - compile
-
-  rest-image:
-    container_name: nft-auction-node-api-image
-    image: ghcr.io/hashgraph/hedera-nft-auction-demo/hedera_nft_auction_java_node:latest
-    pull_policy: always
-    restart: unless-stopped
-    environment:
-      # Run API only
-      - REST_API=true
-      - ADMIN_API=true
-      - AUCTION_NODE=false
-      # Database connection
-      - DATABASE_URL=postgresql://postgres:5433/
-      # REST API Ports
-      - API_PORT=8081
-      - API_VERTICLE_COUNT=3
-      - ADMIN_API_PORT=8082
-      - ADMIN_API_VERTICLE_COUNT=1
-    env_file:
-      - docker-files/.env
-    ports:
-      - "8081:8081"
-      - "8082:8082"
-    depends_on:
-      - postgres
-    volumes:
-      - ./docker-files:/demo
-    profiles:
-      - image
 
   ui:
     container_name: nft-auction-ui
@@ -127,9 +68,6 @@ services:
       - docker-files/.env
     expose:
       - 3000
-    profiles:
-      - image
-      - compile
 
   proxy:
     container_name: nft-auction-nginx-proxy
@@ -137,12 +75,11 @@ services:
       context: docker-nginx
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "80:80"
+      - "443:443"
     depends_on:
       - ui
-    profiles:
-      - image
-      - compile
+      - rest-api
     volumes:
       - ./docker-files:/demo
       - ./docker-files/conf.d:/etc/nginx/conf.d/

@@ -2,14 +2,14 @@ import BidMetaData from './RightColumn//BidMetaData'
 import ShareModal from 'components/modals/ShareModal'
 import React from 'react'
 
-const LeftColumn = ({ auction, openLightbox }) => {
+const LeftColumn = ({ auction, auctionImage, openLightbox }) => {
   const [isSharingAuction, setSharingAuction] = React.useState(false)
 
   const openShareModal = () => setSharingAuction(true)
   const closeShareModal = () => setSharingAuction(false)
 
-  const { tokenid, tokenimage, title, description, auctionaccountid } = auction
-  const sidebarImage = tokenimage || '/assets/default-token-image.png'
+  const { tokenid, title, description, auctionaccountid } = auction
+  const sidebarImage = auctionImage
 
   const titleToRender = title || 'Title'
   const descriptionToRender =

@@ -1,7 +1,7 @@
 import React from 'react'
 import ViewAllButton from 'components/common/buttons/ViewAllButton'
 import AuctionCard from 'components/common/cards/AuctionCard'
-import fetchLiveAutcions from 'utils/getLiveAuctions'
+import fetchLiveAuctions from 'utils/getLiveAuctions'
 import fetchSoldAuctions from 'utils/getSoldAuctions'
 import FeaturedAuction from './FeaturedAuction'
 import { useRouter } from 'next/router'
@@ -15,7 +15,7 @@ const LiveAuction = () => {
   React.useEffect(() => {
     const asyncAuctionsFetch = async () => {
       try {
-        const liveAuctions = await fetchLiveAutcions()
+        const liveAuctions = await fetchLiveAuctions()
         setLiveAuctions(liveAuctions)
         const soldAuctions = await fetchSoldAuctions()
         setSoldAuctions(soldAuctions)

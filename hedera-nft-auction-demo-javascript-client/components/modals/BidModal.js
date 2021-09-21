@@ -1,14 +1,24 @@
 import React from 'react'
+import { CopyToClipboard } from 'react-copy-to-clipboard'
+import { FaCopy } from 'react-icons/fa'
 import CloseIcon from './assets/close_icon.svg'
 
 const Modal = ({ isOpen, close, auction }) => {
   const { auctionaccountid, title } = auction
+  const [hasCopiedText, setCopiedTextStatus] = React.useState(false)
   if (!isOpen) return null
 
   const handleClose = () => {
     const body = window.document.getElementsByTagName('body')[0]
     body.style.overflow = 'inherit'
     close()
+  }
+
+  const handleCopy = () => {
+    setCopiedTextStatus(true)
+    setTimeout(() => {
+      setCopiedTextStatus(false)
+    }, 1500)
   }
 
   const Content = () => {
@@ -22,11 +32,24 @@ const Modal = ({ isOpen, close, auction }) => {
             Non-winning bids are automatically refunded.
           </p>
         </div>
-        <div className='pb-8'>
+        <div className='pb-8 relative'>
           <p className='uppercase font-light text-xxs pb-2'>Auction Account</p>
-          <p className='bg-white bg-opacity-10 text-center py-2 px-4 mb-4 text-lg font-bold'>
-            {auctionaccountid}
-          </p>
+          {hasCopiedText && (
+                <p className='text-white text-sm absolute -top-1 right-0'>
+                  Copied!
+                </p>
+              )}
+          <div className='relative'>  
+            <p className='bg-white bg-opacity-10 text-center py-2 px-4 mb-4 text-lg font-bold'>
+              {auctionaccountid}
+            </p>
+            <CopyToClipboard onCopy={handleCopy} text={auctionaccountid} className='absolute top-3.5 right-2'>
+                    <FaCopy
+                      className='cursor-pointer relative'
+                      style={{ color: '#4B68F1' }}
+                    />
+              </CopyToClipboard>
+          </div>        
           <p className='font-thin text-sm'>
             Send bids to the {title} auction account from any hbar support
             wallet.

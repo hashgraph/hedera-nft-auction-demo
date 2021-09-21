@@ -43,7 +43,7 @@ const Modal = ({ isOpen, close, auction }) => {
           </p>
           <p className='text-sm font-thin'>
             For common questions about the auction and Hedera Hashgraph visit{' '}
-            <a target='_blank' href='https://help.hedera.com'>
+            <a target='_blank' href='https://help.hedera.com/hc/en-us/articles/4407199123089'>
               help.hedera.com
             </a>
             .

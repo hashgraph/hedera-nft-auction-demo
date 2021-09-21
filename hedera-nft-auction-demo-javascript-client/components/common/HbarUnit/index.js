@@ -1,6 +1,7 @@
 const HbarUnit = ({
   className,
   amount,
+  denomination,
   italic,
   bold,
   amountBold,
@@ -20,6 +21,15 @@ const HbarUnit = ({
   if (bold) classNames += ' font-bold '
   if (!amount && amount !== 0)
     return <span className={classNames + className}>ℏ</span>
+  if(denomination === 'tinybar')
+    return (
+      <span className={className} style={{ fontSize }}>
+        <span className={amountBold ? 'font-bold' : ''}>{Math.round((amount / 100000000 + Number.EPSILON) * 100) / 100}</span>
+        <span className={classNames + 'font-light'} style={{ marginLeft: '3px' }}>
+          ℏ
+        </span>
+      </span>
+    ) 
   if (amount % 1000000 === 0)
     return (
       <span className={className} style={{ fontSize }}>

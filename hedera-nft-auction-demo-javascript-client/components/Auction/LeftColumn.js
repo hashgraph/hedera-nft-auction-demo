@@ -45,7 +45,7 @@ const LeftColumn = ({ auction, auctionImage, openLightbox }) => {
       </div>
       <div className='flex justify-between sm:flex-row flex-col'>
         <img
-          className='sm:w-full sm:pt-10 pt-7 sm:pb-0 pb-11'
+          className='sm:w-full sm:pt-10 pt-7 sm:pb-0 pb-11 object-contain h-full'
           src={sidebarImage}
           alt='bid-item'
         />

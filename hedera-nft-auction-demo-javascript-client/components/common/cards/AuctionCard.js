@@ -1,8 +1,10 @@
+import React from 'react'
 import calculateTimeLeft from 'utils/calculateTimeLeft'
 import { useRouter } from 'next/router'
 import HbarUnbit from 'components/common/HbarUnit'
 import getBidValue from 'utils/getBidValueToShow'
 import useCountdown from 'hooks/useCountdown'
+import fetchAuctionImage from 'utils/getAuctionImage'
 
 const LiveAuctionCard = ({ auction, showStatus }) => {
   const router = useRouter()
@@ -11,7 +13,6 @@ const LiveAuctionCard = ({ auction, showStatus }) => {
     winningbid,
     endtimestamp,
     id: auctionId,
-    tokenimage,
     active,
     ended,
     status,
@@ -28,6 +29,16 @@ const LiveAuctionCard = ({ auction, showStatus }) => {
 
   const goToAuctionPage = () => router.push(`/auction/${auctionId}`)
 
+  const [auctionImage, setAuctionImage] = React.useState(null)
+
+  React.useEffect(() => {
+    const asyncFetchAuction = async () => {
+      const auctionImage = await fetchAuctionImage(auction.tokenmetadata)  
+      setAuctionImage(auctionImage.image.description)
+    }
+    if (auction) asyncFetchAuction()
+  }, [auction])
+
   const getStatus = () => {
     if (!showStatus) return
     if (ended) return 'SOLD'
@@ -37,7 +48,7 @@ const LiveAuctionCard = ({ auction, showStatus }) => {
   const bidToShow = getBidValue(winningbid)
 
   const isSold = !active
-  const auctionImage = tokenimage || '/assets/default-token-image.png'
+ 
 
   const getEndTime = () => {
     if (moreThanOneDayLeft)

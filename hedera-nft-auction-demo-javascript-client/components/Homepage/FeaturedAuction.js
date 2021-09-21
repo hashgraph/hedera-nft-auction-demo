@@ -7,6 +7,7 @@ import getUsdValue from 'utils/getUsdValue'
 import HbarUnbit from 'components/common/HbarUnit'
 import useCountdown from 'hooks/useCountdown'
 import getBidValue from 'utils/getBidValueToShow'
+import fetchAuctionImage from 'utils/getAuctionImage'
 
 const FeaturedAuction = ({ featuredAuction }) => {
   const [isPlacingBid, setBidStatus] = React.useState(false)
@@ -15,13 +16,22 @@ const FeaturedAuction = ({ featuredAuction }) => {
   const { endtimestamp, winningbid, minimumbid, reserve } = featuredAuction
   const timeLeft = useCountdown(endtimestamp)
 
+  const [auctionImage, setAuctionImage] = React.useState(null)
+
   if (!featuredAuction) return null
+
+  React.useEffect(() => {
+    const asyncFetchAuction = async () => {
+      const auctionImage = await fetchAuctionImage(featuredAuction.tokenmetadata)  
+      setAuctionImage(auctionImage.image.description)
+    }
+    if (featuredAuction) asyncFetchAuction()
+  }, [featuredAuction])
 
   const {
     tokenid: featuredTokenId,
     reserve: featuredReserve,
     id: auctionId,
-    tokenimage,
     title,
   } = featuredAuction
 
@@ -30,9 +40,9 @@ const FeaturedAuction = ({ featuredAuction }) => {
   const bidToShow = getBidValue(winningbid)
 
   const usdValue = getUsdValue(bidToShow, currentPrice)
-  const featuredAuctionImage = tokenimage || '/assets/default-token-image.png'
+  const featuredAuctionImage = auctionImage
 
-  const titleToRender = title || 'A Doge Moment'
+  const titleToRender = title
 
   const TITLE_CHAR_LIMIT = 20
   const truncatedTitle = titleToRender.substring(0, TITLE_CHAR_LIMIT)

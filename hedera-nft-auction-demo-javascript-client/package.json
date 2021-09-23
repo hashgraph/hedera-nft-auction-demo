@@ -1,5 +1,5 @@
 {
-  "name": "hedera-client",
+  "name": "@hashgraph/hedera-client",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

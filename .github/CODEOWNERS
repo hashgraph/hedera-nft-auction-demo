@@ -15,7 +15,7 @@
 /.github/workflows/                             @hashgraph/release-engineering @hashgraph/release-engineering-managers @hashgraph/developer-advocates
 
 # Self-protection for root CODEOWNERS files (this file should not exist and should definitely require approval)
-/CODEOWNERS                                      @hashgraph/release-engineering @hashgraph/release-engineering-managers @hashgraph/developer-advocates
+/CODEOWNERS                                      @hashgraph/release-engineering @hashgraph/release-engineering-managers
 
 # Protect the repository root files
 /README.md                                      @hashgraph/release-engineering @hashgraph/release-engineering-managers  @hashgraph/developer-advocates

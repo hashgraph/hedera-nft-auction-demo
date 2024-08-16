@@ -138,7 +138,7 @@ description = "Hedera™ Hashgraph NFT Auction Appnet Demo"
 
 dependencies {
 	def jooqVersion = "3.14.11"
-	def vertxVersion = "4.1.1"
+	def vertxVersion = "4.5.9"
 	def postgressqlVersion = "42.2.23"
 	def jacksonVersion = "2.12.3"
 	def lombokVersion = "1.18.18"

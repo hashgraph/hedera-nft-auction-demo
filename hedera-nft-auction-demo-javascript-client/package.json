@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@hashgraph/sdk": "^2.0.20",
+    "@hashgraph/sdk": "^2.49.2",
     "@headlessui/react": "^1.2.0",
     "@heroicons/react": "^1.0.1",
     "@netlify/plugin-nextjs": "^3.3.0",

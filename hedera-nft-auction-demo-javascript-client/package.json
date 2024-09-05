@@ -22,7 +22,7 @@
     "react-device-detect": "^1.17.0",
     "react-dom": "^17.0.2",
     "react-icons": "^4.2.0",
-    "react-query": "^3.15.2",
+    "react-query": "^3.39.3",
     "react-share": "^4.4.0",
     "tailwindcss": "^2.1.2",
     "web-vitals": "^1.0.1",

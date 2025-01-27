@@ -142,7 +142,7 @@ dependencies {
 	def postgressqlVersion = "42.2.23"
 	def jacksonVersion = "2.12.3"
 	def lombokVersion = "1.18.18"
-	def junitJupiterVersion = "5.8.0-M1"
+	def junitJupiterVersion = "5.11.0"
 	def testContainersVersion = "1.15.3"
 
 	implementation "io.github.cdimascio:java-dotenv:5.2.2"

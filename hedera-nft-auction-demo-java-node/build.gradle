@@ -23,7 +23,7 @@ plugins {
 	id "net.ltgt.errorprone" version "2.0.2" apply false
 	id "com.github.ben-manes.versions" version "0.39.0" apply false
 	id "org.flywaydb.flyway" version "6.5.5"
-	id 'nu.studer.jooq' version '5.2.1'
+	id 'nu.studer.jooq' version '10.0'
 	id "jacoco"
 	id 'java'
 //	id 'com.bmuschko.docker-java-application' version '6.7.0'

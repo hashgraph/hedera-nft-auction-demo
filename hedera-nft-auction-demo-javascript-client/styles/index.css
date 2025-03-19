@@ -1,3 +1,6 @@
+@import "tailwindcss";
+@import "tailwindcss/preflight";
+
 @layer base {
   @font-face {
     font-family: 'Styerna';
@@ -30,8 +33,6 @@
   }
 }
 
-@tailwind base;
-@tailwind components;
 @tailwind utilities;
 
 body {

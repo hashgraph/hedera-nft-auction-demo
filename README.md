@@ -12,8 +12,8 @@
 
 * To build from code
   * PostgreSQL version 12
-  * Node.js v14.15.0
-  * NPM 6.14.8
+  * Node.js v20
+  * NPM 10.8.2
   * Java 14
 
 * To run from docker images  

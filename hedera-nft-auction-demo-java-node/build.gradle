@@ -11,7 +11,7 @@ buildscript {
 	dependencies {
 		classpath "org.glassfish.jaxb:jaxb-runtime:2.3.4"
 		classpath "org.postgresql:postgresql:42.2.23"
-		classpath "io.github.jklingsporn:vertx-jooq-generate:6.3.0"
+		classpath "io.github.jklingsporn:vertx-jooq-generate:6.5.5"
 		classpath "io.vertx:vertx-core:4.1.1"
 	}
 }

@@ -24,15 +24,15 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class AbstractAPITester extends AbstractE2ETest {
+public class AbstractApiTester extends AbstractE2ETest {
 
   @SuppressWarnings("FieldMissingNullable")
   protected final static String apiKey = Optional.ofNullable(dotenv.get("X_API_KEY")).orElse("");
-    protected AbstractAPITester() throws Exception {
+    protected AbstractApiTester() throws Exception {
         adminPort = Integer.parseInt(dotenv.get("ADMIN_API_PORT"));
     }
 
-    public void adminRestAPITopic(VertxTestContext testContext, String host) {
+    public void adminRestApiTopic(VertxTestContext testContext, String host) {
         webClient.post(adminPort, host, "/v1/admin/topic")
                 .putHeader("x-api-key", apiKey)
                 .as(BodyCodec.jsonObject())
@@ -56,7 +56,7 @@ public class AbstractAPITester extends AbstractE2ETest {
                 })));
     }
 
-    public void adminRestAPIToken(VertxTestContext testContext, String host) {
+    public void adminRestApiToken(VertxTestContext testContext, String host) {
         webClient.post(adminPort, host, "/v1/admin/token")
                 .putHeader("x-api-key", apiKey)
                 .as(BodyCodec.jsonObject())
@@ -84,7 +84,7 @@ public class AbstractAPITester extends AbstractE2ETest {
                 })));
     }
 
-    public void adminRestAPIAuctionAccount(VertxTestContext testContext, String host) {
+    public void adminRestApiAuctionAccount(VertxTestContext testContext, String host) {
         webClient.post(adminPort, host, "/v1/admin/auctionaccount")
                 .putHeader("x-api-key", apiKey)
                 .as(BodyCodec.jsonObject())
@@ -109,12 +109,12 @@ public class AbstractAPITester extends AbstractE2ETest {
                 })));
     }
 
-    public void adminRestAPITransferToken(VertxTestContext testContext, String host) throws Exception {
-        CreateAuctionAccount createAuctionAccount = new CreateAuctionAccount();
-        RequestCreateAuctionAccount requestCreateAuctionAccount = new RequestCreateAuctionAccount();
+    public void adminRestApiTransferToken(VertxTestContext testContext, String host) throws Exception {
+        var createAuctionAccount = new CreateAuctionAccount();
+        var requestCreateAuctionAccount = new RequestCreateAuctionAccount();
         requestCreateAuctionAccount.initialBalance = initialBalance;
         requestCreateAuctionAccount.keylist.threshold = 1;
-        RequestCreateAuctionAccountKey requestCreateAuctionAccountKey = new RequestCreateAuctionAccountKey();
+        var requestCreateAuctionAccountKey = new RequestCreateAuctionAccountKey();
         requestCreateAuctionAccountKey.key = hederaClient.client().getOperatorPublicKey().toString();
         requestCreateAuctionAccount.keylist.keys.add(requestCreateAuctionAccountKey);
         auctionAccountId = createAuctionAccount.create(requestCreateAuctionAccount);
@@ -151,13 +151,13 @@ public class AbstractAPITester extends AbstractE2ETest {
                 })));
     }
 
-    public void adminRestAPIAuction(VertxTestContext testContext, String host) throws Exception {
-        CreateTopic createTopic = new CreateTopic();
+    public void adminRestApiAuction(VertxTestContext testContext, String host) throws Exception {
+        var createTopic = new CreateTopic();
         topicId = createTopic.create();
 
-        CreateToken createToken = new CreateToken(filesPath);
+        var createToken = new CreateToken(filesPath);
 
-        RequestCreateToken requestCreateToken = new RequestCreateToken();
+        var requestCreateToken = new RequestCreateToken();
         requestCreateToken.setName(tokenName);
         requestCreateToken.setSymbol(symbol);
         requestCreateToken.initialSupply = initialSupply;
@@ -166,11 +166,11 @@ public class AbstractAPITester extends AbstractE2ETest {
 
         tokenId = createToken.create(requestCreateToken);
 
-        CreateAuctionAccount createAuctionAccount = new CreateAuctionAccount();
-        RequestCreateAuctionAccount requestCreateAuctionAccount = new RequestCreateAuctionAccount();
+        var createAuctionAccount = new CreateAuctionAccount();
+        var requestCreateAuctionAccount = new RequestCreateAuctionAccount();
         requestCreateAuctionAccount.initialBalance = initialBalance;
         requestCreateAuctionAccount.keylist.threshold = 1;
-        RequestCreateAuctionAccountKey requestCreateAuctionAccountKey = new RequestCreateAuctionAccountKey();
+        var requestCreateAuctionAccountKey = new RequestCreateAuctionAccountKey();
         requestCreateAuctionAccountKey.key = hederaClient.client().getOperatorPublicKey().toString();
         requestCreateAuctionAccount.keylist.keys.add(requestCreateAuctionAccountKey);
         auctionAccountId = createAuctionAccount.create(requestCreateAuctionAccount);
@@ -199,7 +199,7 @@ public class AbstractAPITester extends AbstractE2ETest {
                 })));
     }
 
-  public void validatorAPICall(VertxTestContext testContext, String host, JsonObject validatorJson) throws Exception {
+  public void validatorApiCall(VertxTestContext testContext, String host, JsonObject validatorJson) throws Exception {
     webClient.post(adminPort, host, "/v1/admin/validators")
             .putHeader("x-api-key", apiKey)
             .as(BodyCodec.jsonObject())

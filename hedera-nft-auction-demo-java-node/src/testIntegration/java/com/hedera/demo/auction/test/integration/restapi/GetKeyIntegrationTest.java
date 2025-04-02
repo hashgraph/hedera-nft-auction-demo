@@ -22,12 +22,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GetKeyIntegrationTest extends AbstractIntegrationTest {
 
-    private PostgreSQLContainer postgres;
+    private PostgreSQLContainer<?> postgres;
     Vertx vertx;
 
     @BeforeAll
     public void beforeAll(VertxTestContext testContext) throws Throwable {
-        this.postgres = new PostgreSQLContainer("postgres:12.6");
+        this.postgres = new PostgreSQLContainer<>("POSTGRES_CONTAINER_VERSION");
+        this.postgres.start();
+        migrate(postgres);
         this.vertx = Vertx.vertx();
 
         deployServerAndClient(postgres, this.vertx, testContext, new ApiVerticle());

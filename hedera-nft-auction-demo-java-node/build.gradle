@@ -1,203 +1,221 @@
-import groovy.xml.MarkupBuilder
-import org.jooq.codegen.GenerationTool
-import javax.xml.bind.JAXB
-
-buildscript {
-	repositories {
-		gradlePluginPortal()
-		mavenLocal()
-		mavenCentral()
-	}
-	dependencies {
-		classpath "org.glassfish.jaxb:jaxb-runtime:2.3.4"
-		classpath "org.postgresql:postgresql:42.2.23"
-		classpath "io.github.jklingsporn:vertx-jooq-generate:6.3.0"
-		classpath "io.vertx:vertx-core:4.1.1"
-	}
-}
+//import groovy.xml.MarkupBuilder
+//import org.jooq.codegen.GenerationTool
+//import javax.xml.bind.JAXB
 
 plugins {
 	id 'idea'
-	id "nebula.lint" version "17.0.0"
-	id 'com.github.johnrengelman.shadow' version '6.0.0' apply false
-	id "net.ltgt.errorprone" version "2.0.2" apply false
-	id "com.github.ben-manes.versions" version "0.39.0" apply false
-	id "org.flywaydb.flyway" version "6.5.5"
-	id 'nu.studer.jooq' version '5.2.1'
+	id "nebula.lint" version "20.5.6"
+	id 'com.gradleup.shadow' version '8.3.6'
+	id "net.ltgt.errorprone" version "4.1.0" apply false
+	id "com.github.ben-manes.versions" version "0.52.0" apply false
+	id "org.flywaydb.flyway" version "11.4.0"
+	id 'nu.studer.jooq' version '10.0'
 	id "jacoco"
 	id 'java'
+
+//	id "org.jooq.jooq-codegen-gradle" version "3.20.2"
 //	id 'com.bmuschko.docker-java-application' version '6.7.0'
 }
-
-allprojects {
-	apply plugin: "java"
-	apply plugin: "idea"
-	apply plugin: "net.ltgt.errorprone"
-	apply plugin: "com.github.ben-manes.versions"
-	apply plugin: "nebula.lint"
-
-	gradleLint {
-//		rules=['unused-dependency']
-	}
-	sourceCompatibility = 14
-	targetCompatibility = 14
-
-	repositories {
-		jcenter()
-	}
-
-	sourceSets {
-		main {
-			resources {
-				srcDirs "src/main/resources"
-			}
-		}
-		testIntegration {
-			java {
-				compileClasspath += main.output + test.output
-				runtimeClasspath += main.output + test.output
-				srcDir file('src/testIntegration/java')
-			}
-			resources.srcDir file('src/testIntegration/resources')
-		}
-		testSystem {
-			java {
-				compileClasspath += main.output + test.output
-				runtimeClasspath += main.output + test.output
-				srcDir file('src/testSystem/java')
-			}
-			resources.srcDir file('src/testSystem/resources')
-		}
-	}
-
-	idea {
-		module {
-			scopes.TEST.plus += [ configurations.testIntegrationCompile ]
-			scopes.TEST.plus += [ configurations.testSystemCompile ]
-		}
-	}
-
-	configurations {
-		testIntegrationCompile.extendsFrom testImplementation
-		testIntegrationRuntime.extendsFrom testRuntimeOnly
-
-		testSystemCompile.extendsFrom testImplementation
-		testSystemRuntime.extendsFrom testRuntimeOnly
-	}
-
-	dependencies {
-		implementation 'com.google.guava:guava:30.1.1-jre'
-		implementation "jakarta.annotation:jakarta.annotation-api:2.0.0"
-
-		errorprone "com.google.errorprone:error_prone_core:2.4.0"
-		errorprone "com.uber.nullaway:nullaway:0.9.1"
-		compileOnly "com.google.errorprone:error_prone_annotations:2.4.0"
-	}
-
-	jacoco {
-		reportsDir = file("$buildDir/jacoco")
-		toolVersion = "0.8.5"
-	}
-
-//	tasks.withType(Test) {
-//		apply plugin: "jacoco"
-//	}
-
-	tasks.withType(JavaCompile).configureEach {
-		options.encoding = "UTF-8"
-
-		options.errorprone {
-			// https://github.com/uber/NullAway
-			warn("NullAway")
-			option("NullAway:AnnotatedPackages", "com.hedera.demo.auction")
-			option("NullAway:TreatGeneratedAsUnannotated", "true")
-
-			// Enable _all_ error prone checks then selectively disable
-			// Checks that are default-disabled are enabled as warnings
-			allDisabledChecksAsWarnings = true
-			disable("Java7ApiChecker")
-			disable("AndroidJdkLibsChecker")
-			disable("CatchAndPrintStackTrace")
-			disable("ThrowSpecificExceptions")
-			disable("UnnecessarilyFullyQualified")
-
-			// Ignore generated and protobuf code
-			disableWarningsInGeneratedCode = true
-			excludedPaths = "(.*proto.*)|(.*generated.*)|(.*db.*)"
-		}
-	}
-
-}
-
-apply plugin: 'application'
-apply plugin: 'com.github.johnrengelman.shadow'
 
 group = "com.hedera.demo.auction.node"
 version = "1.0"
 description = "Hedera™ Hashgraph NFT Auction Appnet Demo"
 
+java {
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
+}
+
+jacoco {
+	toolVersion = "0.8.12"
+	reportsDirectory = layout.buildDirectory.dir('jacoco')
+}
+
+jar {
+	enabled = false
+	manifest {
+		attributes 'Main-Class': 'com.hedera.demo.auction.app.App'
+	}
+}
+
+apply plugin: "java"
+apply plugin: "idea"
+apply plugin: "net.ltgt.errorprone"
+apply plugin: "com.github.ben-manes.versions"
+apply plugin: "nebula.lint"
+apply plugin: "jacoco"
+apply plugin: 'application'
+apply plugin: 'org.flywaydb.flyway'
+apply plugin: 'com.gradleup.shadow'
+
+application {
+	mainClass = 'com.hedera.demo.auction.app.App'
+}
+
+repositories {
+	gradlePluginPortal()
+	mavenLocal()
+	mavenCentral()
+}
+
+configurations {
+	intTestImplementation.extendsFrom testImplementation
+	intTestRuntime.extendsFrom runtimeOnly
+	intTestAnnotationProcessor.extendsFrom testAnnotationProcessor
+
+	testSystemImplementation.extendsFrom testImplementation
+	testSystemRuntime.extendsFrom runtimeOnly
+	testSystemAnnotationProcessor.extendsFrom testAnnotationProcessor
+}
+
 dependencies {
-	def jooqVersion = "3.14.11"
-	def vertxVersion = "4.1.1"
-	def postgressqlVersion = "42.2.23"
-	def jacksonVersion = "2.12.3"
-	def lombokVersion = "1.18.18"
-	def junitJupiterVersion = "5.8.0-M1"
-	def testContainersVersion = "1.15.3"
+	runtimeOnly("org.glassfish.jaxb:jaxb-runtime:4.0.5")
+	runtimeOnly("org.postgresql:postgresql:42.7.5")
+//	jooqRuntime("io.github.jklingsporn:vertx-jooq-generate:6.5.5")
+	runtimeOnly("io.vertx:vertx-core:4.5.0")
+	implementation 'com.google.guava:guava:33.4.0-jre'
+	implementation "jakarta.annotation:jakarta.annotation-api:3.0.0"
+
+	errorprone "com.google.errorprone:error_prone_core:2.36.0"
+	errorprone "com.uber.nullaway:nullaway:0.12.4"
+	compileOnly "com.google.errorprone:error_prone_annotations:2.36.0"
+
+	def jooqVersion = "3.20.2"
+	def vertxVersion = "4.5.13"
+	def postgressqlVersion = "42.7.5"
+	def jacksonVersion = "2.18.3"
+	def junitJupiterVersion = "5.12.1"
 
 	implementation "io.github.cdimascio:java-dotenv:5.2.2"
 	implementation "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
-	implementation "com.hedera.hashgraph:sdk:2.0.5"
+	implementation "com.hedera.hashgraph:sdk:2.52.0"
+	testImplementation "com.hedera.hashgraph:sdk:2.52.0"
 	implementation "io.vertx:vertx-web:$vertxVersion"
-	implementation "io.vertx:vertx-pg-client:$vertxVersion"
+	runtimeOnly "io.vertx:vertx-pg-client:$vertxVersion"
 	implementation "io.vertx:vertx-web-client:$vertxVersion"
 	implementation "io.vertx:vertx-web-validation:$vertxVersion"
-	implementation "io.github.jklingsporn:vertx-jooq-classic-reactive:6.3.0"
-	implementation "commons-codec:commons-codec:1.9"
-	implementation "org.jooq:jooq:$jooqVersion"
-	implementation "org.apache.logging.log4j:log4j-core:2.14.1"
-	implementation "commons-validator:commons-validator:1.7"
-	implementation "org.yaml:snakeyaml:1.29"
+	implementation "io.github.jklingsporn:vertx-jooq-classic-reactive:6.5.5"
+	testImplementation "io.github.jklingsporn:vertx-jooq-classic-reactive:6.5.5"
+	implementation "commons-codec:commons-codec:1.18.0"
+//	implementation "org.jooq:jooq:$jooqVersion"
+	implementation "org.apache.logging.log4j:log4j-core:2.24.3"
+	implementation "commons-validator:commons-validator:1.9.0"
+	implementation "org.yaml:snakeyaml:2.4"
+	implementation("com.gradleup.shadow:com.gradleup.shadow.gradle.plugin:8.3.6")
 
-	runtimeOnly "io.grpc:grpc-netty-shaded:1.39.0"
+	runtimeOnly "io.grpc:grpc-netty-shaded:1.71.0"
 	runtimeOnly "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-	runtimeOnly "org.jooq:jooq-meta:$jooqVersion"
+//	runtimeOnly "org.jooq:jooq-meta:$jooqVersion"
 	runtimeOnly "org.postgresql:postgresql:$postgressqlVersion"
 
 	// jOOQ database driver
 	jooqGenerator "org.postgresql:postgresql:$postgressqlVersion"
 
 	// lombok
-	implementation "org.projectlombok:lombok:$lombokVersion"
+	def lombokVersion = "1.18.36"
+	compileOnly "org.projectlombok:lombok:$lombokVersion"
 	annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+
+	testCompileOnly "org.projectlombok:lombok:$lombokVersion"
 	testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
-	testSystemAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+	testSystemRuntime("org.projectlombok:lombok:$lombokVersion")
+	testSystemImplementation("org.projectlombok:lombok:$lombokVersion")
+	testSystemAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
 
 	// flyway
-	compile "org.flywaydb:flyway-core:7.11.2"
+//	implementation "org.flywaydb:flyway-core:11.4.0"
+	implementation("org.flywaydb:flyway-database-postgresql:11.4.0")
+	implementation "org.postgresql:postgresql:42.7.5"
+//	implementation 'gradle.plugin.com.boxfuse.client:flyway-release:4.0.3'
 
 	// Testing
 	testImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
+	testImplementation "org.junit.platform:junit-platform-launcher:1.12.1"
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
 
 	testImplementation "io.vertx:vertx-junit5:$vertxVersion"
 	testImplementation "io.vertx:vertx-unit:$vertxVersion"
 
-	testRuntimeOnly "org.testcontainers:testcontainers:$testContainersVersion"
+	def testContainersVersion = "1.20.6"
 	testImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
 	testImplementation "org.testcontainers:postgresql:$testContainersVersion"
 
-	def mockServerVersion = "5.11.2"
-	testImplementation "org.mock-server:mockserver-netty:$mockServerVersion"
-	testImplementation "org.mock-server:mockserver-client-java:$mockServerVersion"
+	testImplementation "org.mock-server:mockserver-netty:5.15.0"
+	testImplementation "org.mock-server:mockserver-client-java:5.15.0"
 
-	testImplementation "org.awaitility:awaitility:4.1.0"
-	testImplementation "org.glassfish:javax.json:1.1.4"
-	testImplementation "net.joshka:junit-json-params:1.3.2"
-	testImplementation "org.slf4j:slf4j-log4j12:1.7.31"
+	testImplementation "org.awaitility:awaitility:4.3.0"
+//	testImplementation "org.glassfish:javax.json:1.1.4"
+	testImplementation "org.glassfish:jakarta.json:2.0.1"
+	testImplementation "net.joshka:junit-json-params:5.10.2-r0"
+//	testImplementation "org.slf4j:slf4j-log4j12:1.7.31"
+	testImplementation "org.slf4j:slf4j-reload4j:2.0.17"
 }
 
-tasks.withType(Test) {
+sourceSets {
+	main {
+		java.srcDir('src/main')
+		resources.srcDir("src/main/resources")
+	}
+	test {
+		compileClasspath += main.output
+		runtimeClasspath += main.output
+		java.srcDir('src/test')
+		resources.srcDir("src/test/resources")
+	}
+
+	integration {
+		compileClasspath += main.output + test.output
+		runtimeClasspath += main.output + test.output
+		java.srcDir('src/testIntegration')
+		resources.srcDir("src/testIntegration/resources")
+	}
+
+	system {
+		compileClasspath += main.output + test.output
+		runtimeClasspath += main.output + test.output
+		java.srcDir('src/testSystem')
+		resources.srcDir("src/testSystem/resources")
+	}
+}
+
+gradleLint {
+	rules=['unused-dependency']
+}
+
+tasks.withType(Copy).configureEach {
+	duplicatesStrategy  = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = "UTF-8"
+//	autoLintGradle.enabled = true
+
+	options.errorprone {
+		// https://github.com/uber/NullAway
+		warn("NullAway")
+		option("NullAway:AnnotatedPackages", "com.hedera.demo.auction")
+		option("NullAway:TreatGeneratedAsUnannotated", "true")
+
+		// Enable _all_ error prone checks then selectively disable
+		// Checks that are default-disabled are enabled as warnings
+		allDisabledChecksAsWarnings = true
+//		disable("DefaultPackage")
+		disable("Java7ApiChecker")
+		disable("Java8ApiChecker")
+		disable("AndroidJdkLibsChecker")
+		disable("CatchAndPrintStackTrace")
+		disable("ThrowSpecificExceptions")
+		disable("UnnecessarilyFullyQualified")
+		disable("WildcardImport")
+		disable("SystemOut")
+
+		// Ignore generated and protobuf code
+		disableWarningsInGeneratedCode = true
+		excludedPaths = "(.*proto.*)|(.*generated.*)|(.*db.*)"
+	}
+}
+
+tasks.withType(Test).configureEach {
 	useJUnitPlatform()
 	apply plugin: "jacoco"
 
@@ -217,44 +235,39 @@ tasks.withType(Test) {
 	systemProperty "HEDERA_NETWORK", findProperty("HEDERA_NETWORK")
 }
 
-task testIntegration(type: Test) {
-	description = 'Runs the integration tests.'
+tasks.register('systemTests', Test) {
+	description = 'Runs the system tests.'
 	group = 'verification'
-	testClassesDirs = sourceSets.testIntegration.output.classesDirs
-	classpath = sourceSets.testIntegration.runtimeClasspath
+
+//	compileClasspath += main.output + test.output
+//	runtimeClasspath += main.output + test.output
+//	java.srcDir('src/testSystem')
+//	resources.srcDir("src/testSystem/resources")
+
+	testClassesDirs = sourceSets.system.output.classesDirs
+	classpath = sourceSets.system.runtimeClasspath
 	outputs.upToDateWhen { false }
 
 	mustRunAfter test
 }
 
-jacocoTestReport {
-	// make sure to use any/all test coverage data for the report
-	executionData fileTree(dir: buildDir, include: "jacoco/*.exec")
+tasks.register('integrationTests', Test) {
+	description = 'Runs the integration tests.'
+	group = 'verification'
 
-	// remove generated db files from report
-	afterEvaluate {
-		classDirectories.setFrom(files(classDirectories.files.collect {
-			fileTree(dir: it, exclude: ['**/com/hedera/demo/auction/app/db/**','**/com/hedera/demo/auction/exerciser/**', '**/com/hedera/demo/auction/test/**'])
-		}))
-	}
+//	compileClasspath += main.output + test.output
+//	runtimeClasspath += main.output + test.output
+//	java.srcDir('src/testIntegration')
+//	resources.srcDir("src/testIntegration/resources")
 
-	// configure it so only xml is generated for the report
-	reports {
-		xml.enabled true
-		xml.destination file("$buildDir/reports/jacoco/report.xml")
-		html.enabled true
-		csv.enabled false
-	}
+	testClassesDirs = sourceSets.integration.output.classesDirs
+	classpath = sourceSets.integration.runtimeClasspath
+	outputs.upToDateWhen { false }
 
-	// make sure we run all tests before this report is made
-	dependsOn test
-	dependsOn testIntegration
+	mustRunAfter test
 }
 
-check.dependsOn test
-check.dependsOn testIntegration
-
-task testSystem(type: Test) {
+tasks.register('testSystem', Test) {
 	description = 'Runs the system tests.'
 	group = 'verification'
 //	dependsOn 'dockerBuildImage'
@@ -264,74 +277,172 @@ task testSystem(type: Test) {
 	outputs.upToDateWhen { false }
 }
 
-//docker {
-//	println "Building docker image"
-//	javaApplication {
-//		baseImage = 'adoptopenjdk:14-jre-hotspot'
-//		ports = [8081, 8082]
-//		images = ["hedera/${rootProject.name}:latest"]
-//		mainClassName = "com.hedera.demo.auction.app.App"
-//	}
-//}
+jacocoTestReport {
+	// make sure to use any/all test coverage data for the report
+	executionData fileTree(include: "jacoco/*.exec")
 
+	// remove generated db files from report
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: ['**/com/hedera/demo/auction/app/db/**','**/com/hedera/demo/auction/exerciser/**', '**/com/hedera/demo/auction/test/**'])
+		}))
+	}
+
+	reports {
+		enabled true
+		xml.required = true
+		html.required = true
+		csv.required = false
+//		html.outputLocation = layout.buildDirectory.dir('reports/jacocoHtml')
+//		xml.outputLocation = layout.buildDirectory.dir('reports/jacocoXml')
+	}
+
+	// make sure we run all tests before this report is made
+	dependsOn test
+	dependsOn integrationTests
+	dependsOn systemTests
+}
+
+//	idea {
+//		module {
+//			scopes.TEST.plus += [ configurations.testIntegrationCompile ]
+//			scopes.TEST.plus += [ configurations.testSystemCompile ]
+//		}
+//	}
+//
+
+//
+//
+//
+//
+////docker {
+////	println "Building docker image"
+////	javaApplication {
+////		baseImage = 'adoptopenjdk:14-jre-hotspot'
+////		ports = [8081, 8082]
+////		images = ["hedera/${rootProject.name}:latest"]
+////		mainClassName = "com.hedera.demo.auction.app.App"
+////	}
+////}
+//
 flyway {
 	def dbURL = System.getenv("DATABASE_URL") ?: "postgresql://localhost:5432/"
 	def dbSCHEMA = System.getenv("POSTGRES_DB") ?: "nftauction"
-	def dbUSER = System.getenv("POSTGRES_USER")
-	def dbPASS = System.getenv("POSTGRES_PASSWORD")
+	def dbUSER = System.getenv("POSTGRES_USER") ?: "postgres"
+	def dbPASS = System.getenv("POSTGRES_PASSWORD") ?: "postgres"
+
+	println dbURL
+	println dbSCHEMA
+	println dbUSER
+	println dbPASS
 
 	url = "jdbc:${dbURL}${dbSCHEMA}"
 	user = "${dbUSER}"
 	password = "${dbPASS}"
 	locations = ['filesystem:src/main/resources/migrations']
 }
+//jooq {
+//	configurations {
+//		main {  // name of the jOOQ configuration
+//			def dbURL = System.getenv("DATABASE_URL") ?: "postgresql://localhost:5432/"
+//			def dbSCHEMA  = System.getenv("POSTGRES_DB") ?: "nftauction"
+//			println "${dbURL}"
+//			println "${dbSCHEMA}"
+//			println "jdbc:${dbURL}${dbSCHEMA}"
+//			println System.getenv("POSTGRES_USER") ?: "postgres"
+//			println System.getenv("POSTGRES_PASSWORD") ?: "postgres"
+//
+//			generationTool {
+//				logging = Logging.WARN
+//				jdbc {
+//					driver = 'org.postgresql.Driver'
+//					url = "jdbc:${dbURL}${dbSCHEMA}"
+//					user = System.getenv("POSTGRES_USER") ?: "postgres"
+//					password = System.getenv("POSTGRES_PASSWORD") ?: "postgres"
+//					properties {
+//						property {
+//							key = 'ssl'
+//							value = 'false'
+//						}
+//					}
+//				}
+//				generator {
+////					name = 'io.github.jklingsporn.vertx.jooq.generate.classic.ClassicReactiveVertxGenerator'
+//					name = 'org.jooq.codegen.DefaultGenerator'
+//					database {
+//						name = 'org.jooq.meta.postgres.PostgresDatabase'
+//						inputSchema = 'public'
+//						forcedTypes {
+//							forcedType {
+//								name = 'varchar'
+//								includeExpression = '.*'
+//								includeTypes = 'JSONB?'
+//							}
+//							forcedType {
+//								name = 'varchar'
+//								includeExpression = '.*'
+//								includeTypes = 'INET'
+//							}
+//						}
+//					}
+//					generate {
+//						deprecated = false
+//						records = false
+//						immutablePojos = true
+//						fluentSetters = false
+//						interfaces = false
+//						pojos = false
+//						daos = false
+//					}
+//					target {
+//						packageName = 'com.hedera.demo.auction.app.db'
+//						directory = "$projectDir/src/main/java"
+//					}
+//					strategy.name = 'org.jooq.codegen.DefaultGeneratorStrategy'
+////					strategy.name = 'io.github.jklingsporn.vertx.jooq.generate.VertxGeneratorStrategy'
+//				}
+//			}
+//		}
+//	}
+//}
 
-task jooqGenerate {
-	autoLintGradle.enabled = false
-	doLast() {
-		def dbURL = System.getenv("DATABASE_URL") ?: "postgresql://localhost:5432/"
-		def dbSCHEMA = System.getenv("POSTGRES_DB") ?: "nftauction"
-		def dbUSER = System.getenv("POSTGRES_USER")
-		def dbPASS = System.getenv("POSTGRES_PASSWORD")
-		def writer = new StringWriter()
-
-		new MarkupBuilder(writer)
-				.configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.14.0.xsd') {
-					jdbc {
-						driver('org.postgresql.Driver')
-						url("jdbc:${dbURL}${dbSCHEMA}")
-						user("${dbUSER}")
-						password("${dbPASS}")
-					}
-					generator {
-						name('io.github.jklingsporn.vertx.jooq.generate.classic.ClassicReactiveVertxGenerator')
-						database {
-							name('org.jooq.meta.postgres.PostgresDatabase')
-							inputSchema('public')
-						}
-						generate([:]) {
-							deprecated(false)
-							records(false)
-							interfaces(false)
-							fluentSetters(false)
-                            pojos(false)
-							daos(false)
-						}
-						target() {
-							packageName('com.hedera.demo.auction.app.db')
-							directory("$projectDir/src/main/java")
-						}
-						strategy {
-							name('io.github.jklingsporn.vertx.jooq.generate.VertxGeneratorStrategy')
-						}
-					}
-				}
-
-		GenerationTool.generate(
-				JAXB.unmarshal(new StringReader(writer.toString()), org.jooq.meta.jaxb.Configuration.class)
-		)
-	}
-}
+//		new MarkupBuilder(writer)
+//				.configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.14.0.xsd') {
+//					jdbc {
+//						driver('org.postgresql.Driver')
+//						url("jdbc:${dbURL}${dbSCHEMA}")
+//						user("${dbUSER}")
+//						password("${dbPASS}")
+//					}
+//					generator {
+//						name('io.github.jklingsporn.vertx.jooq.generate.classic.ClassicReactiveVertxGenerator')
+//						database {
+//							name('org.jooq.meta.postgres.PostgresDatabase')
+//							inputSchema('public')
+//						}
+//						generate([:]) {
+//							deprecated(false)
+//							records(false)
+//							interfaces(false)
+//							fluentSetters(false)
+//                            pojos(false)
+//							daos(false)
+//						}
+//						target() {
+//							packageName('com.hedera.demo.auction.app.db')
+//							directory("$projectDir/src/main/java")
+//						}
+//						strategy {
+//							name('io.github.jklingsporn.vertx.jooq.generate.VertxGeneratorStrategy')
+//						}
+//					}
+//				}
+//
+//		GenerationTool.generate(
+//				JAXB.unmarshal(new StringReader(writer.toString()), org.jooq.meta.jaxb.Configuration.class)
+//		)
+//	}
+//}
 
 if (project.hasProperty("args")) {
 	ext.cmdargs = project.getProperty("args")
@@ -339,80 +450,64 @@ if (project.hasProperty("args")) {
 	ext.cmdargs = ""
 }
 
-task runNode(type: JavaExec) {
-	autoLintGradle.enabled = false
+tasks.register('runNode', JavaExec) {
+//	autoLintGradle.enabled = false
 	group = "Execution"
 	description = "Runs the application"
 	classpath = sourceSets.main.runtimeClasspath
 	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
-	main = "com.hedera.demo.auction.app.App"
+	mainClass = "com.hedera.demo.auction.app.App"
 }
 
-task generateKey(type: JavaExec) {
-	autoLintGradle.enabled = false
+tasks.register('generateKey', JavaExec) {
+//	autoLintGradle.enabled = false
 	group = "Execution"
 	description = "Generates a public / private key pair"
 	classpath = sourceSets.main.runtimeClasspath
 	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
-	main = "com.hedera.demo.auction.app.GenerateKey"
+	mainClass = "com.hedera.demo.auction.app.GenerateKey"
 }
 
-task generateApiKey(type: JavaExec) {
-	autoLintGradle.enabled = false
+tasks.register('generateApiKey', JavaExec) {
+//	autoLintGradle.enabled = false
 	group = "Execution"
 	description = "Generates a key for the admin api"
 	classpath = sourceSets.main.runtimeClasspath
 	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
-	main = "com.hedera.demo.auction.app.GenerateApiKey"
+	mainClass = "com.hedera.demo.auction.app.GenerateApiKey"
 }
 
-task setupHelper(type: JavaExec) {
-	autoLintGradle.enabled = false
+tasks.register('setupHelper', JavaExec) {
+//	autoLintGradle.enabled = false
 	group = "Execution"
 	description = "Sets up a topic (optional), auction account, token, auction...."
 	classpath = sourceSets.main.runtimeClasspath
 	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
-	main = "com.hedera.demo.auction.exerciser.SetupHelper"
+	mainClass = "com.hedera.demo.auction.exerciser.SetupHelper"
 }
 
-task exerciseAuction(type: JavaExec) {
-	autoLintGradle.enabled = false
+tasks.register('exerciseAuction', JavaExec) {
+//	autoLintGradle.enabled = false
 	group = "Execution"
 	description = "Sends bids to an auction"
 	classpath = sourceSets.main.runtimeClasspath
 	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
-	main = "com.hedera.demo.auction.exerciser.ExerciseAuction"
+	mainClass = "com.hedera.demo.auction.exerciser.ExerciseAuction"
 }
 
-task createAccount(type: JavaExec) {
-	autoLintGradle.enabled = false
+tasks.register('createAccount', JavaExec) {
+//	autoLintGradle.enabled = false
 	group = "Execution"
 	description = "Creates an account"
 	classpath = sourceSets.main.runtimeClasspath
 	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
-	main = "com.hedera.demo.auction.exerciser.CreateAccount"
+	mainClass = "com.hedera.demo.auction.exerciser.CreateAccount"
 	args cmdargs.split()
 }
 
-application {
-	mainClassName = 'com.hedera.demo.auction.app.App'
-}
-
-jar {
-	enabled = false
-	manifest {
-		attributes 'Main-Class': 'com.hedera.demo.auction.app.App'
-	}
-}
-
-tasks.shadowJar.configure {
-	classifier = null
-}
-
-tasks.withType(JavaCompile).configureEach {
-	options.errorprone {
-		disable("DefaultPackage")
-	}
-	autoLintGradle.enabled = true
+tasks.named("shadowJar") {
+	archiveBaseName = "hedera-nft-auction-demo-node-$version"
+	archiveClassifier = ''
+	archiveVersion = ''
 }
 

@@ -27,17 +27,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GetEnvironmentIntegrationTest extends AbstractIntegrationTest {
 
-    private PostgreSQLContainer postgres;
+    private PostgreSQLContainer<?> postgres;
     Vertx vertx;
     ValidatorsRepository validatorsRepository;
 
     @BeforeAll
     public void beforeAll(VertxTestContext testContext) throws Throwable {
-        this.postgres = new PostgreSQLContainer("postgres:12.6");
+        this.postgres = new PostgreSQLContainer<>("POSTGRES_CONTAINER_VERSION");
+        postgres.start();
+        migrate(postgres);
         this.vertx = Vertx.vertx();
 
         deployServerAndClient(postgres, this.vertx, testContext, new ApiVerticle());
-        SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
+        var connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         validatorsRepository = new ValidatorsRepository(connectionManager);
     }
 
@@ -52,7 +54,7 @@ public class GetEnvironmentIntegrationTest extends AbstractIntegrationTest {
       String publicKey1 = PrivateKey.generate().getPublicKey().toString();
       String publicKey2 = PrivateKey.generate().getPublicKey().toString();
 
-      JsonArray validatorsJson = new JsonArray();
+      var validatorsJson = new JsonArray();
       @Var JsonObject validatorJson = new JsonObject();
       validatorJson.put("name", "validatorName1");
       validatorJson.put("url", "https://hedera1.com");

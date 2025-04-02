@@ -15,6 +15,7 @@ import com.hedera.hashgraph.sdk.TransactionResponse;
 import com.hedera.hashgraph.sdk.TransferTransaction;
 import lombok.extern.log4j.Log4j2;
 import org.jooq.tools.StringUtils;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
@@ -47,7 +48,7 @@ public final class ExerciseAuction {
     Client client = hederaClient.client();
 
     InputStream inputStream = new FileInputStream("./AuctionSetup.yaml");
-    Yaml yaml = new Yaml(new Constructor(SetupProperties.class));
+    Yaml yaml = new Yaml(new Constructor(SetupProperties.class, new LoaderOptions()));
     SetupProperties setupProperties = yaml.load(inputStream);
 
     log.info("starting exerciser");

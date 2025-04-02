@@ -11,10 +11,10 @@
 * git command line installed on your computer
 
 * To build from code
-  * PostgreSQL version 12
+  * PostgreSQL version 17
   * Node.js v20
   * NPM 10.8.2
-  * Java 14
+  * Java 21
 
 * To run from docker images  
   * Docker and docker-compose (optional)
@@ -575,7 +575,7 @@ __Setup the database objects__
 __Build the database classes__
 
 ```shell
-./gradlew jooqGenerate
+./gradlew generateJooq
 ````
 
 ## Testing

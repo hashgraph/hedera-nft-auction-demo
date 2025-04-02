@@ -2,7 +2,7 @@
 # build
 #
 
-FROM adoptopenjdk:14-jdk-hotspot AS build
+FROM eclipse-temurin:21-jre-ubi9-minimal AS build
 
 # download and cache the version of gradle in use
 COPY ./gradle /opt/hedera-nft-auction-demo-java-node/gradle
@@ -20,7 +20,7 @@ COPY ./sample-files /opt/hedera-nft-auction-demo-java-node/sample-files
 
 RUN cd /opt/hedera-nft-auction-demo-java-node && ./gradlew --no-daemon assemble
 
-FROM adoptopenjdk:14-jre-hotspot
+FROM eclipse-temurin:21-jre-ubi9-minimal
 
 RUN groupadd --gid 1000 appuser
 RUN useradd --uid 1000 --gid appuser appuser

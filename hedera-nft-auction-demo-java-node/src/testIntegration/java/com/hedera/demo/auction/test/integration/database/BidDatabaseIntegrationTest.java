@@ -2,17 +2,11 @@ package com.hedera.demo.auction.test.integration.database;
 
 import com.google.errorprone.annotations.Var;
 import com.hedera.demo.auction.app.SqlConnectionManager;
-import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.domain.Bid;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.demo.auction.test.integration.AbstractIntegrationTest;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -20,16 +14,13 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BidDatabaseIntegrationTest extends AbstractIntegrationTest {
 
-    private PostgreSQLContainer postgres;
+    private PostgreSQLContainer<?> postgres;
     private BidsRepository bidsRepository;
     private int auctionId;
     private Bid bid;
@@ -39,22 +30,21 @@ class BidDatabaseIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeAll
     public void beforeAll() throws SQLException {
-        PostgreSQLContainer<?> postgres = new PostgreSQLContainer("postgres:12.6");
+        postgres = new PostgreSQLContainer<>(POSTGRES_CONTAINER_VERSION);
         postgres.start();
         migrate(postgres);
-        SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
-        AuctionsRepository auctionsRepository = new AuctionsRepository(connectionManager);
+        var connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+        var auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
-        this.postgres = postgres;
 
-        Auction auction = testAuctionObject(1);
-        Auction newAuction = auctionsRepository.add(auction);
-        this.auctionId =  newAuction.getId();;
+        var auction = testAuctionObject(1);
+        var newAuction = auctionsRepository.add(auction);
+        this.auctionId = newAuction.getId();
     }
 
     @AfterAll
     public void afterAll() {
-        this.postgres.close();
+        postgres.close();
     }
 
     @BeforeEach

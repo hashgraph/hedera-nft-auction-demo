@@ -37,13 +37,13 @@ public class BidTest extends AbstractBid {
     @Test
     public void testBidFromJson() {
         JsonObject bidJson = testBidObject().toJson();
-        Bid bid = new Bid(bidJson);
+        var bid = new Bid(bidJson);
         verifyBidContents(bid);
     }
 
     @Test
     public void testBidRefundStatus() {
-        Bid bid = new Bid();
+        var bid = new Bid();
 
         assertFalse(bid.isRefunded());
         assertFalse(bid.isRefundPending());

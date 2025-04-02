@@ -28,14 +28,14 @@ public class ValidatorTest extends AbstractValidator {
 
     @Test
     public void testValidatorFromJson() {
-        JsonObject validatorJson = testValidatorObject().toJson();
-        Validator validator = new Validator(validatorJson);
+        var validatorJson = testValidatorObject().toJson();
+        var validator = new Validator(validatorJson);
         verifyValidatorContent(validator);
     }
 
     @Test
     public void testValidatorToString() {
-        Validator validator = testValidatorObject();
+        var validator = testValidatorObject();
 
         String validatorString = validator.toString();
         assertTrue(validatorString.contains(validator.getName()));

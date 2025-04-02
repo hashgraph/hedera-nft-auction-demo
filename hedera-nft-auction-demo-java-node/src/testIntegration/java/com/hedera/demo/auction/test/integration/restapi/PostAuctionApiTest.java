@@ -16,16 +16,18 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 @ExtendWith(VertxExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class PostAuctionAPITest extends AbstractIntegrationTest {
+public class PostAuctionApiTest extends AbstractIntegrationTest {
 
-    private PostgreSQLContainer postgres;
+    private PostgreSQLContainer<?> postgres;
     Vertx vertx;
     private JsonObject auction;
     private final static String url = "/v1/admin/auction";
 
     @BeforeAll
     public void beforeAll(VertxTestContext testContext) throws Throwable {
-      this.postgres = new PostgreSQLContainer("postgres:12.6");
+      this.postgres = new PostgreSQLContainer<>("POSTGRES_CONTAINER_VERSION");
+      this.postgres.start();
+      migrate(postgres);
       this.vertx = Vertx.vertx();
 
       deployServerAndClient(postgres, this.vertx, testContext, new AdminApiVerticle());
@@ -44,17 +46,17 @@ public class PostAuctionAPITest extends AbstractIntegrationTest {
 
     @Test
     public void createAuctionAuctionWithoutKey(VertxTestContext testContext) {
-      failingAdminAPITest(testContext, url, new JsonObject(), "");
+      failingAdminApiTest(testContext, url, new JsonObject(), "");
     }
 
   @Test
     public void createAuctionAuctionWithoutBody(VertxTestContext testContext) {
-      failingAdminAPITest(testContext, url, new JsonObject());
+      failingAdminApiTest(testContext, url, new JsonObject());
     }
 
     private void createAuctionWithMissingData(VertxTestContext testContext, String attributeToRemove) {
       auction.remove(attributeToRemove);
-      failingAdminAPITest(testContext, url, auction);
+      failingAdminApiTest(testContext, url, auction);
     }
 
     @Test
@@ -94,7 +96,7 @@ public class PostAuctionAPITest extends AbstractIntegrationTest {
 
     private void createAuctionWithLongString(VertxTestContext testContext, String attributeToUpdate) {
       auction.put(attributeToUpdate, VERY_LONG_STRING);
-      failingAdminAPITest(testContext, url, auction);
+      failingAdminApiTest(testContext, url, auction);
     }
 
   @Test
@@ -130,49 +132,49 @@ public class PostAuctionAPITest extends AbstractIntegrationTest {
     @Test
     public void createAuctionWithInvalidReserve(VertxTestContext testContext) {
       auction.put("reserve", "abcdef");
-      failingAdminAPITest(testContext, url, auction);
+      failingAdminApiTest(testContext, url, auction);
     }
 
     @Test
     public void createAuctionWithNegativeReserve(VertxTestContext testContext) {
       auction.put("reserve", -1);
-      failingAdminAPITest(testContext, url, auction);
+      failingAdminApiTest(testContext, url, auction);
     }
 
     @Test
     public void createAuctionWithInvalidMinimumBid(VertxTestContext testContext) {
       auction.put("minimumbid", "abcdef");
-      failingAdminAPITest(testContext, url, auction);
+      failingAdminApiTest(testContext, url, auction);
     }
 
     @Test
     public void createAuctionWithNegativeMinimumBid(VertxTestContext testContext) {
       auction.put("minimumbid", -1);
-      failingAdminAPITest(testContext, url, auction);
+      failingAdminApiTest(testContext, url, auction);
     }
 
     @Test
     public void createAuctionWithNonBoolean(VertxTestContext testContext) {
       auction.put("winnercanbid", "yes they can");
-      failingAdminAPITest(testContext, url, auction);
+      failingAdminApiTest(testContext, url, auction);
     }
 
     @Test
     public void createAuctionWithInvalidTokenFormat(VertxTestContext testContext) {
       auction.put("tokenid", "abcde");
-      failingAdminAPITest(testContext, url, auction);
+      failingAdminApiTest(testContext, url, auction);
     }
 
     @Test
     public void createAuctionWithInvalidAccountFormat(VertxTestContext testContext) {
       auction.put("auctionaccountid", "abcde");
-      failingAdminAPITest(testContext, url, auction);
+      failingAdminApiTest(testContext, url, auction);
     }
 
   @Test
   public void createAuctionWithInvalidTopicFormat(VertxTestContext testContext) {
     auction.put("topicid", "abcde");
-    failingAdminAPITest(testContext, url, auction);
+    failingAdminApiTest(testContext, url, auction);
   }
 
     private void basicAuction() {

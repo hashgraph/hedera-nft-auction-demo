@@ -29,20 +29,22 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GetLastBidIntegrationTest extends AbstractIntegrationTest {
 
-    private PostgreSQLContainer postgres;
+    private PostgreSQLContainer<?> postgres;
     private AuctionsRepository auctionsRepository;
     private BidsRepository bidsRepository;
     Vertx vertx;
 
     @BeforeAll
     public void beforeAll(VertxTestContext testContext) throws Throwable {
-        this.postgres = new PostgreSQLContainer("postgres:12.6");
+        this.postgres = new PostgreSQLContainer<>("POSTGRES_CONTAINER_VERSION");
+        this.postgres.start();
+        migrate(postgres);
         this.vertx = Vertx.vertx();
 
         deployServerAndClient(postgres, this.vertx, testContext, new ApiVerticle());
 
         String url = this.postgres.getJdbcUrl().replace("test?loggerLevel=OFF", "");
-        SqlConnectionManager connectionManager = new SqlConnectionManager(url, this.postgres.getUsername(), this.postgres.getPassword());
+        var connectionManager = new SqlConnectionManager(url, this.postgres.getUsername(), this.postgres.getPassword());
         this.auctionsRepository = new AuctionsRepository(connectionManager);
         this.bidsRepository = new BidsRepository(connectionManager);
     }

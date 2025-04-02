@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class TransferToWinnerIntegrationTest extends AbstractIntegrationTest {
 
-    private PostgreSQLContainer postgres;
+    private PostgreSQLContainer<?> postgres;
     private AuctionsRepository auctionsRepository;
     private final HederaClient hederaClient = new HederaClient();
     private final static String tokenId = "0.0.10";
@@ -39,10 +39,10 @@ public class TransferToWinnerIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeAll
     public void beforeAll() {
-        this.postgres = new PostgreSQLContainer("postgres:12.6");
+        this.postgres = new PostgreSQLContainer<>("POSTGRES_CONTAINER_VERSION");
         this.postgres.start();
         migrate(this.postgres);
-        SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
+        var connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
         auctionEndTransfer = new AuctionEndTransfer(hederaClient, auctionsRepository, "", 5000);
     }
@@ -55,11 +55,11 @@ public class TransferToWinnerIntegrationTest extends AbstractIntegrationTest {
     @BeforeEach
     public void beforeEach() throws SQLException {
         auction = testAuctionObject(0);
-        auction.setTokenid(tokenId);
-        auction.setAuctionaccountid(auctionAccountId);
+        auction.setTokenId(tokenId);
+        auction.setAuctionAccountId(auctionAccountId);
         auction = auctionsRepository.add(auction);
-        auction.setWinningaccount(winningAccountId);
-        auction.setTokenowneraccount(tokenOwnerAccountId);
+        auction.setWinningAccount(winningAccountId);
+        auction.setTokenOwnerAccount(tokenOwnerAccountId);
         auctionsRepository.save(auction);
     }
 
@@ -73,14 +73,14 @@ public class TransferToWinnerIntegrationTest extends AbstractIntegrationTest {
     public void testTokenTransfer() throws Exception {
 
         @Var Auction updatedAuction = auctionsRepository.getAuction(auction.getId());
-        assertEquals("", updatedAuction.getTransfertxid());
-        assertEquals("", updatedAuction.getTransfertxhash());
+        assertEquals("", updatedAuction.getTransferTxId());
+        assertEquals("", updatedAuction.getTransferTxHash());
 
-        auctionsRepository.setTransferPending(auction.getTokenid());
+        auctionsRepository.setTransferPending(auction.getTokenId());
         auctionEndTransfer.transferToken(auction);
 
         updatedAuction = auctionsRepository.getAuction(auction.getId());
 
-        assertEquals(Auction.TRANSFER_STATUS_IN_PROGRESS, updatedAuction.getTransferstatus());
+        assertEquals(Auction.TRANSFER_STATUS_IN_PROGRESS, updatedAuction.getTransferStatus());
     }
 }

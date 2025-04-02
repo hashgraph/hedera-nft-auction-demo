@@ -21,7 +21,7 @@ public class TopicCreateSystemTest extends AbstractSystemTest {
 
     @Test
     public void testCreateTopic() throws Exception {
-        File tempFile = File.createTempFile("test-", "");
+        var tempFile = File.createTempFile("test-", "");
 
         createTopic.setTargetDotEnvFile(tempFile.getAbsolutePath());
 

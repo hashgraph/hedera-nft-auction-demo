@@ -3,6 +3,7 @@ package com.hedera.demo.auction.test.unit.domain;
 import com.hedera.demo.auction.app.domain.Auction;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public abstract class AbstractAuction {
     int id = 1;
@@ -29,7 +30,7 @@ public abstract class AbstractAuction {
     String auctionCreateTransaction = "auctionCreateTransaction";
 
     Auction testAuctionObject() {
-        Auction auction = new Auction();
+        var auction = new Auction();
 
         auction.setId(id);
         auction.setWinningbid(winningBid);
@@ -60,7 +61,6 @@ public abstract class AbstractAuction {
     public void verifyAuctionContents(Auction auction) {
         assertEquals(winningBid, auction.getWinningbid());
         assertEquals(id, auction.getId());
-        assertEquals(winningBid, auction.getWinningbid());
         assertEquals(winningAccount, auction.getWinningaccount());
         assertEquals(winningTimestamp, auction.getWinningtimestamp());
         assertEquals(tokenId, auction.getTokenid());
@@ -68,7 +68,7 @@ public abstract class AbstractAuction {
         assertEquals(endtimestamp, auction.getEndtimestamp());
         assertEquals(reserve, auction.getReserve());
         assertEquals(status, auction.getStatus());
-        assertEquals(true, auction.getWinnerCanBid());
+        assertTrue(auction.getWinnerCanBid());
         assertEquals(winningtxid, auction.getWinningtxid());
         assertEquals(winningtxhash, auction.getWinningtxhash());
         assertEquals(tokenmetadata, auction.getTokenmetadata());

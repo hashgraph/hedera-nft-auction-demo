@@ -8,17 +8,11 @@ import com.hedera.demo.auction.app.domain.Auction;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.demo.auction.test.system.AbstractSystemTest;
-import com.hedera.hashgraph.sdk.AccountBalance;
-import com.hedera.hashgraph.sdk.AccountBalanceQuery;
-import com.hedera.hashgraph.sdk.AccountCreateTransaction;
-import com.hedera.hashgraph.sdk.AccountId;
-import com.hedera.hashgraph.sdk.Hbar;
-import com.hedera.hashgraph.sdk.PrecheckStatusException;
-import com.hedera.hashgraph.sdk.ReceiptStatusException;
-import com.hedera.hashgraph.sdk.TokenAssociateTransaction;
-import com.hedera.hashgraph.sdk.TransactionReceipt;
-import com.hedera.hashgraph.sdk.TransactionResponse;
-import com.hedera.hashgraph.sdk.TransferTransaction;
+import com.hedera.hashgraph.sdk.*;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonString;
+import jakarta.json.JsonValue;
 import lombok.extern.log4j.Log4j2;
 import net.joshka.junit.json.params.JsonFileSource;
 import org.jooq.tools.StringUtils;
@@ -29,10 +23,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonString;
-import javax.json.JsonValue;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.util.HashMap;
@@ -57,10 +47,10 @@ public class E2EAppTest extends AbstractSystemTest {
 
     @BeforeAll
     public void beforeAll() throws Exception {
-        this.postgres = new PostgreSQLContainer("postgres:12.6");
-        this.postgres.start();
+        this.postgres = new PostgreSQLContainer<>("POSTGRES_CONTAINER_VERSION");
+//        this.postgres.start();
         migrate(this.postgres);
-        SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
+        var connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
         biddingAccounts = new HashMap<>();
@@ -108,7 +98,7 @@ public class E2EAppTest extends AbstractSystemTest {
         createTopicAndGetInfo();
 
         // create an auction account
-        io.vertx.core.json.JsonObject keysCreate = jsonThresholdKey(1, hederaClient.operatorPublicKey().toString());
+        JsonObject keysCreate = jsonThresholdKey(1, hederaClient.operatorPublicKey().toString());
         createAccountAndGetInfo(keysCreate);
         if (auctionAccountId == null) {
             throw new Exception ("auctionAccountId is null");
@@ -125,14 +115,23 @@ public class E2EAppTest extends AbstractSystemTest {
             throw new Exception ("topicId is null");
         }
 
-        app.overrideEnv(hederaClient, /* restAPI= */true, "adminapi", /* auctionNode= */true, topicId.toString(), this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword(), /* transferOnWin= */transferOnWin, masterKey.toString());
+        app.setRestApi(true);
+        app.setHederaClient(hederaClient);
+        app.setAdminApiKey("adminapi");
+        app.setAuctionNode(true);
+        app.setTopicId(topicId.toString());
+        app.setPostgresUrl(this.postgres.getJdbcUrl());
+        app.setPostgresUser(this.postgres.getUsername());
+        app.setPostgresPassword(this.postgres.getPassword());
+        app.setTransferOnWin(transferOnWin);
+        app.setMasterKey(masterKey.toString());
     }
 
     private void bidOnBehalfOf(String from, long amount, boolean expectFail) throws TimeoutException, PrecheckStatusException, ReceiptStatusException {
         // if account doesn't exist create it
         if (! biddingAccounts.containsKey(from)) {
             TransactionResponse response = new AccountCreateTransaction()
-                    .setKey(bidAccountKey.getPublicKey())
+                    .setKeyWithoutAlias(bidAccountKey.getPublicKey())
                     .setInitialBalance(Hbar.from(10))
                     .execute(testRunnerClient);
 

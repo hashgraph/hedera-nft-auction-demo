@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
 
-    private PostgreSQLContainer postgres;
+    private PostgreSQLContainer<?> postgres;
     private AuctionsRepository auctionsRepository;
     private Auction auction;
     private final static String accountId = "0.0.1";
@@ -50,10 +50,10 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeAll
     public void beforeAll() throws Exception {
-        postgres = new PostgreSQLContainer("postgres:12.6");
+        postgres = new PostgreSQLContainer<>("POSTGRES_CONTAINER_VERSION");
         postgres.start();
         migrate(postgres);
-        SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+        var connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
     }
 
@@ -65,8 +65,8 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
     @BeforeEach
     public void beforeEach() throws SQLException {
         auction = new Auction();
-        auction.setAuctionaccountid(accountId);
-        auction.setTokenid(tokenId);
+        auction.setAuctionAccountId(accountId);
+        auction.setTokenId(tokenId);
         auction = auctionsRepository.add(auction);
 
         auctionReadinessWatcher = new AuctionReadinessWatcher(hederaClient, auctionsRepository, auction, 5000, /*runOnce= */ false);
@@ -97,12 +97,12 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
         assertFalse(verifyResponse(auctionReadinessWatcher, tokenOwnerAccountId, badAccount, tokenId, goodAmount));
 
         Auction notStartedAuction = auctionsRepository.getAuction(auction.getId());
-        assertEquals("", notStartedAuction.getStarttimestamp());
+        assertEquals("", notStartedAuction.getStartTimestamp());
         assertEquals(Auction.PENDING, notStartedAuction.getStatus());
 
         assertTrue(verifyResponse(auctionReadinessWatcher, tokenOwnerAccountId, accountId, tokenId, goodAmount));
         Auction startedAuction = auctionsRepository.getAuction(auction.getId());
-        assertNotEquals("", startedAuction.getStarttimestamp());
+        assertNotEquals("", startedAuction.getStartTimestamp());
         assertEquals(Auction.ACTIVE, startedAuction.getStatus());
 
         auctionsRepository.deleteAllAuctions();
@@ -122,7 +122,7 @@ public class AuctionReadinessIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testAuctionReadinessFromJsonDataNotReadyLink() throws Exception {
 
-        AuctionReadinessWatcher readinessTester = new AuctionReadinessWatcher(hederaClient, auctionsRepository, auction, 5000, /*runOnce= */ false);
+        var readinessTester = new AuctionReadinessWatcher(hederaClient, auctionsRepository, auction, 5000, /*runOnce= */ false);
 
         JsonObject jsonResponse = HederaJson.mirrorTransactions(HederaJson.tokenTransferTransaction(badTokenOwnerAccount, badAccount, tokenId, goodAmount));
 

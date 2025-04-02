@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:20
 
 ENV PORT 3000
 #ARG url

@@ -29,16 +29,16 @@ class ValidatorDatabaseIntegrationTest extends AbstractIntegrationTest {
     public ValidatorDatabaseIntegrationTest() {
     }
 
-    private PostgreSQLContainer postgres;
+    private PostgreSQLContainer<?> postgres;
     private ValidatorsRepository validatorsRepository;
     private Validator validator;
 
     @BeforeAll
     public void beforeAll() {
-        PostgreSQLContainer<?> postgres = new PostgreSQLContainer("postgres:12.6");
+        PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(POSTGRES_CONTAINER_VERSION);
         postgres.start();
         migrate(postgres);
-        SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+        var connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         validatorsRepository = new ValidatorsRepository(connectionManager);
         this.postgres = postgres;
     }
@@ -51,12 +51,12 @@ class ValidatorDatabaseIntegrationTest extends AbstractIntegrationTest {
     public void beforeEach() throws Exception {
         validatorsRepository.deleteAllValidators();
         validator = testValidatorObject(1);
-        JsonObject validatorJson = new JsonObject();
+        var validatorJson = new JsonObject();
         validatorJson.put("name", validator.getName());
         validatorJson.put("url", validator.getUrl());
         validatorJson.put("publicKey", validator.getPublicKey());
         validatorJson.put("operation", "add");
-        JsonArray validators = new JsonArray();
+        var validators = new JsonArray();
         validators.add(validatorJson);
         validatorsRepository.manage(validators);
     }
@@ -76,14 +76,14 @@ class ValidatorDatabaseIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void udpateValidatorTest() throws Exception {
-        JsonObject validatorJson = new JsonObject();
+        var validatorJson = new JsonObject();
         validatorJson.put("nameToUpdate", validator.getName());
         validatorJson.put("name", "newName");
         validatorJson.put("url", "https://hedera2.com");
         String newPubKey = PrivateKey.generate().getPublicKey().toString();
         validatorJson.put("publicKey", newPubKey);
         validatorJson.put("operation", "update");
-        JsonArray validatorsJson = new JsonArray();
+        var validatorsJson = new JsonArray();
         validatorsJson.add(validatorJson);
         validatorsRepository.manage(validatorsJson);
 
@@ -101,7 +101,7 @@ class ValidatorDatabaseIntegrationTest extends AbstractIntegrationTest {
         validatorJson.put("url", "https://hedera.com");
         validatorJson.put("publicKey", validator.getPublicKey());
         validatorJson.put("operation", "add");
-        JsonArray validatorsJson = new JsonArray();
+        var validatorsJson = new JsonArray();
         validatorsJson.add(validatorJson);
 
         validatorJson = new JsonObject();
@@ -119,8 +119,8 @@ class ValidatorDatabaseIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void deleteValidatorTest() throws Exception {
-        JsonObject validatorJson = new JsonObject();
-        JsonArray validatorsJson = new JsonArray();
+        var validatorJson = new JsonObject();
+        var validatorsJson = new JsonArray();
         validatorJson.put("name", validator.getName());
         validatorJson.put("operation", "delete");
         validatorsJson.clear();
@@ -134,8 +134,8 @@ class ValidatorDatabaseIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void deleteValidatorsTest() throws Exception {
-        JsonObject validatorJson = new JsonObject();
-        JsonArray validatorsJson = new JsonArray();
+        var validatorJson = new JsonObject();
+        var validatorsJson = new JsonArray();
 
         validatorJson.put("name", "name2");
         validatorJson.put("url", "https://hedera.com");
@@ -155,12 +155,12 @@ class ValidatorDatabaseIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void duplicateValidatorTest() throws SQLException {
-        JsonObject validatorJson = new JsonObject();
+        var validatorJson = new JsonObject();
         validatorJson.put("name", validator.getName());
         validatorJson.put("url", validator.getUrl());
         validatorJson.put("publicKey", validator.getPublicKey());
         validatorJson.put("operation", "add");
-        JsonArray validatorsJson = new JsonArray();
+        var validatorsJson = new JsonArray();
         validatorsJson.add(validatorJson);
 
         try {

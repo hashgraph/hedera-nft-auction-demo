@@ -7,25 +7,20 @@ import com.hedera.demo.auction.test.system.AbstractSystemTest;
 import com.hedera.hashgraph.sdk.Key;
 import com.hedera.hashgraph.sdk.KeyList;
 import com.hedera.hashgraph.sdk.PrivateKey;
-import io.vertx.core.json.JsonObject;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import jakarta.json.JsonObject;
+import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.util.Arrays;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AuctionAccountCreateSystemTest extends AbstractSystemTest {
 
-    String pk01 = PrivateKey.generate().getPublicKey().toString();
-    String pk02 = PrivateKey.generate().getPublicKey().toString();
+    String pk01 = PrivateKey.generateED25519().getPublicKey().toString();
+    String pk02 = PrivateKey.generateED25519().getPublicKey().toString();
 
     AuctionAccountCreateSystemTest() throws Exception {
         super();
@@ -33,10 +28,10 @@ public class AuctionAccountCreateSystemTest extends AbstractSystemTest {
 
     @BeforeAll
     public void beforeAll() {
-        postgres = new PostgreSQLContainer("postgres:12.6");
+        postgres = new PostgreSQLContainer<>("POSTGRES_CONTAINER_VERSION");
         postgres.start();
         migrate(postgres);
-        SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+        var connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
     }
@@ -53,24 +48,24 @@ public class AuctionAccountCreateSystemTest extends AbstractSystemTest {
 
         createAccountAndGetInfo(keysCreate);
 
-        assertNotNull(accountInfo);
-        KeyList accountKeyList = (KeyList) accountInfo.key;
+        Assertions.assertNotNull(accountInfo);
+        var accountKeyList = (KeyList) accountInfo.key;
 
         assertEquals(2, accountKeyList.size());
         assertEquals(1, accountKeyList.threshold);
 
         Object[] keyListArray = accountKeyList.toArray();
 
-        Key accountKey = (Key)keyListArray[1];
+        var accountKey = (Key)keyListArray[1];
         assertEquals(masterKey.getPublicKey().toString(), accountKey.toString());
 
-        KeyList accountKeys = (KeyList)keyListArray[0];
+        var accountKeys = (KeyList)keyListArray[0];
         assertEquals(2, accountKeys.size());
         assertEquals(2, accountKeys.threshold);
 
         String[] pubKeys = keylistToStringArray(accountKeys);
-        assertTrue(Arrays.asList(pubKeys).contains(pk01));
-        assertTrue(Arrays.asList(pubKeys).contains(pk02));
+        Assertions.assertTrue(Arrays.asList(pubKeys).contains(pk01));
+        Assertions.assertTrue(Arrays.asList(pubKeys).contains(pk02));
 
         assertEquals(initialBalance * 100000000, accountInfo.balance.toTinybars());
         assertFalse(accountInfo.isReceiverSignatureRequired);

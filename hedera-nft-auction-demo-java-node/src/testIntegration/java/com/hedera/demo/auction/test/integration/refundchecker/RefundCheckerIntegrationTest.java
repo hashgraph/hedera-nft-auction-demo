@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RefundCheckerIntegrationTest extends AbstractIntegrationTest {
 
-    private PostgreSQLContainer postgres;
+    private PostgreSQLContainer<?> postgres;
     private AuctionsRepository auctionsRepository;
     private BidsRepository bidsRepository;
     private final HederaClient hederaClient = new HederaClient();
@@ -48,10 +48,10 @@ public class RefundCheckerIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeAll
     public void beforeAll() {
-        this.postgres = new PostgreSQLContainer("postgres:12.6");
+        this.postgres = new PostgreSQLContainer<>("POSTGRES_CONTAINER_VERSION");
         this.postgres.start();
         migrate(this.postgres);
-        SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
+        var connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
 
@@ -68,7 +68,7 @@ public class RefundCheckerIntegrationTest extends AbstractIntegrationTest {
         auction = testAuctionObject(1);
         auction = auctionsRepository.add(auction);
 
-        auctionsRepository.setActive(auction, auction.getTokenowneraccount(), "a");
+        auctionsRepository.setActive(auction, auction.getTokenOwnerAccount(), "a");
 
         bidTransaction = HederaJson.singleTransaction();
         bidTransactions = HederaJson.mirrorTransactions(bidTransaction);

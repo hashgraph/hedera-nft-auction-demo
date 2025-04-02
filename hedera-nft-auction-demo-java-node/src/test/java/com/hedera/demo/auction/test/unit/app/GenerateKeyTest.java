@@ -1,7 +1,6 @@
 package com.hedera.demo.auction.test.unit.app;
 
 import com.hedera.demo.auction.app.GenerateKey;
-import com.hedera.hashgraph.sdk.PrivateKey;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -10,8 +9,8 @@ public class GenerateKeyTest {
 
     @Test
     public void testGenerateKey() {
-        GenerateKey generateKey = new GenerateKey();
-        PrivateKey privateKey = generateKey.generate();
+        var generateKey = new GenerateKey();
+        var privateKey = generateKey.generate();
 
         assertNotNull(privateKey);
     }

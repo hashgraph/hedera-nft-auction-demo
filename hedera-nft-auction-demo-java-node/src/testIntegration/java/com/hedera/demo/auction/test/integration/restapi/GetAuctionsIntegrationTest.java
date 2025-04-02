@@ -29,19 +29,21 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GetAuctionsIntegrationTest extends AbstractIntegrationTest {
 
-    private PostgreSQLContainer postgres;
+    private PostgreSQLContainer<?> postgres;
     private AuctionsRepository auctionsRepository;
     private BidsRepository bidsRepository;
     Vertx vertx;
 
     @BeforeAll
     public void beforeAll(VertxTestContext testContext) throws Throwable {
-        this.postgres = new PostgreSQLContainer("postgres:12.6");
+        this.postgres = new PostgreSQLContainer<>("POSTGRES_CONTAINER_VERSION");
+        postgres.start();
+        migrate(postgres);
         this.vertx = Vertx.vertx();
 
         deployServerAndClient(postgres, this.vertx, testContext, new ApiVerticle());
 
-        SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
+        var connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         this.auctionsRepository = new AuctionsRepository(connectionManager);
         this.bidsRepository = new BidsRepository(connectionManager);
     }
@@ -62,7 +64,7 @@ public class GetAuctionsIntegrationTest extends AbstractIntegrationTest {
                 .as(BodyCodec.buffer())
                 .send(testContext.succeeding(response -> testContext.verify(() -> {
                     assertNotNull(response);
-                    JsonArray body = new JsonArray(response.body());
+                    var body = new JsonArray(response.body());
                     assertNotNull(body);
                     assertEquals(2, body.size());
                     verifyAuction(newAuction1, body.getJsonObject(0));
@@ -97,7 +99,7 @@ public class GetAuctionsIntegrationTest extends AbstractIntegrationTest {
     public void getAuctionReserveNotMet(VertxTestContext testContext) throws SQLException {
         // reserve not met auction
         @Var Auction auction = testAuctionObject(1);
-        auction.setWinningbid(0L);
+        auction.setWinningBid(0L);
         auction.setReserve(5L);
         auction = auctionsRepository.createComplete(auction);
 
@@ -107,7 +109,7 @@ public class GetAuctionsIntegrationTest extends AbstractIntegrationTest {
 
         // reserve met auction
         Auction newAuction = testAuctionObject(2);
-        newAuction.setWinningbid(2L);
+        newAuction.setWinningBid(2L);
         newAuction.setReserve(0L);
         auctionsRepository.createComplete(newAuction);
 
@@ -116,7 +118,7 @@ public class GetAuctionsIntegrationTest extends AbstractIntegrationTest {
                 .as(BodyCodec.buffer())
                 .send(testContext.succeeding(response -> testContext.verify(() -> {
                     assertNotNull(response);
-                    JsonArray body = new JsonArray(response.body());
+                    var body = new JsonArray(response.body());
                     assertNotNull(body);
                     assertEquals(1, body.size());
                     verifyAuction(finalAuction, body.getJsonObject(0));
@@ -132,18 +134,18 @@ public class GetAuctionsIntegrationTest extends AbstractIntegrationTest {
     // reserve met auction
     Auction auction = testAuctionObject(1);
     auction.setStatus(Auction.ENDED);
-    auction.setWinningbid(6L);
+    auction.setWinningBid(6L);
     auction.setReserve(5L);
     auctionsRepository.createComplete(auction);
     // ended not sold
     Auction newAuction = testAuctionObject(2);
-    newAuction.setWinningbid(0L);
+    newAuction.setWinningBid(0L);
     newAuction.setReserve(0L);
     newAuction.setStatus(Auction.ENDED);
     auctionsRepository.createComplete(newAuction);
     // ended below reserve
     Auction newAuction2 = testAuctionObject(3);
-    newAuction2.setWinningbid(1L);
+    newAuction2.setWinningBid(1L);
     newAuction2.setReserve(5L);
     newAuction2.setStatus(Auction.ENDED);
     auctionsRepository.createComplete(newAuction2);
@@ -152,7 +154,7 @@ public class GetAuctionsIntegrationTest extends AbstractIntegrationTest {
             .as(BodyCodec.buffer())
             .send(testContext.succeeding(response -> testContext.verify(() -> {
               assertNotNull(response);
-              JsonArray body = new JsonArray(response.body());
+                var body = new JsonArray(response.body());
               assertNotNull(body);
               assertEquals(1, body.size());
               verifyAuction(auction, body.getJsonObject(0));
@@ -174,7 +176,7 @@ public class GetAuctionsIntegrationTest extends AbstractIntegrationTest {
                 .as(BodyCodec.buffer())
                 .send(testContext.succeeding(response -> testContext.verify(() -> {
                     assertNotNull(response);
-                    JsonArray body = new JsonArray(response.body());
+                    var body = new JsonArray(response.body());
                     assertNotNull(body);
                     assertEquals(expectedCount, body.size());
                     verifyAuction(finalNewAuction, body.getJsonObject(expectedCount - 1));

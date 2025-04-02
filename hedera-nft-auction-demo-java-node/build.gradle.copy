@@ -1,0 +1,516 @@
+//import groovy.xml.MarkupBuilder
+//import org.jooq.codegen.GenerationTool
+//import javax.xml.bind.JAXB
+
+buildscript {
+	repositories {
+		gradlePluginPortal()
+		mavenLocal()
+		mavenCentral()
+	}
+	dependencies {
+		classpath "org.glassfish.jaxb:jaxb-runtime:4.0.5"
+		classpath "org.postgresql:postgresql:42.7.5"
+		classpath "io.github.jklingsporn:vertx-jooq-generate:6.5.5"
+		classpath "io.vertx:vertx-core:4.5.0"
+	}
+}
+
+plugins {
+	id 'idea'
+	id "nebula.lint" version "20.5.6"
+	id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
+	id "net.ltgt.errorprone" version "4.1.0" apply false
+	id "com.github.ben-manes.versions" version "0.52.0" apply false
+	id "org.flywaydb.flyway" version "11.4.0"
+	id 'nu.studer.jooq' version '10.0'
+	id "jacoco"
+	id 'java'
+//	id 'com.bmuschko.docker-java-application' version '6.7.0'
+}
+
+allprojects {
+	apply plugin: "java"
+	apply plugin: "idea"
+	apply plugin: "net.ltgt.errorprone"
+	apply plugin: "com.github.ben-manes.versions"
+	apply plugin: "nebula.lint"
+
+	gradleLint {
+		rules=['unused-dependency']
+	}
+
+	java {
+		sourceCompatibility = JavaVersion.VERSION_21
+		targetCompatibility = JavaVersion.VERSION_21
+	}
+
+	repositories {
+		mavenCentral()
+	}
+
+	sourceSets {
+		main {
+			java {
+				srcDir file ('src/main')
+			}
+			resources {
+				srcDirs "src/main/resources"
+			}
+		}
+		testIntegration {
+			java {
+				compileClasspath += main.output + test.output
+				runtimeClasspath += main.output + test.output
+				srcDir file('src/testIntegration/java')
+			}
+			resources.srcDir file('src/testIntegration/resources')
+		}
+		testSystem {
+			java {
+				compileClasspath += main.output + test.output
+				runtimeClasspath += main.output + test.output
+				srcDir file('src/testSystem/java')
+			}
+			resources.srcDir file('src/testSystem/resources')
+		}
+	}
+
+	configurations {
+		testIntegrationCompile.extendsFrom testImplementation
+		testIntegrationRuntime.extendsFrom testRuntimeOnly
+
+		testSystemCompile.extendsFrom testImplementation
+		testSystemRuntime.extendsFrom testRuntimeOnly
+	}
+
+	idea {
+		module {
+			scopes.TEST.plus += [ configurations.testIntegrationCompile ]
+			scopes.TEST.plus += [ configurations.testSystemCompile ]
+		}
+	}
+
+	dependencies {
+		implementation 'com.google.guava:guava:33.4.0-jre'
+		implementation "jakarta.annotation:jakarta.annotation-api:3.0.0"
+
+		errorprone "com.google.errorprone:error_prone_core:2.36.0"
+		errorprone "com.uber.nullaway:nullaway:0.12.4"
+		compileOnly "com.google.errorprone:error_prone_annotations:2.36.0"
+
+		def jooqVersion = "3.20.2"
+		def vertxVersion = "4.5.13"
+		def postgressqlVersion = "42.7.5"
+		def jacksonVersion = "2.18.3"
+		def lombokVersion = "1.18.36"
+		def junitJupiterVersion = "5.12.1"
+
+		implementation "io.github.cdimascio:java-dotenv:5.2.2"
+		implementation "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
+		implementation "com.hedera.hashgraph:sdk:2.52.0"
+		implementation "io.vertx:vertx-web:$vertxVersion"
+		implementation "io.vertx:vertx-pg-client:$vertxVersion"
+		implementation "io.vertx:vertx-web-client:$vertxVersion"
+		implementation "io.vertx:vertx-web-validation:$vertxVersion"
+		implementation "io.github.jklingsporn:vertx-jooq-classic-reactive:6.5.5"
+		testImplementation "io.github.jklingsporn:vertx-jooq-classic-reactive:6.5.5"
+		implementation "commons-codec:commons-codec:1.18.0"
+		implementation "org.jooq:jooq:$jooqVersion"
+		implementation "org.apache.logging.log4j:log4j-core:2.24.3"
+		implementation "commons-validator:commons-validator:1.9.0"
+		implementation "org.yaml:snakeyaml:2.4"
+
+		runtimeOnly "io.grpc:grpc-netty-shaded:1.71.0"
+		runtimeOnly "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+		runtimeOnly "org.jooq:jooq-meta:$jooqVersion"
+		runtimeOnly "org.postgresql:postgresql:$postgressqlVersion"
+
+		// jOOQ database driver
+		jooqGenerator "org.postgresql:postgresql:$postgressqlVersion"
+
+		// lombok
+		implementation "org.projectlombok:lombok:$lombokVersion"
+		annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+		testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+		testSystemAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+
+		// flyway
+		implementation "org.flywaydb:flyway-core:11.4.0"
+
+		// Testing
+		testImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
+		testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
+
+		testImplementation "io.vertx:vertx-junit5:$vertxVersion"
+		testImplementation "io.vertx:vertx-unit:$vertxVersion"
+
+		def testContainersVersion = "1.20.6"
+		testImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
+		testImplementation "org.testcontainers:postgresql:$testContainersVersion"
+
+		testImplementation "org.mock-server:mockserver-netty:5.15.0"
+		testImplementation "org.mock-server:mockserver-client-java:5.15.0"
+
+		testImplementation "org.awaitility:awaitility:4.3.0"
+//	testImplementation "org.glassfish:javax.json:1.1.4"
+		testImplementation "org.glassfish:jakarta.json:2.0.1"
+		testImplementation "net.joshka:junit-json-params:5.10.2-r0"
+//	testImplementation "org.slf4j:slf4j-log4j12:1.7.31"
+		testImplementation "org.slf4j:slf4j-reload4j:2.0.17"
+	}
+
+	jacoco {
+		toolVersion = "0.8.12"
+		reportsDirectory = layout.buildDirectory.dir('jacoco')
+	}
+
+//	tasks.withType(Test).configureEach {
+//		apply plugin: "jacoco"
+//	}
+
+	tasks.withType(Copy).configureEach {
+		duplicatesStrategy  = DuplicatesStrategy.EXCLUDE
+	}
+
+	tasks.withType(JavaCompile).configureEach {
+		options.encoding = "UTF-8"
+
+		options.errorprone {
+			// https://github.com/uber/NullAway
+			warn("NullAway")
+			option("NullAway:AnnotatedPackages", "com.hedera.demo.auction")
+			option("NullAway:TreatGeneratedAsUnannotated", "true")
+
+			// Enable _all_ error prone checks then selectively disable
+			// Checks that are default-disabled are enabled as warnings
+			allDisabledChecksAsWarnings = true
+			disable("Java7ApiChecker")
+			disable("AndroidJdkLibsChecker")
+			disable("CatchAndPrintStackTrace")
+			disable("ThrowSpecificExceptions")
+			disable("UnnecessarilyFullyQualified")
+
+			// Ignore generated and protobuf code
+			disableWarningsInGeneratedCode = true
+			excludedPaths = "(.*proto.*)|(.*generated.*)|(.*db.*)"
+		}
+	}
+
+}
+
+apply plugin: 'application'
+
+group = "com.hedera.demo.auction.node"
+version = "1.0"
+description = "Hedera™ Hashgraph NFT Auction Appnet Demo"
+
+dependencies {
+//	def jooqVersion = "3.20.2"
+//	def vertxVersion = "4.5.13"
+//	def postgressqlVersion = "42.7.5"
+//	def jacksonVersion = "2.18.3"
+//	def lombokVersion = "1.18.36"
+//	def junitJupiterVersion = "5.12.1"
+//
+//	implementation "io.github.cdimascio:java-dotenv:5.2.2"
+//	implementation "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
+//	implementation "com.hedera.hashgraph:sdk:2.52.0"
+//	implementation "io.vertx:vertx-web:$vertxVersion"
+//	implementation "io.vertx:vertx-pg-client:$vertxVersion"
+//	implementation "io.vertx:vertx-web-client:$vertxVersion"
+//	implementation "io.vertx:vertx-web-validation:$vertxVersion"
+//	implementation "io.github.jklingsporn:vertx-jooq-classic-reactive:6.5.5"
+//	testImplementation "io.github.jklingsporn:vertx-jooq-classic-reactive:6.5.5"
+//	implementation "commons-codec:commons-codec:1.18.0"
+//	implementation "org.jooq:jooq:$jooqVersion"
+//	implementation "org.apache.logging.log4j:log4j-core:2.24.3"
+//	implementation "commons-validator:commons-validator:1.9.0"
+//	implementation "org.yaml:snakeyaml:2.4"
+//
+//	runtimeOnly "io.grpc:grpc-netty-shaded:1.71.0"
+//	runtimeOnly "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+//	runtimeOnly "org.jooq:jooq-meta:$jooqVersion"
+//	runtimeOnly "org.postgresql:postgresql:$postgressqlVersion"
+//
+//	// jOOQ database driver
+//	jooqGenerator "org.postgresql:postgresql:$postgressqlVersion"
+//
+//	// lombok
+//	implementation "org.projectlombok:lombok:$lombokVersion"
+//	annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+//	testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+//	testSystemAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+//
+//	// flyway
+//	implementation "org.flywaydb:flyway-core:11.4.0"
+//
+//	// Testing
+//	testImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion"
+//	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion"
+//
+//	testImplementation "io.vertx:vertx-junit5:$vertxVersion"
+//	testImplementation "io.vertx:vertx-unit:$vertxVersion"
+//
+//	def testContainersVersion = "1.20.6"
+//	testRuntimeOnly "org.testcontainers:testcontainers:$testContainersVersion"
+//	testImplementation "org.testcontainers:junit-jupiter:$testContainersVersion"
+//	testImplementation "org.testcontainers:postgresql:$testContainersVersion"
+//
+//	testImplementation "org.mock-server:mockserver-netty:5.15.0"
+//	testImplementation "org.mock-server:mockserver-client-java:5.15.0"
+//
+//	testImplementation "org.awaitility:awaitility:4.3.0"
+////	testImplementation "org.glassfish:javax.json:1.1.4"
+//	testImplementation "org.glassfish:jakarta.json:2.0.1"
+//	testImplementation "net.joshka:junit-json-params:5.10.2-r0"
+////	testImplementation "org.slf4j:slf4j-log4j12:1.7.31"
+//	testImplementation "org.slf4j:slf4j-reload4j:2.0.17"
+}
+
+tasks.withType(Test).configureEach {
+	useJUnitPlatform()
+	apply plugin: "jacoco"
+
+	// this task will fail on the first failed test
+	failFast = true
+
+	// emit logs per passed or failed test
+	testLogging {
+		exceptionFormat = 'full'
+		events "passed", "skipped", "failed", "standardOut", "standardError"
+	}
+
+	// propagate system environment to test runner
+	systemProperty "OPERATOR_ID", findProperty("OPERATOR_ID")
+	systemProperty "OPERATOR_KEY", findProperty("OPERATOR_KEY")
+	systemProperty "CONFIG_FILE", findProperty("CONFIG_FILE")
+	systemProperty "HEDERA_NETWORK", findProperty("HEDERA_NETWORK")
+}
+
+tasks.register('testIntegration', Test) {
+	description = 'Runs the integration tests.'
+	group = 'verification'
+	testClassesDirs = sourceSets.testIntegration.output.classesDirs
+	classpath = sourceSets.testIntegration.runtimeClasspath
+	outputs.upToDateWhen { false }
+
+	mustRunAfter test
+}
+
+jacocoTestReport {
+	// make sure to use any/all test coverage data for the report
+	executionData fileTree(include: "jacoco/*.exec")
+
+	// remove generated db files from report
+	afterEvaluate {
+		classDirectories.setFrom(files(classDirectories.files.collect {
+			fileTree(dir: it, exclude: ['**/com/hedera/demo/auction/app/db/**','**/com/hedera/demo/auction/exerciser/**', '**/com/hedera/demo/auction/test/**'])
+		}))
+	}
+
+	reports {
+		enabled true
+		xml.required = true
+		html.required = true
+		csv.required = false
+//		html.outputLocation = layout.buildDirectory.dir('reports/jacocoHtml')
+//		xml.outputLocation = layout.buildDirectory.dir('reports/jacocoXml')
+	}
+
+	// make sure we run all tests before this report is made
+	dependsOn test
+	dependsOn testIntegration
+}
+
+check.dependsOn test
+check.dependsOn testIntegration
+
+tasks.register('testSystem', Test) {
+	description = 'Runs the system tests.'
+	group = 'verification'
+//	dependsOn 'dockerBuildImage'
+
+	testClassesDirs = sourceSets.testSystem.output.classesDirs
+	classpath = sourceSets.testSystem.runtimeClasspath
+	outputs.upToDateWhen { false }
+}
+
+//docker {
+//	println "Building docker image"
+//	javaApplication {
+//		baseImage = 'adoptopenjdk:14-jre-hotspot'
+//		ports = [8081, 8082]
+//		images = ["hedera/${rootProject.name}:latest"]
+//		mainClassName = "com.hedera.demo.auction.app.App"
+//	}
+//}
+
+flyway {
+	def dbURL = System.getenv("DATABASE_URL") ?: "postgresql://localhost:5432/"
+	def dbSCHEMA = System.getenv("POSTGRES_DB") ?: "nftauction"
+	def dbUSER = System.getenv("POSTGRES_USER")
+	def dbPASS = System.getenv("POSTGRES_PASSWORD")
+
+	url = "jdbc:${dbURL}${dbSCHEMA}"
+	user = "${dbUSER}"
+	password = "${dbPASS}"
+	locations = ['filesystem:src/main/resources/migrations']
+}
+
+tasks.register('jooqGenerate') {
+	autoLintGradle.enabled = false
+	doLast() {
+		def dbURL = System.getenv("DATABASE_URL") ?: "postgresql://localhost:5432/"
+		def dbSCHEMA = System.getenv("POSTGRES_DB") ?: "nftauction"
+//		def dbUSER = System.getenv("POSTGRES_USER")
+//		def dbPASS = System.getenv("POSTGRES_PASSWORD")
+		def writer = new StringWriter()
+
+		driver = "org.postgresql.Driver"
+		url = "jdbc:${dbURL}${dbSCHEMA}"
+		user = System.getenv("POSTGRES_USER")
+		password = System.getenv("POSTGRES_PASSWORD")
+		generator {
+			name = 'io.github.jklingsporn.vertx.jooq.generate.classic.ClassicReactiveVertxGenerator'
+			database {
+				name = 'org.jooq.meta.postgres.PostgresDatabase'
+				inputSchema('public')
+			}
+			generate([:]) {
+				deprecated(false)
+				records(false)
+				interfaces(false)
+				fluentSetters(false)
+				pojos(false)
+				daos(false)
+			}
+			target() {
+				packageName = 'com.hedera.demo.auction.app.db'
+				directory = "$projectDir/src/main/java"
+			}
+			strategy {
+				name = 'io.github.jklingsporn.vertx.jooq.generate.VertxGeneratorStrategy'
+			}
+		}
+//		new MarkupBuilder(writer)
+//				.configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.14.0.xsd') {
+//					jdbc {
+//						driver('org.postgresql.Driver')
+//						url("jdbc:${dbURL}${dbSCHEMA}")
+//						user("${dbUSER}")
+//						password("${dbPASS}")
+//					}
+//					generator {
+//						name('io.github.jklingsporn.vertx.jooq.generate.classic.ClassicReactiveVertxGenerator')
+//						database {
+//							name('org.jooq.meta.postgres.PostgresDatabase')
+//							inputSchema('public')
+//						}
+//						generate([:]) {
+//							deprecated(false)
+//							records(false)
+//							interfaces(false)
+//							fluentSetters(false)
+//                            pojos(false)
+//							daos(false)
+//						}
+//						target() {
+//							packageName('com.hedera.demo.auction.app.db')
+//							directory("$projectDir/src/main/java")
+//						}
+//						strategy {
+//							name('io.github.jklingsporn.vertx.jooq.generate.VertxGeneratorStrategy')
+//						}
+//					}
+//				}
+
+		GenerationTool.generate(
+				JAXB.unmarshal(new StringReader(writer.toString()), org.jooq.meta.jaxb.Configuration.class)
+		)
+	}
+}
+
+if (project.hasProperty("args")) {
+	ext.cmdargs = project.getProperty("args")
+} else {
+	ext.cmdargs = ""
+}
+
+tasks.register('runNode', JavaExec) {
+//	autoLintGradle.enabled = false
+	group = "Execution"
+	description = "Runs the application"
+	classpath = sourceSets.main.runtimeClasspath
+	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
+	mainClass = "com.hedera.demo.auction.app.App"
+}
+
+tasks.register('generateKey', JavaExec) {
+//	autoLintGradle.enabled = false
+	group = "Execution"
+	description = "Generates a public / private key pair"
+	classpath = sourceSets.main.runtimeClasspath
+	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
+	mainClass = "com.hedera.demo.auction.app.GenerateKey"
+}
+
+tasks.register('generateApiKey', JavaExec) {
+//	autoLintGradle.enabled = false
+	group = "Execution"
+	description = "Generates a key for the admin api"
+	classpath = sourceSets.main.runtimeClasspath
+	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
+	mainClass = "com.hedera.demo.auction.app.GenerateApiKey"
+}
+
+tasks.register('setupHelper', JavaExec) {
+//	autoLintGradle.enabled = false
+	group = "Execution"
+	description = "Sets up a topic (optional), auction account, token, auction...."
+	classpath = sourceSets.main.runtimeClasspath
+	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
+	mainClass = "com.hedera.demo.auction.exerciser.SetupHelper"
+}
+
+tasks.register('exerciseAuction', JavaExec) {
+//	autoLintGradle.enabled = false
+	group = "Execution"
+	description = "Sends bids to an auction"
+	classpath = sourceSets.main.runtimeClasspath
+	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
+	mainClass = "com.hedera.demo.auction.exerciser.ExerciseAuction"
+}
+
+tasks.register('createAccount', JavaExec) {
+//	autoLintGradle.enabled = false
+	group = "Execution"
+	description = "Creates an account"
+	classpath = sourceSets.main.runtimeClasspath
+	allJvmArgs = ["-Dlog4j.configurationFile=./log4j2.xml"]
+	mainClass = "com.hedera.demo.auction.exerciser.CreateAccount"
+	args cmdargs.split()
+}
+
+application {
+	mainClass = 'com.hedera.demo.auction.app.App'
+}
+
+jar {
+	enabled = false
+	manifest {
+		attributes 'Main-Class': 'com.hedera.demo.auction.app.App'
+	}
+}
+
+//tasks.shadowJar.configure {
+//	classifier = null
+//}
+
+tasks.withType(JavaCompile).configureEach {
+//	autoLintGradle.enabled = true
+	options.errorprone {
+		disable("DefaultPackage")
+	}
+}
+

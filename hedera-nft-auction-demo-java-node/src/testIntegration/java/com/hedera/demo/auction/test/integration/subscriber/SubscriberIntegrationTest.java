@@ -23,6 +23,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -35,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
-    private PostgreSQLContainer postgres;
+    private PostgreSQLContainer<?> postgres;
     private AuctionsRepository auctionsRepository;
     private ValidatorsRepository validatorsRepository;
     private final HederaClient hederaClient = new HederaClient();
@@ -55,10 +56,10 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeAll
     public void beforeAll() {
-        this.postgres = new PostgreSQLContainer("postgres:12.6");
+        this.postgres = new PostgreSQLContainer<>("POSTGRES_CONTAINER_VERSION");
         this.postgres.start();
         migrate(this.postgres);
-        SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
+        var connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
         validatorsRepository = new ValidatorsRepository(connectionManager);
 
@@ -75,7 +76,7 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     public void beforeEach() {
-        JsonObject auctionJson = new JsonObject();
+        var auctionJson = new JsonObject();
         auctionJson.put("endtimestamp", "");
         auctionJson.put("tokenid", tokenId);
         auctionJson.put("auctionaccountid", auctionAccountId);
@@ -183,9 +184,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testAddValidator() throws SQLException {
-        JsonObject validatorJson = new JsonObject();
-        JsonArray validators = new JsonArray();
-        JsonObject validator = new JsonObject();
+        var validatorJson = new JsonObject();
+        var validators = new JsonArray();
+        var validator = new JsonObject();
         validator.put("name", "validatorName");
         validator.put("url", "https://hedera.com");
         validator.put("publicKey", publicKey);
@@ -207,16 +208,16 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testAddValidators() throws SQLException {
-        JsonObject validatorJson = new JsonObject();
-        JsonArray validators = new JsonArray();
-        JsonObject validator = new JsonObject();
+        var validatorJson = new JsonObject();
+        var validators = new JsonArray();
+        var validator = new JsonObject();
         validator.put("name", "validatorName");
         validator.put("url", "https://hedera.com");
         validator.put("publicKey", publicKey);
         validator.put("operation", "add");
         validators.add(validator);
 
-        JsonObject validator2 = new JsonObject();
+        var validator2 = new JsonObject();
         validator2.put("name", "validatorName2");
         validator2.put("url", "https://hedera2.com");
         validator2.put("publicKey", publicKey2);
@@ -243,9 +244,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testDeleteValidator() throws SQLException {
-        JsonObject validatorJson = new JsonObject();
-        JsonArray validators = new JsonArray();
-        JsonObject validator = new JsonObject();
+        var validatorJson = new JsonObject();
+        var validators = new JsonArray();
+        var validator = new JsonObject();
         validator.put("name", "validatorName");
         validator.put("url", "https://hedera.com");
         validator.put("publicKey", publicKey);
@@ -257,9 +258,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
         topicSubscriber.handle(mirrorTopicMessages);
 
-        JsonObject deleteValidatorJson = new JsonObject();
-        JsonArray deleteValidators = new JsonArray();
-        JsonObject deleteValidator = new JsonObject();
+        var deleteValidatorJson = new JsonObject();
+        var deleteValidators = new JsonArray();
+        var deleteValidator = new JsonObject();
         deleteValidator.put("name", "validatorName");
         deleteValidator.put("operation", "delete");
         deleteValidators.add(deleteValidator);
@@ -276,9 +277,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testUpdateValidator() throws SQLException {
-        JsonObject validatorJson = new JsonObject();
-        JsonArray validators = new JsonArray();
-        JsonObject validator = new JsonObject();
+        var validatorJson = new JsonObject();
+        var validators = new JsonArray();
+        var validator = new JsonObject();
         validator.put("name", "validatorName");
         validator.put("url", "https://hedera.com");
         validator.put("publicKey", publicKey);
@@ -290,9 +291,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
         topicSubscriber.handle(mirrorTopicMessages);
 
-        JsonObject updateValidatorJson = new JsonObject();
-        JsonArray updateValidators = new JsonArray();
-        JsonObject updateValidator = new JsonObject();
+        var updateValidatorJson = new JsonObject();
+        var updateValidators = new JsonArray();
+        var updateValidator = new JsonObject();
         updateValidator.put("nameToUpdate", "validatorName");
         updateValidator.put("name", "validatorName2");
         updateValidator.put("url", "https://hedera2.com");
@@ -318,9 +319,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testInvalidValidatorOperation() throws SQLException {
         // invalid operation
-        JsonObject validatorJson = new JsonObject();
-        JsonArray validators = new JsonArray();
-        JsonObject validator = new JsonObject();
+        var validatorJson = new JsonObject();
+        var validators = new JsonArray();
+        var validator = new JsonObject();
         validator.put("name", "validatorName");
         validator.put("url", "https://hedera.com");
         validator.put("publicKey", publicKey);
@@ -336,9 +337,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void testInvalidValidatorAdd() throws SQLException {
         // add empty name
-        JsonObject validatorJson = new JsonObject();
-        JsonArray validators = new JsonArray();
-        JsonObject validator = new JsonObject();
+        var validatorJson = new JsonObject();
+        var validators = new JsonArray();
+        var validator = new JsonObject();
         validator.put("name", "");
         validator.put("url", "https://hedera.com");
         validator.put("publicKey", publicKey);
@@ -353,9 +354,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
     }
     @Test
     public void testInvalidValidatorDelete() throws SQLException {
-        JsonObject validatorJson = new JsonObject();
-        JsonArray validators = new JsonArray();
-        JsonObject validator = new JsonObject();
+        var validatorJson = new JsonObject();
+        var validators = new JsonArray();
+        var validator = new JsonObject();
         validator.put("name", "validatorName");
         validator.put("url", "https://hedera.com");
         validator.put("operation", "add");
@@ -366,9 +367,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
         topicSubscriber.handle(mirrorTopicMessages);
 
-        JsonObject deleteValidatorJson = new JsonObject();
-        JsonArray deleteValidators = new JsonArray();
-        JsonObject deleteValidator = new JsonObject();
+        var deleteValidatorJson = new JsonObject();
+        var deleteValidators = new JsonArray();
+        var deleteValidator = new JsonObject();
         deleteValidator.put("name", "");
         deleteValidator.put("operation", "delete");
         deleteValidators.add(deleteValidator);
@@ -385,9 +386,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testInvalidValidatorUpdateEmptyName() throws SQLException {
-        JsonObject validatorJson = new JsonObject();
-        JsonArray validators = new JsonArray();
-        JsonObject validator = new JsonObject();
+        var validatorJson = new JsonObject();
+        var validators = new JsonArray();
+        var validator = new JsonObject();
         validator.put("name", "validatorName");
         validator.put("url", "https://hedera.com");
         validator.put("publicKey", publicKey);
@@ -399,9 +400,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
         topicSubscriber.handle(mirrorTopicMessages);
 
-        JsonObject deleteValidatorJson = new JsonObject();
-        JsonArray deleteValidators = new JsonArray();
-        JsonObject deleteValidator = new JsonObject();
+        var deleteValidatorJson = new JsonObject();
+        var deleteValidators = new JsonArray();
+        var deleteValidator = new JsonObject();
         deleteValidator.put("nameToUpdate", "validatorName");
         deleteValidator.put("name", "");
         deleteValidator.put("operation", "update");
@@ -422,9 +423,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testInvalidValidatorUpdateEmptyNameToUpdate() throws SQLException {
-        JsonObject validatorJson = new JsonObject();
-        JsonArray validators = new JsonArray();
-        JsonObject validator = new JsonObject();
+        var validatorJson = new JsonObject();
+        var validators = new JsonArray();
+        var validator = new JsonObject();
         validator.put("name", "validatorName");
         validator.put("url", "https://hedera.com");
         validator.put("publicKey", publicKey);
@@ -436,9 +437,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
         topicSubscriber.handle(mirrorTopicMessages);
 
-        JsonObject deleteValidatorJson = new JsonObject();
-        JsonArray deleteValidators = new JsonArray();
-        JsonObject deleteValidator = new JsonObject();
+        var deleteValidatorJson = new JsonObject();
+        var deleteValidators = new JsonArray();
+        var deleteValidator = new JsonObject();
         deleteValidator.put("nameToUpdate", "");
         deleteValidator.put("name", "validatorName2");
         deleteValidator.put("operation", "update");
@@ -459,9 +460,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testInvalidOperation() throws SQLException {
-        JsonObject validatorJson = new JsonObject();
-        JsonArray validators = new JsonArray();
-        JsonObject validator = new JsonObject();
+        var validatorJson = new JsonObject();
+        var validators = new JsonArray();
+        var validator = new JsonObject();
         validator.put("name", "validatorName");
         validator.put("url", "https://hedera.com");
         validator.put("publicKey", publicKey);
@@ -480,9 +481,9 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void testInvalidURL() throws SQLException {
-        JsonObject validatorJson = new JsonObject();
-        JsonArray validators = new JsonArray();
-        JsonObject validator = new JsonObject();
+        var validatorJson = new JsonObject();
+        var validators = new JsonArray();
+        var validator = new JsonObject();
         validator.put("name", "validatorName");
         validator.put("url", "not a valid url");
         validator.put("publicKey", publicKey);
@@ -503,7 +504,7 @@ public class SubscriberIntegrationTest extends AbstractIntegrationTest {
 
         byte[] contents = messageJson.toString().getBytes(StandardCharsets.UTF_8);
         String base64Contents = Base64.getEncoder().encodeToString(contents);
-        JsonObject topicMessage = new JsonObject();
+        var topicMessage = new JsonObject();
         @Var String timeStamp = String.valueOf(consensusTimestamp.getEpochSecond());
         timeStamp = timeStamp.concat(".");
         timeStamp = timeStamp.concat(String.valueOf(consensusTimestamp.getNano()));

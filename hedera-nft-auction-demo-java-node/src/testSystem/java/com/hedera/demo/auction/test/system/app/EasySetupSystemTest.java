@@ -35,7 +35,7 @@ public class EasySetupSystemTest extends AbstractSystemTest {
 
     @BeforeAll
     public void beforeAll() {
-        postgres = new PostgreSQLContainer("postgres:12.6");
+        postgres = new PostgreSQLContainer(POSTGRES_CONTAINER_VERSION);
         postgres.start();
         migrate(postgres);
         connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
@@ -53,7 +53,7 @@ public class EasySetupSystemTest extends AbstractSystemTest {
     public void beforeEach() throws Exception {
         bidsRepository.deleteAllBids();
         auctionsRepository.deleteAllAuctions();
-        RequestEasySetup requestEasySetup = new RequestEasySetup();
+        var requestEasySetup = new RequestEasySetup();
         requestEasySetup.clean = true;
         requestEasySetup.setName(tokenName);
         requestEasySetup.setSymbol(symbol);
@@ -66,11 +66,11 @@ public class EasySetupSystemTest extends AbstractSystemTest {
 
         hederaClient.setMirrorProvider("hedera");
         assertNotNull(topicId);
-        TopicSubscriber topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, validatorsRepository, topicId, 5000, masterKey.toString(), /*runOnce= */ false);
+        var topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, validatorsRepository, topicId, 5000, masterKey.toString(), /*runOnce= */ false);
 
         topicSubscriber.setSkipReadinessWatcher();
         // start the thread to monitor bids
-        Thread t = new Thread(topicSubscriber);
+        var t = new Thread(topicSubscriber);
         t.start();
 
         // wait for auction to appear in database
@@ -89,15 +89,15 @@ public class EasySetupSystemTest extends AbstractSystemTest {
         assertEquals(1, auctionsList.size());
         auction = auctionsList.get(0);
 
-        assertNotNull(auction.getTokenid());
-        assertNotNull(auction.getAuctionaccountid());
-        assertNotNull(auction.getEndtimestamp());
+        assertNotNull(auction.getTokenId());
+        assertNotNull(auction.getAuctionAccountId());
+        assertNotNull(auction.getEndTimestamp());
         assertEquals(0, auction.getReserve());
-        assertEquals("0.0", auction.getLastconsensustimestamp());
+        assertEquals("0.0", auction.getLastConsensusTimestamp());
         assertTrue(auction.getWinnerCanBid());
-        assertNull(auction.getTokenmetadata());
-        assertEquals(0, auction.getWinningbid());
-        assertEquals(10, auction.getMinimumbid());
+        assertNull(auction.getTokenMetadata());
+        assertEquals(0, auction.getWinningBid());
+        assertEquals(10, auction.getMinimumBid());
 
     }
 }

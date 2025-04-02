@@ -39,6 +39,7 @@ public class AbstractIntegrationTest {
     protected final static String LONG_KEY = StringUtils.repeat("*", 100);
     protected final static String LONG_ID_STRING = StringUtils.repeat("*", 25);
     protected final static String VERY_LONG_STRING = StringUtils.repeat("*", 70000);
+    protected final static String POSTGRES_CONTAINER_VERSION = "postgres:17.4-alpine";
     @SuppressWarnings("FieldMissingNullable")
     protected final static String apiKey = Optional.ofNullable(env.get("X_API_KEY")).orElse("");
 
@@ -138,37 +139,37 @@ public class AbstractIntegrationTest {
 
     protected Auction testAuctionObject(int index) {
         this.index = index;
-        Auction auction = new Auction();
+        var auction = new Auction();
 
-        auction.setWinningbid(winningBid());
-        auction.setWinningaccount(winningAccount());
-        auction.setWinningtimestamp(winningTimestamp());
-        auction.setTokenid(tokenId());
-        auction.setAuctionaccountid(auctionAccountId());
-        auction.setEndtimestamp(endtimestamp());
+        auction.setWinningBid(winningBid());
+        auction.setWinningAccount(winningAccount());
+        auction.setWinningTimestamp(winningTimestamp());
+        auction.setTokenId(tokenId());
+        auction.setAuctionAccountId(auctionAccountId());
+        auction.setEndTimestamp(endtimestamp());
         auction.setReserve(reserve());
         auction.setStatus(status());
-        auction.setWinnercanbid(winnercanbid());
-        auction.setWinningtxid(winningtxid());
-        auction.setWinningtxhash(winningtxhash());
-        auction.setTokenmetadata(tokenmetadata());
-        auction.setMinimumbid(minimumbid());
-        auction.setStarttimestamp(starttimestamp());
-        auction.setTransfertxid(transfertxid());
-        auction.setTransfertxhash(transfertxhash());
-        auction.setLastconsensustimestamp(lastConsensusTimestamp());
-        auction.setTokenowneraccount(tokenOwnerAccount());
-        auction.setTransferstatus(transferStatus());
+        auction.setWinnerCanBid(winnercanbid());
+        auction.setWinningTxId(winningtxid());
+        auction.setWinningTxHash(winningtxhash());
+        auction.setTokenMetadata(tokenmetadata());
+        auction.setMinimumBid(minimumbid());
+        auction.setStartTimestamp(starttimestamp());
+        auction.setTransferTxId(transfertxid());
+        auction.setTransferTxHash(transfertxhash());
+        auction.setLastConsensusTimestamp(lastConsensusTimestamp());
+        auction.setTokenOwnerAccount(tokenOwnerAccount());
+        auction.setTransferStatus(transferStatus());
         auction.setTitle(title());
         auction.setDescription(description());
-        auction.setCreateauctiontxid(createAuctionTx());
+        auction.setCreateAuctionTxId(createAuctionTx());
 
         return auction;
     }
 
     protected Validator testValidatorObject(int index) {
         this.index = index;
-        Validator validator = new Validator();
+        var validator = new Validator();
 
         validator.setName(validatorName());
         validator.setUrl(validatorUrl());
@@ -178,18 +179,18 @@ public class AbstractIntegrationTest {
     }
 
     public void testNewAuction(Auction auction, Auction getAuction) {
-        assertEquals(auction.getTokenid(),getAuction.getTokenid());
-        assertEquals("0.0",getAuction.getLastconsensustimestamp());
-        assertEquals(auction.getAuctionaccountid(),getAuction.getAuctionaccountid());
-        assertEquals(auction.getEndtimestamp(),getAuction.getEndtimestamp());
+        assertEquals(auction.getTokenId(),getAuction.getTokenId());
+        assertEquals("0.0",getAuction.getLastConsensusTimestamp());
+        assertEquals(auction.getAuctionAccountId(),getAuction.getAuctionAccountId());
+        assertEquals(auction.getEndTimestamp(),getAuction.getEndTimestamp());
         assertEquals(auction.getReserve(),getAuction.getReserve());
         assertEquals(winnercanbid(), getAuction.getWinnerCanBid());
-        assertEquals(auction.getTokenmetadata(),getAuction.getTokenmetadata());
-        assertEquals(auction.getWinningbid(),getAuction.getWinningbid());
-        assertEquals(auction.getMinimumbid(),getAuction.getMinimumbid());
+        assertEquals(auction.getTokenMetadata(),getAuction.getTokenMetadata());
+        assertEquals(auction.getWinningBid(),getAuction.getWinningBid());
+        assertEquals(auction.getMinimumBid(),getAuction.getMinimumBid());
         assertEquals(auction.getTitle(), getAuction.getTitle());
         assertEquals(auction.getDescription(), getAuction.getDescription());
-        assertEquals(auction.getCreateauctiontxid(), getAuction.getCreateauctiontxid());
+        assertEquals(auction.getCreateAuctionTxId(), getAuction.getCreateAuctionTxId());
     }
 
     public void testNewValidator(Validator validator, Validator getValidator) {
@@ -200,7 +201,7 @@ public class AbstractIntegrationTest {
 
     protected Bid testBidObject(int index, int auctionId) {
         this.index = index;
-        Bid bid = new Bid();
+        var bid = new Bid();
 
         bid.setTimestamp(timestamp());
         bid.setAuctionid(auctionId);
@@ -228,7 +229,7 @@ public class AbstractIntegrationTest {
         assertEquals(bid.getRefundstatus(), newBid.getRefundstatus());
     }
 
-    protected void migrate(PostgreSQLContainer postgres) {
+    protected void migrate(PostgreSQLContainer<?> postgres) {
         String postgresUrl = postgres.getJdbcUrl();
         String postgresUser = postgres.getUsername();
         String postgresPassword = postgres.getPassword();
@@ -272,39 +273,39 @@ public class AbstractIntegrationTest {
 
     protected void verifyAuction(Auction auction, JsonObject body) {
         assertEquals(auction.getId(), body.getInteger("id"));
-        assertEquals(auction.getLastconsensustimestamp(), body.getString("lastconsensustimestamp"));
-        assertEquals(auction.getWinningbid(), body.getLong("winningbid"));
-        assertEquals(auction.getWinningaccount(), body.getString("winningaccount"));
-        assertEquals(auction.getWinningtimestamp(), body.getString("winningtimestamp"));
-        assertEquals(auction.getTokenid(), body.getString("tokenid"));
-        assertEquals(auction.getAuctionaccountid(), body.getString("auctionaccountid"));
-        assertEquals(auction.getEndtimestamp(), body.getString("endtimestamp"));
+        assertEquals(auction.getLastConsensusTimestamp(), body.getString("lastconsensustimestamp"));
+        assertEquals(auction.getWinningBid(), body.getLong("winningbid"));
+        assertEquals(auction.getWinningAccount(), body.getString("winningaccount"));
+        assertEquals(auction.getWinningTimestamp(), body.getString("winningtimestamp"));
+        assertEquals(auction.getTokenId(), body.getString("tokenid"));
+        assertEquals(auction.getAuctionAccountId(), body.getString("auctionaccountid"));
+        assertEquals(auction.getEndTimestamp(), body.getString("endtimestamp"));
         assertEquals(auction.getReserve(), body.getLong("reserve"));
         assertEquals(auction.getStatus(), body.getString("status"));
-        assertEquals(auction.getWinningtxid(), body.getString("winningtxid"));
-        assertEquals(auction.getWinningtxhash(), body.getString("winningtxhash"));
-        assertEquals(auction.getTokenmetadata(), body.getString("tokenmetadata"));
-        assertEquals(auction.getMinimumbid(), body.getLong("minimumbid"));
-        assertEquals(auction.getStarttimestamp(), body.getString("starttimestamp"));
-        assertEquals(auction.getTransfertxid(), body.getString("transfertxid"));
-        assertEquals(auction.getTransfertxhash(), body.getString("transfertxhash"));
+        assertEquals(auction.getWinningTxId(), body.getString("winningtxid"));
+        assertEquals(auction.getWinningTxHash(), body.getString("winningtxhash"));
+        assertEquals(auction.getTokenMetadata(), body.getString("tokenmetadata"));
+        assertEquals(auction.getMinimumBid(), body.getLong("minimumbid"));
+        assertEquals(auction.getStartTimestamp(), body.getString("starttimestamp"));
+        assertEquals(auction.getTransferTxId(), body.getString("transfertxid"));
+        assertEquals(auction.getTransferTxHash(), body.getString("transfertxhash"));
         assertEquals(auction.isActive(), body.getBoolean("active"));
         assertEquals(auction.isPending(), body.getBoolean("pending"));
         assertEquals(auction.isClosed(), body.getBoolean("closed"));
         assertEquals(auction.getWinnerCanBid(), body.getBoolean("winnerCanBid"));
         assertEquals(auction.isTransferPending(), body.getBoolean("transferPending"));
         assertEquals(auction.isEnded(), body.getBoolean("ended"));
-        assertEquals(auction.getTokenowneraccount(), body.getString("tokenowneraccount"));
-        assertEquals(auction.getTransferstatus(), body.getString("transferstatus"));
+        assertEquals(auction.getTokenOwnerAccount(), body.getString("tokenowneraccount"));
+        assertEquals(auction.getTransferStatus(), body.getString("transferstatus"));
         assertEquals(auction.getTitle(), body.getString("title"));
         assertEquals(auction.getDescription(), body.getString("description"));
-        assertEquals(auction.getCreateauctiontxid(), body.getString("createauctiontxid"));
+        assertEquals(auction.getCreateAuctionTxId(), body.getString("createauctiontxid"));
     }
 
-    protected void failingAdminAPITest(VertxTestContext testContext, String url, JsonObject body) {
-        failingAdminAPITest(testContext, url, body, apiKey);
+    protected void failingAdminApiTest(VertxTestContext testContext, String url, JsonObject body) {
+        failingAdminApiTest(testContext, url, body, apiKey);
     }
-    protected void failingAdminAPITest(VertxTestContext testContext, String url, JsonObject body, String key) {
+    protected void failingAdminApiTest(VertxTestContext testContext, String url, JsonObject body, String key) {
         webClient.post(8082, "localhost", url)
                 .putHeader("x-api-key", key)
                 .as(BodyCodec.jsonObject())
@@ -316,15 +317,15 @@ public class AbstractIntegrationTest {
                 })));
     }
 
-    protected void deployServerAndClient(PostgreSQLContainer postgreSQLContainer, Vertx vertx, VertxTestContext testContext, AbstractVerticle verticle) throws Throwable {
-        postgreSQLContainer.start();
-        migrate(postgreSQLContainer);
+    protected void deployServerAndClient(PostgreSQLContainer<?> postgreSqlContainer, Vertx vertx, VertxTestContext testContext, AbstractVerticle verticle) throws Throwable {
+        postgreSqlContainer.start();
+        migrate(postgreSqlContainer);
 
-        DeploymentOptions options = getVerticleDeploymentOptions(postgreSQLContainer.getJdbcUrl(), postgreSQLContainer.getUsername(), postgreSQLContainer.getPassword());
+        DeploymentOptions options = getVerticleDeploymentOptions(postgreSqlContainer.getJdbcUrl(), postgreSqlContainer.getUsername(), postgreSqlContainer.getPassword());
         options.getConfig().put("topicId", "ATopicId");
         vertx.deployVerticle(verticle, options, testContext.completing());
 
-        WebClientOptions webClientOptions = new WebClientOptions();
+        var webClientOptions = new WebClientOptions();
         webClientOptions.setSsl(true).setVerifyHost(true).setTrustAll(true);
         this.webClient = WebClient.create(vertx, webClientOptions);
 

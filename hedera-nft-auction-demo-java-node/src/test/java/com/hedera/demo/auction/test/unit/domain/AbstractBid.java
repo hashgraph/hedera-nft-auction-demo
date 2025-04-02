@@ -17,7 +17,7 @@ public abstract class AbstractBid {
     String refundStatus = Bid.REFUND_ISSUED;
 
     Bid testBidObject() {
-        Bid bid = new Bid();
+        var bid = new Bid();
 
         bid.setTimestamp(timestamp);
         bid.setAuctionid(auctionid);

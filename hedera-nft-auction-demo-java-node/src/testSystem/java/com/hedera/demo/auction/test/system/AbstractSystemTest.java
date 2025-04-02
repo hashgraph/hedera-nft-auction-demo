@@ -1,12 +1,6 @@
 package com.hedera.demo.auction.test.system;
 
-import com.hedera.demo.auction.app.CreateAuction;
-import com.hedera.demo.auction.app.CreateAuctionAccount;
-import com.hedera.demo.auction.app.CreateToken;
-import com.hedera.demo.auction.app.CreateTokenTransfer;
-import com.hedera.demo.auction.app.CreateTopic;
-import com.hedera.demo.auction.app.EasySetup;
-import com.hedera.demo.auction.app.HederaClient;
+import com.hedera.demo.auction.app.*;
 import com.hedera.demo.auction.app.api.RequestCreateAuction;
 import com.hedera.demo.auction.app.api.RequestCreateAuctionAccount;
 import com.hedera.demo.auction.app.api.RequestCreateAuctionAccountKey;
@@ -17,29 +11,12 @@ import com.hedera.demo.auction.app.domain.Validator;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.demo.auction.app.repository.ValidatorsRepository;
-import com.hedera.hashgraph.sdk.AccountBalance;
-import com.hedera.hashgraph.sdk.AccountBalanceQuery;
-import com.hedera.hashgraph.sdk.AccountCreateTransaction;
-import com.hedera.hashgraph.sdk.AccountId;
-import com.hedera.hashgraph.sdk.AccountInfo;
-import com.hedera.hashgraph.sdk.AccountInfoQuery;
-import com.hedera.hashgraph.sdk.Client;
-import com.hedera.hashgraph.sdk.Hbar;
-import com.hedera.hashgraph.sdk.Key;
-import com.hedera.hashgraph.sdk.KeyList;
-import com.hedera.hashgraph.sdk.PrivateKey;
-import com.hedera.hashgraph.sdk.TokenCreateTransaction;
-import com.hedera.hashgraph.sdk.TokenId;
-import com.hedera.hashgraph.sdk.TokenInfo;
-import com.hedera.hashgraph.sdk.TokenInfoQuery;
-import com.hedera.hashgraph.sdk.TopicId;
-import com.hedera.hashgraph.sdk.TopicInfo;
-import com.hedera.hashgraph.sdk.TopicInfoQuery;
-import com.hedera.hashgraph.sdk.TransactionReceipt;
-import com.hedera.hashgraph.sdk.TransactionResponse;
+import com.hedera.hashgraph.sdk.*;
 import io.github.cdimascio.dotenv.Dotenv;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 import lombok.extern.log4j.Log4j2;
 import org.flywaydb.core.Flyway;
 import org.junit.platform.commons.util.StringUtils;
@@ -48,10 +25,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 import javax.annotation.Nullable;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -65,7 +39,7 @@ public abstract class AbstractSystemTest {
 
     protected static Network testContainersNetwork = Network.newNetwork();
 
-    protected PostgreSQLContainer postgres;
+    protected PostgreSQLContainer<?> postgres;
     protected AuctionsRepository auctionsRepository;
     protected BidsRepository bidsRepository;
     protected ValidatorsRepository validatorsRepository;
@@ -91,6 +65,7 @@ public abstract class AbstractSystemTest {
     protected static TopicId topicId;
     @Nullable
     protected static TopicInfo topicInfo;
+    protected final static String POSTGRES_CONTAINER_VERSION = "postgres:17.4";
 
     protected static final String tokenName = "TestToken";
     protected static final String symbol = "TestSymbol";
@@ -108,15 +83,15 @@ public abstract class AbstractSystemTest {
     protected final String endTimeStamp = "0000.12313";
 
     protected boolean transferOnWin = true;
-    protected final PrivateKey auctionAccountKey = PrivateKey.generate();
+    protected final PrivateKey auctionAccountKey = PrivateKey.generateED25519();
 
     protected long maxBid = 0;
     protected AccountId maxBidAccount;
 
     protected Map<String, AccountId> biddingAccounts = new HashMap<>();
-    protected final PrivateKey bidAccountKey = PrivateKey.generate();
+    protected final PrivateKey bidAccountKey = PrivateKey.generateED25519();
 
-    protected PrivateKey masterKey = PrivateKey.fromString(dotenv.get("MASTER_KEY"));
+    protected PrivateKey masterKey = PrivateKey.fromString(Objects.requireNonNull(dotenv.get("MASTER_KEY")));
     protected final String filesPath = Optional.ofNullable(dotenv.get("FILES_LOCATION")).orElse("./sample-files");
 
     // test token owner
@@ -152,48 +127,52 @@ public abstract class AbstractSystemTest {
     }
 
     protected static JsonObject jsonThresholdKey(int threshold, String pubKey1) {
-        JsonArray keys = new JsonArray();
-        JsonObject key1 = new JsonObject().put("key", pubKey1);
+        JsonArray keys = JsonArray.EMPTY_JSON_ARRAY;
+        JsonObject key1 = Json.createObjectBuilder().add("key", pubKey1).build();
         keys.add(key1);
 
-        JsonObject keyList = new JsonObject();
-        keyList.put("keys", keys);
-        keyList.put("threshold", threshold);
+        JsonObject keyList = Json.createObjectBuilder()
+            .add("keys", keys)
+            .add("threshold", threshold)
+            .build();
 
-        JsonObject key = new JsonObject();
-        key.put("keylist", keyList);
+        JsonObject key = Json.createObjectBuilder()
+            .add("keylist", keyList)
+            .build();
         return key;
     }
 
     protected static JsonObject jsonThresholdKey(int threshold, String pubKey1, String pubKey2) {
-        JsonArray keys = new JsonArray();
-        JsonObject key1 = new JsonObject().put("key", pubKey1);
-        JsonObject key2 = new JsonObject().put("key", pubKey2);
-        keys.add(key1).add(key2);
+        JsonArray keys = JsonArray.EMPTY_JSON_ARRAY;
+        JsonObject key1 = Json.createObjectBuilder().add("key", pubKey1).build();
+        JsonObject key2 = Json.createObjectBuilder().add("key", pubKey2).build();
+        keys.add(key1);
+        keys.add(key2);
 
-        JsonObject keyList = new JsonObject();
-        keyList.put("keys", keys);
-        keyList.put("threshold", threshold);
+        JsonObject keyList = Json.createObjectBuilder()
+            .add("keys", keys)
+            .add("threshold", threshold)
+            .build();
 
-        JsonObject key = new JsonObject();
-        key.put("keylist", keyList);
+        JsonObject key = Json.createObjectBuilder()
+            .add("keylist", keyList)
+            .build();
 
         return key;
     }
 
     protected void createAccountAndGetInfo(JsonObject keys) throws Exception {
-        RequestCreateAuctionAccount requestCreateAuctionAccount = new RequestCreateAuctionAccount();
+        var requestCreateAuctionAccount = new RequestCreateAuctionAccount();
         requestCreateAuctionAccount.initialBalance = initialBalance;
         JsonObject keyList = keys.getJsonObject("keylist");
         JsonArray keysArray = keyList.getJsonArray("keys");
-        for (Object keyObject : keysArray) {
-            JsonObject key = JsonObject.mapFrom(keyObject);
-            RequestCreateAuctionAccountKey requestCreateAuctionAccountKey = new RequestCreateAuctionAccountKey();
-            requestCreateAuctionAccountKey.key = key.getString("key");
+        for (JsonValue keyObject : keysArray) {
+            var requestCreateAuctionAccountKey = new RequestCreateAuctionAccountKey();
+            requestCreateAuctionAccountKey.key = keyObject.asJsonObject().getString("key");
             requestCreateAuctionAccount.keylist.keys.add(requestCreateAuctionAccountKey);
         }
 
-        requestCreateAuctionAccount.keylist.threshold = keyList.getInteger("threshold");
+        requestCreateAuctionAccount.keylist.threshold = keyList.asJsonObject().getInt("threshold");
         auctionAccountId = createAuctionAccount.create(requestCreateAuctionAccount);
         getAccountInfo();
     }
@@ -206,11 +185,11 @@ public abstract class AbstractSystemTest {
 
     protected void createTokenAndGetInfo(String symbol) throws Exception {
         // simulating creation from a different account
-        tokenOwnerPrivateKey = PrivateKey.generate();
+        tokenOwnerPrivateKey = PrivateKey.generateED25519();
 
         // create a temp account for the token creation
         TransactionResponse accountCreateResponse = new AccountCreateTransaction()
-                .setKey(tokenOwnerPrivateKey.getPublicKey())
+                .setKeyWithoutAlias(tokenOwnerPrivateKey.getPublicKey())
                 .setInitialBalance(Hbar.from(100))
                 .execute(hederaClient.client());
 
@@ -252,7 +231,7 @@ public abstract class AbstractSystemTest {
         if (auctionAccountId == null) {
             throw new Exception("auctionAccountId is null");
         }
-        RequestTokenTransfer requestTokenTransfer = new RequestTokenTransfer();
+        var requestTokenTransfer = new RequestTokenTransfer();
         requestTokenTransfer.tokenid = tokenId.toString();
         requestTokenTransfer.auctionaccountid = auctionAccountId.toString();
         createTokenTransfer.transfer(requestTokenTransfer, tokenOwnerAccountId, tokenOwnerPrivateKey);
@@ -289,7 +268,7 @@ public abstract class AbstractSystemTest {
             throw new Exception("topicId is null");
         }
 
-        RequestCreateAuction requestCreateAuction = new RequestCreateAuction();
+        var requestCreateAuction = new RequestCreateAuction();
         requestCreateAuction.tokenid = tokenId.toString();
         requestCreateAuction.auctionaccountid = auctionAccountId.toString();
         requestCreateAuction.reserve = reserve;
@@ -300,7 +279,7 @@ public abstract class AbstractSystemTest {
         createAuction.create(requestCreateAuction);
     }
 
-    protected void migrate(PostgreSQLContainer postgres) {
+    protected void migrate(PostgreSQLContainer<?> postgres) {
         String postgresUrl = postgres.getJdbcUrl();
         String postgresUser = postgres.getUsername();
         String postgresPassword = postgres.getPassword();
@@ -319,13 +298,13 @@ public abstract class AbstractSystemTest {
         if (auctionAccountId == null) {
             throw new Exception("auctionAccountId is null");
         }
-        RequestTokenTransfer requestTokenTransfer = new RequestTokenTransfer();
+        var requestTokenTransfer = new RequestTokenTransfer();
         requestTokenTransfer.tokenid = tokenId.toString();
         requestTokenTransfer.auctionaccountid = auctionAccountId.toString();
         createTokenTransfer.transfer(requestTokenTransfer, tokenOwnerAccountId, tokenOwnerPrivateKey);
     }
 
-    protected Callable<Boolean> auctionsCountMatches(int matchCount, javax.json.JsonObject assertion) {
+    protected Callable<Boolean> auctionsCountMatches(int matchCount, JsonObject assertion) {
         log.info("asserting {}", assertion.toString());
         return auctionsCountMatches(matchCount);
     }
@@ -342,11 +321,11 @@ public abstract class AbstractSystemTest {
             AccountBalance accountBalance = new AccountBalanceQuery()
                     .setAccountId(auctionAccountId)
                     .execute(hederaClient.client());
-
+//TODO: Get balance from mirror
             return accountBalance.token.containsKey(tokenId);
         };
     }
-    protected Callable<Boolean> tokenAssociated(javax.json.JsonObject  assertion) {
+    protected Callable<Boolean> tokenAssociated(JsonObject  assertion) {
         log.info("asserting {}", assertion.toString());
         return tokenAssociated();
     }
@@ -362,6 +341,7 @@ public abstract class AbstractSystemTest {
             AccountBalance balance = new AccountBalanceQuery()
                     .setAccountId(auctionAccountId)
                     .execute(hederaClient.client());
+//TODO: Get balance from mirror
             if (balance.token.containsKey(tokenId)) {
                 if (balance.token.get(tokenId) == 0) {
                     return true;
@@ -371,12 +351,13 @@ public abstract class AbstractSystemTest {
         };
     }
 
-    protected Callable<Boolean> tokenTransferred(javax.json.JsonObject assertion, AccountId accountId) {
+    protected Callable<Boolean> tokenTransferred(JsonObject assertion, AccountId accountId) {
         return () -> {
             log.info("asserting {}", assertion.toString());
             AccountBalance balance = new AccountBalanceQuery()
                     .setAccountId(accountId)
                     .execute(hederaClient.client());
+//TODO: Get balance from mirror
             if (balance.token.containsKey(tokenId)) {
                 if (balance.token.get(tokenId) != 0) {
                     return true;
@@ -386,12 +367,13 @@ public abstract class AbstractSystemTest {
         };
     }
 
-    protected Callable<Boolean> tokenNotTransferred(javax.json.JsonObject assertion, AccountId accountId) {
+    protected Callable<Boolean> tokenNotTransferred(JsonObject assertion, AccountId accountId) {
         return () -> {
             log.info("asserting {}", assertion.toString());
             AccountBalance balance = new AccountBalanceQuery()
                     .setAccountId(accountId)
                     .execute(hederaClient.client());
+//TODO: Get balance from mirror
             if (balance.token.containsKey(tokenId)) {
                 if (balance.token.get(tokenId) == 0) {
                     return true;
@@ -404,33 +386,33 @@ public abstract class AbstractSystemTest {
     private static String getAuctionValue(Auction auctionSource, String parameter) {
         switch (parameter) {
             case "winningAccount":
-                return auctionSource.getWinningaccount();
+                return auctionSource.getWinningAccount();
             case "winningBid":
-                return auctionSource.getWinningbid().toString();
+                return auctionSource.getWinningBid().toString();
             case "endTimestamp":
-                return auctionSource.getEndtimestamp();
+                return auctionSource.getEndTimestamp();
             case "lastConsensusTimestamp":
-                return auctionSource.getLastconsensustimestamp();
+                return auctionSource.getLastConsensusTimestamp();
             case "startTimestamp":
-                return auctionSource.getStarttimestamp();
+                return auctionSource.getStartTimestamp();
             case "status":
                 return auctionSource.getStatus();
             case "transferTxHash":
-                return auctionSource.getTransfertxhash();
+                return auctionSource.getTransferTxHash();
             case "transferTxId":
-                return auctionSource.getTransfertxid();
+                return auctionSource.getTransferTxId();
             case "winningTxHash":
-                return auctionSource.getWinningtxhash();
+                return auctionSource.getWinningTxHash();
             case "winningTxId":
-                return auctionSource.getWinningtxid();
+                return auctionSource.getWinningTxId();
             case "tokenOwnerAccountId":
-                return auctionSource.getTokenowneraccount();
+                return auctionSource.getTokenOwnerAccount();
             default:
                 return "";
         }
     }
 
-    protected Callable<Boolean> auctionValueAssert(javax.json.JsonObject assertion, String parameter, String value, String condition) {
+    protected Callable<Boolean> auctionValueAssert(JsonObject assertion, String parameter, String value, String condition) {
         return () -> {
             log.info("asserting {}", assertion.toString());
             Auction testAuction = auctionsRepository.getAuction(auction.getId());
@@ -441,7 +423,7 @@ public abstract class AbstractSystemTest {
         };
     }
 
-    protected Callable<Boolean> checkBalance(javax.json.JsonObject assertion, String account, String condition) {
+    protected Callable<Boolean> checkBalance(JsonObject assertion, String account, String condition) {
         return () -> {
             log.info("asserting {}", assertion);
             AccountId accountId;
@@ -495,49 +477,34 @@ public abstract class AbstractSystemTest {
     }
     private static boolean checkCondition(String value, String condition, String valueToCheck) {
         log.info("Checking condition {} on value {} against {}", condition, value, valueToCheck);
-        if (condition.equals("equals")) {
-            return (value.equals(valueToCheck));
-        } else if (condition.equals("notnull")) {
-            return (StringUtils.isNotBlank(valueToCheck));
-        } else if (condition.equals("isnull")) {
-            return (StringUtils.isBlank(valueToCheck));
-        } else if (condition.equals("true")) {
-            return (valueToCheck.equals("true"));
-        } else if (condition.equals("false")) {
-            return (valueToCheck.equals("false"));
-        }
+        return switch (condition) {
+            case "equals" -> value.equals(valueToCheck);
+            case "notnull" -> StringUtils.isNotBlank(valueToCheck);
+            case "isnull" -> StringUtils.isBlank(valueToCheck);
+            case "true" -> valueToCheck.equals("true");
+            case "false" -> valueToCheck.equals("false");
+            default -> false;
+        };
 
-        return false;
     }
 
     private static String getBidValue(Bid bidSource, String parameter) {
-        switch (parameter) {
-            case "bidderAccountId":
-                return bidSource.getBidderaccountid();
-            case "status":
-                return bidSource.getStatus();
-            case "timestamp":
-                return bidSource.getTimestamp();
-            case "transactionHash":
-                return bidSource.getTransactionhash();
-            case "transactionId":
-                return bidSource.getTransactionid();
-            case "refundTxHash":
-                return bidSource.getRefundtxhash();
-            case "refundTxId":
-                return bidSource.getRefundtxid();
-            case "bidAmount":
-                return String.valueOf(bidSource.getBidamount());
-            case "refundstatus":
-                return bidSource.getRefundstatus();
-            case "refunded":
-                return bidSource.isRefunded() ? "true" : "false";
-            default:
-                return "";
-        }
+        return switch (parameter) {
+            case "bidderAccountId" -> bidSource.getBidderaccountid();
+            case "status" -> bidSource.getStatus();
+            case "timestamp" -> bidSource.getTimestamp();
+            case "transactionHash" -> bidSource.getTransactionhash();
+            case "transactionId" -> bidSource.getTransactionid();
+            case "refundTxHash" -> bidSource.getRefundtxhash();
+            case "refundTxId" -> bidSource.getRefundtxid();
+            case "bidAmount" -> String.valueOf(bidSource.getBidamount());
+            case "refundstatus" -> bidSource.getRefundstatus();
+            case "refunded" -> bidSource.isRefunded() ? "true" : "false";
+            default -> "";
+        };
     }
 
-    protected Callable<Boolean> bidValueAssert(javax.json.JsonObject assertion, String bidAccount, long bidAmount, String parameter, String value, String condition) throws SQLException {
+    protected Callable<Boolean> bidValueAssert(JsonObject assertion, String bidAccount, long bidAmount, String parameter, String value, String condition) throws SQLException {
         return () -> {
             log.info("asserting {}", assertion);
             Bid testBid = bidsRepository.getBid(auction.getId(), bidAccount, bidAmount);
@@ -554,7 +521,7 @@ public abstract class AbstractSystemTest {
         return () -> {
             log.info("checking validator {} {} {}", name, url, publicKey);
             List<Validator> validators = validatorsRepository.getValidatorsList();
-            if (validators.size() == 0) {
+            if (validators.isEmpty()) {
                 return false;
             }
             Validator validator = validators.get(0);
@@ -564,11 +531,10 @@ public abstract class AbstractSystemTest {
         };
     }
 
-    protected Callable<Boolean> validatorsAssertCount(int count) {
+    protected Callable<Boolean> validatorsAssertCount() {
         return () -> {
-            log.info("checking validator count {}", count);
             List<Validator> validators = validatorsRepository.getValidatorsList();
-            return validators.size() == count;
+            return validators.isEmpty();
         };
     }
 
@@ -577,7 +543,7 @@ public abstract class AbstractSystemTest {
         String[] pubKeys = new String[keyList.size()];
 
         for (int i=0; i < keyList.size(); i++) {
-            Key pubKey = (Key)accountKeysWithin[i];
+            var pubKey = (Key)accountKeysWithin[i];
             pubKeys[i] = pubKey.toString();
         }
 

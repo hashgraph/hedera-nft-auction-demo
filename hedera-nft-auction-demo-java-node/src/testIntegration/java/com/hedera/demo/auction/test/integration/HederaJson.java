@@ -1,5 +1,6 @@
 package com.hedera.demo.auction.test.integration;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.Var;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -10,7 +11,7 @@ public final class HederaJson {
 
     }
     public static JsonObject tokenTransferTransaction(String fromAccount, String toAccount, String token, long amount) {
-        JsonObject transaction = new JsonObject();
+        var transaction = new JsonObject();
         transaction.put("charged_tx_fee", 84650);
         transaction.put("consensus_timestamp", "1617786661.662353000");
         transaction.put("max_fee", "100000000");
@@ -26,7 +27,7 @@ public final class HederaJson {
 
         @Var JsonObject transfer = tokenTransfer(fromAccount, token, -amount);
 
-        JsonArray tokenTransfers = new JsonArray();
+        var tokenTransfers = new JsonArray();
         tokenTransfers.add(transfer);
 
         transfer = tokenTransfer(toAccount, token, amount);
@@ -38,7 +39,7 @@ public final class HederaJson {
     }
 
     public static JsonObject tokenTransfer(String account, String token, long amount) {
-        JsonObject transfer = new JsonObject();
+        var transfer = new JsonObject();
         transfer.put("amount", amount);
         transfer.put("token_id", token);
         transfer.put("account", account);
@@ -47,7 +48,7 @@ public final class HederaJson {
     }
 
     public static JsonObject transfer(String account, long amount) {
-        JsonObject transfer = new JsonObject();
+        var transfer = new JsonObject();
         transfer.put("amount", amount);
         transfer.put("account", account);
 
@@ -55,7 +56,7 @@ public final class HederaJson {
     }
 
     public static JsonObject singleTransaction() {
-        JsonObject transaction = new JsonObject();
+        var transaction = new JsonObject();
         transaction.put("charged_tx_fee", 84650);
         transaction.put("consensus_timestamp", "1617786661.662353000");
         transaction.put("max_fee", "100000000");
@@ -73,7 +74,7 @@ public final class HederaJson {
     }
 
     public static JsonObject transactionWithTransfers(String from, String to, long amount) {
-        JsonObject transaction = new JsonObject();
+        var transaction = new JsonObject();
         transaction.put("charged_tx_fee", 84650);
         transaction.put("consensus_timestamp", "1617786661.662353000");
         transaction.put("max_fee", "100000000");
@@ -90,7 +91,7 @@ public final class HederaJson {
         JsonObject transferFrom = transfer(from, -amount);
         JsonObject transferTo = transfer(to, amount);
 
-        JsonArray transfers = new JsonArray();
+        var transfers = new JsonArray();
         transfers.add(transferFrom);
         transfers.add(transferTo);
 
@@ -100,14 +101,15 @@ public final class HederaJson {
     }
 
     public static JsonObject mirrorTransactions(JsonObject transaction) {
-        JsonObject response = new JsonObject();
-        JsonArray transactions = new JsonArray();
+        var response = new JsonObject();
+        var transactions = new JsonArray();
         transactions.add(transaction);
 
         response.put("transactions", transactions);
         return response;
     }
 
+    @CanIgnoreReturnValue
     public static JsonObject mirrorTransactions(JsonObject transaction, JsonObject currentMirrorTransactions) {
         // adds a transaction to the existing array of transactions
         currentMirrorTransactions.getJsonArray("transactions").add(transaction);

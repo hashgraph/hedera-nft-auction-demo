@@ -7,7 +7,7 @@ import com.hedera.demo.auction.app.SqlConnectionManager;
 import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.demo.auction.app.repository.ValidatorsRepository;
-import com.hedera.demo.auction.test.system.AbstractAPITester;
+import com.hedera.demo.auction.test.system.AbstractApiTester;
 import com.hedera.hashgraph.sdk.PrivateKey;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -23,27 +23,31 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.time.Duration;
+import java.util.List;
 
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith({VertxExtension.class})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class AdminAPISystemTest extends AbstractAPITester {
+public class AdminApiSystemTest extends AbstractApiTester {
 
     App app = new App();
     String publicKey;
     String publicKey2;
 
-    AdminAPISystemTest() throws Exception {
+    AdminApiSystemTest() throws Exception {
         super();
     }
 
     @BeforeAll
     public void beforeAll() {
-        postgres = (PostgreSQLContainer) new PostgreSQLContainer("postgres:12.6").withNetworkAliases("pgdb").withNetwork(testContainersNetwork);
+        postgres = new PostgreSQLContainer<>("POSTGRES_CONTAINER_VERSION");
+        postgres.setNetworkAliases(List.of("pgdb"));
+        postgres.setNetwork(testContainersNetwork);
         postgres.start();
         migrate(postgres);
-        SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+        var connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
         validatorsRepository = new ValidatorsRepository(connectionManager);
@@ -62,15 +66,25 @@ public class AdminAPISystemTest extends AbstractAPITester {
         topicId = createTopic.create();
         hederaClient.setMirrorProvider("hedera");
 
+        assertNotNull(topicId);
         new ManageValidator().setTopicId(topicId.toString());
 
-        app.overrideEnv(hederaClient, /*restAPI= */ true, "adminapikey", /*auctionNode= */ true, topicId.toString(), postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword(), /*transferOnWin= */true, masterKey.toString());
+        app.setRestApi(true);
+        app.setHederaClient(hederaClient);
+        app.setAdminApiKey("adminapikey");
+        app.setAuctionNode(true);
+        app.setTopicId(topicId.toString());
+        app.setPostgresUrl(postgres.getJdbcUrl());
+        app.setPostgresUser(postgres.getUsername());
+        app.setPostgresUrl(postgres.getPassword());
+        app.setTransferOnWin(true);
+        app.setMasterKey(masterKey.toString());
         app.runApp();
-        Thread.sleep(5000);
+        Thread.sleep(Duration.ofSeconds(5));
 
-        @Var PrivateKey privateKey = PrivateKey.generate();
+        @Var PrivateKey privateKey = PrivateKey.generateED25519();
         publicKey = privateKey.getPublicKey().toString();
-        privateKey = PrivateKey.generate();
+        privateKey = PrivateKey.generateED25519();
         publicKey2 = privateKey.getPublicKey().toString();
     }
 
@@ -78,39 +92,39 @@ public class AdminAPISystemTest extends AbstractAPITester {
     public void afterEach() throws InterruptedException {
         app.stop();
         // allow 5s for app to close
-        Thread.sleep(5000);
+        Thread.sleep(Duration.ofSeconds(5));
     }
 
     @Test
     public void testAdminRestAPITopic(VertxTestContext testContext) {
-        adminRestAPITopic(testContext, "localhost");
+        adminRestApiTopic(testContext, "localhost");
     }
     @Test
     public void testAdminRestAPIToken(VertxTestContext testContext) {
-        adminRestAPIToken(testContext, "localhost");
+        adminRestApiToken(testContext, "localhost");
     }
 
     @Test
     public void testAdminRestAPIAuctionAccount(VertxTestContext testContext) {
-        adminRestAPIAuctionAccount(testContext, "localhost");
+        adminRestApiAuctionAccount(testContext, "localhost");
     }
 
     @Test
     public void testAdminRestAPITransferToken(VertxTestContext testContext) throws Exception {
-        adminRestAPITransferToken(testContext, "localhost");
+        adminRestApiTransferToken(testContext, "localhost");
     }
 
     @Test
     public void testAdminRestAPIAuction(VertxTestContext testContext) throws Exception {
-        adminRestAPIAuction(testContext, "localhost");
+        adminRestApiAuction(testContext, "localhost");
     }
 
     @Test
     public void testValidatorCreate(VertxTestContext testContext) throws Exception {
-        JsonObject validatorJson = new JsonObject();
-        JsonArray validators = new JsonArray();
+        var validatorJson = new JsonObject();
+        var validators = new JsonArray();
 
-        JsonObject validator = new JsonObject();
+        var validator = new JsonObject();
         validator.put("operation", "add");
         validator.put("name", "validatorName");
         validator.put("url", "https://hedera.com");
@@ -119,7 +133,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
         validators.add(validator);
         validatorJson.put("validators", validators);
 
-        validatorAPICall(testContext, "localhost", validatorJson);
+        validatorApiCall(testContext, "localhost", validatorJson);
 
         await()
             .with()
@@ -133,10 +147,10 @@ public class AdminAPISystemTest extends AbstractAPITester {
     @Test
     public void testValidatorUpdate(VertxTestContext testContext) throws Exception {
 
-        String publicKey1 = PrivateKey.generate().getPublicKey().toString();
-        String publicKey2 = PrivateKey.generate().getPublicKey().toString();
+        String publicKey1 = PrivateKey.generateED25519().getPublicKey().toString();
+        String publicKey2 = PrivateKey.generateED25519().getPublicKey().toString();
 
-        JsonArray validatorsJson = new JsonArray();
+        var validatorsJson = new JsonArray();
         @Var JsonObject validatorJson = new JsonObject();
         validatorJson.put("name", "validatorName1");
         validatorJson.put("url", "https://hedera1.com");
@@ -147,9 +161,9 @@ public class AdminAPISystemTest extends AbstractAPITester {
         validatorsRepository.manage(validatorsJson);
 
         validatorJson = new JsonObject();
-        JsonArray validators = new JsonArray();
+        var validators = new JsonArray();
 
-        JsonObject updateValidator = new JsonObject();
+        var updateValidator = new JsonObject();
         updateValidator.put("operation", "update");
         updateValidator.put("nameToUpdate", "validatorName1");
         updateValidator.put("name", "validatorName2");
@@ -160,7 +174,7 @@ public class AdminAPISystemTest extends AbstractAPITester {
 
         validatorJson.put("validators", validators);
 
-        validatorAPICall(testContext, "localhost", validatorJson);
+        validatorApiCall(testContext, "localhost", validatorJson);
 
         await()
                 .with()
@@ -174,9 +188,9 @@ public class AdminAPISystemTest extends AbstractAPITester {
     @Test
     public void testValidatorDelete(VertxTestContext testContext) throws Exception {
 
-        String publicKey1 = PrivateKey.generate().getPublicKey().toString();
+        String publicKey1 = PrivateKey.generateED25519().getPublicKey().toString();
 
-        JsonArray validatorsJson = new JsonArray();
+        var validatorsJson = new JsonArray();
         @Var JsonObject validatorJson = new JsonObject();
         validatorJson.put("name", "validatorName1");
         validatorJson.put("url", "https://hedera1.com");
@@ -187,9 +201,9 @@ public class AdminAPISystemTest extends AbstractAPITester {
         validatorsRepository.manage(validatorsJson);
 
         validatorJson = new JsonObject();
-        JsonArray validators = new JsonArray();
+        var validators = new JsonArray();
 
-        JsonObject deleteValidator = new JsonObject();
+        var deleteValidator = new JsonObject();
         deleteValidator.put("operation", "delete");
         deleteValidator.put("name", "validatorName1");
 
@@ -197,14 +211,14 @@ public class AdminAPISystemTest extends AbstractAPITester {
 
         validatorJson.put("validators", validators);
 
-        validatorAPICall(testContext, "localhost", validatorJson);
+        validatorApiCall(testContext, "localhost", validatorJson);
 
         await()
                 .with()
                 .pollInterval(Duration.ofSeconds(5))
                 .await()
                 .atMost(Duration.ofSeconds(30))
-                .until(validatorsAssertCount(0));
+                .until(validatorsAssertCount());
 
     }
 }

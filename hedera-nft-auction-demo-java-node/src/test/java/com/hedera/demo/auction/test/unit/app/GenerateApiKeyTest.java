@@ -10,7 +10,7 @@ public class GenerateApiKeyTest {
     @Test
     public void testGenerateApiKey() {
 
-        GenerateApiKey generateApiKey = new GenerateApiKey();
+        var generateApiKey = new GenerateApiKey();
         String apiKey = generateApiKey.generate();
 
         assertNotNull(apiKey);

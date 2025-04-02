@@ -29,19 +29,21 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class GetBidsIntegrationTest extends AbstractIntegrationTest {
 
-    private PostgreSQLContainer postgres;
+    private PostgreSQLContainer<?> postgres;
     private AuctionsRepository auctionsRepository;
     private BidsRepository bidsRepository;
     Vertx vertx;
 
     @BeforeAll
     public void beforeAll(VertxTestContext testContext) throws Throwable {
-        this.postgres = new PostgreSQLContainer("postgres:12.6");
+        this.postgres = new PostgreSQLContainer<>("POSTGRES_CONTAINER_VERSION");
+        postgres.start();
+        migrate(postgres);
         this.vertx = Vertx.vertx();
 
         deployServerAndClient(postgres, this.vertx, testContext, new ApiVerticle());
 
-        SqlConnectionManager connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
+        var connectionManager = new SqlConnectionManager(this.postgres.getJdbcUrl(), this.postgres.getUsername(), this.postgres.getPassword());
         this.auctionsRepository = new AuctionsRepository(connectionManager);
         this.bidsRepository = new BidsRepository(connectionManager);
     }
@@ -76,7 +78,7 @@ public class GetBidsIntegrationTest extends AbstractIntegrationTest {
                 .as(BodyCodec.buffer())
                 .send(testContext.succeeding(response -> testContext.verify(() -> {
                     assertNotNull(response);
-                    JsonArray body = new JsonArray(response.body());
+                    var body = new JsonArray(response.body());
                     assertNotNull(body);
                     assertEquals(3, body.size());
                     verifyBid(bid1, body.getJsonObject(1));

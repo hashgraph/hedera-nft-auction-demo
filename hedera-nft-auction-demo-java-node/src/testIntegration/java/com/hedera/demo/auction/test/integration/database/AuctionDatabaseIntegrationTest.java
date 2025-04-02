@@ -31,16 +31,16 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
     public AuctionDatabaseIntegrationTest() {
     }
 
-    private PostgreSQLContainer postgres;
+    private PostgreSQLContainer<?> postgres;
     private AuctionsRepository auctionsRepository;
     private Auction auction;
 
     @BeforeAll
     public void beforeAll() {
-        PostgreSQLContainer<?> postgres = new PostgreSQLContainer("postgres:12.6");
+        PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("POSTGRES_CONTAINER_VERSION");
         postgres.start();
         migrate(postgres);
-        SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+        var connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
         this.postgres = postgres;
     }
@@ -72,33 +72,33 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void setAuctionActiveTest() throws Exception {
 
-        auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
+        auctionsRepository.setActive(auction, auction.getTokenOwnerAccount(), auction.getStartTimestamp());
         Auction getAuction = auctionsRepository.getAuction(auction.getId());
 
         assertEquals(Auction.ACTIVE, getAuction.getStatus());
-        assertEquals(auction.getStarttimestamp(), getAuction.getStarttimestamp());
+        assertEquals(auction.getStartTimestamp(), getAuction.getStartTimestamp());
 
     }
 
     @Test
     public void setAuctionTransferringTest() throws Exception {
 
-        auctionsRepository.setTransferPending(auction.getTokenid());
+        auctionsRepository.setTransferPending(auction.getTokenId());
         Auction getAuction = auctionsRepository.getAuction(auction.getId());
 
-        assertEquals(Auction.TRANSFER_STATUS_PENDING, getAuction.getTransferstatus());
+        assertEquals(Auction.TRANSFER_STATUS_PENDING, getAuction.getTransferStatus());
         assertTrue(getAuction.isTransferPending());
     }
 
     @Test
     public void setTransferTransactionTest() throws Exception {
-        auctionsRepository.setTransferPending(auction.getTokenid());
-        auctionsRepository.setTransferInProgress(auction.getTokenid());
-        auctionsRepository.setTransferTransactionByTokenId(auction.getTokenid(), auction.getTransfertxid(), auction.getTransfertxhash());
+        auctionsRepository.setTransferPending(auction.getTokenId());
+        auctionsRepository.setTransferInProgress(auction.getTokenId());
+        auctionsRepository.setTransferTransactionByTokenId(auction.getTokenId(), auction.getTransferTxId(), auction.getTransferTxHash());
         Auction getAuction = auctionsRepository.getAuction(auction.getId());
 
-        assertEquals(auction.getTransfertxid(), getAuction.getTransfertxid());
-        assertEquals(auction.getTransfertxhash(), getAuction.getTransfertxhash());
+        assertEquals(auction.getTransferTxId(), getAuction.getTransferTxId());
+        assertEquals(auction.getTransferTxHash(), getAuction.getTransferTxHash());
         assertTrue(getAuction.isEnded());
         assertTrue(getAuction.isTransferComplete());
     }
@@ -106,7 +106,7 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void setClosedByAuctionTest() throws Exception {
 
-        auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
+        auctionsRepository.setActive(auction, auction.getTokenOwnerAccount(), auction.getStartTimestamp());
         auction = auctionsRepository.setClosed(auction);
         assertEquals(Auction.CLOSED, auction.getStatus());
 
@@ -117,7 +117,7 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void setClosedByAuctionIdTest() throws Exception {
 
-        auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
+        auctionsRepository.setActive(auction, auction.getTokenOwnerAccount(), auction.getStartTimestamp());
         auctionsRepository.setClosed(auction.getId());
 
         Auction getAuction = auctionsRepository.getAuction(auction.getId());
@@ -127,22 +127,22 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void saveTest() throws Exception {
 
-        auction.setLastconsensustimestamp("updatedTimestamp");
-        auction.setWinningaccount("updatedWinningAccount");
-        auction.setWinningbid(100L);
-        auction.setWinningtimestamp("updatedWinningTimestamp");
-        auction.setWinningtxid("updatedWinningTxId");
-        auction.setWinningtxhash("updatedWinningTxHash");
+        auction.setLastConsensusTimestamp("updatedTimestamp");
+        auction.setWinningAccount("updatedWinningAccount");
+        auction.setWinningBid(100L);
+        auction.setWinningTimestamp("updatedWinningTimestamp");
+        auction.setWinningTxId("updatedWinningTxId");
+        auction.setWinningTxHash("updatedWinningTxHash");
 
         auctionsRepository.save(auction);
 
         Auction getAuction = auctionsRepository.getAuction(auction.getId());
-        assertEquals(auction.getLastconsensustimestamp(), getAuction.getLastconsensustimestamp());
-        assertEquals(auction.getWinningaccount(), getAuction.getWinningaccount());
-        assertEquals(auction.getWinningbid(), getAuction.getWinningbid());
-        assertEquals(auction.getWinningtimestamp(), getAuction.getWinningtimestamp());
-        assertEquals(auction.getWinningtxid(), getAuction.getWinningtxid());
-        assertEquals(auction.getWinningtxhash(), getAuction.getWinningtxhash());
+        assertEquals(auction.getLastConsensusTimestamp(), getAuction.getLastConsensusTimestamp());
+        assertEquals(auction.getWinningAccount(), getAuction.getWinningAccount());
+        assertEquals(auction.getWinningBid(), getAuction.getWinningBid());
+        assertEquals(auction.getWinningTimestamp(), getAuction.getWinningTimestamp());
+        assertEquals(auction.getWinningTxId(), getAuction.getWinningTxId());
+        assertEquals(auction.getWinningTxHash(), getAuction.getWinningTxHash());
 
     }
 
@@ -194,27 +194,27 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
 
             assertEquals(ids[i], auctionToTest.getId());
 
-            assertEquals(testAuction.getWinningbid(), auctionToTest.getWinningbid());
-            assertEquals(testAuction.getWinningaccount(), auctionToTest.getWinningaccount());
-            assertEquals(testAuction.getWinningtimestamp(), auctionToTest.getWinningtimestamp());
-            assertEquals(testAuction.getTokenid(), auctionToTest.getTokenid());
-            assertEquals(testAuction.getAuctionaccountid(), auctionToTest.getAuctionaccountid());
-            assertEquals(testAuction.getEndtimestamp(), auctionToTest.getEndtimestamp());
+            assertEquals(testAuction.getWinningBid(), auctionToTest.getWinningBid());
+            assertEquals(testAuction.getWinningAccount(), auctionToTest.getWinningAccount());
+            assertEquals(testAuction.getWinningTimestamp(), auctionToTest.getWinningTimestamp());
+            assertEquals(testAuction.getTokenId(), auctionToTest.getTokenId());
+            assertEquals(testAuction.getAuctionAccountId(), auctionToTest.getAuctionAccountId());
+            assertEquals(testAuction.getEndTimestamp(), auctionToTest.getEndTimestamp());
             assertEquals(testAuction.getReserve(), auctionToTest.getReserve());
             assertEquals(testAuction.getStatus(), auctionToTest.getStatus());
             assertEquals(testAuction.getWinnerCanBid(), auctionToTest.getWinnerCanBid());
-            assertEquals(testAuction.getWinningtxid(), auctionToTest.getWinningtxid());
-            assertEquals(testAuction.getWinningtxhash(), auctionToTest.getWinningtxhash());
-            assertEquals(testAuction.getTokenmetadata(), auctionToTest.getTokenmetadata());
-            assertEquals(testAuction.getMinimumbid(), auctionToTest.getMinimumbid());
-            assertEquals(testAuction.getStarttimestamp(), auctionToTest.getStarttimestamp());
-            assertEquals(testAuction.getTransfertxid(), auctionToTest.getTransfertxid());
-            assertEquals(testAuction.getTransfertxhash(), auctionToTest.getTransfertxhash());
-            assertEquals(testAuction.getLastconsensustimestamp(), auctionToTest.getLastconsensustimestamp());
-            assertEquals(testAuction.getTransferstatus(), auctionToTest.getTransferstatus());
+            assertEquals(testAuction.getWinningTxId(), auctionToTest.getWinningTxId());
+            assertEquals(testAuction.getWinningTxHash(), auctionToTest.getWinningTxHash());
+            assertEquals(testAuction.getTokenMetadata(), auctionToTest.getTokenMetadata());
+            assertEquals(testAuction.getMinimumBid(), auctionToTest.getMinimumBid());
+            assertEquals(testAuction.getStartTimestamp(), auctionToTest.getStartTimestamp());
+            assertEquals(testAuction.getTransferTxId(), auctionToTest.getTransferTxId());
+            assertEquals(testAuction.getTransferTxHash(), auctionToTest.getTransferTxHash());
+            assertEquals(testAuction.getLastConsensusTimestamp(), auctionToTest.getLastConsensusTimestamp());
+            assertEquals(testAuction.getTransferStatus(), auctionToTest.getTransferStatus());
             assertEquals(testAuction.getTitle(), auctionToTest.getTitle());
             assertEquals(testAuction.getDescription(), auctionToTest.getDescription());
-            assertEquals(testAuction.getCreateauctiontxid(), auctionToTest.getCreateauctiontxid());
+            assertEquals(testAuction.getCreateAuctionTxId(), auctionToTest.getCreateAuctionTxId());
         }
     }
     @Test
@@ -252,35 +252,35 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void getAuctionByAccountIdTest() throws Exception {
-        Auction testAuction = auctionsRepository.getAuction(auction.getAuctionaccountid());
+        Auction testAuction = auctionsRepository.getAuction(auction.getAuctionAccountId());
         assertNotNull(testAuction);
-        assertNotNull(testAuction.getAuctionaccountid());
-        assertEquals(auction.getAuctionaccountid(), testAuction.getAuctionaccountid());
+        assertNotNull(testAuction.getAuctionAccountId());
+        assertEquals(auction.getAuctionAccountId(), testAuction.getAuctionAccountId());
     }
 
     @Test
     public void setTransferInProgressTest() throws Exception {
-        auctionsRepository.setTransferPending(auction.getTokenid());
-        auctionsRepository.setTransferInProgress(auction.getTokenid());
+        auctionsRepository.setTransferPending(auction.getTokenId());
+        auctionsRepository.setTransferInProgress(auction.getTokenId());
         Auction testAuction = auctionsRepository.getAuction(auction.getId());
-        assertEquals(Auction.TRANSFER_STATUS_IN_PROGRESS, testAuction.getTransferstatus());
+        assertEquals(Auction.TRANSFER_STATUS_IN_PROGRESS, testAuction.getTransferStatus());
     }
 
     @Test
     public void setTransferTransactionByAuctionIdTest() throws Exception {
-        auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
+        auctionsRepository.setActive(auction, auction.getTokenOwnerAccount(), auction.getStartTimestamp());
         auctionsRepository.setClosed(auction.getId());
         auctionsRepository.setTransferTransactionByAuctionId(auction.getId(), "transactionId", "transactionHash");
         Auction testAuction = auctionsRepository.getAuction(auction.getId());
-        assertEquals(Auction.TRANSFER_STATUS_COMPLETE, testAuction.getTransferstatus());
-        assertEquals("transactionId", testAuction.getTransfertxid());
-        assertEquals("transactionHash", testAuction.getTransfertxhash());
+        assertEquals(Auction.TRANSFER_STATUS_COMPLETE, testAuction.getTransferStatus());
+        assertEquals("transactionId", testAuction.getTransferTxId());
+        assertEquals("transactionHash", testAuction.getTransferTxHash());
         assertEquals(Auction.ENDED, testAuction.getStatus());
     }
 
     @Test
     public void setEndedTest() throws Exception {
-        auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
+        auctionsRepository.setActive(auction, auction.getTokenOwnerAccount(), auction.getStartTimestamp());
         auctionsRepository.setEnded(auction.getId());
         Auction testAuction = auctionsRepository.getAuction(auction.getId());
         assertEquals(Auction.ENDED, testAuction.getStatus());
@@ -288,10 +288,10 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void auctionMustBeNotBeClosedBeforeActive() throws Exception {
-        auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
+        auctionsRepository.setActive(auction, auction.getTokenOwnerAccount(), auction.getStartTimestamp());
         auctionsRepository.setClosed(auction.getId());
         try {
-            auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
+            auctionsRepository.setActive(auction, auction.getTokenOwnerAccount(), auction.getStartTimestamp());
         } catch (Exception e) {
             assertEquals("auction cannot be set to ACTIVE, it's not PENDING", e.getMessage());
         }
@@ -301,10 +301,10 @@ class AuctionDatabaseIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void auctionMustBeNotBeEndedBeforeActive() throws Exception {
-        auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
+        auctionsRepository.setActive(auction, auction.getTokenOwnerAccount(), auction.getStartTimestamp());
         auctionsRepository.setEnded(auction.getId());
         try {
-            auctionsRepository.setActive(auction, auction.getTokenowneraccount(), auction.getStarttimestamp());
+            auctionsRepository.setActive(auction, auction.getTokenOwnerAccount(), auction.getStartTimestamp());
         } catch (Exception e) {
             assertEquals("auction cannot be set to ACTIVE, it's not PENDING", e.getMessage());
         }

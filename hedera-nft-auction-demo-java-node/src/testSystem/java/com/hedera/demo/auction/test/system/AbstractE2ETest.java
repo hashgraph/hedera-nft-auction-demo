@@ -27,7 +27,7 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
     }
 
     protected Buffer createTokenBody() {
-        RequestCreateToken requestCreateToken = new RequestCreateToken();
+        var requestCreateToken = new RequestCreateToken();
         requestCreateToken.setName(tokenName);
         requestCreateToken.setSymbol(symbol);
         requestCreateToken.decimals = decimals;
@@ -37,8 +37,8 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
     }
 
     protected Buffer createAuctionAccountBody() {
-        RequestCreateAuctionAccount requestCreateAuctionAccount = new RequestCreateAuctionAccount();
-        RequestCreateAuctionAccountKey requestCreateAuctionAccountKey = new RequestCreateAuctionAccountKey();
+        var requestCreateAuctionAccount = new RequestCreateAuctionAccount();
+        var requestCreateAuctionAccountKey = new RequestCreateAuctionAccountKey();
         requestCreateAuctionAccountKey.key = hederaClient.operatorPublicKey().toString();
         requestCreateAuctionAccount.keylist.keys.add(requestCreateAuctionAccountKey);
         requestCreateAuctionAccount.keylist.threshold = 1;
@@ -49,7 +49,7 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
     }
 
     protected Buffer createTokenTransferBody() {
-        RequestTokenTransfer requestTokenTransfer = new RequestTokenTransfer();
+        var requestTokenTransfer = new RequestTokenTransfer();
         if (tokenId != null) {
             requestTokenTransfer.tokenid = tokenId.toString();
         }
@@ -61,7 +61,7 @@ public abstract class AbstractE2ETest extends AbstractSystemTest {
     }
 
     protected Buffer createAuctionBody() {
-        RequestCreateAuction requestCreateAuction = new RequestCreateAuction();
+        var requestCreateAuction = new RequestCreateAuction();
         if (auctionAccountId != null) {
             requestCreateAuction.auctionaccountid = auctionAccountId.toString();
         }

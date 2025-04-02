@@ -6,7 +6,7 @@ import com.hedera.demo.auction.app.repository.AuctionsRepository;
 import com.hedera.demo.auction.app.repository.BidsRepository;
 import com.hedera.demo.auction.app.subscriber.TopicSubscriber;
 import com.hedera.demo.auction.test.system.AbstractSystemTest;
-import io.vertx.core.json.JsonObject;
+import jakarta.json.JsonObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,10 +31,10 @@ public class AuctionCreateSystemTest extends AbstractSystemTest {
 
     @BeforeAll
     public void beforeAll() {
-        postgres = new PostgreSQLContainer("postgres:12.6");
+        postgres = new PostgreSQLContainer<>("POSTGRES_CONTAINER_VERSION");
         postgres.start();
         migrate(postgres);
-        SqlConnectionManager connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
+        var connectionManager = new SqlConnectionManager(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
         auctionsRepository = new AuctionsRepository(connectionManager);
         bidsRepository = new BidsRepository(connectionManager);
     }
@@ -59,10 +59,10 @@ public class AuctionCreateSystemTest extends AbstractSystemTest {
 
         hederaClient.setMirrorProvider("hedera");
         assertNotNull(topicId);
-        TopicSubscriber topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, validatorsRepository, topicId, 5000, auctionAccountKey.toString(), /*runOnce= */ false);
+        var topicSubscriber = new TopicSubscriber(hederaClient, auctionsRepository, validatorsRepository, topicId, 5000, auctionAccountKey.toString(), /*runOnce= */ false);
         topicSubscriber.setSkipReadinessWatcher();
         // start the thread to monitor bids
-        Thread t = new Thread(topicSubscriber);
+        var t = new Thread(topicSubscriber);
         t.start();
 
         // wait for auction to appear in database
@@ -79,19 +79,19 @@ public class AuctionCreateSystemTest extends AbstractSystemTest {
         List<Auction> auctionsList = auctionsRepository.getAuctionsList();
 
         assertEquals(1, auctionsList.size());
-        auction = auctionsList.get(0);
+        auction = auctionsList.getFirst();
 
         assertNotNull(tokenId);
-        assertEquals(tokenId.toString(), auction.getTokenid());
+        assertEquals(tokenId.toString(), auction.getTokenId());
         assertNotNull(auctionAccountId);
-        assertEquals(auctionAccountId.toString(), auction.getAuctionaccountid());
-        assertNotNull(auction.getEndtimestamp());
+        assertEquals(auctionAccountId.toString(), auction.getAuctionAccountId());
+        assertNotNull(auction.getEndTimestamp());
         assertEquals(auctionReserve, auction.getReserve());
-        assertEquals("0.0", auction.getLastconsensustimestamp());
+        assertEquals("0.0", auction.getLastConsensusTimestamp());
         assertEquals(winnerCanBid, auction.getWinnerCanBid());
-        assertNull(auction.getTokenmetadata());
-        assertEquals(0, auction.getWinningbid());
-        assertEquals(minimumBid, auction.getMinimumbid());
+        assertNull(auction.getTokenMetadata());
+        assertEquals(0, auction.getWinningBid());
+        assertEquals(minimumBid, auction.getMinimumBid());
 
         // wait for token to be associated to auction account
         await()

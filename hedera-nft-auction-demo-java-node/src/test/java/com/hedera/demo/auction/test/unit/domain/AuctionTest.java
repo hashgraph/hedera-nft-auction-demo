@@ -20,7 +20,7 @@ public class AuctionTest extends AbstractAuction {
     @Test
     public void testAuctionStatuses() {
 
-        Auction auction = new Auction();
+        var auction = new Auction();
         // active
         auction.setStatus(Auction.ACTIVE);
         assertFalse(auction.isEnded());
@@ -128,7 +128,7 @@ public class AuctionTest extends AbstractAuction {
     @Test
     public void testAuctionFromJson() {
         JsonObject auctionJson = testAuctionObject().toJson();
-        Auction auction = new Auction(auctionJson);
+        var auction = new Auction(auctionJson);
         verifyAuctionContents(auction);
     }
 }

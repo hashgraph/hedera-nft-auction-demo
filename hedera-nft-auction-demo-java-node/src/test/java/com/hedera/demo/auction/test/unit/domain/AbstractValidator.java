@@ -10,7 +10,7 @@ public abstract class AbstractValidator {
     String publicKey = "publicKey";
 
     Validator testValidatorObject() {
-        Validator validator = new Validator();
+        var validator = new Validator();
 
         validator.setName(name);
         validator.setUrl(url);

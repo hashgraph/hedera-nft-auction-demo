@@ -27,7 +27,7 @@ public class HederaMirrorMappingTransactionIntegrationTest extends AbstractMirro
         Checkpoint responsesReceived = testContext.checkpoint(1);
 
         var webQuery = webClient
-            .get(mirrorURL, "/api/v1/transactions")
+            .get(mirrorUrl, "/api/v1/transactions")
             .ssl(false)
             .addQueryParam("transactiontype", "CRYPTOTRANSFER")
             .addQueryParam("order", "asc")

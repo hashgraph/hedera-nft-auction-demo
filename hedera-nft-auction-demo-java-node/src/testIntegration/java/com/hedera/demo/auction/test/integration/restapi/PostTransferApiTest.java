@@ -16,16 +16,18 @@ import org.testcontainers.containers.PostgreSQLContainer;
 
 @ExtendWith(VertxExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class PostTransferAPITest extends AbstractIntegrationTest {
+public class PostTransferApiTest extends AbstractIntegrationTest {
 
-    private PostgreSQLContainer postgres;
+    private PostgreSQLContainer<?> postgres;
     Vertx vertx;
     private JsonObject transfer;
     private final static String url = "/v1/admin/transfer";
 
     @BeforeAll
     public void beforeAll(VertxTestContext testContext) throws Throwable {
-        this.postgres = new PostgreSQLContainer("postgres:12.6");
+        this.postgres = new PostgreSQLContainer<>("POSTGRES_CONTAINER_VERSION");
+      this.postgres.start();
+      migrate(postgres);
         this.vertx = Vertx.vertx();
 
         deployServerAndClient(postgres, this.vertx, testContext, new AdminApiVerticle());
@@ -44,17 +46,17 @@ public class PostTransferAPITest extends AbstractIntegrationTest {
 
     @Test
     public void createTransferWithoutKey(VertxTestContext testContext) {
-      failingAdminAPITest(testContext, url, new JsonObject(), "");
+      failingAdminApiTest(testContext, url, new JsonObject(), "");
     }
 
     @Test
     public void createTransferWithoutBody(VertxTestContext testContext) {
-      failingAdminAPITest(testContext, url, new JsonObject());
+      failingAdminApiTest(testContext, url, new JsonObject());
     }
 
   private void createTransferWithMissingData(VertxTestContext testContext, String attributeToRemove) {
       transfer.remove(attributeToRemove);
-      failingAdminAPITest(testContext, url, transfer);
+      failingAdminApiTest(testContext, url, transfer);
     }
 
     @Test
@@ -69,7 +71,7 @@ public class PostTransferAPITest extends AbstractIntegrationTest {
 
     private void createTransferWithLongString(VertxTestContext testContext, String attributeToUpdate) {
       transfer.put(attributeToUpdate, VERY_LONG_STRING);
-      failingAdminAPITest(testContext, url, transfer);
+      failingAdminApiTest(testContext, url, transfer);
     }
 
     @Test
@@ -85,13 +87,13 @@ public class PostTransferAPITest extends AbstractIntegrationTest {
     @Test
     public void createTransferWithInvalidTokenId(VertxTestContext testContext) {
       transfer.put("tokenid", "abcdef");
-      failingAdminAPITest(testContext, url, transfer);
+      failingAdminApiTest(testContext, url, transfer);
     }
 
   @Test
   public void createTransferWithInvalidAccountId(VertxTestContext testContext) {
     transfer.put("auctionaccountid", "abcdef");
-    failingAdminAPITest(testContext, url, transfer);
+    failingAdminApiTest(testContext, url, transfer);
   }
 
     private void basicTransfer() {

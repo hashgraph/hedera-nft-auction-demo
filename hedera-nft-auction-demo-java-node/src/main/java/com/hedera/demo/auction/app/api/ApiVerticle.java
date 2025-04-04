@@ -99,11 +99,11 @@ public class ApiVerticle extends AbstractVerticle {
         Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.GET));
         Set<String> allowedHeaders = new LinkedHashSet<>(Arrays.asList("content-type"));
         router.route()
-                .handler(BodyHandler.create())
-                .handler(CorsHandler.create("*")
-                        .allowedMethods(allowedMethods)
-                        .allowedHeaders(allowedHeaders))
-                .failureHandler(ApiVerticle::failureHandler);
+            .handler(CorsHandler.create("*")
+                .allowedMethods(allowedMethods)  // Allowed methods
+                .allowedHeaders(allowedHeaders))  // Allowed headers
+            .handler(BodyHandler.create())  // Body handler after CORS
+            .failureHandler(ApiVerticle::failureHandler);
 
         SchemaRouter schemaRouter = SchemaRouter.create(vertx, new SchemaRouterOptions());
         SchemaParser schemaParser = SchemaParser.createOpenAPI3SchemaParser(schemaRouter);

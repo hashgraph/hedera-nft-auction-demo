@@ -65,11 +65,11 @@ public class AdminApiVerticle extends AbstractVerticle {
         Set<String> allowedHeaders = new LinkedHashSet<>(Arrays.asList("content-type"));
 
         router.route()
-                .handler(BodyHandler.create())
-                .handler(CorsHandler.create("*")
-                        .allowedMethods(allowedMethods)
-                        .allowedHeaders(allowedHeaders))
-                .failureHandler(AdminApiVerticle::failureHandler);
+            .handler(CorsHandler.create("*")
+                .allowedMethods(allowedMethods)  // Allowed methods for POST
+                .allowedHeaders(allowedHeaders))  // Allowed headers
+            .handler(BodyHandler.create())  // Body handler after CORS
+            .failureHandler(AdminApiVerticle::failureHandler);
 
         router.post("/v1/admin/topic")
             .handler(authenticationHandler)

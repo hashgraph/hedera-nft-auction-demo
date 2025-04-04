@@ -15,13 +15,14 @@ import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
+import org.jooq.impl.QOM.ForeignKeyRule;
 
 
 /**
- * A class modelling foreign key relationships and constraints of tables in 
+ * A class modelling foreign key relationships and constraints of tables in
  * public.
  */
-@SuppressWarnings({ "all", "unchecked", "rawtypes" })
+@SuppressWarnings({ "all", "unchecked", "rawtypes", "this-escape" })
 public class Keys {
 
     // -------------------------------------------------------------------------
@@ -39,5 +40,5 @@ public class Keys {
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
-    public static final ForeignKey<Record, Record> BIDS__BIDS_AUCTIONID_FKEY = Internal.createForeignKey(Bids.BIDS, DSL.name("bids_auctionid_fkey"), new TableField[] { Bids.BIDS.AUCTIONID }, Keys.AUCTIONS_PKEY, new TableField[] { Auctions.AUCTIONS.ID }, true);
+    public static final ForeignKey<Record, Record> BIDS__BIDS_AUCTIONID_FKEY = Internal.createForeignKey(Bids.BIDS, DSL.name("bids_auctionid_fkey"), new TableField[] { Bids.BIDS.AUCTIONID }, Keys.AUCTIONS_PKEY, new TableField[] { Auctions.AUCTIONS.ID }, true, ForeignKeyRule.NO_ACTION, ForeignKeyRule.NO_ACTION);
 }

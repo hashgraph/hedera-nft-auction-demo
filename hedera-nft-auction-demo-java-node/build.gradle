@@ -267,7 +267,7 @@ flyway {
     locations = ['filesystem:src/main/resources/migrations']
 }
 
-/* jooq {
+jooq {
     configurations {
         main {
             generationTool {
@@ -329,7 +329,7 @@ flyway {
                     // Define the output location for the generated classes
                     target {
                         packageName = 'com.hedera.demo.auction.app.db'
-                        directory = "$projectDir/src/jooq-gen/main"
+                        directory = "$projectDir/src/main/java/com/hedera/demo/auction/app/db"
                     }
 
                     // Define the generation strategy
@@ -338,7 +338,7 @@ flyway {
             }
         }
     }
-} */
+} 
 
 tasks.register('runNode', JavaExec) {
     group = "Execution"

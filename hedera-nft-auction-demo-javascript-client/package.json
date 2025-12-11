@@ -11,7 +11,7 @@
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/line-clamp": "^0.4.4",
     "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
+    "@testing-library/react": "16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "autoprefixer": "^10.4.22",
     "dayjs": "^1.11.19",
